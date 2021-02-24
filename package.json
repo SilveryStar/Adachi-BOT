@@ -1,0 +1,23 @@
+{
+  "name": "adachi-bot",
+  "version": "1.0.3",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node app.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "lowdb": "^1.0.0",
+    "oicq": "^1.13.2",
+    "puppeteer": "^7.0.4"
+  },
+  "devDependencies": {
+    "js-yaml": "^4.0.0",
+    "md5": "^2.3.0",
+    "request": "^2.88.2"
+  }
+}

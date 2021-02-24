@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>genshin-card</title>
+	<script src="../../data/js/vue.min.js"></script>
+</head>
+<body>
+
+<div id="app">
+	<upper
+		:uid="uid"
+		:nickname="nickname"
+		:level="level"
+		:stats="stats"
+		:exploration="explorations"
+	></upper>
+	<div class="avatars-box" v-for="avatars in avatarsData">
+		<middle
+			:avatars="avatars"
+		></middle>
+	</div>
+	<bottom></bottom>
+</div>
+
+<template id="upper">
+	<div>
+		<div class="background">
+			<img src="../../data/image/module/upper.png" alt="ERROR"/>
+		</div>
+		<img :src="randPicture" alt="ERROR" class="profile">
+		<div class="base-info">
+			<p class="nickname">{{nickname}}</p>
+			<p class="uid">UID: {{uid}}</p>
+		</div>
+		<div class="levels">
+			<p class="adventure-level">{{level}}级</p>
+			<p class="world-level">世界等级{{worldLevel}}</p>
+		</div>
+		<div class="detail detail-left">
+			<p>{{stats.active_day_number}}</p>
+			<p>{{stats.achievement_number}}</p>
+			<p>{{stats.anemoculus_number}}</p>
+			<p>{{stats.geoculus_number}}</p>
+			<p>{{stats.avatar_number}}</p>
+		</div>
+		<div class="detail detail-right">
+			<p>{{stats.common_chest_number}}</p>
+			<p>{{stats.exquisite_chest_number}}</p>
+			<p>{{stats.precious_chest_number}}</p>
+			<p>{{stats.luxurious_chest_number}}</p>
+			<p>{{stats.spiral_abyss}}</p>
+		</div>
+		<div class="exploration dragonspine-exp">{{percentage(0)}}</div>
+		<div class="exploration dragonspine-level">{{expLevel(0)}}</div>
+		<div class="exploration mondstadt-exp">{{percentage(1)}}</div>
+		<div class="exploration mondstadt-level">{{expLevel(1)}}</div>
+		<div class="exploration liyue-exp">{{percentage(2)}}</div>
+		<div class="exploration liyue-level">{{expLevel(2)}}</div>
+		<img src="../../data/image/module/package.png" alt="ERROR">
+	</div>
+</template>
+
+<template id="avatar-element">
+	<div>
+		<div class="element">
+			<img src="../../data/image/module/element.png" alt="ERROR"/>
+			<img class="profile" :src="avatar.image" alt="ERROR"/>
+			<div class="avatar-info">
+				<p class="name">{{avatar.name}}</p>
+				<div>
+					<p class="level">Lv.{{avatar.level}}</p>
+					<p class="fetter">❤{{avatar.fetter}}</p>
+				</div>
+			</div>
+		</div>
+	</div>
+</template>
+
+<template id="middle">
+	<div>
+		<div class="box">
+			<div class="avatar" v-for="avatar in avatars">
+				<avatar-element
+					:avatar="avatar"
+				></avatar-element>
+			</div>
+			<img class="backdrop" src="../../data/image/module/middle.png" alt="ERROR"/>
+		</div>
+	</div>
+</template>
+
+<template id="bottom">
+	<div>
+		<div class="background">
+			<img src="../../data/image/module/bottom.png" alt="ERROR"/>
+		</div>
+	</div>
+</template>
+
+<script>
+	const upper = {
+		template: '#upper',
+		props: {
+		    uid: Number,
+			nickname: String,
+			level: Number,
+            exploration: {
+		        type: Object,
+	            default() {
+                    return [
+	                    {
+	                        level: 0,
+                            exploration_percentage: 0
+	                    }
+                    ];
+                }
+            },
+			stats: {
+		        type: Object,
+				default() {
+		            return {
+                        active_day_number: 0,
+                        achievement_number: 0,
+                        anemoculus_number: 0,
+                        geoculus_number: 0,
+                        avatar_number: 0,
+                        common_chest_number: 0,
+                        exquisite_chest_number: 0,
+                        precious_chest_number: 0,
+                        luxurious_chest_number: 0,
+                        spiral_abyss: "0-0"
+		            };
+				}
+			}
+        },
+		computed: {
+		    randPicture() {
+		        let rand = Math.floor(Math.random()*30);
+		        return "../../data/image/avatar/" + rand + ".png";
+		    },
+            worldLevel() {
+				if (this.level >= 55) {
+				    return 8;
+				} else if (this.level >= 50) {
+				    return 7;
+				} else if (this.level >= 45) {
+				    return 6;
+				} else if (this.level >= 40) {
+				    return 5;
+				} else if (this.level >= 35) {
+				    return 4;
+				} else if (this.level >= 30) {
+				    return 3;
+				} else if (this.level >= 25) {
+				    return 2;
+				} else if (this.level >= 20) {
+				    return 1;
+				} else {
+				    return 0;
+				}
+            },
+			percentage() {
+		        return type => {
+		            if (this.exploration[type]) {
+                        return this.exploration[type].exploration_percentage / 10 + "%";
+                    }
+		        }
+			},
+            expLevel() {
+                return type => {
+                    if (this.exploration[type]) {
+                        return "Lv." + this.exploration[type].level;
+                    }
+                }
+            }
+		}
+	};
+
+	const AvatarElement = {
+	    template: '#avatar-element',
+		props: {
+	        avatar: {
+	            type: Object,
+		        default() {
+	                return {
+                        fetter: 0,
+		                level: 0,
+                        image: "",
+		                name: ""
+	                }
+		        }
+	        }
+		}
+	}
+
+	const middle = {
+        template: '#middle',
+		props: {
+            avatars: {
+                type: Array
+            }
+		},
+		components: {
+            AvatarElement
+		}
+	};
+
+	const bottom = {
+        template: '#bottom'
+	};
+
+	new Vue({
+		el: '#app',
+		data: {
+		    retcode: 1,
+			nickname: "",
+            uid: 0,
+			level: 0,
+            protagonist: {},
+            stats: {},
+            avatarsData: [],
+            explorations: [],
+            avatar_number: 0
+		},
+		components: {
+            upper,
+			middle,
+			bottom
+		},
+        methods: {
+	        cutArray(array, step) {
+	            let newArray = [];
+                let index = 0, len = array.length;
+                while (index < len) {
+	                newArray.push(array.slice(index, index += step));
+	            }
+	            return newArray;
+	        },
+            readJSON(file, callback) {
+	            fetch(file).then(res => {
+	                return res.json().then(data => {
+	                    callback(data);
+	                })
+	            })
+            }
+	    },
+        mounted() {
+		    this.readJSON('../../data/cache/card.json', res => {
+                this.nickname = res.nickname;
+                this.uid = res.uid;
+                this.level = res.level;
+
+                let avatarsList = res.avatars;
+                this.stats = res.stats;
+                this.avatar_number = avatarsList.length;
+                this.explorations = res.explorations;
+                this.protagonist = avatarsList[this.avatar_number-1];
+
+                avatarsList.sort((x, y) => {
+                    if (x.level === y.level) {
+                        return y.fetter - x.fetter;
+                    } else {
+                        return y.level - x.level;
+                    }
+                });
+                this.avatarsData = this.cutArray(avatarsList, 5);
+		    });
+		}
+	});
+</script>
+
+</body>
+</html>
+
+<style>
+	* {
+		margin: 0;
+        padding: 0;
+	}
+
+	html {
+        width: 934px;
+        height: 100%;
+        font-family: GenshinUsedFont, monospace;
+	}
+
+	img {
+        display: block;
+	}
+
+    .profile {
+        position: absolute;
+        top: 51px;
+        left: 62px;
+        width: 190px;
+    }
+
+    .base-info {
+	    position: absolute;
+	    text-align: center;
+        top: 110px;
+	    left: 252px;
+        width: 270px;
+    }
+
+    .base-info .nickname {
+	    color: rgb(64, 64, 64);
+	    font-size: 35px;
+    }
+
+    .base-info .uid {
+	    color: rgb(0, 176, 80);
+	    font-size: 23px;
+    }
+
+    .levels {
+        position: absolute;
+        text-align: center;
+        color: rgb(50, 50, 50);
+	    top: 106px;
+	    left: 658px;
+    }
+
+    .levels .adventure-level {
+		font-size: 43px;
+    }
+
+    .levels .world-level {
+		font-size: 23px;
+    }
+
+    .detail {
+        position: absolute;
+        color: rgb(64, 64, 64);
+	    font-size: 32px;
+        line-height: 14.02mm;
+	    top: 287px;
+    }
+
+    .detail-left {
+		left: 285px;
+    }
+
+    .detail-right {
+	    left: 754px;
+    }
+
+    .exploration {
+        position: absolute;
+	    color: rgb(255, 255, 255);
+	    font-size: 22px;
+        top: 817px;
+        width: 74px;
+        text-align: center;
+    }
+
+    .dragonspine-exp {
+        left: 102px;
+    }
+
+    .dragonspine-level {
+	    left: 214px;
+    }
+
+    .mondstadt-exp {
+	    left: 373px;
+    }
+
+    .mondstadt-level {
+        left: 488px;
+    }
+
+    .liyue-exp {
+	    left: 654px;
+    }
+
+    .liyue-level {
+	    left: 767px;
+    }
+
+    .box {
+	    position: relative;
+    }
+
+    .avatar {
+	    display: inline-block;
+	    height: 243px;
+	    margin-right: 0.2cm;
+        margin-bottom: 3px;
+    }
+
+    .avatar:first-child {
+        margin-left: 54px;
+    }
+
+    .backdrop {
+	    position: absolute;
+        margin-top: -260px;
+	    z-index: -1;
+    }
+
+    .element {
+	    position: relative;
+    }
+
+    .element .profile {
+	    position: relative;
+        z-index: 1;
+        width: 133px;
+        top: -218px;
+        left: 13px;
+    }
+
+    .element .avatar-info {
+	    position: relative;
+	    font-size: 3px;
+	    z-index: 1;
+	    float: left;
+        top: -208px;
+	    left: 34px;
+        width: 91px;
+        text-align: center;
+    }
+
+    .avatar-info p {
+	    display: inline-block;
+    }
+
+    .avatar-info .name {
+	    font-size: 20px;
+        color: rgb(64, 64, 64);
+    }
+
+    .avatar-info .level {
+        color: rgb(0, 176, 80);
+	    font-size: 16px;
+        margin-right: 2px;
+    }
+
+    .avatar-info .fetter {
+	    color: rgb(231, 13, 177);
+	    font-size: 16px;
+        margin-left: 2px;
+    }
+
+	@font-face {
+        font-family: GenshinUsedFont;
+        src: url("../../data/font/HYWenHei-85W.ttf");
+    }
+</style>
