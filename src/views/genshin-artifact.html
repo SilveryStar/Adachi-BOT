@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>genshin-artifact</title>
+	<script src="../../data/js/vue.min.js"></script>
+</head>
+<body>
+
+<div id="app">
+	<div>
+		<img class="background" src="../../data/image/module/artifact.png" alt="ERROR"/>
+		<div class="content">
+			<p class="name">{{base.name}}</p>
+			<p class="slot">{{Slot}}</p>
+			<div class="main">
+				<p class="property">{{statName}}</p>
+				<p class="data">{{statData}}</p>
+			</div>
+			<img class="rarity" src="../../data/image/module/rarity.png" alt="ERROR"/>
+			<img class="image" :src="artifactImage" alt="ERROR"/>
+			<p class="level">+{{base.level}}</p>
+			<ul class="list" v-for="v in data">
+				<li class="element">{{v.name}}+{{v.data}}</li>
+			</ul>
+		</div>
+	</div>
+</div>
+
+<script>
+	new Vue({
+		el: '#app',
+        data: {
+            base: {},
+	        data: [],
+            mainStat: ""
+        },
+		computed: {
+		    Slot() {
+		        let slotName = ['生之花', '死之羽', '时之沙', '空之杯', '理之冠'];
+		        return slotName[this.base.slot];
+		    },
+			statName() {
+                const propertyName = ['生命值', '生命值', '防御力', '防御力', '元素充能效率', '元素精通', '攻击力', '攻击力', '暴击伤害', '暴击率', '物理伤害加成', '风元素伤害加成', '冰元素伤害加成', '雷元素伤害加成', '岩元素伤害加成', '水元素伤害加成', '火元素伤害加成', '治疗加成'];
+				return propertyName[this.mainStat];
+            },
+            statData() {
+		        if (this.mainStat === 0) {
+		            return this.base.level === 0 ? 717 : 4780;
+		        } else if (this.mainStat === 6) {
+		            return this.base.level === 0 ? 47 : 311;
+		        } else if (this.mainStat === 5) {
+                    return this.base.level === 0 ? 28 : 187;
+		        } else if (this.mainStat === 4) {
+                    return this.base.level === 0 ? '8.7%' : '51.8%';
+                } else if (this.mainStat === 8) {
+		            return this.base.level === 0 ? '9.4%' : '62.2%';
+		        } else if (this.mainStat === 9) {
+                    return this.base.level === 0 ? '4.7%' : '31.1%';
+		        } else if (this.mainStat === 17) {
+                    return this.base.level === 0 ? '5.4%' : '35.9%';
+                } else if (this.mainStat === 3 || this.mainStat === 10) {
+                    return this.base.level === 0 ? '8.7%' : '58.3%';
+		        } else {
+                    return this.base.level === 0 ? '7.0%' : '46.6%';
+                }
+            },
+			artifactImage() {
+				return "../../data/image/artifacts/" + this.base.artifactID + "/" + this.base.slot + ".png";
+			}
+		},
+		methods: {
+            readJSON(file, callback) {
+                fetch(file).then(res => {
+                    return res.json().then(data => {
+                        callback(data);
+                    })
+                })
+            }
+		},
+        mounted() {
+            this.readJSON('../../data/cache/genshin-artifact.json', res => {
+                this.base = res.base;
+                this.data = res.data;
+                this.mainStat = res.mainStat;
+            });
+		}
+	});
+</script>
+
+</body>
+</html>
+
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+    }
+
+    html {
+        font-family: GenshinUsedFont, monospace;
+    }
+
+    body {
+        width: 746px;
+        height: 769px;
+    }
+
+    .background {
+	    position: absolute;
+    }
+
+	.content {
+		position: relative;
+	}
+
+	.name {
+        position: relative;
+		color: white;
+		font-size: 45px;
+		left: 42px;
+		top: 18px;
+	}
+
+	.slot {
+        position: relative;
+        color: white;
+		font-size: 28px;
+		left: 38px;
+		top: 50px;
+	}
+
+	.main {
+        position: relative;
+        left: 38px;
+		top: 168px;
+    }
+
+	.property {
+        position: relative;
+		color: rgb(191, 175, 169);
+        font-size: 28px;
+	}
+
+	.data {
+        position: relative;
+		color: white;
+		font-size: 55px;
+	}
+
+	.rarity {
+        position: relative;
+        height: 52px;
+        left: 31px;
+		top: -93px;
+	}
+
+	.image {
+        position: relative;
+		left: 211px;
+		top: -92px;
+        width: 320px;
+	}
+
+	.list {
+        position: relative;
+		color: rgb(73, 83, 102);
+        font-size: 30px;
+        top: -12px;
+		left: 76px;
+        line-height: 50px;
+	}
+
+	.level {
+        position: relative;
+		color: white;
+        font-size: 31px;
+        top: -36px;
+		left: 45px;
+        width: 80px;
+		text-align: center;
+	}
+
+    @font-face {
+        font-family: GenshinUsedFont;
+        src: url("../../data/font/HYWenHei-85W.ttf");
+    }
+</style>

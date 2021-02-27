@@ -34,7 +34,7 @@ exports.getBase = (uid) => {
             headers: {
                 ...HEADERS,
                 'DS': getDS(),
-                'Cookie': global.cookies[global.index]
+                'Cookie': cookies[index]
             }
         })
             .then(res => {
@@ -58,7 +58,7 @@ exports.getDetail = (role_id, server) => {
             headers: {
                 ...HEADERS,
                 'DS': getDS(),
-                'Cookie': global.cookies[global.index]
+                'Cookie': cookies[index]
             }
         })
             .then(res => {
@@ -68,4 +68,8 @@ exports.getDetail = (role_id, server) => {
                 reject(err);
             });
     });
+}
+
+exports.getArtifact = () => {
+
 }

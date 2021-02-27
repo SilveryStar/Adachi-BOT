@@ -1,6 +1,6 @@
 {
   "name": "adachi-bot",
-  "version": "1.0.3",
+  "version": "1.1.2",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -13,7 +13,8 @@
   "dependencies": {
     "lowdb": "^1.0.0",
     "oicq": "^1.13.2",
-    "puppeteer": "^7.0.4"
+    "puppeteer": "^7.0.4",
+    "random-float": "^2.0.0"
   },
   "devDependencies": {
     "js-yaml": "^4.0.0",

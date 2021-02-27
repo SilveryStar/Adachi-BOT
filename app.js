@@ -40,11 +40,12 @@ const run = async () => {
 }
 
 run().then(() => {
-    const plugins = loadPlugins();
-
     initDB();
     newServer(9934);
     global.cookies = yaml.load(fs.readFileSync("./config/cookies.yml", "utf-8"))["cookies"];
+    global.artifactCfg = yaml.load(fs.readFileSync("./config/artifacts.yml"), "utf-8");
+
+    const plugins = loadPlugins();
 
     bot.on("message.group", msgData => {
         processed(msgData, plugins);

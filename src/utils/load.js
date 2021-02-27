@@ -14,7 +14,7 @@ exports.loadPlugins = () => {
     return plugins;
 }
 
-exports.processed = (qqData, plugins) => {
+exports.processed = ( qqData, plugins ) => {
     if (qqData.message[0].type === 'text') {
         const command = getCommand(qqData.raw_message);
         if (command){

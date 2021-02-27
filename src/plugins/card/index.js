@@ -1,6 +1,6 @@
 const { getBase, getDetail } = require('../../utils/api');
 const { get, isInside, push, update } = require('../../utils/database');
-const renderCard = require('./render.js');
+const render = require('../../utils/render');
 
 module.exports = Message => {
     let msg = Message.raw_message;
@@ -93,7 +93,10 @@ module.exports = Message => {
                 bot.logger.info("用户 " + mhyID + " 在一小时内进行过查询操作，将返回上次数据");
             }
 
-            renderCard(mhyID, groupID);
+            let data =
+
+                get('info', 'user', {mhyID});
+            render(data, 'genshin-card', groupID);
         })
         .catch(err => {
             bot.logger.error(err);
