@@ -19,7 +19,7 @@ const getArtifactID = ( domainID ) => {
         if (domainID >= num) {
             return null;
         } else {
-            return domains[domainID][randomInt(0,1)];
+            return domains[domainID].product[randomInt(0,1)];
         }
     }
 };
