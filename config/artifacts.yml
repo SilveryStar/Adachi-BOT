@@ -161,7 +161,7 @@ domains:
   -
     id: 4
     name: "铭记之谷"
-    product: [ 7, 2, 20 ]
+    product: [ 7, 12, 20 ]
   -
     id: 5
     name: "仲夏庭院"
