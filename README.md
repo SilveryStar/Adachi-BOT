@@ -17,7 +17,7 @@ account:
   
 > cookies.yml
 cookies:
-  - your mojoBBS cookie
+  - your moyoBBS cookies
 ```
 
 ### Run
@@ -67,10 +67,20 @@ echo:  # 此处的 key 值应与插件名保持一致，且为数组类型
 <summary>Image</summary>
 
 ### 生成玩家信息卡片
-![](https://img.imgdb.cn/item/603bc57b5f4313ce25f389ab.png)
+<div align="center">
+  <img src="https://img.imgdb.cn/item/604262f4360785be543b6567.png" alt="ERROR">
+</div>
+
+### 生成玩家角色背包
+<div align="center">
+  <img src="https://img.imgdb.cn/item/604262f4360785be543b656c.png" alt="ERROR">
+</div>
 
 ### 随机圣遗物功能
-![](https://img.imgdb.cn/item/603bc57b5f4313ce25f389a9.png)
+<div align="center">
+  <img src="https://img.imgdb.cn/item/60426417360785be543bf799.png" alt="ERROR">
+  <img src="https://img.imgdb.cn/item/60426417360785be543bf79d.png" alt="ERROR">
+</div>
 </details>
 
 

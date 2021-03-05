@@ -1,5 +1,7 @@
 card:
   - ^#gq *(\[CQ:at,qq=)?([0-9]*)
+avatar:
+  - ^#uid *[0-9]+$
 save:
   - ^#(s|c) *[0-9]+$
 help:
