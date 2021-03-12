@@ -68,21 +68,30 @@ echo:  # 此处的 key 值应与插件名保持一致，且为数组类型
 
 ### 生成玩家信息卡片
 <div align="center">
-  <img src="https://img.imgdb.cn/item/604262f4360785be543b6567.png" alt="ERROR">
+  <img src="https://img.imgdb.cn/item/604b95fc5aedab222cf45948.png" alt="ERROR">
 </div>
 
 ### 生成玩家角色背包
 <div align="center">
-  <img src="https://img.imgdb.cn/item/604262f4360785be543b656c.png" alt="ERROR">
+  <img src="https://img.imgdb.cn/item/604b95fc5aedab222cf4594b.png" alt="ERROR">
+</div>
+
+### 生成角色信息卡片
+<div align="center">
+  <img src="https://img.imgdb.cn/item/604b98205aedab222cf566bb.png" alt="ERROR">
+  <img src="https://img.imgdb.cn/item/604b98205aedab222cf566b4.png" alt="ERROR">
+  <img src="https://img.imgdb.cn/item/604b98205aedab222cf566b7.png" alt="ERROR">
+  <img src="https://img.imgdb.cn/item/604b98205aedab222cf566c4.png" alt="ERROR">
+  <img src="https://img.imgdb.cn/item/604b98205aedab222cf566c0.png" alt="ERROR">
+  <img src="https://img.imgdb.cn/item/604b98555aedab222cf580c6.png" alt="ERROR">
 </div>
 
 ### 随机圣遗物功能
 <div align="center">
-  <img src="https://img.imgdb.cn/item/60426417360785be543bf799.png" alt="ERROR">
-  <img src="https://img.imgdb.cn/item/60426417360785be543bf79d.png" alt="ERROR">
+  <img src="https://img.imgdb.cn/item/604b95fc5aedab222cf45953.png" alt="ERROR">
+  <img src="https://img.imgdb.cn/item/604b95fc5aedab222cf4594e.jpg" alt="ERROR">
 </div>
 </details>
-
 
 ## Licenses
 [MIT](https://github.com/SilveryStar/Adachi-BOT/blob/master/LICENSE)

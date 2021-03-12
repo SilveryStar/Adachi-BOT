@@ -1,6 +1,7 @@
-const { getBase, getDetail } = require('../../utils/api');
+const { getBase, getDetail, getCharacters } = require('../../utils/api');
 const { get, isInside, push, update } = require('../../utils/database');
 const render = require('../../utils/render');
+const lodash = require('lodash');
 
 const generateImage = ( uid, groupID ) => {
     let data = get('info', 'user', {uid});
@@ -50,11 +51,13 @@ module.exports = Message => {
             let uid = parseInt(game_role_id);
 
             // 初始化数据
+            if (!isInside('character', 'user', 'userID', userID)) {
+                push('character', 'user', {userID, uid: 0});
+            }
             if (!isInside('time', 'user', 'uid', uid)) {
                 push('time', 'user', {uid, time: 0});
             }
             if (!isInside('info', 'user', 'uid', uid)) {
-                // TODO: 增加装备查询
                 let initData = {
                     retcode: 19260817,
                     message: "",
@@ -78,6 +81,8 @@ module.exports = Message => {
             // 检测查询时间间隔
             if (nowTime - lastTime >= 60 * 60 * 1000) {
                 update('time', 'user', {uid}, {time: nowTime});
+                update('character', 'user', {userID}, {uid});
+
                 getDetail(uid, region)
                     .then(res => {
                         if (res.retcode === 0) {
@@ -85,12 +90,64 @@ module.exports = Message => {
                             update('info', 'user', {uid}, {
                                 retcode:        parseInt(res.retcode),
                                 message:        res.message,
-                                avatars:        detailInfo.avatars,
                                 stats:          detailInfo.stats,
                                 explorations:   detailInfo.world_explorations
                             });
                             bot.logger.info("用户 " + uid + " 查询成功，数据已缓存");
-                            generateImage(uid, groupID);
+
+                            let characterList = [];
+                            let avatarList = detailInfo.avatars;
+
+                            for (let i in avatarList) {
+                                if (avatarList.hasOwnProperty(i)) {
+                                    characterList.push(avatarList[i].id);
+                                }
+                            }
+
+                            getCharacters(uid, region, characterList)
+                                .then(res => {
+                                    let characterInfo = res.data.avatars;
+
+                                    for (let id in characterList) {
+                                        if (characterList.hasOwnProperty(id)) {
+                                            let character = characterInfo.find(el => el["id"] === characterList[id]);
+                                            let avatar = avatarList.find(el => el["id"] === characterList[id]);
+
+                                            avatar.weapon = lodash.omit(character.weapon, ['id', 'type', 'promote_level', 'type_name']);
+                                            avatar.artifact = [];
+                                            avatar.constellationNum = 0;
+
+                                            for (let posID in character.reliquaries) {
+                                                if (character.reliquaries.hasOwnProperty(posID)) {
+                                                    let posInfo = lodash.pick(character.reliquaries[posID], ['name', 'icon', 'pos', 'rarity', 'level']);
+                                                    avatar.artifact.push(posInfo);
+                                                }
+                                            }
+
+                                            let constellations = character['constellations'].reverse();
+                                            for (let i in constellations) {
+                                                if (constellations.hasOwnProperty(i)) {
+                                                    if (constellations[i]['is_actived']) {
+                                                        avatar.constellationNum = constellations[i]['pos'];
+                                                        break;
+                                                    }
+                                                }
+                                            }
+
+                                            let target = avatarList.filter(item => characterList[id] === item.id);
+                                            target = avatar;
+                                        }
+                                    }
+
+                                    update('info', 'user', {uid}, {
+                                        avatars: avatarList
+                                    });
+                                })
+                                .catch(err => {
+                                    bot.logger.error(err);
+                                });
+
+                                generateImage(uid, groupID);
                         } else {
                             // TODO: cookies 管理
                             bot.sendGroupMsg(groupID, "米游社接口报错: " + res.message).then();

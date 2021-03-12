@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>genshin-character</title>
+	<script src="../../data/js/vue.min.js"></script>
+</head>
+<body>
+
+<div id="app">
+	<background
+		:uid="uid"
+		:character="id"
+	></background>
+	<base-info
+		:name="name"
+		:element="elementName"
+		:level="level"
+		:fetter="fetter"
+		:constellation="constellate"
+	></base-info>
+	<reliquaries
+		:artifacts="artifacts"
+	></reliquaries>
+	<weapon-box
+		:weapon="weapon"
+	></weapon-box>
+</div>
+
+<template id="background">
+	<div class="background">
+		<p class="author">Created by Adachi-BOT</p>
+		<div class="plate"></div>
+		<div class="transparent"></div>
+
+		<p class="title title-artifact">圣遗物</p>
+		<div class="split split-artifact"></div>
+		<p class="title title-weapon">武器</p>
+		<div class="split split-weapon"></div>
+
+		<img class="portrait" :src="image" alt="ERROR"/>
+		<p class="uid">UID: {{uid}}</p>
+	</div>
+</template>
+
+<template id="base-info">
+	<div class="base-info">
+		<div class="left">
+			{{name}} <p class="element">{{element}}</p>
+		</div>
+		<div class="right">
+			<p class="level">Lv.{{level}}</p>
+			<p class="constellation">命之座层数: {{constellationCN}}</p>
+			<p class="fetter">好感度: {{fetterCN}}</p>
+		</div>
+	</div>
+</template>
+
+<template id="reliquaries">
+	<div class="reliquaries">
+		<div class="element" v-for="i in 5">
+			<div v-if="artifacts[i] === 'empty'">
+				<empty-box
+					:pos="i"
+				></empty-box>
+			</div>
+			<div v-else>
+				<artifact
+					:detail="artifacts[i]">
+				</artifact>
+			</div>
+		</div>
+	</div>
+</template>
+
+<template id="artifact">
+	<div class="artifact">
+		<img class="artifact-image" :src="detail.icon" alt="ERROR"/>
+		<div class="artifact-context">
+			<p class="artifact-name">{{detail.name}}</p>
+			<p class="artifact-rarity">{{rarity}}</p>
+			<p class="artifact-level">+{{detail.level}}</p>
+		</div>
+	</div>
+</template>
+
+<template id="empty-box">
+	<div class="empty-box">
+		<img class="empty-image" :src="image" alt="ERROR"/>
+		<p class="empty-context">暂未装备</p>
+	</div>
+</template>
+
+<template id="weapon-box">
+	<div class="weapon">
+		<img class="weapon-image" :src="weapon.icon" alt="ERROR"/>
+		<div class="weapon-context">
+			<p class="weapon-name">{{weapon.name}}</p>
+			<p class="weapon-refine">精炼{{weapon.affix_level}}阶</p>
+			<p class="weapon-rarity">{{rarity}}</p>
+			<p class="weapon-level">Lv.{{weapon.level}}</p>
+			<p class="weapon-desc">{{weapon.desc}}</p>
+		</div>
+	</div>
+</template>
+
+<script>
+	const background = {
+        template: '#background',
+		props: {
+			uid: {
+			    type: Number
+			},
+            character: {
+			    type: Number
+            }
+        },
+		computed: {
+	        image() {
+	            return "../../data/image/characters/" + this.character + ".png";
+	        }
+		}
+	};
+
+	const baseInfo = {
+        template: '#base-info',
+		data() {
+		    return {
+		        numberCN: ['零', '壹', '贰', '叁', '肆', '伍', '陆', '柒', '捌', '玖', '拾']
+		    }
+		},
+        props: {
+		    name: {
+		        type: String
+		    },
+	        element: {
+		        type: String
+	        },
+	        level: {
+		        type: Number
+	        },
+	        fetter: {
+		        type: Number
+	        },
+            constellation: {
+		        type: Number
+            }
+        },
+		computed: {
+		    fetterCN() {
+		        return this.numberCN[this.fetter];
+		    },
+            constellationCN() {
+                return this.numberCN[this.constellation];
+            }
+		}
+	};
+
+    const artifact = {
+        template: '#artifact',
+	    props: {
+            detail: {
+                type: Object
+            }
+	    },
+	    computed: {
+            rarity() {
+                let star = "★";
+				return star.repeat(this.detail.rarity);
+            }
+	    }
+    };
+
+    const emptyBox = {
+		template: '#empty-box',
+		props: ['pos'],
+	    computed: {
+		    image() {
+                return "../../data/image/item/" + this.pos + ".png";
+		    }
+	    }
+    };
+
+	const reliquaries = {
+        template: '#reliquaries',
+		props: {
+            artifacts: {
+                type: Array
+            }
+		},
+		components: {
+            artifact,
+            emptyBox
+		}
+    };
+
+	const weaponBox = {
+        template: '#weapon-box',
+		props: {
+            weapon: {
+                type: Object,
+	            default() {
+                    return {
+                        level: 1,
+                        affix_level: 1,
+                        desc: '',
+                        name: ''
+                    };
+	            }
+            }
+		},
+        computed: {
+            rarity() {
+                let star = "★";
+                return star.repeat(this.weapon.rarity);
+            }
+        }
+	};
+
+	 new Vue({
+		el: '#app',
+		data: {
+			id: 10000000,
+			uid: 100000000,
+			name: "",
+            elementName: "",
+			level: 0,
+			fetter: 0,
+            constellate: 0,
+            artifacts: [],
+			weapon: {}
+		},
+		components: {
+            background,
+            baseInfo,
+            reliquaries,
+            weaponBox
+		},
+		methods: {
+			setStyle(colorList) {
+                document.documentElement.style.setProperty('--baseInfoColor',    colorList[0]);
+                document.documentElement.style.setProperty('--contentColor',     colorList[1]);
+                document.documentElement.style.setProperty('--backgroundColor',  colorList[2]);
+                document.documentElement.style.setProperty('--elementColor',     colorList[3]);
+                document.documentElement.style.setProperty('--titleColor',       colorList[4]);
+                document.documentElement.style.setProperty('--splitLineColor',   colorList[5]);
+			},
+            readJSON(file, callback) {
+                fetch(file).then(res => {
+                    return res.json().then(data => {
+                        callback(data);
+                    })
+                })
+            }
+		},
+		created() {
+            this.readJSON('../../data/cache/genshin-character.json', res => {
+                this.uid         = res.uid;
+
+                let character    = res.data;
+                this.id          = character.id;
+                this.name        = character.name;
+                this.fetter      = character.fetter;
+                this.elementName = character.element;
+                this.level       = character.level;
+                this.constellate = character.constellationNum;
+                this.weapon      = character.weapon;
+
+                switch (this.elementName) {
+                    case "Anemo":   this.setStyle([
+                        'rgb( 28,  91,  72)', 'rgb( 44, 128, 100)',
+                        'rgb( 44, 128, 100)', 'rgb( 44, 128, 100)',
+                        'rgb( 45, 148, 116)', 'rgb( 59, 167, 132)'
+                    ]); break;
+                    case "Cryo":    this.setStyle([
+                        'rgb( 50, 105, 133)', 'rgb(  5, 162, 195)',
+                        'rgb( 16, 168, 212)', 'rgb(  5, 162, 195)',
+                        'rgb(  6, 188, 240)', 'rgb(  5, 165, 199)'
+                    ]); break;
+                    case "Dendro":  this.setStyle([
+                        // 暂无
+                    ]); break;
+                    case "Electro": this.setStyle([
+                        'rgb( 46,  34,  84)', 'rgb( 81,  56, 151)',
+                        'rgb( 83,  66, 146)', 'rgb( 81,  56, 151)',
+                        'rgb(117,  93, 195)', 'rgb( 80,  55, 161)'
+                    ]); break;
+                    case "Geo":     this.setStyle([
+                        'rgb( 92,  76,  21)', 'rgb(176, 141,  46)',
+                        'rgb(201, 144,  20)', 'rgb(176, 141,  46)',
+                        'rgb(206, 171,  66)', 'rgb(210, 155,  21)'
+                    ]); break;
+                    case "Hydro":   this.setStyle([
+                        'rgb( 23,  64,  91)', 'rgb( 43, 127, 175)',
+                        'rgb( 37, 106, 153)', 'rgb( 43, 127, 175)',
+                        'rgb( 77, 162, 211)', 'rgb( 42, 123, 174)'
+                    ]); break;
+                    case "Pyro":    this.setStyle([
+                        'rgb(119,  31,  19)', 'rgb(176,  45,  28)',
+                        'rgb(189,  46,  29)', 'rgb(176,  45,  28)',
+                        'rgb(218,  52,  34)', 'rgb(191,  61,  27)'
+                    ]); break;
+                    case "None":    this.setStyle([
+                        // 绝版无派蒙配色模板
+                        'rgb( 72,  72,  72)', 'rgb(111, 117, 113)',
+                        'rgb(111, 111, 111)', 'rgb(111, 117, 113)',
+                        'rgb(136, 136, 136)', 'rgb(123, 123, 123)'
+                    ]); break;
+                }
+
+                let artifacts = [];
+                for (let i = 1; i <= 5; i++) {
+                    let info = character.artifact.find(el => el.pos === i);
+                    artifacts[i] = info ? character.artifact.find(el => el.pos === i) : "empty";
+                }
+                this.artifacts   = artifacts;
+		    });
+        }
+	});
+</script>
+
+</body>
+</html>
+
+<style scoped>
+    * {
+        margin: 0;
+        padding: 0;
+	}
+
+    html {
+        font-family: GenshinUsedFont, monospace;
+    }
+
+    body {
+        width: 1107px;
+        height: 1164px;
+    }
+
+    .background {
+	    position: absolute;
+    }
+
+    .background .transparent {
+	    position: relative;
+	    left: 35px;
+	    top: 37px;
+        height: 1090px;
+        width: 1037px;
+        background-color: rgba(255, 255, 255, 0.73);
+    }
+
+    .background .plate {
+        float: left;
+        height: 1164px;
+        width: 1107px;
+        background-color: var(--backgroundColor);
+    }
+
+    .uid,
+    .author {
+        position: absolute;
+	    font-size: 21px;
+	    color: white;
+    }
+
+    .author {
+	    left: 10px;
+	    top: 5px;
+    }
+
+    .portrait {
+        position: absolute;
+        width: 550px;
+        height: 550px;
+	    left: 522px;
+	    top: 577px;
+    }
+
+    .uid {
+        position: absolute;
+	    left: 925px;
+	    top: 1132px;
+    }
+
+    .title {
+	    position: absolute;
+	    font-size: 36px;
+	    color: var(--titleColor);
+        left: 80px;
+    }
+
+    .split {
+        position: absolute;
+        height: 4px;
+        left: 73px;
+        background-color: var(--splitLineColor);
+    }
+
+    .split-artifact {
+        width: 730px;
+	    top: 298px;
+    }
+
+    .split-weapon {
+        width: 380px;
+	    top: 712px;
+    }
+
+    .title-artifact {
+        top: 250px;
+    }
+
+    .title-weapon {
+        top: 664px;
+    }
+
+    .left {
+        position: absolute;
+	    left: 75px;
+        top: 60px;
+	    font-size: 88px;
+	    color: var(--baseInfoColor);
+        font-family: HuaWen, monospace;
+    }
+
+    .base-info .element {
+	    position: relative;
+        display: inline-block;
+	    font-size: 36px;
+	    color: var(--elementColor);
+        font-family: GenshinUsedFont, monospace;
+	    margin-left: 5px;
+    }
+
+    .right {
+        position: absolute;
+	    font-size: 36px;
+        color: var(--contentColor);
+	    left: 788px;
+        top: 60px;
+	    text-align: right;
+        font-weight: bolder;
+        font-family: HuaWen, monospace;
+    }
+
+    .level {
+        font-size: 50px;
+        color: var(--baseInfoColor);
+    }
+
+    .reliquaries {
+	    left: 51px;
+        top: 308px;
+	    position: absolute;
+	    display: flex;
+        width: 1120px;
+        flex-wrap: wrap;
+    }
+
+    .reliquaries .element {
+	    position: relative;
+    }
+
+    .empty-box,
+	.artifact {
+		font-size: 24px;
+        width: 340px;
+		margin-bottom: 13px;
+        height: 140px;
+	}
+
+	.artifact-image {
+        width: 130px;
+	}
+
+	.artifact-context {
+		position: relative;
+		top: -37px;
+		display: inline-block;
+        width: 190px;
+	}
+
+	.artifact-name {
+		color: var(--contentColor);
+	}
+
+	.artifact-rarity {
+        display: inline-block;
+		color: rgb(232, 169, 0);
+	}
+
+	.artifact-level {
+		display: inline-block;
+		color: rgb(0, 112, 192);
+	}
+
+	.empty-image {
+		margin: 15px;
+        width: 100px;
+        height: 100px;
+	}
+
+	.empty-context {
+        position: relative;
+        display: inline-block;
+        top: -56px;
+		color: var(--contentColor);
+	}
+
+	.weapon {
+		position: absolute;
+		left: 35px;
+        top: 758px;
+        height: 369px;
+	}
+
+	.weapon-image {
+        width: 207px;
+	}
+
+	.weapon-context {
+		position: absolute;
+        display: inline-block;
+        width: 320px;
+        height: 100%;
+	}
+
+	.weapon-name {
+		font-size: 36px;
+        display: inline-block;
+        color: var(--contentColor);
+	}
+
+	.weapon-refine {
+		font-size: 24px;
+        display: inline-block;
+		color: var(--contentColor);
+        margin-left: 8px;
+	}
+
+    .weapon-rarity {
+        font-size: 32px;
+        display: inline-block;
+        color: rgb(232, 169, 0);
+    }
+
+	.weapon-level {
+		font-size: 24px;
+        display: inline-block;
+        color: rgb(0, 112, 192);
+        margin-left: 8px;
+	}
+
+	.weapon-desc {
+		font-size: 24px;
+		color: rgb(73, 83, 102);
+        width: 283px;
+	}
+
+    @font-face {
+        font-family: GenshinUsedFont;
+        src: url("../../data/font/HYWenHei-85W.ttf");
+    }
+
+    @font-face {
+        font-family: HuaWen;
+        src: url("../../data/font/HWZhongSong.ttf");
+    }
+</style>

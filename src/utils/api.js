@@ -5,7 +5,7 @@ const md5 = require('md5');
 const __API = {
     FETCH_ROLE_ID: 'https://api-takumi.mihoyo.com/game_record/card/wapi/getGameRecordCard',
     FETCH_ROLE_INDEX: 'https://api-takumi.mihoyo.com/game_record/genshin/api/index',
-    FETCH_ROLE_ANALYSIS: 'https://api-takumi.mihoyo.com/game_record/genshin/api/character'
+    FETCH_ROLE_CHARACTERS: 'https://api-takumi.mihoyo.com/game_record/genshin/api/character'
 };
 
 const HEADERS = {
@@ -70,6 +70,29 @@ exports.getDetail = (role_id, server) => {
     });
 }
 
-exports.getArtifact = () => {
-
+exports.getCharacters = (role_id, server, character_ids) => {
+    return new Promise((resolve, reject) => {
+        requests({
+            method: 'POST',
+            url: __API.FETCH_ROLE_CHARACTERS,
+            json: true,
+            body: {
+                character_ids,
+                server,
+                role_id
+            },
+            headers: {
+                ...HEADERS,
+                'DS': getDS(),
+                'Cookie': cookies[index],
+                "content-type": "application/json"
+            }
+        })
+            .then(res => {
+                resolve(res);
+            })
+            .catch(err => {
+                reject(err);
+            });
+    });
 }

@@ -4,27 +4,19 @@ const path = require('path');
 
 const db = [];
 
+const newDB = ( name, defaultElement ) => {
+    defaultElement = (typeof defaultElement !== 'undefined') ? defaultElement : { user: [] };
+
+    db[name] = low(new FileSync(path.resolve(__dirname, '..', '..', 'data', 'db', name + '.json')));
+    db[name].defaults(defaultElement).write();
+}
+
 exports.initDB = () => {
-    db['map'] = low(new FileSync(path.resolve(__dirname, '..', '..', 'data', 'db', 'map.json')));
-    db['time'] = low(new FileSync(path.resolve(__dirname, '..', '..', 'data', 'db', 'time.json')));
-    db['info'] = low(new FileSync(path.resolve(__dirname, '..', '..', 'data', 'db', 'info.json')));
-    db['artifact'] = low(new FileSync(path.resolve(__dirname, '..', '..', 'data', 'db', 'artifact.json')));
-
-    db['map'].defaults({
-        user: []
-    }).write();
-
-    db['time'].defaults({
-        user: []
-    }).write();
-
-    db['info'].defaults({
-        user: []
-    }).write();
-
-    db['artifact'].defaults({
-        user: []
-    }).write();
+    newDB('map');
+    newDB('time');
+    newDB('info');
+    newDB('artifact');
+    newDB('character');
 };
 
 exports.isInside = ( name, key, index, value ) => {

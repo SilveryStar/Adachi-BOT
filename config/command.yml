@@ -1,9 +1,11 @@
 card:
   - ^#gq *(\[CQ:at,qq=)?([0-9]*)
-avatar:
+package:
   - ^#uid *[0-9]+$
 save:
   - ^#(s|c) *[0-9]+$
+character:
+  - ^#a *[\u4e00-\u9fa5]+$
 help:
   - ^#help *$
 artifacts:
