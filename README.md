@@ -17,7 +17,7 @@ account:
   
 > cookies.yml
 cookies:
-  - your moyoBBS cookies
+  - your mihoyoBBS cookies
 ```
 
 ### Run
