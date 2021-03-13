@@ -11,7 +11,7 @@ module.exports = Message => {
     } else {
         mhyID = parseInt(id[0]);
         if (msg.includes('#s') || msg.includes('绑定')) {
-            if (!isInside('map', 'user', userID)) {
+            if (!isInside('map', 'user', 'userID', userID)) {
                 push('map', 'user', {userID, mhyID});
                 if (!isInside('time', 'user', 'mhyID', mhyID)) {
                     push('time', 'user', {mhyID, time: 0});
