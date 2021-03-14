@@ -24,6 +24,7 @@
 	></reliquaries>
 	<weapon-box
 		:weapon="weapon"
+		:len="contextLen"
 	></weapon-box>
 </div>
 
@@ -96,7 +97,7 @@
 		<img class="weapon-image" :src="weapon.icon" alt="ERROR"/>
 		<div class="weapon-context">
 			<p class="weapon-name">{{weapon.name}}</p>
-			<p class="weapon-refine">精炼{{weapon.affix_level}}阶</p>
+			<p v-if="len !== 0" class="weapon-refine" :style="{ width: len + 'px' }">精炼{{weapon.affix_level}}阶</p>
 			<p class="weapon-rarity">{{rarity}}</p>
 			<p class="weapon-level">Lv.{{weapon.level}}</p>
 			<p class="weapon-desc">{{weapon.desc}}</p>
@@ -160,7 +161,10 @@
         template: '#artifact',
 	    props: {
             detail: {
-                type: Object
+                type: Object,
+	            default() {
+                    return {};
+                }
             }
 	    },
 	    computed: {
@@ -196,7 +200,12 @@
 
 	const weaponBox = {
         template: '#weapon-box',
-		props: {
+		data() {
+            return {
+                len: 0
+            }
+        },
+        props: {
             weapon: {
                 type: Object,
 	            default() {
@@ -205,27 +214,35 @@
                         affix_level: 1,
                         desc: '',
                         name: ''
-                    };
+                    }
 	            }
-            }
+            },
+            len: {
+                type: Number,
+		        default() {
+                    return 0;
+		        }
+	        }
 		},
         computed: {
             rarity() {
                 let star = "★";
+                console.log(this.len);
                 return star.repeat(this.weapon.rarity);
             }
         }
-	};
+    };
 
 	 new Vue({
 		el: '#app',
 		data: {
-			id: 10000000,
+			id: 10000007,
 			uid: 100000000,
 			name: "",
             elementName: "",
 			level: 0,
 			fetter: 0,
+            contextLen: 0,
             constellate: 0,
             artifacts: [],
 			weapon: {}
@@ -245,6 +262,9 @@
                 document.documentElement.style.setProperty('--titleColor',       colorList[4]);
                 document.documentElement.style.setProperty('--splitLineColor',   colorList[5]);
 			},
+			getLength(str) {
+                return str.replace(/[\u0391-\uFFE5]/g,"aa").length / 2;
+            },
             readJSON(file, callback) {
                 fetch(file).then(res => {
                     return res.json().then(data => {
@@ -253,7 +273,7 @@
                 })
             }
 		},
-		created() {
+		mounted() {
             this.readJSON('../../data/cache/genshin-character.json', res => {
                 this.uid         = res.uid;
 
@@ -265,6 +285,7 @@
                 this.level       = character.level;
                 this.constellate = character.constellationNum;
                 this.weapon      = character.weapon;
+				this.contextLen  = 300 - this.getLength(this.weapon.name) * 46;
 
                 switch (this.elementName) {
                     case "Anemo":   this.setStyle([
@@ -451,7 +472,7 @@
 
     .reliquaries {
 	    left: 51px;
-        top: 308px;
+        top: 317px;
 	    position: absolute;
 	    display: flex;
         width: 1120px;
@@ -520,9 +541,10 @@
 	}
 
 	.weapon-context {
+		margin: 10px 7px 0 10px;
 		position: absolute;
         display: inline-block;
-        width: 320px;
+        width: 300px;
         height: 100%;
 	}
 
@@ -536,7 +558,7 @@
 		font-size: 24px;
         display: inline-block;
 		color: var(--contentColor);
-        margin-left: 8px;
+		margin-left: 8px;
 	}
 
     .weapon-rarity {

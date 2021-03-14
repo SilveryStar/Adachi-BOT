@@ -1,176 +1,60 @@
-const { getBase, getDetail, getCharacters } = require('../../utils/api');
-const { get, isInside, push, update } = require('../../utils/database');
+const { basePromise, detailPromise, characterPromise } = require('../../utils/detail');
+const { get, isInside } = require('../../utils/database');
 const render = require('../../utils/render');
-const lodash = require('lodash');
 
-const generateImage = ( uid, groupID ) => {
-    let data = get('info', 'user', {uid});
-    render(data, 'genshin-card', groupID);
+const generateImage = async ( uid, groupID ) => {
+    const data = await get('info', 'user', {uid});
+    await render(data, 'genshin-card', groupID);
 }
 
-module.exports = Message => {
-    let msg = Message.raw_message;
-    let userID = Message.user_id;
-    let groupID = Message.group_id;
-    let id = msg.match(/\d+/g), mhyID;
+const getID = async ( msg, userID ) => {
+    let id = msg.match(/\d+/g);
+    let errInfo = '';
 
-    // 处理匹配账号信息
     if (msg.includes('CQ:at')) {
         let atID = parseInt(id[0]);
-        if (isInside('map', 'user', 'userID', atID)) {
-            mhyID = get('map', 'user', {userID: atID}).mhyID;
+        if (await isInside('map', 'user', 'userID', atID)) {
+            return (await get('map', 'user', {userID: atID})).mhyID;
         } else {
-            bot.sendGroupMsg(groupID, "用户 " + atID + " 暂未绑定米游社通行证").then();
-            return;
+            errInfo = "用户 " + atID + " 暂未绑定米游社通行证";
         }
     } else if (id !== null) {
         if (id.length > 1) {
-            bot.sendGroupMsg(groupID, "输入通行证不合法").then();
+            errInfo = "输入通行证不合法";
         } else {
-            mhyID = parseInt(id[0]);
+            return parseInt(id[0]);
         }
-    } else if (isInside('map', 'user', 'userID', userID)) {
-        mhyID = get('map', 'user', {userID}).mhyID;
+    } else if (await isInside('map', 'user', 'userID', userID)) {
+        return (await get('map', 'user', {userID})).mhyID;
     } else {
-        bot.sendGroupMsg(groupID, "您还未绑定米游社通行证，请使用 #s + id").then();
+        errInfo = "您还未绑定米游社通行证，请使用 #s + id";
+    }
+
+    return errInfo;
+};
+
+module.exports = async Message => {
+    let msg      = Message.raw_message;
+    let userID   = Message.user_id;
+    let groupID  = Message.group_id;
+    let dbInfo   = await getID(msg, userID), uid;
+
+    if (typeof dbInfo === 'string') {
+        bot.sendGroupMsg(groupID, dbInfo.toString()).then();
         return;
     }
 
-    getBase(mhyID)
-        .then(res => {
-            if (res.retcode !== 0) {
-                bot.sendGroupMsg(groupID, "米游社接口报错: " + res.message).then();
-                return;
-            } else if (!res.data.list || res.data.list.length === 0) {
-                bot.sendGroupMsg(groupID, "未查询到角色数据，请检查米哈游通行证（非UID）是否有误或是否设置角色信息公开，若无误，请第二天再尝试").then();
-                return;
-            }
+    try {
+        const baseInfo = await basePromise(dbInfo, userID);
+        uid = baseInfo[0];
+        const detailInfo = await detailPromise(...baseInfo, userID);
+        await characterPromise(...baseInfo, detailInfo);
+    } catch (errInfo) {
+        if (errInfo !== '') {
+            bot.sendGroupMsg(groupID, errInfo).then();
+            return;
+        }
+    }
 
-            let baseInfo = res.data.list.find(el => el["game_id"] === 2);
-            let { game_role_id, nickname, region, level } = baseInfo;
-            let uid = parseInt(game_role_id);
-
-            // 初始化数据
-            if (!isInside('character', 'user', 'userID', userID)) {
-                push('character', 'user', {userID, uid: 0});
-            }
-            if (!isInside('time', 'user', 'uid', uid)) {
-                push('time', 'user', {uid, time: 0});
-            }
-            if (!isInside('info', 'user', 'uid', uid)) {
-                let initData = {
-                    retcode: 19260817,
-                    message: "",
-                    level,
-                    nickname,
-                    uid,
-                    avatars: [],
-                    stats: {},
-                    explorations: []
-                };
-                push('info', 'user', initData);
-            } else {
-                update('info', 'user', {uid}, {
-                    level,
-                    nickname
-                });
-            }
-
-            let nowTime = new Date().valueOf();
-            let lastTime = get('time', 'user', {uid}).time;
-            // 检测查询时间间隔
-            if (nowTime - lastTime >= 60 * 60 * 1000) {
-                update('time', 'user', {uid}, {time: nowTime});
-                update('character', 'user', {userID}, {uid});
-
-                getDetail(uid, region)
-                    .then(res => {
-                        if (res.retcode === 0) {
-                            let detailInfo = res.data;
-                            update('info', 'user', {uid}, {
-                                retcode:        parseInt(res.retcode),
-                                message:        res.message,
-                                stats:          detailInfo.stats,
-                                explorations:   detailInfo.world_explorations
-                            });
-                            bot.logger.info("用户 " + uid + " 查询成功，数据已缓存");
-
-                            let characterList = [];
-                            let avatarList = detailInfo.avatars;
-
-                            for (let i in avatarList) {
-                                if (avatarList.hasOwnProperty(i)) {
-                                    characterList.push(avatarList[i].id);
-                                }
-                            }
-
-                            getCharacters(uid, region, characterList)
-                                .then(res => {
-                                    let characterInfo = res.data.avatars;
-
-                                    for (let id in characterList) {
-                                        if (characterList.hasOwnProperty(id)) {
-                                            let character = characterInfo.find(el => el["id"] === characterList[id]);
-                                            let avatar = avatarList.find(el => el["id"] === characterList[id]);
-
-                                            avatar.weapon = lodash.omit(character.weapon, ['id', 'type', 'promote_level', 'type_name']);
-                                            avatar.artifact = [];
-                                            avatar.constellationNum = 0;
-
-                                            for (let posID in character.reliquaries) {
-                                                if (character.reliquaries.hasOwnProperty(posID)) {
-                                                    let posInfo = lodash.pick(character.reliquaries[posID], ['name', 'icon', 'pos', 'rarity', 'level']);
-                                                    avatar.artifact.push(posInfo);
-                                                }
-                                            }
-
-                                            let constellations = character['constellations'].reverse();
-                                            for (let i in constellations) {
-                                                if (constellations.hasOwnProperty(i)) {
-                                                    if (constellations[i]['is_actived']) {
-                                                        avatar.constellationNum = constellations[i]['pos'];
-                                                        break;
-                                                    }
-                                                }
-                                            }
-
-                                            let target = avatarList.filter(item => characterList[id] === item.id);
-                                            target = avatar;
-                                        }
-                                    }
-
-                                    update('info', 'user', {uid}, {
-                                        avatars: avatarList
-                                    });
-                                })
-                                .catch(err => {
-                                    bot.logger.error(err);
-                                });
-
-                                generateImage(uid, groupID);
-                        } else {
-                            // TODO: cookies 管理
-                            bot.sendGroupMsg(groupID, "米游社接口报错: " + res.message).then();
-                            update('info', 'user', {uid}, {
-                                retcode: parseInt(res.retcode),
-                                message: res.message
-                            });
-                        }
-                    })
-                    .catch(err => {
-                        bot.logger.error(err);
-                    });
-            } else {
-                bot.logger.info("用户 " + uid + " 在一小时内进行过查询操作，将返回上次数据");
-                let userInfo = get('info', 'user', {uid});
-                if (userInfo.retcode !== 0) {
-                    bot.sendGroupMsg(groupID, "米游社接口报错: " + userInfo.message).then();
-                } else {
-                    generateImage(uid, groupID);
-                }
-            }
-        })
-        .catch(err => {
-            bot.logger.error(err);
-        });
+    await generateImage(uid, groupID);
 }

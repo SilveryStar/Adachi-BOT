@@ -2,7 +2,7 @@ const puppeteer = require('puppeteer')
 const fs = require('fs');
 const path = require('path');
 
-module.exports = render = ( data, name, id ) => {
+module.exports = render = async ( data, name, id ) => {
     puppeteer.launch({
         headless: true,
         args: ['--no-sandbox', '--disable-setuid-sandbox']

@@ -19,18 +19,18 @@ exports.initDB = () => {
     newDB('character');
 };
 
-exports.isInside = ( name, key, index, value ) => {
+exports.isInside = async ( name, key, index, value ) => {
     return db[name].get(key).map(index).value().includes(value);
 };
 
-exports.get = ( name, key, index ) => {
+exports.get = async ( name, key, index ) => {
     return db[name].get(key).find(index).value();
 };
 
-exports.update = ( name, key, index, data ) => {
+exports.update = async ( name, key, index, data ) => {
     db[name].get(key).find(index).assign(data).write();
 };
 
-exports.push = ( name, key, data ) => {
+exports.push = async ( name, key, data ) => {
     db[name].get(key).push(data).write();
 };

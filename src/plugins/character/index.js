@@ -1,7 +1,7 @@
 const { get, isInside } = require('../../utils/database');
 const render = require('../../utils/render');
 
-module.exports = Message => {
+module.exports = async Message => {
     let msg = Message.raw_message;
     let userID = Message.user_id;
     let groupID = Message.group_id;
@@ -16,14 +16,14 @@ module.exports = Message => {
         return;
     }
 
-    let uid = get('character', 'user', {userID}).uid;
-    let info = get('info', 'user', {uid}).avatars;
-    let data = info.find(el => el.name === character[0]);
+    const { uid } = await get('character', 'user', {userID});
+    const { avatars } = await get('info', 'user', {uid});
+    let data = avatars.find(el => el.name === character[0]);
 
     if (!data) {
         bot.sendGroupMsg(groupID, "查询失败，请检查角色名称是否正确或该用户是否拥有该角色").then();
         return;
     }
 
-    render({uid, data}, 'genshin-character', groupID);
+    await render({uid, data}, 'genshin-character', groupID);
 }
