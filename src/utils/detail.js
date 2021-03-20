@@ -46,6 +46,8 @@ exports.basePromise = async ( mhyID, userID ) => {
 }
 
 exports.detailPromise = async ( uid, server, userID ) => {
+    await userInitialize(userID, uid, '', -1);
+
     let nowTime   = new Date().valueOf();
     let { time }  = await get('time', 'user', {uid});
 

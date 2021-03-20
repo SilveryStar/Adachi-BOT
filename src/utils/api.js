@@ -34,7 +34,7 @@ exports.getBase = (uid) => {
             headers: {
                 ...HEADERS,
                 'DS': getDS(),
-                'Cookie': cookies[index]
+                'Cookie': cookies[index],
             }
         })
             .then(res => {

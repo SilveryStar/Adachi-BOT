@@ -1,4 +1,4 @@
-const { getDetail, getCharacters } = require('../../utils/api');
+const { detailPromise, characterPromise } = require('../../utils/detail');
 const { get } = require('../../utils/database');
 const render = require('../../utils/render');
 
@@ -7,7 +7,7 @@ const generateImage = async ( uid, groupID ) => {
     await render(data, 'genshin-info', groupID);
 }
 
-const getID = async msg => {
+const getID = msg => {
     let id = msg.match(/\d+/g)
     let errInfo = '';
 
@@ -26,7 +26,7 @@ module.exports = async Message => {
     let msg = Message.raw_message;
     let userID = Message.user_id;
     let groupID = Message.group_id;
-    let dbInfo = await getID(msg);
+    let dbInfo = getID(msg);
 
     if (typeof dbInfo === 'string') {
         bot.sendGroupMsg(groupID, dbInfo.toString()).then();
@@ -34,8 +34,8 @@ module.exports = async Message => {
     }
 
     try {
-        const detailInfo = await getDetail(...dbInfo, userID);
-        await getCharacters(...dbInfo, detailInfo)
+        const detailInfo = await detailPromise(...dbInfo, userID);
+        await characterPromise(...dbInfo, detailInfo)
     } catch (errInfo) {
         if (errInfo !== '') {
             bot.sendGroupMsg(groupID, errInfo).then();

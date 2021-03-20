@@ -7,7 +7,7 @@ module.exports = async Message => {
     let groupID = Message.group_id;
     let character = msg.match(/[\u4e00-\u9fa5]{1,10}/g);
 
-    if (!isInside('character', 'user', 'userID', userID)) {
+    if (!(await isInside('character', 'user', 'userID', userID))) {
         bot.sendGroupMsg(groupID, "请先使用 #gq 或 #uid 指定需要查询的账号").then();
         return;
     }
