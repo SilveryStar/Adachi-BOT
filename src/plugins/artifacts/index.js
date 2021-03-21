@@ -1,8 +1,6 @@
-const { getArtifact } = require('./data.js');
+const { getArtifact, domainInfo } = require('./data.js');
 const { get } = require('../../utils/database');
 const render = require('../../utils/render');
-
-const { domains } = artifactCfg;
 
 module.exports = async Message => {
     let msg = Message.raw_message;
@@ -22,13 +20,7 @@ module.exports = async Message => {
             getArtifact(userID,-1);
             data = (await get('artifact', 'user', {userID})).initial;
         } else if (msg.includes('#d')) {
-            let domainsMsg = "";
-            for (let i in domains) {
-                if (domains.hasOwnProperty(i)) {
-                    domainsMsg += domains[i].name + ': ' + i + '\n';
-                }
-            }
-            bot.sendGroupMsg(groupID, domainsMsg).then();
+            bot.sendGroupMsg(groupID, domainInfo()).then();
             return;
         }
     } else if (cmd.length === 1) {

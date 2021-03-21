@@ -11,13 +11,11 @@ const newDB = ( name, defaultElement ) => {
     db[name].defaults(defaultElement).write();
 }
 
-exports.initDB = () => {
-    newDB('map');
-    newDB('time');
-    newDB('info');
-    newDB('artifact');
-    newDB('character');
-};
+newDB('map');
+newDB('time');
+newDB('info');
+newDB('artifact');
+newDB('character');
 
 exports.isInside = async ( name, key, index, value ) => {
     return db[name].get(key).map(index).value().includes(value);

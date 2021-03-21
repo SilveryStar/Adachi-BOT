@@ -1,6 +1,8 @@
 const requests = require('./requests.js');
 const randomString = require('./rand.js');
 const md5 = require('md5');
+const yaml = require('js-yaml');
+const fs = require("fs");
 
 const __API = {
     FETCH_ROLE_ID: 'https://api-takumi.mihoyo.com/game_record/card/wapi/getGameRecordCard',
@@ -24,6 +26,9 @@ const getDS = () => {
         c = md5(`salt=${n}&t=${i}&r=${r}`);
     return `${i},${r},${c}`
 }
+
+const index = 0;
+const cookies = yaml.load(fs.readFileSync("./config/cookies.yml", "utf-8"))["cookies"];
 
 exports.getBase = (uid) => {
     return new Promise((resolve, reject) => {
