@@ -17,7 +17,6 @@ module.exports = render = async ( data, name, id ) => {
                 path: './data/cache/' + name + '.png'
             });
 
-            await page.waitFor(600);
             await browser.close();
             await bot.sendGroupMsg(id, "[CQ:image,file=" + path.resolve(__dirname, '..', '..', 'data', 'cache', name + '.png') + "]").then();
         });
