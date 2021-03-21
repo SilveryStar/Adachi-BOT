@@ -1,6 +1,3 @@
-## Adachi-BOT
-Genshin Impact robot in Tencent QQ.
-
 ## Usage
 ### Install
 ```
@@ -68,28 +65,28 @@ echo:  # 此处的 key 值应与插件名保持一致，且为数组类型
 
 ### 生成玩家信息卡片
 <div align="center">
-  <img src="https://img.imgdb.cn/item/604b95fc5aedab222cf45948.png" alt="ERROR">
+  <img src="https://github.com/SilveryStar/Adachi-BOT/blob/master/data/cache/CardExample.png" alt="ERROR">
 </div>
 
 ### 生成玩家角色背包
 <div align="center">
-  <img src="https://img.imgdb.cn/item/604b95fc5aedab222cf4594b.png" alt="ERROR">
+  <img src="https://github.com/SilveryStar/Adachi-BOT/blob/master/data/cache/PackageExample.png" alt="ERROR">
 </div>
 
 ### 生成角色信息卡片
 <div align="center">
-  <img src="https://img.imgdb.cn/item/604b98205aedab222cf566bb.png" alt="ERROR">
-  <img src="https://img.imgdb.cn/item/604b98205aedab222cf566b4.png" alt="ERROR">
-  <img src="https://img.imgdb.cn/item/604b98205aedab222cf566b7.png" alt="ERROR">
-  <img src="https://img.imgdb.cn/item/604b98205aedab222cf566c4.png" alt="ERROR">
-  <img src="https://img.imgdb.cn/item/604b98205aedab222cf566c0.png" alt="ERROR">
-  <img src="https://img.imgdb.cn/item/604b98555aedab222cf580c6.png" alt="ERROR">
+  <img src="https://github.com/SilveryStar/Adachi-BOT/blob/master/data/cache/AnemoExample.png" alt="ERROR">
+  <img src="https://github.com/SilveryStar/Adachi-BOT/blob/master/data/cache/PyroExample.png" alt="ERROR">
+  <img src="https://github.com/SilveryStar/Adachi-BOT/blob/master/data/cache/CryoExample.png" alt="ERROR">
+  <img src="https://github.com/SilveryStar/Adachi-BOT/blob/master/data/cache/HydroExample.png" alt="ERROR">
+  <img src="https://github.com/SilveryStar/Adachi-BOT/blob/master/data/cache/ElectroExample.png" alt="ERROR">
+  <img src="https://github.com/SilveryStar/Adachi-BOT/blob/master/data/cache/GeoExample.png" alt="ERROR">
 </div>
 
 ### 随机圣遗物功能
 <div align="center">
-  <img src="https://img.imgdb.cn/item/604b95fc5aedab222cf45953.png" alt="ERROR">
-  <img src="https://img.imgdb.cn/item/604b95fc5aedab222cf4594e.jpg" alt="ERROR">
+  <img src="https://github.com/SilveryStar/Adachi-BOT/blob/master/data/cache/InitialActifact.png" alt="ERROR">
+  <img src="https://github.com/SilveryStar/Adachi-BOT/blob/master/data/cache/FortifiedArtifact.png" alt="ERROR">
 </div>
 </details>
 
