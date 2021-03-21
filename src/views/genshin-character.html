@@ -285,7 +285,7 @@
                 this.level       = character.level;
                 this.constellate = character.constellationNum;
                 this.weapon      = character.weapon;
-				this.contextLen  = 300 - this.getLength(this.weapon.name) * 46;
+				this.contextLen  = 320 - this.getLength(this.weapon.name) * 31 - 18;
 
                 switch (this.elementName) {
                     case "Anemo":   this.setStyle([
@@ -392,10 +392,10 @@
 
     .portrait {
         position: absolute;
-        width: 550px;
-        height: 550px;
-	    left: 522px;
-	    top: 577px;
+        width: 515px;
+        height: 515px;
+	    left: 557px;
+	    top: 612px;
     }
 
     .uid {
@@ -531,51 +531,51 @@
 
 	.weapon {
 		position: absolute;
-		left: 35px;
+		left: 56px;
         top: 758px;
         height: 369px;
 	}
 
 	.weapon-image {
-        width: 207px;
+        width: 194px;
 	}
 
 	.weapon-context {
-		margin: 10px 7px 0 10px;
+		margin: 10px 0 0 10px;
 		position: absolute;
         display: inline-block;
-        width: 300px;
-        height: 100%;
+        width: 320px;
+        height: calc( 100% - 10px );
 	}
 
 	.weapon-name {
-		font-size: 36px;
+		font-size: 31px;
         display: inline-block;
         color: var(--contentColor);
 	}
 
 	.weapon-refine {
-		font-size: 24px;
+		font-size: 21px;
         display: inline-block;
 		color: var(--contentColor);
 		margin-left: 8px;
 	}
 
     .weapon-rarity {
-        font-size: 32px;
+        font-size: 29px;
         display: inline-block;
         color: rgb(232, 169, 0);
     }
 
 	.weapon-level {
-		font-size: 24px;
+		font-size: 21px;
         display: inline-block;
         color: rgb(0, 112, 192);
         margin-left: 8px;
 	}
 
 	.weapon-desc {
-		font-size: 24px;
+		font-size: 21px;
 		color: rgb(73, 83, 102);
         width: 283px;
 	}
