@@ -153,7 +153,7 @@ const getFortified = ( num, subStats, improves ) => {
     return toArray(property);
 };
 
-exports.getArtifact = ( userID, type ) => {
+exports.getArtifact = async ( userID, type ) => {
     let artifactID = getArtifactID(type);
     let slot = getSlot();
     let mainStat = getMainStat(slot);
@@ -163,8 +163,8 @@ exports.getArtifact = ( userID, type ) => {
     let initialProperty = getInitial(initPropertyNum, subStats);
     let fortifiedProperty = getFortified(initPropertyNum, subStats, improves);
 
-    if (!isInside('artifact', 'user', 'userID', userID)) {
-        push('artifact', 'user', {
+    if (!(await isInside('artifact', 'user', 'userID', userID))) {
+        await push('artifact', 'user', {
             userID,
             initial: {},
             fortified: {}
@@ -172,7 +172,7 @@ exports.getArtifact = ( userID, type ) => {
     }
 
     let name = artifacts[artifactID]['subName'][slot];
-    update('artifact', 'user', {userID}, {
+    await update('artifact', 'user', {userID}, {
         initial: {
             mainStat,
             base: {name, artifactID, slot, level: 0},

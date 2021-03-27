@@ -17,14 +17,14 @@ module.exports = async Message => {
                 bot.sendGroupMsg(groupID, "请先使用 #r 抽取一个圣遗物后再使用该命令").then();
             }
         } else if (msg.includes('#r')) {
-            getArtifact(userID,-1);
+            await getArtifact(userID,-1);
             data = (await get('artifact', 'user', {userID})).initial;
         } else if (msg.includes('#d')) {
             bot.sendGroupMsg(groupID, domainInfo()).then();
             return;
         }
     } else if (cmd.length === 1) {
-        getArtifact(userID, parseInt(cmd[0]));
+        await getArtifact(userID, parseInt(cmd[0]));
         data = (await get('artifact', 'user', {userID})).initial;
     } else {
         bot.sendGroupMsg(groupID, "请正确输入秘境id").then();
