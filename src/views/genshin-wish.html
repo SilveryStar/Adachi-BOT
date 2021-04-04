@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>genshin-wish</title>
+    <script src="../../data/js/vue.min.js"></script>
+</head>
+
+<body>
+
+    <div id="app">
+        <upper :nickname="nickname" :uid="uid"></upper>
+        <div class="avatars-box" v-for="avatars in avatarsData">
+            <middle :avatars="avatars"></middle>
+        </div>
+        <bottom></bottom>
+    </div>
+
+
+    <template id="upper">
+        <div>
+            <img class="background" src="../../data/image/module/info-upper.png" alt="ERROR" />
+            <p class="uid"> {{nickname}} 的抽卡模拟</p>
+        </div>
+    </template>
+
+    <template id="avatar-element">
+        <div>
+            <div class="element">
+                <img src="../../data/image/module/element.png" alt="ERROR" />
+                <img class="profile" :src="avatar.image" alt="ERROR" />
+                <div class="avatar-info">
+                    <p class="name">{{avatar.name}}</p>
+                    <div>
+                        <p class="star" v-text="'★'.repeat(avatar.star)"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <template id="middle">
+        <div>
+            <div class="box">
+                <div class="avatar" v-for="avatar in avatars">
+                    <avatar-element :avatar="avatar"></avatar-element>
+                </div>
+                <img class="backdrop" src="../../data/image/module/info-middle.png" alt="ERROR" />
+            </div>
+        </div>
+    </template>
+
+    <template id="bottom">
+        <div>
+            <div class="background">
+                <img src="../../data/image/module/info-bottom.png" alt="ERROR" />
+            </div>
+        </div>
+    </template>
+
+    <script>
+        const upper = {
+            template: '#upper',
+            props: ['nickname']
+        };
+
+        const AvatarElement = {
+            template: '#avatar-element',
+            props: {
+                avatar: {
+                    type: Object,
+                    default() {
+                        return {
+                            star: 0,
+                            image: "",
+                            name: ""
+                        }
+                    }
+                }
+            }
+        }
+
+        const middle = {
+            template: '#middle',
+            props: {
+                avatars: {
+                    type: Array
+                }
+            },
+            components: {
+                AvatarElement
+            }
+        };
+
+        const bottom = {
+            template: '#bottom'
+        };
+
+        new Vue({
+            el: '#app',
+            data: {
+                uid: 1,
+                nickname: '123',
+                avatarsData: []
+            },
+            components: {
+                upper,
+                middle,
+                bottom
+            },
+            methods: {
+                cutArray(array, step) {
+                    let newArray = [];
+                    let index = 0, len = array.length;
+                    while (index < len) {
+                        newArray.push(array.slice(index, index += step));
+                    }
+                    return newArray;
+                },
+                readJSON(file, callback) {
+                    fetch(file).then(res => {
+                        return res.json().then(data => {
+                            callback(data);
+                        })
+                    })
+                }
+            },
+            mounted() {
+                this.readJSON('../../data/cache/genshin-wish.json', res => {
+                    this.nickname = res.nickname;
+                    let avatarsList = res.data;
+                    avatarsList.sort((x, y) => {
+                        return y.star - x.star;
+                    });
+                    this.avatarsData = this.cutArray(avatarsList, 7);
+                });
+            }
+        });
+    </script>
+
+</body>
+
+</html>
+
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+    }
+
+    html {
+        width: 1396px;
+        height: 100%;
+        font-family: GenshinUsedFont, monospace;
+    }
+
+    img {
+        display: block;
+    }
+
+    .uid {
+        position: absolute;
+        width: 500px;
+        text-align: center;
+        font-size: 36px;
+        left: 448px;
+        top: 50px;
+        color: rgb(64, 64, 64);
+    }
+
+    .box {
+        position: relative;
+    }
+
+    .avatar {
+        display: inline-block;
+        height: 243px;
+        margin-right: 17px;
+        margin-bottom: 8px;
+    }
+
+    .avatar:first-child {
+        margin-left: 82px;
+    }
+
+    .backdrop {
+        position: absolute;
+        margin-top: -260px;
+        z-index: -1;
+    }
+
+    .element {
+        position: relative;
+        top: 5px;
+    }
+
+    .element .profile {
+        position: relative;
+        z-index: 1;
+        width: 133px;
+        top: -218px;
+        left: 13px;
+    }
+
+    .element .avatar-info {
+        position: relative;
+        font-size: 3px;
+        z-index: 1;
+        float: left;
+        top: -208px;
+        left: 34px;
+        width: 91px;
+        text-align: center;
+    }
+
+    .avatar-info p {
+        display: inline-block;
+    }
+
+    .avatar-info .name {
+        font-size: 18px;
+        color: rgb(64, 64, 64);
+    }
+
+    .avatar-info .level {
+        color: rgb(0, 176, 80);
+        font-size: 16px;
+        margin-right: 2px;
+    }
+
+    .avatar-info .star {
+        color: rgb(255, 204, 50);
+        font-size: 22px;
+        margin-left: 2px;
+    }
+
+    @font-face {
+        font-family: GenshinUsedFont;
+        src: url("../../data/font/HYWenHei-85W.ttf");
+    }
+</style>
