@@ -1,6 +1,11 @@
 const { getBase, getDetail, getCharacters } = require('./api');
 const { get, isInside, push, update } = require('./database');
 const lodash = require('lodash');
+const yaml = require('js-yaml');
+const fs = require("fs");
+
+let index = 0;
+const cookies = yaml.load(fs.readFileSync("./config/cookies.yml", "utf-8"))["cookies"];
 
 const userInitialize = async ( userID, uid, nickname, level ) => {
     if (!(await isInside('character', 'user', 'userID', userID))) {
@@ -22,8 +27,13 @@ const userInitialize = async ( userID, uid, nickname, level ) => {
     }
 }
 
+const increaseIndex = () => {
+    let cookiesNum = cookies.length;
+    index = index === cookiesNum - 1 ? 0 : index + 1;
+}
+
 exports.basePromise = async ( mhyID, userID ) => {
-    const { retcode, message, data } = await getBase(mhyID);
+    const { retcode, message, data } = await getBase(mhyID, cookies[index]);
 
     return new Promise(async (resolve, reject) => {
         if (retcode !== 0) {
@@ -47,6 +57,7 @@ exports.basePromise = async ( mhyID, userID ) => {
 
 exports.detailPromise = async ( uid, server, userID ) => {
     await userInitialize(userID, uid, '', -1);
+    await update('character', 'user', {userID}, {uid});
 
     let nowTime   = new Date().valueOf();
     let { time }  = await get('time', 'user', {uid});
@@ -61,10 +72,10 @@ exports.detailPromise = async ( uid, server, userID ) => {
         return Promise.reject('');
     }
 
-    const { retcode, message, data } = await getDetail(uid, server);
-
+    const { retcode, message, data } = await getDetail(uid, server, cookies[index]);
+    increaseIndex();
+console.log(index);
     return new Promise(async (resolve, reject) => {
-        // TODO: cookies 管理
         if (retcode !== 0) {
             await update('info', 'user', {uid}, {
                 message,
@@ -74,7 +85,6 @@ exports.detailPromise = async ( uid, server, userID ) => {
             return;
         }
 
-        await update('character', 'user', {userID}, {uid});
         await update('time', 'user', {uid}, {
             time: nowTime
         });
@@ -92,7 +102,8 @@ exports.detailPromise = async ( uid, server, userID ) => {
 }
 
 exports.characterPromise = async ( uid, server, character_ids ) => {
-    const { retcode, message, data } = await getCharacters(uid, server, character_ids);
+    const { retcode, message, data } = await getCharacters(uid, server, character_ids, cookies[index]);
+    increaseIndex();
 
     return new Promise(async (resolve, reject) => {
         if (retcode !== 0) {

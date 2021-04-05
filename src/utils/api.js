@@ -1,8 +1,6 @@
 const requests = require('./requests.js');
 const randomString = require('./rand.js');
 const md5 = require('md5');
-const yaml = require('js-yaml');
-const fs = require("fs");
 
 const __API = {
     FETCH_ROLE_ID: 'https://api-takumi.mihoyo.com/game_record/card/wapi/getGameRecordCard',
@@ -27,10 +25,7 @@ const getDS = () => {
     return `${i},${r},${c}`
 }
 
-const index = 0;
-const cookies = yaml.load(fs.readFileSync("./config/cookies.yml", "utf-8"))["cookies"];
-
-exports.getBase = (uid) => {
+exports.getBase = (uid, cookie) => {
     return new Promise((resolve, reject) => {
         requests({
             method: "GET",
@@ -39,7 +34,7 @@ exports.getBase = (uid) => {
             headers: {
                 ...HEADERS,
                 'DS': getDS(),
-                'Cookie': cookies[index],
+                'Cookie': cookie,
             }
         })
             .then(res => {
@@ -51,7 +46,7 @@ exports.getBase = (uid) => {
     });
 }
 
-exports.getDetail = (role_id, server) => {
+exports.getDetail = (role_id, server, cookie) => {
     return new Promise((resolve, reject) => {
         requests({
             method: "GET",
@@ -63,7 +58,7 @@ exports.getDetail = (role_id, server) => {
             headers: {
                 ...HEADERS,
                 'DS': getDS(),
-                'Cookie': cookies[index]
+                'Cookie': cookie
             }
         })
             .then(res => {
@@ -75,7 +70,7 @@ exports.getDetail = (role_id, server) => {
     });
 }
 
-exports.getCharacters = (role_id, server, character_ids) => {
+exports.getCharacters = (role_id, server, character_ids, cookie) => {
     return new Promise((resolve, reject) => {
         requests({
             method: 'POST',
@@ -89,7 +84,7 @@ exports.getCharacters = (role_id, server, character_ids) => {
             headers: {
                 ...HEADERS,
                 'DS': getDS(),
-                'Cookie': cookies[index],
+                'Cookie': cookie,
                 "content-type": "application/json"
             }
         })
