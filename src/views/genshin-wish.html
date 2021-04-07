@@ -5,16 +5,19 @@
     <meta charset="UTF-8">
     <title>genshin-wish</title>
     <script src="../../data/js/vue.min.js"></script>
+    <script src="../../data/js/element-ui.js"></script>
+    <link rel="stylesheet" href="../../data/css/theme-chalk.css">
 </head>
 
 <body>
 
     <div id="app">
-        <upper :nickname="nickname" :uid="uid"></upper>
+        <img class="background-character" :src="imageCover">
+        <upper :nickname="nickname"></upper>
         <div class="avatars-box" v-for="avatars in avatarsData">
             <middle :avatars="avatars"></middle>
         </div>
-        <bottom></bottom>
+        <bottom :counterFive="counterFive" :counterUp="counterUp"></bottom>
     </div>
 
 
@@ -26,16 +29,20 @@
     </template>
 
     <template id="avatar-element">
-        <div>
-            <div class="element">
-                <img src="../../data/image/module/element.png" alt="ERROR" />
-                <img class="profile" :src="avatar.image" alt="ERROR" />
-                <div class="avatar-info">
-                    <p class="name">{{avatar.name}}</p>
-                    <div>
-                        <p class="star" v-text="'★'.repeat(avatar.star)"></p>
-                    </div>
+        <div class="tooltip">
+            <div class="root">
+                <div class="image" :class="'star-'+String(avatar.star)">
+                    <img :src="avatar.imageHead" />
                 </div>
+                <p v-text="avatar.name + (avatar.counter?'('+ avatar.counter +')':'') "></p>
+                <span>
+                    <svg v-for="(item, index) in avatar.star" :key="index" viewBox="0 0 1024 1024"
+                        xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+                        <path
+                            d="M1010.472488 456.651729c-70.155387 91.673101-196.587873 233.002466-196.587873 233.002465s21.135743 162.465107 35.141356 268.398469a50.929501 50.929501 0 0 1-77.285517 56.531746c-84.161-42.398809-217.596292-113.063492-245.734841-127.323752-28.011225 14.132936-161.446517 84.797619-252.737647 127.323752a54.621889 54.621889 0 0 1-84.288324-56.531746c14.132936-105.933361 35.141355-268.398469 35.141355-268.398469S90.685706 541.322023 13.527512 456.651729a60.351458 60.351458 0 0 1 42.144162-91.927749c105.296743-14.132936 266.74326-49.401616 266.74326-49.401616s91.29113-162.592431 140.056127-261.395662c28.138549-63.661876 49.146968-56.531746 56.149774-49.401616a98.293936 98.293936 0 0 1 42.144162 49.401616c56.149775 98.803231 140.056127 261.395662 140.056127 261.395662s161.446517 35.268679 266.74326 56.404422a53.730623 53.730623 0 0 1 42.144161 84.924943z m0 0"
+                            fill="#FFCC32" />
+                    </svg>
+                </span>
             </div>
         </div>
     </template>
@@ -100,9 +107,11 @@
         new Vue({
             el: '#app',
             data: {
-                uid: 1,
-                nickname: '123',
-                avatarsData: []
+                nickname: '',
+                avatarsData: [],
+                counterFive: 0,
+                counterUp: 0,
+                imageCover: ''
             },
             components: {
                 upper,
@@ -129,11 +138,14 @@
             mounted() {
                 this.readJSON('../../data/cache/genshin-wish.json', res => {
                     this.nickname = res.nickname;
-                    let avatarsList = res.data;
+                    this.counterFive = res.data.counterFive;
+                    this.counterUp = res.data.counterUp;
+                    let avatarsList = res.data.data;
                     avatarsList.sort((x, y) => {
                         return y.star - x.star;
                     });
-                    this.avatarsData = this.cutArray(avatarsList, 7);
+                    this.imageCover = avatarsList[0].imageFull;
+                    this.avatarsData = this.cutArray(avatarsList, 5);
                 });
             }
         });
@@ -157,6 +169,18 @@
 
     img {
         display: block;
+    }
+
+    #app{
+        background-size: contain;
+    }
+
+    .background-character{
+        right: 0px;
+        position: fixed;
+        height: 100%;
+        width: auto;
+        opacity: 0.5;
     }
 
     .uid {
@@ -238,5 +262,74 @@
     @font-face {
         font-family: GenshinUsedFont;
         src: url("../../data/font/HYWenHei-85W.ttf");
+    }
+
+    .tooltip {
+        display: block;
+        outline: 0;
+    }
+
+    .tooltip {
+        zoom: 2;
+    }
+
+    .root {
+        flex-shrink: 0;
+        margin: 10px;
+        height: 100px;
+        width: 100px;
+        background: #f1f0eb;
+        border-radius: 5px;
+        overflow: hidden;
+    }
+
+    .root .image.star-1 {
+        background: #8f8e8e;
+    }
+
+    .root .image.star-2 {
+        background: #599478;
+    }
+
+    .root .image.star-3 {
+        background: #598ead;
+    }
+
+    .root .image.star-4 {
+        background: #b981ce;
+    }
+
+    .root .image.star-5 {
+        background: #d28024;
+    }
+
+    .root .image {
+        height: 80%;
+        text-align: center;
+        border-radius: 0 0 20%;
+        overflow: hidden;
+    }
+
+    .root .image img {
+        width: 100%;
+        position: relative;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+
+    .root span {
+        position: relative;
+        top: -32%;
+        width: 100px;
+        float: left;
+        text-align: center;
+    }
+
+    .root span svg {
+        height: 15px;
+    }
+
+    .root p {
+        text-align: center;
     }
 </style>

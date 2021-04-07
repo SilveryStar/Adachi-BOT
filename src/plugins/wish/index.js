@@ -11,7 +11,7 @@ module.exports = async Message => {
     let wishdata = [];
 
     if (cmd === null) {
-        if (msg.includes('#w')) {
+        if (msg === '#w') {
             wishdata = await wish(userID);
         } else return ;
     } else return ;
