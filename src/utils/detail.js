@@ -74,7 +74,7 @@ exports.detailPromise = async ( uid, server, userID ) => {
 
     const { retcode, message, data } = await getDetail(uid, server, cookies[index]);
     increaseIndex();
-console.log(index);
+
     return new Promise(async (resolve, reject) => {
         if (retcode !== 0) {
             await update('info', 'user', {uid}, {

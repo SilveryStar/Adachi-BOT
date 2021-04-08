@@ -9,7 +9,7 @@
 
 <div id="app">
 	<div>
-		<img class="background" src="../../data/image/module/artifact.png" alt="ERROR"/>
+		<img class="background" src="http://adachi-bot.oss-cn-beijing.aliyuncs.com/module/artifact.png" alt="ERROR"/>
 		<div class="content">
 			<p class="name">{{base.name}}</p>
 			<p class="slot">{{Slot}}</p>
@@ -17,7 +17,7 @@
 				<p class="property">{{statName}}</p>
 				<p class="data">{{statData}}</p>
 			</div>
-			<img class="rarity" src="../../data/image/item/rarity.png" alt="ERROR"/>
+			<img class="rarity" src="http://adachi-bot.oss-cn-beijing.aliyuncs.com/item/rarity.png" alt="ERROR"/>
 			<img class="image" :src="artifactImage" alt="ERROR"/>
 			<p class="level">+{{base.level}}</p>
 			<ul class="list" v-for="v in data">
@@ -66,7 +66,7 @@
                 }
             },
 			artifactImage() {
-				return "../../data/image/artifacts/" + this.base.artifactID + "/" + this.base.slot + ".png";
+				return "http://adachi-bot.oss-cn-beijing.aliyuncs.com/artifacts/" + this.base.artifactID + "/" + this.base.slot + ".png";
 			}
 		},
 		methods: {

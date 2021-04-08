@@ -118,7 +118,7 @@
         },
 		computed: {
 	        image() {
-	            return "../../data/image/characters/" + this.character + ".png";
+	            return "http://adachi-bot.oss-cn-beijing.aliyuncs.com/characters/card/" + this.character + ".png";
 	        }
 		}
 	};
@@ -180,7 +180,7 @@
 		props: ['pos'],
 	    computed: {
 		    image() {
-                return "../../data/image/item/" + this.pos + ".png";
+                return "http://adachi-bot.oss-cn-beijing.aliyuncs.com/item/" + this.pos + ".png";
 		    }
 	    }
     };

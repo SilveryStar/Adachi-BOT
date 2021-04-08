@@ -14,6 +14,7 @@
 		:level="level"
 		:stats="stats"
 		:exploration="explorations"
+		:profile="profile"
 	></upper>
 	<div class="avatars-box" v-for="avatars in avatarsData">
 		<middle
@@ -26,9 +27,9 @@
 <template id="upper">
 	<div>
 		<div class="background">
-			<img src="../../data/image/module/card-upper.png" alt="ERROR"/>
+			<img src="http://adachi-bot.oss-cn-beijing.aliyuncs.com/module/card-upper.png" alt="ERROR"/>
 		</div>
-		<img :src="randPicture" alt="ERROR" class="profile">
+		<img :src="Picture" alt="ERROR" class="profile">
 		<div class="base-info">
 			<p class="nickname">{{nickname}}</p>
 			<p class="uid">UID: {{uid}}</p>
@@ -57,14 +58,14 @@
 		<div class="exploration mondstadt-level">{{expLevel(1)}}</div>
 		<div class="exploration liyue-exp">{{percentage(2)}}</div>
 		<div class="exploration liyue-level">{{expLevel(2)}}</div>
-		<img src="../../data/image/module/card-package.png" alt="ERROR">
+		<img src="http://adachi-bot.oss-cn-beijing.aliyuncs.com/module/card-package.png" alt="ERROR">
 	</div>
 </template>
 
 <template id="avatar-element">
 	<div>
 		<div class="element">
-			<img src="../../data/image/module/element.png" alt="ERROR"/>
+			<img src="http://adachi-bot.oss-cn-beijing.aliyuncs.com/module/element.png" alt="ERROR"/>
 			<img class="profile" :src="avatar.icon" alt="ERROR"/>
 			<div class="avatar-info">
 				<p class="name">{{avatar.name}}</p>
@@ -85,7 +86,7 @@
 					:avatar="avatar"
 				></avatar-element>
 			</div>
-			<img class="backdrop" src="../../data/image/module/card-middle.png" alt="ERROR"/>
+			<img class="backdrop" src="http://adachi-bot.oss-cn-beijing.aliyuncs.com/module/card-middle.png" alt="ERROR"/>
 		</div>
 	</div>
 </template>
@@ -93,7 +94,7 @@
 <template id="bottom">
 	<div>
 		<div class="background">
-			<img src="../../data/image/module/card-bottom.png" alt="ERROR"/>
+			<img src="http://adachi-bot.oss-cn-beijing.aliyuncs.com/module/card-bottom.png" alt="ERROR"/>
 		</div>
 	</div>
 </template>
@@ -105,6 +106,7 @@
 		    uid: Number,
 			nickname: String,
 			level: Number,
+            profile: Number,
             exploration: {
 		        type: Object,
 	            default() {
@@ -135,9 +137,8 @@
 			}
         },
 		computed: {
-		    randPicture() {
-		        let rand = Math.floor(Math.random()*32);
-		        return "../../data/image/avatar/" + rand + ".png";
+		    Picture() {
+		        return "http://adachi-bot.oss-cn-beijing.aliyuncs.com/characters/profile/" + this.profile + ".png";
 		    },
             worldLevel() {
 				if (this.level >= 55) {
@@ -217,7 +218,7 @@
 			nickname: "",
             uid: 0,
 			level: 0,
-            protagonist: {},
+			profile: 0,
             stats: {},
             avatarsData: [],
             explorations: [],
@@ -255,7 +256,7 @@
                 this.stats = res.stats;
                 this.avatar_number = avatarsList.length;
                 this.explorations = res.explorations;
-                this.protagonist = avatarsList[this.avatar_number-1];
+                this.profile = avatarsList[Math.floor(Math.random() * this.avatar_number)].id;
 
                 avatarsList.sort((x, y) => {
                     if (x.level === y.level) {
