@@ -2,7 +2,6 @@ const { get, push, update } = require('../../utils/database');
 const yaml = require('js-yaml');
 const fs = require("fs");
 
-const wishCfg = yaml.load(fs.readFileSync("./config/wish.yml"), "utf-8");
 const characterCfg = yaml.load(fs.readFileSync("./config/character.yml"), "utf-8");
 
 const chkInfo = async (userID) => {
@@ -63,6 +62,27 @@ const getStar = async (userID) => {
     else return 3;
 }
 
+const getWishCfg = async (type) => {
+    const result = await get('wish', 'wishes', { gacha_type: type })
+    let cfg = { starFive: { up: [], nonUp: [] }, starFour: { up: [], nonUp: [] } };
+    result.r4_up_items.forEach((element) => {
+        cfg.starFour.up.push(element.item_name);
+    })
+    result.r5_up_items.forEach((element) => {
+        cfg.starFive.up.push(element.item_name);
+    })
+    result.r4_prob_list.forEach((element, index) => {
+        if (index <= 2) return;
+        cfg.starFour.nonUp.push(element.item_name);
+    })
+    result.r5_prob_list.forEach((element, index) => {
+        if (index <= 0) return;
+        cfg.starFive.nonUp.push(element.item_name);
+    })
+    return cfg;
+}
+
+
 const wishOnce = async (userID) => {
     await chkInfo(userID);
 
@@ -73,18 +93,20 @@ const wishOnce = async (userID) => {
 
     await updateCounter(userID, star, isUp);
 
+    const wishCfg = await getWishCfg("301");
+
     if (star === 5) {
         if (isUp) {
             const index = getRandomInt(wishCfg.starFive.up.length) - 1;
             let characterName = wishCfg.starFive.up[index];
-            let result = {...characterCfg[characterName]};
+            let result = { ...characterCfg[characterName] };
             result.star = 5;
             result.counter = counterFive;
             return result;
         } else {
             const index = getRandomInt(wishCfg.starFive.nonUp.length) - 1;
             let characterName = wishCfg.starFive.nonUp[index];
-            let result = {...characterCfg[characterName]};
+            let result = { ...characterCfg[characterName] };
             result.star = 5;
             result.counter = counterFive;
             return result;
@@ -93,21 +115,21 @@ const wishOnce = async (userID) => {
         if (isUp) {
             const index = getRandomInt(wishCfg.starFour.up.length) - 1;
             let characterName = wishCfg.starFour.up[index];
-            let result = {...characterCfg[characterName]};
+            let result = { ...characterCfg[characterName] };
             result.star = 4;
             result.counter = counterFive;
             return result;
         } else {
             const index = getRandomInt(wishCfg.starFour.nonUp.length) - 1;
             let characterName = wishCfg.starFour.nonUp[index];
-            let result = {...characterCfg[characterName]};
+            let result = { ...characterCfg[characterName] };
             result.star = 4;
             result.counter = counterFive;
             return result;
         }
 
     } else {
-        let result = {name: '三星武器', imageHead: 'https://patchwiki.biligame.com/images/ys/e/e0/r009hx3olkmrtk1ykdlr5lvhc76j4iu.png'};
+        let result = { name: '三星武器', imageHead: 'https://patchwiki.biligame.com/images/ys/e/e0/r009hx3olkmrtk1ykdlr5lvhc76j4iu.png' };
         result.star = 3;
         return result;
     }
@@ -125,6 +147,6 @@ exports.wish = async (userID) => {
 
     const userInfo = await get('wish', 'user', { userID });
     const { counterFive, counterUp } = userInfo;
-    
+
     return { data, counterFive, counterUp }
 }

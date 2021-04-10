@@ -1,4 +1,3 @@
-const { get } = require('../../utils/database');
 const render = require('../../utils/render');
 const { wish } = require('./wish');
 
@@ -13,8 +12,8 @@ module.exports = async Message => {
     if (cmd === null) {
         if (msg === '#w') {
             wishdata = await wish(userID);
-        } else return ;
-    } else return ;
+        } else return;
+    } else return;
 
-    await render({nickname: nickname, data: wishdata}, 'genshin-wish', groupID);
+    await render({ nickname: nickname, data: wishdata }, 'genshin-wish', groupID);
 }

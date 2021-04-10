@@ -7,7 +7,9 @@ const fs = require("fs");
 const __API = {
     FETCH_ROLE_ID: 'https://api-takumi.mihoyo.com/game_record/card/wapi/getGameRecordCard',
     FETCH_ROLE_INDEX: 'https://api-takumi.mihoyo.com/game_record/genshin/api/index',
-    FETCH_ROLE_CHARACTERS: 'https://api-takumi.mihoyo.com/game_record/genshin/api/character'
+    FETCH_ROLE_CHARACTERS: 'https://api-takumi.mihoyo.com/game_record/genshin/api/character',
+    FETCH_GACHA_LIST: 'https://webstatic.mihoyo.com/hk4e/gacha_info/cn_gf01/gacha/list.json',
+    FETCH_GACHA_DETAIL: 'https://webstatic.mihoyo.com/hk4e/gacha_info/cn_gf01/$/zh-cn.json'
 };
 
 const HEADERS = {
@@ -92,6 +94,36 @@ exports.getCharacters = (role_id, server, character_ids) => {
                 'Cookie': cookies[index],
                 "content-type": "application/json"
             }
+        })
+            .then(res => {
+                resolve(res);
+            })
+            .catch(err => {
+                reject(err);
+            });
+    });
+}
+
+exports.getGachaList = () => {
+    return new Promise((resolve, reject) => {
+        requests({
+            method: 'GET',
+            url: __API.FETCH_GACHA_LIST,
+        })
+            .then(res => {
+                resolve(res);
+            })
+            .catch(err => {
+                reject(err);
+            });
+    });
+}
+
+exports.getGachaDetail = (gacha_id) => {
+    return new Promise((resolve, reject) => {
+        requests({
+            method: 'GET',
+            url: (__API.FETCH_GACHA_DETAIL.replace('$', gacha_id)),
         })
             .then(res => {
                 resolve(res);
