@@ -10,3 +10,5 @@ help:
   - ^#help *$
 artifacts:
   - ^#(r|i|d) *([0-9]?|[0-9a-fA-F]{16})$
+wish:
+  - ^#w

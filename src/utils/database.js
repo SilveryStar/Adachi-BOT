@@ -14,6 +14,7 @@ const newDB = ( name, defaultElement ) => {
 newDB('map');
 newDB('time');
 newDB('info');
+newDB('wish');
 newDB('artifact');
 newDB('character');
 
