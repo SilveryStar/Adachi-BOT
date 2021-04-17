@@ -78,7 +78,6 @@
 	        },
             weaponImage() {
                 return 'http://adachi-bot.oss-cn-beijing.aliyuncs.com/gacha/weapons/' + this.data.item_name + '.png';
-                // return 'http://adachi-bot.oss-cn-beijing.aliyuncs.com/gacha/characters/' + '芭芭拉' + '.png';
             }
         }
     };
@@ -124,10 +123,10 @@
                 this.gachaList.sort((x, y) => {
                     let xv = this.sortValue(x.item_type);
                     let yv = this.sortValue(y.item_type);
-                    if (xv === yv) {
-                        return y.star - x.star;
-                    } else {
+                    if (x.star === y.star) {
                         return yv - xv;
+                    } else {
+                        return y.star - x.star;
                     }
                 });
             });
