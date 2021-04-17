@@ -43,7 +43,7 @@ exports.getBase = (uid, cookie) => {
                 resolve(JSON.parse(res));
             })
             .catch(err => {
-               reject(err);
+                reject(err);
             });
     });
 }
@@ -106,7 +106,7 @@ exports.getGachaList = () => {
             url: __API.FETCH_GACHA_LIST,
         })
             .then(res => {
-                resolve(res);
+                resolve(JSON.parse(res));
             })
             .catch(err => {
                 reject(err);
@@ -114,14 +114,14 @@ exports.getGachaList = () => {
     });
 }
 
-exports.getGachaDetail = (gacha_id) => {
+exports.getGachaDetail = gachaID => {
     return new Promise((resolve, reject) => {
         requests({
             method: 'GET',
-            url: (__API.FETCH_GACHA_DETAIL.replace('$', gacha_id)),
+            url: (__API.FETCH_GACHA_DETAIL.replace('$', gachaID)),
         })
             .then(res => {
-                resolve(res);
+                resolve(JSON.parse(res));
             })
             .catch(err => {
                 reject(err);

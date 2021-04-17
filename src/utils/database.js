@@ -4,9 +4,7 @@ const path = require('path');
 
 const db = [];
 
-const newDB = ( name, defaultElement ) => {
-    defaultElement = (typeof defaultElement !== 'undefined') ? defaultElement : { user: [] };
-
+const newDB = ( name, defaultElement = { user: [] } ) => {
     db[name] = low(new FileSync(path.resolve(__dirname, '..', '..', 'data', 'db', name + '.json')));
     db[name].defaults(defaultElement).write();
 }
@@ -14,9 +12,9 @@ const newDB = ( name, defaultElement ) => {
 newDB('map');
 newDB('time');
 newDB('info');
-newDB('wish');
 newDB('artifact');
 newDB('character');
+newDB('gacha', { user: [], data: [] });
 
 exports.isInside = async ( name, key, index, value ) => {
     return db[name].get(key).map(index).value().includes(value);

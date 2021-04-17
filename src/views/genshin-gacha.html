@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>genshin-gacha</title>
+	<script src="../../data/js/vue.min.js"></script>
+</head>
+<body>
+
+<div id="app">
+	<background></background>
+	<gacha-box
+		:data="gachaList"
+	></gacha-box>
+</div>
+
+<template id="background">
+	<div class="background">
+		<img src="http://adachi-bot.oss-cn-beijing.aliyuncs.com/gacha/items/background.png" alt="ERROR"/>
+	</div>
+</template>
+
+<template id="gacha-result">
+	<div class="element">
+		<img class="star-background" :src="starBackground" alt="ERROR"/>
+		<img class="star-image" :src="starImage" alt="ERROR"/>
+		<div v-if="data.item_type === '武器'">
+			<img class="weapon-image" :src="weaponImage" alt="ERROR"/>
+			<p class="weapon-name">{{data.item_name}}</p>
+		</div>
+		<div v-else>
+			<img class="character-image" :src="characterImage" alt="ERROR"/>
+		</div>
+	</div>
+</template>
+
+<template id="gacha-box">
+	<div class="gacha">
+		<div class="gacha-box" v-for="data in data">
+			<gacha-result
+				:data="data"
+			></gacha-result>
+		</div>
+	</div>
+</template>
+
+<script>
+	const background = {
+		template: '#background'
+	};
+
+    const gachaResult = {
+        template: '#gacha-result',
+        props: ['data'],
+        data() {
+            return {
+                starType: [
+                    'ThreeStar',
+                    'FourStar',
+                    'FiveStar'
+                ],
+                bgType: [
+                    'ThreeBackground',
+                    'FourBackground',
+                    'FiveBackground'
+                ]
+            };
+        },
+        computed: {
+            starBackground() {
+                return 'http://adachi-bot.oss-cn-beijing.aliyuncs.com/gacha/items/' + this.bgType[this.data.star - 3] + '.png';
+            },
+            starImage() {
+                return 'http://adachi-bot.oss-cn-beijing.aliyuncs.com/gacha/items/' + this.starType[this.data.star - 3] + '.png';
+            },
+	        characterImage() {
+                return 'http://adachi-bot.oss-cn-beijing.aliyuncs.com/gacha/characters/' + this.data.item_name + '.png';
+	        },
+            weaponImage() {
+                return 'http://adachi-bot.oss-cn-beijing.aliyuncs.com/gacha/weapons/' + this.data.item_name + '.png';
+                // return 'http://adachi-bot.oss-cn-beijing.aliyuncs.com/gacha/characters/' + '芭芭拉' + '.png';
+            }
+        }
+    };
+
+	const gachaBox = {
+	    template: '#gacha-box',
+		props: ['data'],
+		components: {
+	        gachaResult
+		}
+	};
+
+	new Vue({
+		el: '#app',
+		data: {
+			gachaList: [
+				{
+                    star: 0,
+                    item_type: '',
+                    item_name: ''
+				}
+			]
+		},
+		components: {
+			background,
+            gachaBox
+		},
+		methods: {
+            readJSON(file, callback) {
+                fetch(file).then(res => {
+                    return res.json().then(data => {
+                        callback(data);
+                    })
+                })
+            },
+			sortValue(type) {
+                return type === '角色' ? 1 : 0;
+			}
+		},
+		mounted() {
+            this.readJSON('../../data/cache/genshin-gacha.json', res => {
+				this.gachaList = res;
+                this.gachaList.sort((x, y) => {
+                    let xv = this.sortValue(x.item_type);
+                    let yv = this.sortValue(y.item_type);
+                    if (xv === yv) {
+                        return y.star - x.star;
+                    } else {
+                        return yv - xv;
+                    }
+                });
+            });
+		}
+	});
+</script>
+</body>
+</html>
+
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+    }
+
+    html {
+        font-family: GenshinUsedFont, monospace;
+    }
+
+    body {
+	    position: absolute;
+        width: 1286px;
+        height: 723px;
+    }
+
+    .background {
+        position: absolute;
+    }
+
+    .gacha-box {
+	    position: relative;
+	    display: inline-flex;
+	    top: 24px;
+    }
+
+    .gacha-box:first-child {
+	    margin-left: 83px;
+    }
+
+    .element .star-background {
+	    position: relative;
+	    width: 112px;
+    }
+
+    .element .star-image {
+	    display: flex;
+	    position: relative;
+	    z-index: 1;
+	    width: 82px;
+        left: 15px;
+        top: -202px;
+    }
+
+    .element .weapon-image {
+	    position: absolute;
+	    display: inline-block;
+        width: 112px;
+        top: 208px;
+    }
+
+    .element .weapon-name {
+	    position: absolute;
+	    color: rgb(242, 242, 242);
+        width: 112px;
+	    top: 434px;
+        text-align: center;
+	    font-size: 15px;
+    }
+
+    .element .character-image {
+	    position: absolute;
+        display: inline-block;
+	    margin: 0 3px;
+        width: 106px;
+	    bottom: 129px;
+    }
+
+    @font-face {
+        font-family: GenshinUsedFont;
+        src: url("../../data/font/HYWenHei-85W.ttf");
+    }
+</style>

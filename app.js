@@ -1,6 +1,8 @@
 const { createClient } = require("oicq");
 const { loadPlugins, processed } = require("./src/utils/load");
 const { newServer } = require('./src/utils/server');
+const { gachaUpdate } = require('./src/utils/update')
+const schedule = require('node-schedule');
 const yaml = require('js-yaml');
 const fs = require("fs");
 
@@ -37,8 +39,13 @@ const run = async () => {
 }
 
 run().then(() => {
+    gachaUpdate();
     newServer(9934);
     const plugins = loadPlugins();
+
+    schedule.scheduleJob('0 0 4 * * *', () => {
+        gachaUpdate();
+    });
 
     bot.on("message.group", msgData => {
         processed(msgData, plugins);

@@ -9,10 +9,10 @@ const cookies = yaml.load(fs.readFileSync("./config/cookies.yml", "utf-8"))["coo
 
 const userInitialize = async ( userID, uid, nickname, level ) => {
     if (!(await isInside('character', 'user', 'userID', userID))) {
-        await push('character', 'user', {userID, uid: 0});
+        await push('character', 'user', { userID, uid: 0 });
     }
     if (!(await isInside('time', 'user', 'uid', uid))) {
-        await push('time', 'user', {uid, time: 0});
+        await push('time', 'user', { uid, time: 0 });
     }
     if (!(await isInside('info', 'user', 'uid', uid))) {
         let initData = {
@@ -49,7 +49,7 @@ exports.basePromise = async ( mhyID, userID ) => {
         let uid = parseInt(game_role_id);
 
         await userInitialize(userID, uid, nickname, level);
-        await update('info', 'user', {uid}, {level, nickname});
+        await update('info', 'user', { uid }, {level, nickname});
 
         resolve([uid, region]);
     });
@@ -57,15 +57,15 @@ exports.basePromise = async ( mhyID, userID ) => {
 
 exports.detailPromise = async ( uid, server, userID ) => {
     await userInitialize(userID, uid, '', -1);
-    await update('character', 'user', {userID}, {uid});
+    await update('character', 'user', { userID }, { uid });
 
     let nowTime   = new Date().valueOf();
-    let { time }  = await get('time', 'user', {uid});
+    let { time }  = await get('time', 'user', { uid });
 
     if (nowTime - time < 60 * 60 * 1000) {
         bot.logger.info("用户 " + uid + " 在一小时内进行过查询操作，将返回上次数据");
 
-        const { retcode, message } = await get('info', 'user', {uid});
+        const { retcode, message } = await get('info', 'user', { uid });
         if (retcode !== 0) {
             return Promise.reject("米游社接口报错: " + message);
         }
@@ -77,7 +77,7 @@ exports.detailPromise = async ( uid, server, userID ) => {
 
     return new Promise(async (resolve, reject) => {
         if (retcode !== 0) {
-            await update('info', 'user', {uid}, {
+            await update('info', 'user', { uid }, {
                 message,
                 retcode: parseInt(retcode)
             });
@@ -85,10 +85,10 @@ exports.detailPromise = async ( uid, server, userID ) => {
             return;
         }
 
-        await update('time', 'user', {uid}, {
+        await update('time', 'user', { uid }, {
             time: nowTime
         });
-        await update('info', 'user', {uid}, {
+        await update('info', 'user', { uid }, {
             message,
             retcode:        parseInt(retcode),
             explorations:   data.world_explorations,
@@ -141,7 +141,7 @@ exports.characterPromise = async ( uid, server, character_ids ) => {
             }
         }
 
-        await update('info', 'user', {uid}, {avatars});
+        await update('info', 'user', { uid }, { avatars });
         resolve();
     });
 }
