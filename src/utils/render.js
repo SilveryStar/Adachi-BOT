@@ -1,6 +1,5 @@
 const puppeteer = require('puppeteer')
 const fs = require('fs');
-const path = require('path');
 
 module.exports = render = async ( data, name, id ) => {
     puppeteer.launch({
@@ -13,11 +12,11 @@ module.exports = render = async ( data, name, id ) => {
 
             await page.goto('http://localhost:9934/src/views/' + name + '.html');
             const htmlElement = await page.$('body');
-            await htmlElement.screenshot({
-                path: './data/cache/' + name + '.png'
+            const base64 = await htmlElement.screenshot({
+                encoding: 'base64'
             });
 
             await browser.close();
-            await bot.sendGroupMsg(id, "[CQ:image,file=" + path.resolve(__dirname, '..', '..', 'data', 'cache', name + '.png') + "]").then();
+            await bot.sendGroupMsg(id, "[CQ:image,file=base64://" + base64 + "]");
         });
 }
