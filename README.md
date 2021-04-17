@@ -35,7 +35,6 @@ Adachi-BOT
 │  ├─ cache                 渲染缓存
 │  ├─ db                    数据库文件(Lowdb)
 │  ├─ font                  字体资源
-│  ├─ image                 图片资源
 │  └─ js                    外部资源
 ├─ src                      源码目录
 │  ├─ plugins               插件代码
@@ -65,28 +64,33 @@ echo:  # 此处的 key 值应与插件名保持一致，且为数组类型
 
 ### 生成玩家信息卡片
 <div align="center">
-  <img src="https://github.com/SilveryStar/Adachi-BOT/blob/master/data/cache/CardExample.png" alt="ERROR">
+  <img src="https://github.com/SilveryStar/image/blob/master/Adachi-BOT/CardExample.png" alt="ERROR">
 </div>
 
 ### 生成玩家角色背包
 <div align="center">
-  <img src="https://github.com/SilveryStar/Adachi-BOT/blob/master/data/cache/PackageExample.png" alt="ERROR">
+  <img src="https://github.com/SilveryStar/image/blob/master/Adachi-BOT/PackageExample.png" alt="ERROR">
 </div>
 
 ### 生成角色信息卡片
 <div align="center">
-  <img src="https://github.com/SilveryStar/Adachi-BOT/blob/master/data/cache/AnemoExample.png" alt="ERROR">
-  <img src="https://github.com/SilveryStar/Adachi-BOT/blob/master/data/cache/PyroExample.png" alt="ERROR">
-  <img src="https://github.com/SilveryStar/Adachi-BOT/blob/master/data/cache/CryoExample.png" alt="ERROR">
-  <img src="https://github.com/SilveryStar/Adachi-BOT/blob/master/data/cache/HydroExample.png" alt="ERROR">
-  <img src="https://github.com/SilveryStar/Adachi-BOT/blob/master/data/cache/ElectroExample.png" alt="ERROR">
-  <img src="https://github.com/SilveryStar/Adachi-BOT/blob/master/data/cache/GeoExample.png" alt="ERROR">
+  <img src="https://github.com/SilveryStar/image/blob/master/Adachi-BOT/AnemoExample.png" alt="ERROR">
+  <img src="https://github.com/SilveryStar/image/blob/master/Adachi-BOT/PyroExample.png" alt="ERROR">
+  <img src="https://github.com/SilveryStar/image/blob/master/Adachi-BOT/CryoExample.png" alt="ERROR">
+  <img src="https://github.com/SilveryStar/image/blob/master/Adachi-BOT/HydroExample.png" alt="ERROR">
+  <img src="https://github.com/SilveryStar/image/blob/master/Adachi-BOT/ElectroExample.png" alt="ERROR">
+  <img src="https://github.com/SilveryStar/image/blob/master/Adachi-BOT/GeoExample.png" alt="ERROR">
 </div>
 
 ### 随机圣遗物功能
 <div align="center">
-  <img src="https://github.com/SilveryStar/Adachi-BOT/blob/master/data/cache/InitialActifact.png" alt="ERROR">
-  <img src="https://github.com/SilveryStar/Adachi-BOT/blob/master/data/cache/FortifiedArtifact.png" alt="ERROR">
+  <img src="https://github.com/SilveryStar/image/blob/master/Adachi-BOT/InitialActifact.png" alt="ERROR">
+  <img src="https://github.com/SilveryStar/image/blob/master/Adachi-BOT/FortifiedArtifact.png" alt="ERROR">
+</div>
+
+### 祈愿十连功能（暂时仅限角色祈愿）
+<div align="center">
+  <img src="https://github.com/SilveryStar/image/blob/master/Adachi-BOT/GachaExample.png" alt="ERROR">
 </div>
 </details>
 
