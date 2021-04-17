@@ -132,7 +132,7 @@
             }
 	    },
 	    mounted() {
-            this.readJSON('../../data/cache/genshin-info.json', res => {
+            this.readJSON('../../data/record/genshin-info.json', res => {
                 let avatarsList = res.avatars;
                 avatarsList.sort((x, y) => {
                     if (x.level === y.level) {

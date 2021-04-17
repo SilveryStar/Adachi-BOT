@@ -118,7 +118,7 @@
 			}
 		},
 		mounted() {
-            this.readJSON('../../data/cache/genshin-gacha.json', res => {
+            this.readJSON('../../data/record/genshin-gacha.json', res => {
 				this.gachaList = res;
                 this.gachaList.sort((x, y) => {
                     let xv = this.sortValue(x.item_type);

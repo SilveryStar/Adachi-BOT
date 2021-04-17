@@ -8,7 +8,7 @@ module.exports = render = async ( data, name, id ) => {
     })
         .then(async browser => {
             const page = await browser.newPage();
-            await fs.writeFile('./data/cache/' + name + '.json', JSON.stringify(data), ()=>{});
+            await fs.writeFile('./data/record/' + name + '.json', JSON.stringify(data), ()=>{});
 
             await page.goto('http://localhost:9934/src/views/' + name + '.html');
             const htmlElement = await page.$('body');
