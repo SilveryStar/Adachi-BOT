@@ -47,6 +47,7 @@ Adachi-BOT
 1. 在 `src/plugins` 目录下创建文件夹如 `echo`， 这个名称将作为插件名
 2. 创建文件 `/echo/index.js` 作为插件入口，文件模板如下
 ```js
+// 此处代码将在程序成功启动后执行，可用于加载初始化
 module.exports = Message => {
     // 此处代码将在每次正则匹配成功后执行
 }
@@ -56,7 +57,8 @@ module.exports = Message => {
 echo:  # 此处的 key 值应与插件名保持一致，且为数组类型
   - ^echo *[0-9a-zA-Z]+
 ```
-4. 添加插件后，重启 bot ，即可成功加载插件
+4. 添加插件后，重启程序，即可成功加载插件
+5. 机器人已被注册为全局实例 `bot` ，可以直接使用，详细参考 [oicq](https://github.com/takayama-lily/oicq/wiki/91.API%E6%96%87%E6%A1%A3)
 
 ## Demo
 <details>
@@ -88,9 +90,11 @@ echo:  # 此处的 key 值应与插件名保持一致，且为数组类型
   <img src="https://github.com/SilveryStar/image/blob/master/Adachi-BOT/FortifiedArtifact.png" alt="ERROR">
 </div>
 
-### 祈愿十连功能（暂时仅限角色祈愿）
+### 祈愿十连功能
 <div align="center">
-  <img src="https://github.com/SilveryStar/image/blob/master/Adachi-BOT/GachaExample.png" alt="ERROR">
+  <img src="https://github.com/SilveryStar/image/blob/master/Adachi-BOT/IndefiniteGachaExample.png" alt="ERROR">
+  <img src="https://github.com/SilveryStar/image/blob/master/Adachi-BOT/CharacterGachaExample.png" alt="ERROR">
+  <img src="https://github.com/SilveryStar/image/blob/master/Adachi-BOT/WeaponGachaExample.png" alt="ERROR">
 </div>
 </details>
 
