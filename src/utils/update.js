@@ -1,10 +1,12 @@
 const { getGachaList, getGachaDetail } = require('./api')
-const { update, push, isInside } = require('./database');
+const { set } = require('./database');
 const lodash = require('lodash');
 
-const parseData = data => {
+const parseData = async gachaID => {
+    const data = await getGachaDetail(gachaID);
+
     let detail = {
-        gacha_type:     parseInt(data.gacha_type),
+        gacha_type:     parseInt(data['gacha_type']),
         upFourStar:     [],
         upFiveStar:     [],
         nonUpFourStar:  [],
@@ -37,13 +39,10 @@ const parseData = data => {
 }
 
 exports.gachaUpdate = async () => {
-    const gachaInfo  = (await getGachaList()).data.list[1];
-    const detail     = parseData(await getGachaDetail(gachaInfo['gacha_id']));
-    const gacha_type = gachaInfo['gacha_type'];
+    const gachaInfo  = (await getGachaList()).data.list;
+    const indefinite = await parseData(gachaInfo[0]['gacha_id']);
+    const character  = await parseData(gachaInfo[1]['gacha_id']);
+    const weapon     = await parseData(gachaInfo[2]['gacha_id']);
 
-    if (await isInside('gacha', 'data', 'gacha_type', gacha_type)) {
-        await update('gacha', 'data', { gacha_type }, detail);
-    } else {
-        await push('gacha', 'data', detail);
-    }
+    await set('gacha', 'data', [ indefinite, character, weapon ]);
 }

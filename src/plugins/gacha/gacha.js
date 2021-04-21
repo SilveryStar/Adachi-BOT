@@ -1,90 +1,97 @@
-const { get, push, update, isInside } = require('../../utils/database');
-
-const userInitialize = async userID => {
-    if (!(await isInside('gacha', 'user', 'userID', userID))) {
-        await push('gacha', 'user', {
-            userID,
-            counterFive : 1,
-            counterFour : 1,
-            counterUp   : 0
-        });
-    }
-};
+const { get, update } = require('../../utils/database');
 
 const getRandomInt = (max = 10000) => {
     return Math.floor(Math.random() * max) + 1;
 };
 
-const getFiveProb = counterFive => {
-    if (counterFive <= 73){
-        return 60;
-    } else {
-        return 60 + 600 * (counterFive - 73);
+const getChoiceData = async ( userID, choice ) => {
+    const { indefinite, character, weapon } = await get('gacha', 'user', { userID });
+    switch (choice) {
+        case 200: return { name: 'indefinite', ...indefinite };
+        case 301: return { name: 'character' , ...character };
+        case 302: return { name: 'weapon'    , ...weapon };
     }
 };
 
-const getFourProb = counterFour => {
-    if (counterFour <= 8) {
-        return 510;
+// 数据参考: https://www.bilibili.com/read/cv10468091
+// 更新时间: 2021年4月21日23:17:26, 不保证概率更新的及时性
+const getFiveProb = ( counter, choice ) => {
+    if (choice === 200 || counter === 301) {
+        return 60 + 600 * (counter > 73 ? counter - 73 : 0);
     } else {
-        return 510 + 5100 * (counterFour - 8);
+        if (counter <= 73) {
+            return 70 + 700 * (counter > 62 ? counter - 62 : 0);
+        } else {
+            return 7770 + 350 * (counter - 73);
+        }
     }
 };
 
-const updateCounter = async ( userID, star, isUp ) => {
-    const { counterFive, counterFour, counterUp } = await get('gacha', 'user', { userID });
+const getFourProb = ( counter, choice ) => {
+    if (choice === 200 || counter === 301) {
+        return 510 + 5100 * (counter > 8 ? counter - 8 : 0);
+    } else {
+        if (counter <= 8) {
+            return 600 + 6000 * (counter === 8);
+        } else {
+            return 6600 + 3000 * (counter - 8);
+        }
+    }
+};
 
-    const updateGachaData = async data => {
-        await update('gacha', 'user', { userID }, data);
+const updateCounter = async ( userID, star, up, choice ) => {
+    const counter = await getChoiceData(userID, choice);
+    const { name, five, four, isUp } = counter;
+
+
+    const updateGachaData = async ( data, newData = {}) => {
+        newData[name] = data;
+        await update('gacha', 'user', { userID }, newData);
     };
 
-    if (star === 5) {
-        const gachaUpData = isUp ? { counterUp: counterUp > 0 ? counterUp + 1 : 1 }
-                                 : { counterUp: counterUp > 0 ? -1 : counterUp - 1 };
-
-        await updateGachaData(gachaUpData);
-        await updateGachaData({ counterFive: 1 });
-        await updateGachaData({ counterFour: counterFour + 1 });
-    } else if (star === 4) {
-        await updateGachaData({ counterFour: 1 });
-        await updateGachaData({ counterFive: counterFive + 1 });
+    if (star !== 5) {
+        const data = star === 4 ? { five: five + 1, four: 1 }
+                                : { five: five + 1, four: four + 1 };
+        await updateGachaData({ ...data, isUp });
+    } else if (isUp !== undefined && isUp !== null) {
+        const data = up ? ( isUp > 0 ? isUp + 1 : 1 )
+                        : ( isUp > 0 ? -1 : isUp - 1 );
+        await updateGachaData({ five: 1, four: four + 1, isUp: data });
     } else {
-        await updateGachaData({ counterFour: counterFour + 1 });
-        await updateGachaData({ counterFive: counterFive + 1 });
-    }
-
-};
-
-const getIsUp = async ( userID, star ) => {
-    const { counterUp } = await get('gacha', 'user', { userID });
-
-    return getRandomInt() <= 5000 || (star === 5 && counterUp < 0);
-};
-
-const getStar = async userID => {
-    const { counterFive, counterFour } = await get('gacha', 'user', { userID });
-
-    const luckyPoint = getRandomInt();
-    const fiveProb  = getFiveProb(counterFive);
-    const fourProb  = getFourProb(counterFour);
-
-    if (luckyPoint <= fiveProb) {
-        return 5;
-    } else if (luckyPoint <= fiveProb + fourProb) {
-        return 4;
-    } else {
-        return 3;
+        await updateGachaData({ five: 1, four: four + 1, isUp });
     }
 };
 
-const gachaOnce = async userID => {
-    await userInitialize(userID);
+const getIsUp = async ( userID, star, choice ) => {
+    const { isUp } = await getChoiceData(userID, choice);
 
-    const star = await getStar(userID);
-    const isUp = await getIsUp(userID, star);
-    await updateCounter(userID, star, isUp);
+    if (isUp === undefined) {
+        return false;
+    } else {
+        return getRandomInt() <= 5000 || (star === 5 && isUp < 0);
+    }
+};
 
-    const gachaInfo = await get('gacha', 'data', { gacha_type: 301 });
+const getStar = async ( userID, choice ) => {
+    const { five, four } = await getChoiceData(userID, choice);
+
+    const value = getRandomInt();
+    const fiveProb  = getFiveProb(five, choice);
+    const fourProb  = getFourProb(four, choice) + fiveProb;
+
+    switch (true) {
+        case value <= fiveProb: return 5;
+        case value <= fourProb: return 4;
+        default:                return 3;
+    }
+};
+
+const gachaOnce = async ( userID, choice ) => {
+    const star = await getStar(userID, choice);
+    const isUp = await getIsUp(userID, star, choice);
+    await updateCounter(userID, star, isUp, choice);
+
+    const gachaInfo = await get('gacha', 'data', { gacha_type: choice });
     let result;
 
     if (star === 5) {
@@ -115,8 +122,10 @@ const gachaOnce = async userID => {
 
 const gachaTenTimes = async userID => {
     let result = [];
+    const { choice } = await get('gacha', 'user', { userID });
+
     for (let i = 1; i <= 10; ++i) {
-        result.push(await gachaOnce(userID));
+        result.push(await gachaOnce(userID, choice));
     }
     return result;
 };

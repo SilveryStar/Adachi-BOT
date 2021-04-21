@@ -31,3 +31,7 @@ exports.update = async ( name, key, index, data ) => {
 exports.push = async ( name, key, data ) => {
     db[name].get(key).push(data).write();
 };
+
+exports.set = async ( name, key, data ) => {
+    db[name].set(key, data).write();
+}
