@@ -14,11 +14,11 @@ exports.loadPlugins = () => {
     return plugins;
 }
 
-exports.processed = ( qqData, plugins ) => {
+exports.processed = ( qqData, plugins, type ) => {
     if (qqData.message[0].type === 'text') {
         const command = getCommand(qqData.raw_message);
         if (command){
-            plugins[command](qqData);
+            plugins[command]({ ...qqData, type });
         }
     }
 }

@@ -1,13 +1,15 @@
 const { isInside, push, update } = require('../../utils/database');
 
 module.exports = async Message => {
-    let msg = Message.raw_message;
-    let userID = Message.user_id;
+    let msg     = Message.raw_message;
+    let userID  = Message.user_id;
     let groupID = Message.group_id;
-    let id = msg.match(/\d+/g), mhyID;
+    let type    = Message.type;
+    let sendID  = type === 'group' ? groupID : userID;
+    let id      = msg.match(/\d+/g), mhyID;
 
     if (id === null || id.length > 1) {
-        bot.sendGroupMsg(groupID, "请正确输入通行证id").then();
+        await bot.sendMessage(sendID, "请正确输入通行证id", type);
     } else {
         mhyID = parseInt(id[0]);
         if (msg.includes('#s') || msg.includes('绑定')) {
@@ -16,16 +18,16 @@ module.exports = async Message => {
                 if (!(await isInside('time', 'user', 'mhyID', mhyID))) {
                     await push('time', 'user', {mhyID, time: 0});
                 }
-                bot.sendGroupMsg(groupID, "通行证绑定成功，使用 #gq 来查询游戏信息").then();
+                await bot.sendMessage(sendID, "通行证绑定成功，使用 #gq 来查询游戏信息", type);
             } else {
-                bot.sendGroupMsg(groupID, "您已绑定通行证，请使用 #c " + mhyID).then();
+                await bot.sendMessage(sendID, "您已绑定通行证，请使用 #c " + mhyID, type);
             }
         } else if (msg.includes('#c') || msg.includes('改绑')) {
             if (await isInside('map', 'user', 'userID', userID)) {
                 await update('map', 'user', {userID}, {mhyID});
-                bot.sendGroupMsg(groupID, "通行证改绑成功").then();
+                await bot.sendMessage(sendID, "通行证改绑成功", type);
             } else {
-                bot.sendGroupMsg(groupID, "您还未绑定通行证，请使用 #s " + mhyID).then();
+                await bot.sendMessage(sendID, "您还未绑定通行证，请使用 #s " + mhyID, type);
             }
         }
     }

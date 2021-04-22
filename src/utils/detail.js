@@ -49,7 +49,7 @@ exports.basePromise = async ( mhyID, userID ) => {
         let uid = parseInt(game_role_id);
 
         await userInitialize(userID, uid, nickname, level);
-        await update('info', 'user', { level, nickname }, { uid });
+        await update('info', 'user', { uid }, {level, nickname});
 
         resolve([uid, region]);
     });
@@ -57,7 +57,7 @@ exports.basePromise = async ( mhyID, userID ) => {
 
 exports.detailPromise = async ( uid, server, userID ) => {
     await userInitialize(userID, uid, '', -1);
-    await update('character', 'user',{ uid }, { userID });
+    await update('character', 'user', { userID }, { uid });
 
     let nowTime   = new Date().valueOf();
     let { time }  = await get('time', 'user', { uid });
@@ -77,23 +77,23 @@ exports.detailPromise = async ( uid, server, userID ) => {
 
     return new Promise(async (resolve, reject) => {
         if (retcode !== 0) {
-            await update('info', 'user', {
+            await update('info', 'user', { uid }, {
                 message,
                 retcode: parseInt(retcode)
-            }, { uid });
+            });
             reject("米游社接口报错: " + message);
             return;
         }
 
-        await update('time', 'user', {
+        await update('time', 'user', { uid }, {
             time: nowTime
-        }, { uid });
-        await update('info', 'user', {
+        });
+        await update('info', 'user', { uid }, {
             message,
             retcode:        parseInt(retcode),
             explorations:   data.world_explorations,
             stats:          data.stats
-        }, { uid });
+        });
         bot.logger.info("用户 " + uid + " 查询成功，数据已缓存");
 
         let characterID = data.avatars.map(el => el['id']);
@@ -141,7 +141,7 @@ exports.characterPromise = async ( uid, server, character_ids ) => {
             }
         }
 
-        await update('info', 'user', { avatars }, { uid });
+        await update('info', 'user', { uid }, { avatars });
         resolve();
     });
 }

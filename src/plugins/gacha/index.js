@@ -15,29 +15,31 @@ const userInitialize = async userID => {
 };
 
 module.exports = async Message => {
-    let msg = Message.raw_message;
-    let userID = Message.user_id;
+    let msg     = Message.raw_message;
+    let userID  = Message.user_id;
     let groupID = Message.group_id;
-    let cmd = msg.match(/[\u4e00-\u9fa5]{2}/g);
+    let type    = Message.type;
+    let sendID  = type === 'group' ? groupID : userID;
+    let cmd     = msg.match(/[\u4e00-\u9fa5]{2}/g);
 
     await userInitialize(userID);
 
     if (msg.includes('#t')) {
         if (!cmd || cmd.length > 1) {
-            await bot.sendGroupMsg(groupID, '请正确输入祈愿名称');
+            await bot.sendMessage(sendID, '请正确输入祈愿名称', type);
         } else {
             let choice;
             switch (cmd[0]) {
                 case '常驻': choice = 200; break;
                 case '角色': choice = 301; break;
                 case '武器': choice = 302; break;
-                default: await bot.sendGroupMsg(groupID, '未知祈愿名称'); return;
+                default: await bot.sendMessage(sendID, '未知祈愿名称', type); return;
             }
             await update('gacha', 'user', { userID }, { choice });
-            await bot.sendGroupMsg(groupID, '卡池已切换至: ' + cmd[0]);
+            await bot.sendMessage(sendID, '卡池已切换至: ' + cmd[0], type);
         }
     } else if (msg.includes('#w')) {
         let data = await getGachaResult(userID);
-        await render(data, 'genshin-gacha', groupID);
+        await render(data, 'genshin-gacha', sendID, type);
     }
 }

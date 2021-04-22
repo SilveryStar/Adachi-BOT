@@ -2,9 +2,9 @@ const { basePromise, detailPromise, characterPromise } = require('../../utils/de
 const { get, isInside } = require('../../utils/database');
 const render = require('../../utils/render');
 
-const generateImage = async ( uid, groupID ) => {
-    const data = await get('info', 'user', {uid});
-    await render(data, 'genshin-card', groupID);
+const generateImage = async ( uid, id, type ) => {
+    const data = await get('info', 'user', { uid });
+    await render(data, 'genshin-card', id, type);
 }
 
 const getID = async ( msg, userID ) => {
@@ -14,7 +14,7 @@ const getID = async ( msg, userID ) => {
     if (msg.includes('CQ:at')) {
         let atID = parseInt(id[0]);
         if (await isInside('map', 'user', 'userID', atID)) {
-            return (await get('map', 'user', {userID: atID})).mhyID;
+            return (await get('map', 'user', { userID: atID })).mhyID;
         } else {
             errInfo = "用户 " + atID + " 暂未绑定米游社通行证";
         }
@@ -25,7 +25,7 @@ const getID = async ( msg, userID ) => {
             return parseInt(id[0]);
         }
     } else if (await isInside('map', 'user', 'userID', userID)) {
-        return (await get('map', 'user', {userID})).mhyID;
+        return (await get('map', 'user', { userID })).mhyID;
     } else {
         errInfo = "您还未绑定米游社通行证，请使用 #s + id";
     }
@@ -34,13 +34,15 @@ const getID = async ( msg, userID ) => {
 };
 
 module.exports = async Message => {
-    let msg      = Message.raw_message;
-    let userID   = Message.user_id;
-    let groupID  = Message.group_id;
-    let dbInfo   = await getID(msg, userID), uid;
+    let msg     = Message.raw_message;
+    let userID  = Message.user_id;
+    let groupID = Message.group_id;
+    let type    = Message.type;
+    let sendID  = type === 'group' ? groupID : userID;
+    let dbInfo  = await getID(msg, userID), uid;
 
     if (typeof dbInfo === 'string') {
-        bot.sendGroupMsg(groupID, dbInfo.toString()).then();
+        await bot.sendMessage(sendID, dbInfo.toString(), type);
         return;
     }
 
@@ -51,10 +53,10 @@ module.exports = async Message => {
         await characterPromise(...baseInfo, detailInfo);
     } catch (errInfo) {
         if (errInfo !== '') {
-            bot.sendGroupMsg(groupID, errInfo).then();
+            await bot.sendMessage(sendID, errInfo, type);
             return;
         }
     }
 
-    await generateImage(uid, groupID);
+    await generateImage(uid, sendID, type);
 }

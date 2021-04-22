@@ -8,9 +8,19 @@ const fs = require("fs");
 
 const Setting = yaml.load(fs.readFileSync("./config/setting.yml", "utf-8"));
 
-global.bot = createClient(Setting["account"].qq, {
+let BOT = createClient(Setting["account"].qq, {
     log_level: "debug"
 });
+
+BOT.sendMessage = async ( id, msg, type ) => {
+    if (type === 'group') {
+        await BOT.sendGroupMsg(id, msg);
+    } else if (type === 'private') {
+        await BOT.sendPrivateMsg(id, msg);
+    }
+};
+
+global.bot = BOT;
 
 const run = async () => {
     // 处理登录滑动验证码
@@ -48,6 +58,10 @@ run().then(() => {
     });
 
     bot.on("message.group", msgData => {
-        processed(msgData, plugins);
+        processed(msgData, plugins, 'group');
+    });
+
+    bot.on("message.private", msgData => {
+        processed(msgData, plugins, 'private');
     });
 });

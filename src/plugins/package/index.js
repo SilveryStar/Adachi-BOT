@@ -2,9 +2,9 @@ const { detailPromise, characterPromise } = require('../../utils/detail');
 const { get } = require('../../utils/database');
 const render = require('../../utils/render');
 
-const generateImage = async ( uid, groupID ) => {
-    let data = await get('info', 'user', {uid});
-    await render(data, 'genshin-info', groupID);
+const generateImage = async ( uid, id, type ) => {
+    let data = await get('info', 'user', { uid });
+    await render(data, 'genshin-info', id, type);
 }
 
 const getID = msg => {
@@ -23,13 +23,15 @@ const getID = msg => {
 }
 
 module.exports = async Message => {
-    let msg = Message.raw_message;
-    let userID = Message.user_id;
+    let msg     = Message.raw_message;
+    let userID  = Message.user_id;
     let groupID = Message.group_id;
-    let dbInfo = getID(msg);
+    let type    = Message.type;
+    let sendID  = type === 'group' ? groupID : userID;
+    let dbInfo  = getID(msg);
 
     if (typeof dbInfo === 'string') {
-        bot.sendGroupMsg(groupID, dbInfo.toString()).then();
+        await bot.sendMessage(sendID, dbInfo.toString(), type);
         return;
     }
 
@@ -38,10 +40,10 @@ module.exports = async Message => {
         await characterPromise(...dbInfo, detailInfo)
     } catch (errInfo) {
         if (errInfo !== '') {
-            bot.sendGroupMsg(groupID, errInfo).then();
+            await bot.sendMessage(sendID, errInfo, type);
             return;
         }
     }
 
-    await generateImage(dbInfo[0], groupID);
+    await generateImage(dbInfo[0], sendID, type);
 }

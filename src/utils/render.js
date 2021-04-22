@@ -1,7 +1,7 @@
 const puppeteer = require('puppeteer')
 const fs = require('fs');
 
-module.exports = render = async ( data, name, id ) => {
+module.exports = render = async ( data, name, id, type ) => {
     puppeteer.launch({
         headless: true,
         args: ['--no-sandbox', '--disable-setuid-sandbox']
@@ -17,6 +17,6 @@ module.exports = render = async ( data, name, id ) => {
             });
 
             await browser.close();
-            await bot.sendGroupMsg(id, "[CQ:image,file=base64://" + base64 + "]");
+            await bot.sendMessage(id, "[CQ:image,file=base64://" + base64 + "]", type);
         });
 }
