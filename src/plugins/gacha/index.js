@@ -20,6 +20,7 @@ module.exports = async Message => {
     let groupID = Message.group_id;
     let type    = Message.type;
     let sendID  = type === 'group' ? groupID : userID;
+    let name    = Message.sender.nickname;
     let cmd     = msg.match(/[\u4e00-\u9fa5]{2}/g);
 
     await userInitialize(userID);
@@ -39,7 +40,7 @@ module.exports = async Message => {
             await bot.sendMessage(sendID, '卡池已切换至: ' + cmd[0], type);
         }
     } else if (msg.includes('#w')) {
-        let data = await getGachaResult(userID);
+        let data = await getGachaResult(userID, name);
         await render(data, 'genshin-gacha', sendID, type);
     }
 }

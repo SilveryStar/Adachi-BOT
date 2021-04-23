@@ -8,7 +8,10 @@
 <body>
 
 <div id="app">
-	<background></background>
+	<background
+		:user="user"
+		:type="type"
+	></background>
 	<gacha-box
 		:data="gachaList"
 	></gacha-box>
@@ -17,6 +20,7 @@
 <template id="background">
 	<div class="background">
 		<img src="http://adachi-bot.oss-cn-beijing.aliyuncs.com/gacha/items/background.png" alt="ERROR"/>
+		<p class="bg-info">For {{user}} at {{time}} in {{wish}}</p>
 	</div>
 </template>
 
@@ -30,6 +34,9 @@
 		</div>
 		<div v-else>
 			<img class="character-image" :src="characterImage" alt="ERROR"/>
+		</div>
+		<div class="times" v-if="data.times !== undefined">
+			「{{data.times}} 抽」
 		</div>
 	</div>
 </template>
@@ -46,7 +53,31 @@
 
 <script>
 	const background = {
-		template: '#background'
+		template: '#background',
+		props: ['user', 'type'],
+		computed: {
+		    time() {
+		        let date = new Date();
+		        let month   = date.getMonth() + 1;
+		        let day     = date.getDate();
+		        let hour    = date.getHours();
+		        let minute  = date.getMinutes();
+		        let second  = date.getSeconds();
+
+		        if (hour < 10)      hour   = '0' + hour;
+		        if (minute < 10)    minute = '0' + minute;
+		        if (second < 10)    second = '0' + second;
+
+		        return `${month}月${day}日${hour}:${minute}:${second}`;
+		    },
+			wish() {
+		        switch (this.type) {
+		            case 'indefinite':  return '常驻祈愿';
+		            case 'character':   return '角色祈愿';
+		            case 'weapon':      return '武器祈愿';
+		        }
+			}
+		}
 	};
 
     const gachaResult = {
@@ -99,7 +130,9 @@
                     item_type: '',
                     item_name: ''
 				}
-			]
+			],
+			type: '',
+			user: ''
 		},
 		components: {
 			background,
@@ -119,7 +152,10 @@
 		},
 		mounted() {
             this.readJSON('../../data/record/genshin-gacha.json', res => {
-				this.gachaList = res;
+				this.gachaList = res.data;
+				this.type = res.type;
+				this.user = res.user;
+
                 this.gachaList.sort((x, y) => {
                     let xv = this.sortValue(x.item_type);
                     let yv = this.sortValue(y.item_type);
@@ -154,6 +190,15 @@
 
     .background {
         position: absolute;
+    }
+
+    .bg-info {
+	    position: fixed;
+        width: 700px;
+        top: 8px;
+        left: 8px;
+	    font-size: 15px;
+	    color: rgb(255, 255, 255);
     }
 
     .gacha-box {
@@ -202,6 +247,18 @@
 	    margin: 0 3px;
         width: 106px;
 	    bottom: 129px;
+    }
+
+    .times {
+	    position: absolute;
+        z-index: 1;
+        width: 80px;
+	    text-align: center;
+	    font-size: 15px;
+        left: 16px;
+        top: 457px;
+	    color: rgb(255, 255, 255);
+        background-color: rgba(5, 5, 5, 0.3);
     }
 
     @font-face {

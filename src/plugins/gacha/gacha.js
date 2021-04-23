@@ -77,8 +77,9 @@ const getStar = async ( userID, choice ) => {
 };
 
 const gachaOnce = async ( userID, choice, table ) => {
-    const star = await getStar(userID, choice);
-    const up = await getIsUp(userID, star, choice);
+    const star  = await getStar(userID, choice);
+    const up    = await getIsUp(userID, star, choice);
+    const times = five;
     await updateCounter(userID, star, up, choice);
 
     let result;
@@ -91,7 +92,7 @@ const gachaOnce = async ( userID, choice, table ) => {
             const index = getRandomInt(table['nonUpFiveStar'].length) - 1;
             result = table['nonUpFiveStar'][index];
         }
-        return { ...result, star: 5 };
+        return { ...result, star: 5, times };
     } else if (star === 4) {
         if (up) {
             const index = getRandomInt(table['upFourStar'].length) - 1;
@@ -109,16 +110,16 @@ const gachaOnce = async ( userID, choice, table ) => {
 
 };
 
-const gachaTenTimes = async userID => {
-    let result = [], data = {};
-
+const gachaTenTimes = async ( userID, nickname ) => {
     const { choice } = await get('gacha', 'user', { userID });
     const gachaTable = await get('gacha', 'data', { gacha_type: choice });
     ( { name, five, four, isUp } = await getChoiceData(userID, choice) );
 
+    let result = { data: [], type: name, user: nickname }, data = {};
+
     for (let i = 1; i <= 10; ++i) {
         let res = await gachaOnce(userID, choice, gachaTable);
-        result.push(res);
+        result.data.push(res);
     }
 
     data[name] = { five, four, isUp };
@@ -127,6 +128,6 @@ const gachaTenTimes = async userID => {
     return result;
 };
 
-module.exports = async userID => {
-    return await gachaTenTimes(userID);
+module.exports = async ( userID, nickname ) => {
+    return await gachaTenTimes(userID, nickname);
 }
