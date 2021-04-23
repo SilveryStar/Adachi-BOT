@@ -1,6 +1,16 @@
 const { getArtifact, domainInfo } = require('./data.js');
-const { get } = require('../../utils/database');
+const { get, isInside, push } = require('../../utils/database');
 const render = require('../../utils/render');
+
+const userInitialize = async userID => {
+    if (!(await isInside('artifact', 'user', 'userID', userID))) {
+        await push('artifact', 'user', {
+            userID,
+            initial: {},
+            fortified: {}
+        });
+    }
+};
 
 module.exports = async Message => {
     let msg     = Message.raw_message;
@@ -10,6 +20,8 @@ module.exports = async Message => {
     let sendID  = type === 'group' ? groupID : userID;
     let cmd     = msg.match(/\d+/g), data;
 
+    await userInitialize(userID);
+
     if (cmd === null) {
         if (msg.includes('#i')) {
             const { initial, fortified } = await get('artifact', 'user', { userID });
@@ -17,6 +29,7 @@ module.exports = async Message => {
                 data = fortified;
             } else {
                 await bot.sendMessage(sendID, "请先使用 #r 抽取一个圣遗物后再使用该命令", type);
+                return;
             }
         } else if (msg.includes('#r')) {
             await getArtifact(userID,-1);

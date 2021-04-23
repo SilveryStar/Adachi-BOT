@@ -1,4 +1,4 @@
-const { isInside, push, update } = require('../../utils/database');
+const { update } = require('../../utils/database');
 const yaml = require('js-yaml');
 const fs = require("fs");
 
@@ -162,14 +162,6 @@ exports.getArtifact = async ( userID, type ) => {
     let improves = getImproves();
     let initialProperty = getInitial(initPropertyNum, subStats);
     let fortifiedProperty = getFortified(initPropertyNum, subStats, improves);
-
-    if (!(await isInside('artifact', 'user', 'userID', userID))) {
-        await push('artifact', 'user', {
-            userID,
-            initial: {},
-            fortified: {}
-        });
-    }
 
     let name = artifacts[artifactID]['subName'][slot];
     await update('artifact', 'user', {userID}, {
