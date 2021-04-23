@@ -1,5 +1,6 @@
 const { getArtifact, domainInfo } = require('./data.js');
 const { get, isInside, push } = require('../../utils/database');
+const { initAuth, hasAuth, sendPrompt } = require('../../utils/auth');
 const render = require('../../utils/render');
 
 const userInitialize = async userID => {
@@ -18,9 +19,16 @@ module.exports = async Message => {
     let groupID = Message.group_id;
     let type    = Message.type;
     let sendID  = type === 'group' ? groupID : userID;
+    let name    = Message.sender.nickname;
     let cmd     = msg.match(/\d+/g), data;
 
     await userInitialize(userID);
+    await initAuth(userID);
+
+    if (!(await hasAuth(userID, 'artifact'))) {
+        await sendPrompt(sendID, name, '抽取圣遗物', type);
+        return;
+    }
 
     if (cmd === null) {
         if (msg.includes('#i')) {

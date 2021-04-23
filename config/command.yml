@@ -6,9 +6,6 @@ save:
   - ^#(s|c) *[0-9]+$
 character:
   - ^#a *[\u4e00-\u9fa5]+$
-help:
-  - ^#help *$
-  - ^#repo *$
 artifacts:
   - ^#(r|i|d) *([0-9]?|[0-9a-fA-F]{16})$
 gacha:
@@ -16,3 +13,11 @@ gacha:
   - ^#t *(常驻|角色|武器)
 tools:
   - ^.(r[0-9]+)?d[0-9]+$
+  - ^#help *$
+  - ^#repo *$
+  - ^#fb +.*
+  - ^#rhelp *$
+master:
+  - ^#fba *[0-9]+ *(on|off)$
+  - ^#wa *[0-9]+ *(on|off)$
+  - ^#ra *[0-9]+ *(on|off)$

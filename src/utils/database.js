@@ -14,6 +14,7 @@ newDB('time');
 newDB('info');
 newDB('artifact');
 newDB('character');
+newDB('authority');
 newDB('gacha', { user: [], data: [] });
 
 exports.isInside = async ( name, key, index, value ) => {

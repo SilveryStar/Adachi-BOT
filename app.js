@@ -8,7 +8,7 @@ const fs = require("fs");
 
 const Setting = yaml.load(fs.readFileSync("./config/setting.yml", "utf-8"));
 
-let BOT = createClient(Setting["account"].qq, {
+let BOT = createClient(Setting['account'].qq, {
     log_level: "debug"
 });
 
@@ -20,7 +20,16 @@ BOT.sendMessage = async ( id, msg, type ) => {
     }
 };
 
+BOT.sendMaster = async ( id, msg, type ) => {
+    if (typeof Setting['master'] === 'number') {
+        await BOT.sendPrivateMsg(Setting['master'], msg);
+    } else {
+        await BOT.sendMessage(id, '该 bot 未设置主人', type);
+    }
+}
+
 global.bot = BOT;
+global.master = Setting['master'];
 
 const run = async () => {
     // 处理登录滑动验证码
@@ -45,7 +54,7 @@ const run = async () => {
         });
     });
 
-    bot.login(Setting["account"].password);
+    bot.login(Setting['account'].password);
 }
 
 run().then(() => {
