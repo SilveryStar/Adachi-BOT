@@ -95,83 +95,102 @@ artifacts:
     subName: [ "乐团的晨光", "琴师的箭羽", "终幕的时计", "吟游者之壶", "指挥的礼帽" ]
   -
     id: 14
-    maxRarity: 4
-    mainName: "勇者之心"
-    subName: [ "勇士的勋章", "勇士的期许", "勇士的坚毅", "勇士的壮行", "勇士的冠冕" ]
+    maxRarity: 5
+    mainName: "苍白之火"
+    subName: [ "无垢之花", "贤医之羽", "停摆之刻", "超越之盏", "嗤笑之面" ]
   -
     id: 15
-    maxRarity: 4
-    mainName: "行者之心"
-    subName: [ "故人之心", "归乡之羽", "逐光之石", "异国之盏", "感别之冠" ]
-  -
-    id: 16
-    maxRarity: 4
-    mainName: "武人"
-    subName: [ "武人的红花", "武人的羽饰", "武人的水漏", "武人的酒杯", "武人的头巾" ]
-  -
-    id: 17
-    maxRarity: 4
-    mainName: "赌徒"
-    subName: [ "赌徒的胸花", "赌徒的羽饰", "赌徒的怀表", "赌徒的骰盅", "赌徒的耳环" ]
-  -
-    id: 18
-    maxRarity: 4
-    mainName: "守护之心"
-    subName: [ "守护之花", "守护徽印", "守护座钟", "守护之皿", "守护束带" ]
-  -
-    id: 19
-    maxRarity: 4
-    mainName: "学士"
-    subName: [ "学士的书签", "学士的羽笔", "学士的时钟", "学士的墨杯", "学士的镜片" ]
-  -
-    id: 20
-    maxRarity: 4
-    mainName: "奇迹"
-    subName: [ "奇迹之花", "奇迹之羽", "奇迹之沙", "奇迹之杯", "奇迹耳坠" ]
-  -
-    id: 21
-    maxRarity: 4
-    mainName: "教官"
-    subName: [ "教官的胸花", "教官的羽饰", "教官的怀表", "教官的茶杯", "教官的帽子" ]
-  -
-    id: 22
-    maxRarity: 4
-    mainName: "血战之人"
-    subName: [ "战狂的蔷薇", "战狂的翎羽", "战狂的时针", "战狂的骨杯", "战狂的鬼面" ]
-  -
-    id: 23
-    maxRarity: 4
-    mainName: "遗馈"
-    subName: [ "流放者之花", "流放者之羽", "流放者怀表", "流放者之杯", "流放者头冠" ]
-
-fiveRarity: [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+    maxRarity: 5
+    mainName: "千岩牢固"
+    subName: [ "勋绩之花", "昭武翎羽", "金铜时昼", "盟誓金爵", "将帅兜鍪" ]
+#  -
+#    id: 14
+#    maxRarity: 4
+#    mainName: "勇者之心"
+#    subName: [ "勇士的勋章", "勇士的期许", "勇士的坚毅", "勇士的壮行", "勇士的冠冕" ]
+#  -
+#    id: 15
+#    maxRarity: 4
+#    mainName: "行者之心"
+#    subName: [ "故人之心", "归乡之羽", "逐光之石", "异国之盏", "感别之冠" ]
+#  -
+#    id: 16
+#    maxRarity: 4
+#    mainName: "武人"
+#    subName: [ "武人的红花", "武人的羽饰", "武人的水漏", "武人的酒杯", "武人的头巾" ]
+#  -
+#    id: 17
+#    maxRarity: 4
+#    mainName: "赌徒"
+#    subName: [ "赌徒的胸花", "赌徒的羽饰", "赌徒的怀表", "赌徒的骰盅", "赌徒的耳环" ]
+#  -
+#    id: 18
+#    maxRarity: 4
+#    mainName: "守护之心"
+#    subName: [ "守护之花", "守护徽印", "守护座钟", "守护之皿", "守护束带" ]
+#  -
+#    id: 19
+#    maxRarity: 4
+#    mainName: "学士"
+#    subName: [ "学士的书签", "学士的羽笔", "学士的时钟", "学士的墨杯", "学士的镜片" ]
+#  -
+#    id: 20
+#    maxRarity: 4
+#    mainName: "奇迹"
+#    subName: [ "奇迹之花", "奇迹之羽", "奇迹之沙", "奇迹之杯", "奇迹耳坠" ]
+#  -
+#    id: 21
+#    maxRarity: 4
+#    mainName: "教官"
+#    subName: [ "教官的胸花", "教官的羽饰", "教官的怀表", "教官的茶杯", "教官的帽子" ]
+#  -
+#    id: 22
+#    maxRarity: 4
+#    mainName: "血战之人"
+#    subName: [ "战狂的蔷薇", "战狂的翎羽", "战狂的时针", "战狂的骨杯", "战狂的鬼面" ]
+#  -
+#    id: 23
+#    maxRarity: 4
+#    mainName: "遗馈"
+#    subName: [ "流放者之花", "流放者之羽", "流放者怀表", "流放者之杯", "流放者头冠" ]
 
 domains:
   -
     id: 0
     name: "孤云凌霄之处"
-    product: [ 0, 9, 14 ]
+    product: [ 0, 9 ]
+#    product: [ 0, 9, 14 ]
   -
     id: 1
     name: "芬德尼尔之顶"
-    product: [ 1, 5, 17, 18 ]
+    product: [ 1, 5 ]
+#    product: [ 1, 5, 17, 18 ]
   -
     id: 2
     name: "华池岩岫"
-    product: [ 2, 8, 17, 19 ]
+    product: [ 2, 8 ]
+#    product: [ 2, 8, 17, 19 ]
   -
     id: 3
     name: "无妄引咎迷宫"
-    product: [ 3, 6, 16, 18 ]
+    product: [ 3, 6 ]
+#    product: [ 3, 6, 16, 18 ]
   -
     id: 4
     name: "铭记之谷"
-    product: [ 7, 12, 20 ]
+    product: [ 7, 12 ]
+#    product: [ 7, 12, 20 ]
   -
     id: 5
     name: "仲夏庭院"
-    product: [ 10, 11, 15 ]
+    product: [ 10, 11 ]
+#    product: [ 10, 11, 15 ]
   -
     id: 6
     name: "世界BOSS挑战"
-    product: [ 4, 13, 21, 22, 23 ]
+    product: [ 4, 13 ]
+#    product: [ 4, 13, 21, 22, 23 ]
+  -
+    id: 7
+    name: "山脊守望"
+    product: [ 14, 15 ]
