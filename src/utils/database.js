@@ -4,18 +4,10 @@ const path = require('path');
 
 const db = [];
 
-const newDB = ( name, defaultElement = { user: [] } ) => {
+exports.newDB = ( name, defaultElement = { user: [] } ) => {
     db[name] = low(new FileSync(path.resolve(__dirname, '..', '..', 'data', 'db', name + '.json')));
     db[name].defaults(defaultElement).write();
 }
-
-newDB('map');
-newDB('time');
-newDB('info');
-newDB('artifact');
-newDB('character');
-newDB('authority');
-newDB('gacha', { user: [], data: [] });
 
 exports.isInside = async ( name, key, index, value ) => {
     return db[name].get(key).map(index).value().includes(value);

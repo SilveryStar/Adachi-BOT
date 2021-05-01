@@ -1,6 +1,5 @@
 const { update } = require('../../utils/database');
-const yaml = require('js-yaml');
-const fs = require("fs");
+const { loadYML } = require('../../utils/load');
 
 const randomFloat = require('random-float');
 const randomInt = ( Min, Max ) => {
@@ -8,7 +7,7 @@ const randomInt = ( Min, Max ) => {
     return Min + Math.floor(Math.random() * range);
 };
 
-const artifactCfg = yaml.load(fs.readFileSync("./config/artifacts.yml"), "utf-8");
+const artifactCfg = loadYML('artifacts');
 const { artifacts, domains, weights, values } = artifactCfg;
 const propertyName = ['生命值', '生命值', '防御力', '防御力', '元素充能效率', '元素精通', '攻击力', '攻击力', '暴击伤害', '暴击率', '物理伤害加成', '风元素伤害加成', '冰元素伤害加成', '雷元素伤害加成', '岩元素伤害加成', '水元素伤害加成', '火元素伤害加成', '治疗加成'];
 const dailyFortune = 0;

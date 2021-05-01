@@ -2,6 +2,12 @@ const fs = require('fs');
 const yaml = require('js-yaml');
 const path = require('path');
 
+const loadYML = name => {
+    return yaml.load(fs.readFileSync(`./config/${name}.yml`, 'utf-8'));
+};
+
+exports.loadYML = loadYML;
+
 exports.loadPlugins = () => {
     let plugins = {};
     const pluginsPath = fs.readdirSync(path.resolve(__dirname, '..', 'plugins'));
@@ -12,7 +18,7 @@ exports.loadPlugins = () => {
     }
 
     return plugins;
-}
+};
 
 exports.processed = ( qqData, plugins, type ) => {
     if (qqData.message[0].type === 'text') {
@@ -21,10 +27,10 @@ exports.processed = ( qqData, plugins, type ) => {
             plugins[command]({ ...qqData, type });
         }
     }
-}
+};
 
 const getCommand = msgData => {
-    const commandConfig = yaml.load(fs.readFileSync("./config/command.yml", "utf-8"));
+    const commandConfig = loadYML('command');
 
     for (let command in commandConfig) {
         if (commandConfig.hasOwnProperty(command)){

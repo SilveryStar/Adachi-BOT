@@ -1,11 +1,10 @@
 const { getBase, getDetail, getCharacters } = require('./api');
 const { get, isInside, push, update } = require('./database');
+const { loadYML } = require('./load');
 const lodash = require('lodash');
-const yaml = require('js-yaml');
-const fs = require("fs");
 
 let index = 0;
-const cookies = yaml.load(fs.readFileSync("./config/cookies.yml", "utf-8"))["cookies"];
+const { cookies } = loadYML('cookies');
 
 const userInitialize = async ( userID, uid, nickname, level ) => {
     if (!(await isInside('character', 'user', 'userID', userID))) {
