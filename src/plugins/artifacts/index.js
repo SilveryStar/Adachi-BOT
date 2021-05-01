@@ -1,6 +1,6 @@
 const { getArtifact, domainInfo } = require('./data.js');
 const { get, isInside, push } = require('../../utils/database');
-const { initAuth, hasAuth, sendPrompt } = require('../../utils/auth');
+const { hasAuth, sendPrompt } = require('../../utils/auth');
 const render = require('../../utils/render');
 
 const userInitialize = async userID => {
@@ -23,7 +23,6 @@ module.exports = async Message => {
     let cmd     = msg.match(/\d+/g), data;
 
     await userInitialize(userID);
-    await initAuth(userID);
 
     if (!(await hasAuth(userID, 'artifact'))) {
         await sendPrompt(sendID, name, '抽取圣遗物', type);

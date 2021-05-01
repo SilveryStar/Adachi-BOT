@@ -40,6 +40,11 @@ const parseData = async gachaID => {
 
 exports.gachaUpdate = async () => {
     const gachaInfo  = (await getGachaList()).data.list;
+
+    if (gachaInfo[1] === undefined) {
+        return;
+    }
+
     const indefinite = await parseData(gachaInfo[0]['gacha_id']);
     const character  = await parseData(gachaInfo[1]['gacha_id']);
     const weapon     = await parseData(gachaInfo[2]['gacha_id']);

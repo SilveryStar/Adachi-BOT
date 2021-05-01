@@ -1,5 +1,5 @@
 const { push, isInside, update } = require('../../utils/database');
-const { initAuth, hasAuth, sendPrompt } = require('../../utils/auth');
+const { hasAuth, sendPrompt } = require('../../utils/auth');
 const render = require('../../utils/render');
 const getGachaResult = require('./gacha');
 
@@ -25,7 +25,6 @@ module.exports = async Message => {
     let cmd     = msg.match(/[\u4e00-\u9fa5]{2}/g);
 
     await userInitialize(userID);
-    await initAuth(userID);
 
     if (!(await hasAuth(userID, 'gacha'))) {
         await sendPrompt(sendID, name, '祈愿十连', type);

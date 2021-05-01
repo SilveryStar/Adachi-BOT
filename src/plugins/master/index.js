@@ -1,4 +1,5 @@
 const { isMaster, setAuth, sendPrompt } = require('../../utils/auth');
+const { gachaUpdate } = require('../../utils/update');
 
 const parse = msg => {
     let id = parseInt(msg.match(/[0-9]+/g)[0]);
@@ -27,7 +28,24 @@ const setArtifactAuth = async ( msg, id, type ) => {
     let [ target, isOn ] = parse(msg);
     await setAuth('artifact', target, isOn);
     await response(id, target, '抽取圣遗物', type, isOn ? '开启' : '关闭');
-}
+};
+
+const setQueryGameInfoAuth = async ( msg, id, type ) => {
+    let [ target, isOn ] = parse(msg);
+    await setAuth('query', target, isOn);
+    await response(id, target, '查询游戏内信息', type, isOn ? '开启' : '关闭');
+};
+
+const setCharacterOverviewAuth = async ( msg, id, type ) => {
+    let [ target, isOn ] = parse(msg);
+    await setAuth('overview', target, isOn);
+    await response(id, target, '查询角色信息', type, isOn ? '开启' : '关闭');
+};
+
+const refreshWishDetail = async ( id, type ) => {
+    gachaUpdate();
+    await bot.sendMessage(id, '卡池内容已刷新', type);
+};
 
 module.exports = async Message => {
     let msg     = Message.raw_message;
@@ -51,6 +69,15 @@ module.exports = async Message => {
             break;
         case msg.includes('#ra'):
             await setArtifactAuth(msg, sendID, type);
+            break;
+        case msg.includes('#qa'):
+            await setQueryGameInfoAuth(msg, sendID, type);
+            break;
+        case msg.includes('#ifa'):
+            await setCharacterOverviewAuth(msg, sendID, type);
+            break;
+        case msg.includes('#rw'):
+            await refreshWishDetail(sendID, type);
             break;
     }
 }

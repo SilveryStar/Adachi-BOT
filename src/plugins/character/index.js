@@ -1,4 +1,5 @@
 const { get, isInside } = require('../../utils/database');
+const { hasAuth, sendPrompt } = require('../../utils/auth');
 const render = require('../../utils/render');
 
 module.exports = async Message => {
@@ -6,8 +7,14 @@ module.exports = async Message => {
     let userID  = Message.user_id;
     let groupID = Message.group_id;
     let type    = Message.type;
+    let name    = Message.sender.nickname;
     let sendID  = type === 'group' ? groupID : userID;
     let character = msg.match(/[\u4e00-\u9fa5]{1,10}/g);
+
+    if (!(await hasAuth(userID, 'query'))) {
+        await sendPrompt(sendID, name, '查询游戏内信息', type);
+        return;
+    }
 
     if (!(await isInside('character', 'user', 'userID', userID))) {
         await bot.sendMessage(sendID, "请先使用 #gq 或 #uid 指定需要查询的账号", type);

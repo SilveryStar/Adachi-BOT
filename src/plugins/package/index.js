@@ -1,4 +1,5 @@
 const { detailPromise, characterPromise } = require('../../utils/detail');
+const { hasAuth, sendPrompt } = require('../../utils/auth');
 const { get } = require('../../utils/database');
 const render = require('../../utils/render');
 
@@ -27,8 +28,14 @@ module.exports = async Message => {
     let userID  = Message.user_id;
     let groupID = Message.group_id;
     let type    = Message.type;
+    let name    = Message.sender.nickname;
     let sendID  = type === 'group' ? groupID : userID;
     let dbInfo  = getID(msg);
+
+    if (!(await hasAuth(userID, 'query'))) {
+        await sendPrompt(sendID, name, '查询游戏内信息', type);
+        return;
+    }
 
     if (typeof dbInfo === 'string') {
         await bot.sendMessage(sendID, dbInfo.toString(), type);

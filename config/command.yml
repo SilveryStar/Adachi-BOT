@@ -23,3 +23,6 @@ master:
   - ^#fba *[0-9]+ *(on|off)$
   - ^#wa *[0-9]+ *(on|off)$
   - ^#ra *[0-9]+ *(on|off)$
+  - ^#qa *[0-9]+ *(on|off)$
+  - ^#ifa *[0-9]+ *(on|off)$
+  - ^#rw *$

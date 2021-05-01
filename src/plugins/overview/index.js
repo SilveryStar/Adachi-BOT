@@ -1,4 +1,5 @@
 const { getCharacterOverview } = require('../../utils/api');
+const { hasAuth, sendPrompt } = require('../../utils/auth');
 const render = require('../../utils/render');
 
 module.exports = async Message => {
@@ -6,8 +7,14 @@ module.exports = async Message => {
     let userID  = Message.user_id;
     let groupID = Message.group_id;
     let type    = Message.type;
+    let name    = Message.sender.nickname;
     let sendID  = type === 'group' ? groupID : userID;
     let character = msg.match(/[\u4e00-\u9fa5]{1,10}/g), data;
+
+    if (!(await hasAuth(userID, 'overview'))) {
+        await sendPrompt(sendID, name, '查询角色信息', type);
+        return;
+    }
 
     if (!character || character.length > 1) {
         await bot.sendMessage(sendID, "请正确输入角色名称", type);
