@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>genshin-baseinfo</title>
+	<script src="../../data/js/vue.min.js"></script>
+</head>
+<body>
+
+<div id="app">
+	<background
+		:rarity="rarity"
+		:id="id"
+	></background>
+	<base-info
+		:name="name"
+		:rarity="rarity"
+		:designation="designation"
+		:birthday="birthday"
+		:element="element"
+		:cv="cv"
+		:constellation="constellation"
+		:atk="atk"
+		:property="property"
+		:introduction="introduction"
+	></base-info>
+	<material
+		:specialty="specialty"
+		:common="common"
+		:talent="talent"
+		:weekly="weekly"
+		:character="character"
+		:ascension="ascension"
+	></material>
+</div>
+
+<template id="background">
+	<div>
+		<img class="background" :src="bgImg" alt="ERROR"/>
+		<img class="character" :src="chImg" alt="ERROR"/>
+	</div>
+</template>
+
+<template id="base-info">
+	<div class="base">
+		<p class="character-name">
+			「{{designation}}·{{name}}」
+		</p>
+		<div class="block level-block"></div>
+		<div class="block constellation-block"></div>
+		<p class="text level-text">Lv.90</p>
+		<p class="text constellation-text">0</p>
+		<p class="text example-text">以90级 命座之零层为例</p>
+
+		<div class="number-block"></div>
+		<img class="star" :src="starImg" alt="ERROR"/>
+
+		<p class="info base-name property-name">{{property[0]}}</p>
+		<p class="info base-number property-number">{{property[1]}}</p>
+
+		<p class="info base-name atk-name">基础攻击力</p>
+		<p class="info base-number atk-number">{{atk}}</p>
+
+		<div class="dotted"></div>
+
+		<p class="content introduction">{{introduction}}</p>
+
+		<p class="content c-left c-top">生日: {{birthday}}</p>
+		<p class="content c-left c-bottom">声优: {{cv}}</p>
+		<p class="content c-right c-top">神之眼: {{element}}</p>
+		<p class="content c-right c-bottom">命之座: {{constellation}}</p>
+	</div>
+</template>
+
+<template id="box">
+	<div class="box">
+		<img class="rbg" :src="background" alt="ERROR"/>
+		<img class="item" :src="item" alt="ERROR"/>
+	</div>
+</template>
+
+<template id="material">
+	<div class="material">
+		<p class="type first">升级材料: </p>
+		<div class="list">
+			<div class="clear box-element">
+				<box
+					:id="specialty"
+					rarity=1
+					type="specialty"
+				></box>
+			</div>
+		<!--	0 is id, 1 is rarity    -->
+			<div class="box-element" v-for="el in common">
+				<box
+					:id="el[0]"
+					:rarity="el[1]"
+					type="common"
+				></box>
+			</div>
+		</div>
+
+		<p class="type second">天赋材料: </p>
+		<div class="list">
+			<div class="clear box-element" v-for="(el, i) in talent">
+				<box
+					:id="el"
+					:rarity="i+2"
+					type="talent"
+				></box>
+			</div>
+			<div class="box-element">
+				<box
+					:id="weekly"
+					rarity=5
+					type="weekly"
+				></box>
+			</div>
+		</div>
+
+		<p class="type third">突破材料: </p>
+		<div class="list">
+			<div class="clear box-element" v-for="(el, i) in character">
+				<box
+					:id="el"
+					:rarity="i+2"
+					type="character"
+				></box>
+			</div>
+			<div class="box-element">
+				<box
+					:id="ascension"
+					rarity=4
+					type="world"
+				></box>
+			</div>
+		</div>
+	</div>
+</template>
+
+<script>
+	const background = {
+	    template: '#background',
+		props: ['rarity', 'id'],
+		computed: {
+	        bgImg() {
+	            return `http://adachi-bot.oss-cn-beijing.aliyuncs.com/module/base${this.rarity}.png`;
+	        },
+			chImg() {
+	            return `http://adachi-bot.oss-cn-beijing.aliyuncs.com/characters/card/${this.id}.png`;
+			}
+		}
+	};
+
+	const baseInfo = {
+	    template: '#base-info',
+		props: ['name', 'rarity', 'designation', 'atk', 'property', 'introduction', 'birthday', 'element', 'constellation', 'cv'],
+		computed: {
+	        starImg() {
+                return `http://adachi-bot.oss-cn-beijing.aliyuncs.com/item/baseStar${this.rarity}.png`;
+	        }
+		}
+	};
+
+	const box = {
+		template: '#box',
+		props: ['rarity', 'type', 'id'],
+		computed: {
+            background() {
+                return `http://adachi-bot.oss-cn-beijing.aliyuncs.com/baseinfo/rarity/${this.rarity}.png`;
+            },
+			item() {
+                return `http://adachi-bot.oss-cn-beijing.aliyuncs.com/baseinfo/${this.type}/${this.id}.png`;
+			}
+		}
+    };
+
+	const material = {
+		template: '#material',
+		props: ['specialty', 'common', 'talent', 'weekly', 'character', 'ascension'],
+		components: {
+			box
+		}
+	};
+
+	new Vue({
+		el: '#app',
+		data: {
+		    name: '',
+			id: 10000000,
+			atk: 0,
+            property: [],
+            designation: '',
+			rarity: 0,
+            introduction: '',
+			element: '',
+            birthday: '',
+			cv: '',
+            constellation: '',
+            specialty: 0,
+            common: {},
+            talent: [],
+            weekly: [],
+            character: [],
+            ascension: []
+		},
+		components: {
+		    background,
+			baseInfo,
+            material
+		},
+		methods: {
+            readJSON(file, callback) {
+                fetch(file).then(res => {
+                    return res.json().then(data => {
+                        callback(data);
+                    })
+                })
+            }
+		},
+		mounted() {
+		    this.readJSON('../../data/record/genshin-overview.json', res => {
+                this.name = res.name;
+                this.id = res.id;
+                this.atk = res.atk;
+                this.property = res.property;
+                this.designation = res.designation;
+                this.rarity = res.rarity;
+                this.introduction = res.introduction
+                this.element = res.element;
+                this.birthday = res.birthday;
+                this.cv = res.cv;
+                this.constellation = res.constellation;
+                this.specialty = res.specialty;
+                this.common = res.common;
+                this.talent = res.talent;
+                this.weekly = res.weekly;
+                this.character = res.character;
+                this.ascension = res.ascension;
+
+                if (this.rarity === 5) {
+                    document.documentElement.style.setProperty('--styleColor', 'rgb(198, 156, 80)');
+                    document.documentElement.style.setProperty('--backgroundColor', 'rgb(198, 156, 80)');
+                    document.documentElement.style.setProperty('--dottedColor', 'rgb(211, 200, 187)');
+                } else {
+                    document.documentElement.style.setProperty('--styleColor', 'rgb(142, 115, 170)');
+                    document.documentElement.style.setProperty('--backgroundColor', 'rgb(72, 83, 101)');
+                    document.documentElement.style.setProperty('--dottedColor', 'rgb(211, 211, 212)');
+                }
+		    });
+		}
+	});
+</script>
+
+</body>
+</html>
+
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+    }
+
+    html {
+        height: 100%;
+        font-family: GenshinUsedFont, monospace;
+    }
+
+    body {
+        width: 527px;
+        height: 1030px;
+    }
+
+    .background {
+	    position: absolute;
+        z-index: -1;
+    }
+
+    .character {
+	    position: relative;
+        width: 367px;
+	    left: 80px;
+        top: 114px;
+		border-radius: 50%;
+    }
+
+    .base {
+	    position: absolute;
+    }
+
+    .character-name {
+	    position: relative;
+	    color: var(--styleColor);
+	    left: 11px;
+	    top: 158px;
+	    font-size: 30px;
+    }
+
+    .block {
+	    position: relative;
+        background-color: var(--styleColor);
+        height: 24px;
+        top: 170px;
+        border-radius: 4px;
+        display: inline-block;
+    }
+
+    .level-block {
+        width: 72px;
+	    left: 23px;
+    }
+
+    .constellation-block {
+        width: 24px;
+		left: 27px;
+    }
+
+    .text {
+        position: relative;
+        display: inline-block;
+        top: 164px;
+        font-size: 18px;
+        color: rgb(255, 255, 255);
+    }
+
+    .level-text {
+	    left: -71px;
+    }
+
+    .constellation-text {
+	    left: -52px;
+    }
+
+    .example-text {
+	    color: rgb(143, 148, 154);
+        left: -36px;
+    }
+
+    .number-block {
+        position: relative;
+        height: 28px;
+        top: 180px;
+        background-color: var(--backgroundColor);
+        width: 491px;
+        left: 18px;
+    }
+
+    .star {
+        position: absolute;
+	    top: 247px;
+	    left: 24px;
+        height: 25px;
+    }
+
+    .info {
+	    position: absolute;
+	    display: inline-block;
+    }
+
+    .base-name {
+		color: rgba(255, 255, 255, 0.75);
+	    font-size: 18px;
+        top: 251px;
+    }
+
+    .base-number {
+	    color: rgb(255, 255, 255);
+	    font-size: 24px;
+        top: 247px;
+    }
+
+    .property-name {
+        left: 156px;
+        width: 75px;
+	    text-align: center;
+    }
+
+    .property-number {
+	    left: 238px;
+    }
+
+    .atk-name {
+	    right: 46px;
+    }
+
+    .atk-number {
+        right: -10px;
+    }
+
+    .dotted {
+        position: relative;
+        width: 491px;
+        left: 18px;
+	    border-bottom: 2px dashed;
+	    top: 198px;
+	    color: var(--dottedColor);
+    }
+
+    .content {
+	    position: absolute;
+	    color: rgb(93, 105, 131);
+	    font-size: 20px;
+    }
+
+    .introduction {
+        width: 491px;
+	    left: 18px;
+	    top: 307px;
+    }
+
+    .c-left {
+	    left: 18px;
+    }
+
+    .c-right {
+	    left: 282px;
+    }
+
+    .c-top {
+        top: 376px;
+    }
+
+    .c-bottom {
+        top: 412px;
+    }
+
+    .material {
+	    position: relative;
+	    top: 450px;
+    }
+
+    .type {
+	    position: relative;
+	    display: inline-block;
+        color: rgb(93, 105, 131);
+	    font-size: 23px;
+        width: 110px;
+	    margin-bottom: 5px;
+	    left: 18px;
+    }
+
+    .list {
+	    position: relative;
+	    display: inline-block;
+        width: 380px;
+	    left: 18px;
+        top: 8px;
+    }
+
+    .box-element {
+	    display: inline-block;
+        width: 42px;
+        height: 42px;
+        margin-right: 3px;
+    }
+
+    .clear {
+		float: left;
+    }
+
+    .rbg {
+	    position: absolute;
+        width: 42px;
+	    border-radius: 3px;
+    }
+
+    .item {
+	    position: relative;
+        width: 38px;
+        top: 2px;
+	    left: 2px;
+    }
+
+    @font-face {
+        font-family: GenshinUsedFont;
+        src: url("../../data/font/HYWenHei-85W.ttf");
+    }
+</style>

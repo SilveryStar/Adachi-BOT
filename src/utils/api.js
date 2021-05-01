@@ -1,5 +1,6 @@
 const requests = require('./requests.js');
 const randomString = require('./rand.js');
+const fetch = require('node-fetch');
 const md5 = require('md5');
 
 const __API = {
@@ -125,6 +126,19 @@ exports.getGachaDetail = gachaID => {
             })
             .catch(err => {
                 reject(err);
+            });
+    });
+}
+
+exports.getCharacterOverview = async name => {
+    return new Promise( (resolve, reject) => {
+        fetch(`http://adachi-bot.oss-cn-beijing.aliyuncs.com/baseinfo/overview/${encodeURI(name)}.json`)
+            .then(res => {
+                if (res.status === 404) {
+                    reject('');
+                } else {
+                    resolve(res.json());
+                }
             });
     });
 }
