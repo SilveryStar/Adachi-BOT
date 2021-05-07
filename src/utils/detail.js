@@ -91,7 +91,8 @@ exports.detailPromise = async ( uid, server, userID ) => {
             message,
             retcode:        parseInt(retcode),
             explorations:   data.world_explorations,
-            stats:          data.stats
+            stats:          data.stats,
+            homes:          data.homes
         });
         bot.logger.info("用户 " + uid + " 查询成功，数据已缓存");
 

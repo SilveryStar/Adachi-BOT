@@ -9,13 +9,16 @@
 
 <div id="app">
 	<upper
-		:uid="uid"
-		:nickname="nickname"
-		:level="level"
-		:stats="stats"
-		:exploration="explorations"
-		:profile="profile"
+			:uid="uid"
+			:nickname="nickname"
+			:level="level"
+			:stats="stats"
+			:exploration="explorations"
+			:profile="profile"
 	></upper>
+	<home
+		:maps="homes"
+	></home>
 	<div class="avatars-box" v-for="avatars in avatarsData">
 		<middle
 			:avatars="avatars"
@@ -27,7 +30,7 @@
 <template id="upper">
 	<div>
 		<div class="background">
-			<img src="http://adachi-bot.oss-cn-beijing.aliyuncs.com/module/card-upper.png" alt="ERROR"/>
+			<img src="http://adachi-bot.oss-cn-beijing.aliyuncs.com/module/card-new-upper.png" alt="ERROR"/>
 		</div>
 		<img :src="Picture" alt="ERROR" class="profile">
 		<div class="base-info">
@@ -39,26 +42,29 @@
 			<p class="world-level">世界等级{{worldLevel}}</p>
 		</div>
 		<div class="detail detail-left">
-			<p>{{stats.active_day_number}}</p>
-			<p>{{stats.achievement_number}}</p>
-			<p>{{stats.anemoculus_number}}</p>
-			<p>{{stats.geoculus_number}}</p>
-			<p>{{stats.avatar_number}}</p>
+			<p class="stats">{{stats.active_day_number}}</p>
+			<p class="stats">{{stats.achievement_number}}</p>
+			<p class="stats">{{stats.avatar_number}}</p>
+			<p class="stats">{{stats.spiral_abyss}}</p>
+		</div>
+		<div class="detail detail-middle">
+			<p class="stats">{{stats.common_chest_number}}</p>
+			<p class="stats">{{stats.exquisite_chest_number}}</p>
+			<p class="stats">{{stats.precious_chest_number}}</p>
+			<p class="stats">{{stats.luxurious_chest_number}}</p>
 		</div>
 		<div class="detail detail-right">
-			<p>{{stats.common_chest_number}}</p>
-			<p>{{stats.exquisite_chest_number}}</p>
-			<p>{{stats.precious_chest_number}}</p>
-			<p>{{stats.luxurious_chest_number}}</p>
-			<p>{{stats.spiral_abyss}}</p>
+			<p class="stats">{{stats.anemoculus_number}}</p>
+			<p class="stats">{{stats.geoculus_number}}</p>
+			<p class="stats">--</p>
 		</div>
-		<div class="exploration dragonspine-exp">{{percentage(0)}}</div>
-		<div class="exploration dragonspine-level">{{expLevel(0)}}</div>
 		<div class="exploration mondstadt-exp">{{percentage(1)}}</div>
 		<div class="exploration mondstadt-level">{{expLevel(1)}}</div>
 		<div class="exploration liyue-exp">{{percentage(2)}}</div>
 		<div class="exploration liyue-level">{{expLevel(2)}}</div>
-		<img src="http://adachi-bot.oss-cn-beijing.aliyuncs.com/module/card-package.png" alt="ERROR">
+		<div class="exploration dragonspine-exp">{{percentage(0)}}</div>
+		<div class="exploration dragonspine-level">{{expLevel(0)}}</div>
+		<img src="http://adachi-bot.oss-cn-beijing.aliyuncs.com/module/card-new-package.png" alt="ERROR">
 	</div>
 </template>
 
@@ -83,10 +89,10 @@
 		<div class="box">
 			<div class="avatar" v-for="avatar in avatars">
 				<avatar-element
-					:avatar="avatar"
+						:avatar="avatar"
 				></avatar-element>
 			</div>
-			<img class="backdrop" src="http://adachi-bot.oss-cn-beijing.aliyuncs.com/module/card-middle.png" alt="ERROR"/>
+			<img class="backdrop" src="http://adachi-bot.oss-cn-beijing.aliyuncs.com/module/card-new-middle.png" alt="ERROR"/>
 		</div>
 	</div>
 </template>
@@ -94,34 +100,69 @@
 <template id="bottom">
 	<div>
 		<div class="background">
-			<img src="http://adachi-bot.oss-cn-beijing.aliyuncs.com/module/card-bottom.png" alt="ERROR"/>
+			<img src="http://adachi-bot.oss-cn-beijing.aliyuncs.com/module/card-new-bottom.png" alt="ERROR"/>
+		</div>
+	</div>
+</template>
+
+<template id="home-map">
+	<div class="map">
+		<img class="home-img" :src="bgImg" alt="ERROR"/>
+		<div class="unlock" v-if="data.level !== -1">
+			<div class="map-block unlock-block"></div>
+			<div class="map-block unlock-content-block">
+				<p class="map-content map-level">{{data.comfort_level_name}}</p>
+				<p class="map-content map-comfort">洞天仙力</p>
+				<p class="map-content map-comfort">{{data.comfort_num}}</p>
+			</div>
+		</div>
+		<div class="locked" v-else>
+			<div class="map-block lock-block"></div>
+			<img class="lock-img" src="http://adachi-bot.oss-cn-beijing.aliyuncs.com/item/lock.png" alt="ERROR"/>
+		</div>
+	</div>
+</template>
+
+<template id="home">
+	<div class="home">
+		<p class="home-title">尘歌壶</p>
+		<div class="map">
+			<home-map
+				:data="hole"
+			></home-map>
+			<home-map
+				:data="mountain"
+			></home-map>
+			<home-map
+				:data="island"
+			></home-map>
 		</div>
 	</div>
 </template>
 
 <script>
-	const upper = {
-		template: '#upper',
-		props: {
-		    uid: Number,
-			nickname: String,
-			level: Number,
+    const upper = {
+        template: '#upper',
+        props: {
+            uid: Number,
+            nickname: String,
+            level: Number,
             profile: Number,
             exploration: {
-		        type: Object,
-	            default() {
+                type: Object,
+                default() {
                     return [
-	                    {
-	                        level: 0,
+                        {
+                            level: 0,
                             exploration_percentage: 0
-	                    }
+                        }
                     ];
                 }
             },
-			stats: {
-		        type: Object,
-				default() {
-		            return {
+            stats: {
+                type: Object,
+                default() {
+                    return {
                         active_day_number: 0,
                         achievement_number: 0,
                         anemoculus_number: 0,
@@ -132,42 +173,42 @@
                         precious_chest_number: 0,
                         luxurious_chest_number: 0,
                         spiral_abyss: "0-0"
-		            };
-				}
-			}
+                    };
+                }
+            }
         },
-		computed: {
-		    Picture() {
-		        return "http://adachi-bot.oss-cn-beijing.aliyuncs.com/characters/profile/" + this.profile + ".png";
-		    },
-            worldLevel() {
-				if (this.level >= 55) {
-				    return 8;
-				} else if (this.level >= 50) {
-				    return 7;
-				} else if (this.level >= 45) {
-				    return 6;
-				} else if (this.level >= 40) {
-				    return 5;
-				} else if (this.level >= 35) {
-				    return 4;
-				} else if (this.level >= 30) {
-				    return 3;
-				} else if (this.level >= 25) {
-				    return 2;
-				} else if (this.level >= 20) {
-				    return 1;
-				} else {
-				    return 0;
-				}
+        computed: {
+            Picture() {
+                return "http://adachi-bot.oss-cn-beijing.aliyuncs.com/characters/profile/" + this.profile + ".png";
             },
-			percentage() {
-		        return type => {
-		            if (this.exploration[type]) {
+            worldLevel() {
+                if (this.level >= 55) {
+                    return 8;
+                } else if (this.level >= 50) {
+                    return 7;
+                } else if (this.level >= 45) {
+                    return 6;
+                } else if (this.level >= 40) {
+                    return 5;
+                } else if (this.level >= 35) {
+                    return 4;
+                } else if (this.level >= 30) {
+                    return 3;
+                } else if (this.level >= 25) {
+                    return 2;
+                } else if (this.level >= 20) {
+                    return 1;
+                } else {
+                    return 0;
+                }
+            },
+            percentage() {
+                return type => {
+                    if (this.exploration[type]) {
                         return this.exploration[type].exploration_percentage / 10 + "%";
                     }
-		        }
-			},
+                }
+            },
             expLevel() {
                 return type => {
                     if (this.exploration[type]) {
@@ -175,85 +216,138 @@
                     }
                 }
             }
-		}
-	};
+        }
+    };
 
-	const AvatarElement = {
-	    template: '#avatar-element',
-		props: {
-	        avatar: {
-	            type: Object,
-		        default() {
-	                return {
+    const AvatarElement = {
+        template: '#avatar-element',
+        props: {
+            avatar: {
+                type: Object,
+                default() {
+                    return {
                         fetter: 0,
-		                level: 0,
+                        level: 0,
                         image: "",
-		                name: ""
-	                }
-		        }
-	        }
-		}
+                        name: ""
+                    }
+                }
+            }
+        }
     }
 
-	const middle = {
+    const middle = {
         template: '#middle',
-		props: {
+        props: {
             avatars: {
                 type: Array
             }
-		},
-		components: {
+        },
+        components: {
             AvatarElement
-		}
-	};
+        }
+    };
 
-	const bottom = {
+    const bottom = {
         template: '#bottom'
-	};
+    };
 
-	new Vue({
-		el: '#app',
-		data: {
-		    retcode: 1,
-			nickname: "",
+    const HomeMap = {
+		template: '#home-map',
+	    props: {
+		    data: {
+		        type: Object,
+			    default() {
+		            return {
+                        comfort_level_name: '',
+                        comfort_num: 0
+		            }
+			    }
+		    }
+	    },
+	    computed: {
+		    bgImg() {
+                return `http://adachi-bot.oss-cn-beijing.aliyuncs.com/item/${this.data.name}.png`;
+            }
+        }
+    };
+
+    const home = {
+        template: '#home',
+	    data() {
+            return {
+                island: {},
+	            hole: {},
+                mountain: {}
+            }
+	    },
+	    props: {
+            maps: Object
+	    },
+	    components: {
+            HomeMap
+	    },
+	    methods: {
+            findMap(type) {
+                let info = this.maps.find(el => el.name === type);
+                return info ? info : { name: type, level: -1 };
+            }
+	    },
+	    watch: {
+            maps() {
+                this.hole = this.findMap('罗浮洞');
+                this.mountain = this.findMap('翠黛峰');
+                this.island = this.findMap('清琼岛');
+		    }
+	    }
+    };
+
+    new Vue({
+        el: '#app',
+        data: {
+            retcode: 1,
+            nickname: "",
             uid: 0,
-			level: 0,
-			profile: 0,
+            level: 0,
+            profile: 0,
             stats: {},
             avatarsData: [],
             explorations: [],
-            avatar_number: 0
-		},
-		components: {
+            avatar_number: 0,
+	        homes: []
+        },
+        components: {
             upper,
-			middle,
-			bottom
-		},
+            middle,
+            bottom,
+	        home
+        },
         methods: {
-	        cutArray(array, step) {
-	            let newArray = [];
+            cutArray(array, step) {
+                let newArray = [];
                 let index = 0, len = array.length;
                 while (index < len) {
-	                newArray.push(array.slice(index, index += step));
-	            }
-	            return newArray;
-	        },
+                    newArray.push(array.slice(index, index += step));
+                }
+                return newArray;
+            },
             readJSON(file, callback) {
-	            fetch(file).then(res => {
-	                return res.json().then(data => {
-	                    callback(data);
-	                })
-	            })
+                fetch(file).then(res => {
+                    return res.json().then(data => {
+                        callback(data);
+                    })
+                })
             }
-	    },
+        },
         mounted() {
-		    this.readJSON('../../data/record/genshin-card.json', res => {
+            this.readJSON('../../data/record/genshin-card.json', res => {
                 this.nickname = res.nickname;
                 this.uid = res.uid;
                 this.level = res.level;
 
                 let avatarsList = res.avatars;
                 this.stats = res.stats;
+                this.homes = res.homes;
                 this.avatar_number = avatarsList.length;
                 this.explorations = res.explorations;
                 this.profile = avatarsList[Math.floor(Math.random() * this.avatar_number)].id;
@@ -265,148 +359,155 @@
                         return y.level - x.level;
                     }
                 });
-                this.avatarsData = this.cutArray(avatarsList, 5);
-		    });
-		}
-	});
+                this.avatarsData = this.cutArray(avatarsList, 7);
+            });
+        }
+    });
 </script>
 
 </body>
 </html>
 
 <style>
-	* {
-		margin: 0;
+    * {
+        margin: 0;
         padding: 0;
-	}
+    }
 
-	html {
-        width: 934px;
+    html {
+        width: 1454px;
         height: 100%;
         font-family: GenshinUsedFont, monospace;
-	}
+    }
 
-	img {
+    img {
         display: block;
-	}
+    }
 
     .profile {
         position: absolute;
-        top: 51px;
-        left: 62px;
+        top: 65px;
+        left: 82px;
         width: 190px;
     }
 
     .base-info {
-	    position: absolute;
-	    text-align: center;
-        top: 110px;
-	    left: 252px;
-        width: 270px;
+        position: absolute;
+        text-align: center;
+        top: 124px;
+        left: 284px;
+        width: 280px;
     }
 
     .base-info .nickname {
-	    color: rgb(64, 64, 64);
-	    font-size: 35px;
+        color: rgb(64, 64, 64);
+        font-size: 35px;
     }
 
     .base-info .uid {
-	    color: rgb(0, 176, 80);
-	    font-size: 23px;
+        color: rgb(0, 176, 80);
+        font-size: 23px;
     }
 
     .levels {
         position: absolute;
         text-align: center;
         color: rgb(50, 50, 50);
-	    top: 106px;
-	    left: 658px;
+        top: 118px;
+        left: 833px;
     }
 
     .levels .adventure-level {
-		font-size: 43px;
+        font-size: 43px;
     }
 
     .levels .world-level {
-		font-size: 23px;
+        font-size: 23px;
     }
 
     .detail {
+        top: 294px;
         position: absolute;
+    }
+
+    .stats {
         color: rgb(64, 64, 64);
-	    font-size: 32px;
-        line-height: 14.02mm;
-	    top: 287px;
+        font-size: 32px;
+        padding-bottom: 10pt;
     }
 
     .detail-left {
-		left: 285px;
+        left: 285px;
+    }
+
+    .detail-middle {
+        left: 626px;
     }
 
     .detail-right {
-	    left: 754px;
+		left: 967px;
     }
 
     .exploration {
         position: absolute;
-	    color: rgb(255, 255, 255);
-	    font-size: 22px;
-        top: 817px;
-        width: 74px;
+        color: rgb(255, 255, 255);
+        font-size: 22px;
+        top: 717px;
+        width: 76px;
         text-align: center;
     }
 
-    .dragonspine-exp {
-        left: 102px;
-    }
-
-    .dragonspine-level {
-	    left: 214px;
-    }
-
     .mondstadt-exp {
-	    left: 373px;
+        left: 133px;
     }
 
     .mondstadt-level {
-        left: 488px;
+        left: 252px;
     }
 
     .liyue-exp {
-	    left: 654px;
+        left: 474px;
     }
 
     .liyue-level {
-	    left: 767px;
+        left: 593px;
+    }
+
+    .dragonspine-exp {
+        left: 814px;
+    }
+
+    .dragonspine-level {
+        left: 933px;
     }
 
     .box {
-	    position: relative;
+        position: relative;
     }
 
     .avatar {
-	    display: inline-block;
-	    height: 243px;
-	    margin-right: 0.2cm;
-        margin-bottom: 3px;
+        display: inline-block;
+        height: 243px;
+        margin-right: 13px;
+        margin-bottom: 5px;
     }
 
     .avatar:first-child {
-        margin-left: 54px;
+        margin-left: 131px;
     }
 
     .backdrop {
-	    position: absolute;
+        position: absolute;
         margin-top: -260px;
-	    z-index: -1;
+        z-index: -1;
     }
 
     .element {
-	    position: relative;
+        position: relative;
     }
 
     .element .profile {
-	    position: relative;
+        position: relative;
         z-index: 1;
         width: 133px;
         top: -218px;
@@ -414,38 +515,125 @@
     }
 
     .element .avatar-info {
-	    position: relative;
-	    font-size: 3px;
-	    z-index: 1;
-	    float: left;
+        position: relative;
+        font-size: 3px;
+        z-index: 1;
+        float: left;
         top: -208px;
-	    left: 34px;
+        left: 34px;
         width: 91px;
         text-align: center;
     }
 
     .avatar-info p {
-	    display: inline-block;
+        display: inline-block;
     }
 
     .avatar-info .name {
-	    font-size: 20px;
+        font-size: 20px;
         color: rgb(64, 64, 64);
     }
 
     .avatar-info .level {
         color: rgb(0, 176, 80);
-	    font-size: 16px;
+        font-size: 16px;
         margin-right: 2px;
     }
 
     .avatar-info .fetter {
-	    color: rgb(231, 13, 177);
-	    font-size: 16px;
+        color: rgb(231, 13, 177);
+        font-size: 16px;
         margin-left: 2px;
     }
 
-	@font-face {
+    .home {
+	    position: absolute;
+        width: 296px;
+        height: 750px;
+	    left: 1088px;
+        top: 64px;
+	    border-radius: 20px;
+        background-color: rgb(228, 222, 213);
+    }
+
+    .home-title {
+	    position: relative;
+	    font-size: 30px;
+	    color: rgb(64, 64, 64);
+	    width: 296px;
+	    text-align: center;
+        top: 13px;
+    }
+
+    .map {
+	    position: relative;
+        top: 16px;
+    }
+
+    .home-img {
+        width: 208px;
+        margin-bottom: 15px;
+        margin-left: 44px;
+	    border-radius: 32px;
+        z-index: 1;
+    }
+
+    .unlock, .locked {
+	    position: absolute;
+        top: 0;
+    }
+
+    .map-block {
+        width: 208px;
+        height: 208px;
+        margin-left: 44px;
+        border-radius: 32px;
+    }
+
+    .lock-block {
+        background-color: rgba(0, 0, 0, 0.6);
+    }
+
+    .lock-img {
+        position: absolute;
+        height: 80px;
+        width: 66px;
+        top: 64px;
+        left: 115px;
+    }
+
+    .unlock-block {
+        background-color: rgba(0, 0, 0, 0.22);
+    }
+
+    .unlock-content-block {
+	    position: relative;
+        background-color: rgba(0, 0, 0, 0.3);
+        height: 122px;
+	    top: -165px;
+        border-radius: 0;
+    }
+
+    .map-content {
+        position: relative;
+        width: 208px;
+	    text-align: center;
+    }
+
+    .map-level {
+	    position: relative;
+	    color: rgb(242, 210, 134);
+        padding-top: 14px;
+        font-size: 24px;
+        padding-bottom: 12px;
+    }
+
+    .map-comfort {
+        font-size: 22px;
+	    color: rgb(255, 255, 255);
+    }
+
+    @font-face {
         font-family: GenshinUsedFont;
         src: url("../../data/font/HYWenHei-85W.ttf");
     }

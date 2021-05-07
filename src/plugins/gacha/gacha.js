@@ -18,7 +18,7 @@ let name, five, four, isUp;
 // 数据参考: https://www.bilibili.com/read/cv10468091
 // 更新时间: 2021年4月21日23:17:26, 不保证概率更新的及时性
 const getFiveProb = ( counter, choice ) => {
-    if (choice === 200 || counter === 301) {
+    if (choice === 200 || choice === 301) {
         return 60 + 600 * (counter > 73 ? counter - 73 : 0);
     } else {
         if (counter <= 73) {
@@ -30,7 +30,7 @@ const getFiveProb = ( counter, choice ) => {
 };
 
 const getFourProb = ( counter, choice ) => {
-    if (choice === 200 || counter === 301) {
+    if (choice === 200 || choice === 301) {
         return 510 + 5100 * (counter > 8 ? counter - 8 : 0);
     } else {
         if (counter <= 8) {

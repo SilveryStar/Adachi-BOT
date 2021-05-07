@@ -1,5 +1,5 @@
 const helpMessage =
-`Adachi-BOT v1.4.5~
+`Adachi-BOT v1.4.6~
 当前支持命令：
 1. 绑定|#s (米游社通行证)
 2. 改绑|#c (米游社通行证)

@@ -1,5 +1,5 @@
 const helpMessage =
-`Adachi-BOT v1.4.5~
+`Adachi-BOT v1.4.6~
 当前支持的权限级命令：
 1. 反馈权限|#fba (QQ) (on|off)
 2. 祈愿权限|#wa (QQ) (on|off)
