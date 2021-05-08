@@ -4,6 +4,7 @@
 	<meta charset="UTF-8">
 	<title>genshin-gacha</title>
 	<script src="../../data/js/vue.min.js"></script>
+	<link rel="stylesheet" href="./component/gacha/gacha.css">
 </head>
 <body>
 
@@ -171,98 +172,3 @@
 </script>
 </body>
 </html>
-
-<style>
-    * {
-        margin: 0;
-        padding: 0;
-    }
-
-    html {
-        font-family: GenshinUsedFont, monospace;
-    }
-
-    body {
-	    position: absolute;
-        width: 1286px;
-        height: 723px;
-    }
-
-    .background {
-        position: absolute;
-    }
-
-    .bg-info {
-	    position: fixed;
-        width: 700px;
-        top: 8px;
-        left: 8px;
-	    font-size: 15px;
-	    color: rgb(255, 255, 255);
-    }
-
-    .gacha-box {
-	    position: relative;
-	    display: inline-flex;
-	    top: 24px;
-    }
-
-    .gacha-box:first-child {
-	    margin-left: 83px;
-    }
-
-    .element .star-background {
-	    position: relative;
-	    width: 112px;
-    }
-
-    .element .star-image {
-	    display: flex;
-	    position: relative;
-	    z-index: 1;
-	    width: 82px;
-        left: 15px;
-        top: -202px;
-    }
-
-    .element .weapon-image {
-	    position: absolute;
-	    display: inline-block;
-        width: 112px;
-        top: 208px;
-    }
-
-    .element .weapon-name {
-	    position: absolute;
-	    color: rgb(242, 242, 242);
-        width: 112px;
-	    top: 434px;
-        text-align: center;
-	    font-size: 15px;
-    }
-
-    .element .character-image {
-	    position: absolute;
-        display: inline-block;
-	    margin: 0 3px;
-        width: 106px;
-	    bottom: 129px;
-    }
-
-    .times {
-	    position: absolute;
-        z-index: 1;
-        width: 80px;
-	    text-align: center;
-	    font-size: 15px;
-        left: 16px;
-        top: 457px;
-	    color: rgb(255, 255, 255);
-        background-color: rgba(5, 5, 5, 0.3);
-    }
-
-    @font-face {
-        font-family: GenshinUsedFont;
-        src: url("../../data/font/HYWenHei-85W.ttf");
-    }
-</style>

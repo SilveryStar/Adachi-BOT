@@ -1,0 +1,93 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    font-family: GenshinUsedFont, monospace;
+}
+
+body {
+    width: 746px;
+    height: 769px;
+}
+
+.background {
+    position: absolute;
+}
+
+.content {
+    position: relative;
+}
+
+.name {
+    position: relative;
+    color: white;
+    font-size: 45px;
+    left: 42px;
+    top: 18px;
+}
+
+.slot {
+    position: relative;
+    color: white;
+    font-size: 28px;
+    left: 38px;
+    top: 50px;
+}
+
+.main {
+    position: relative;
+    left: 38px;
+    top: 168px;
+}
+
+.property {
+    position: relative;
+    color: rgb(191, 175, 169);
+    font-size: 28px;
+}
+
+.data {
+    position: relative;
+    color: white;
+    font-size: 55px;
+}
+
+.rarity {
+    position: relative;
+    height: 52px;
+    left: 31px;
+    top: -93px;
+}
+
+.image {
+    position: relative;
+    left: 211px;
+    top: -92px;
+    width: 320px;
+}
+
+.list {
+    position: relative;
+    color: rgb(73, 83, 102);
+    font-size: 30px;
+    top: -12px;
+    left: 76px;
+    line-height: 50px;
+}
+
+.level {
+    position: relative;
+    color: white;
+    font-size: 31px;
+    top: -36px;
+    left: 45px;
+    width: 80px;
+    text-align: center;
+}
+
+@font-face {
+    font-family: GenshinUsedFont;
+    src: url("../../../../data/font/HYWenHei-85W.ttf");
+}

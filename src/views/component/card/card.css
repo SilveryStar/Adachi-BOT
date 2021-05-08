@@ -1,0 +1,252 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    width: 1454px;
+    height: 100%;
+    font-family: GenshinUsedFont, monospace;
+}
+
+img {
+    display: block;
+}
+
+.profile {
+    position: absolute;
+    top: 65px;
+    left: 82px;
+    width: 190px;
+}
+
+.base-info {
+    position: absolute;
+    text-align: center;
+    top: 124px;
+    left: 284px;
+    width: 280px;
+}
+
+.base-info .nickname {
+    color: rgb(64, 64, 64);
+    font-size: 35px;
+}
+
+.base-info .uid {
+    color: rgb(0, 176, 80);
+    font-size: 23px;
+}
+
+.detail {
+    top: 294px;
+    position: absolute;
+}
+
+.stats {
+    color: rgb(64, 64, 64);
+    font-size: 32px;
+    padding-bottom: 10pt;
+}
+
+.detail-left {
+    left: 285px;
+}
+
+.detail-middle {
+    left: 626px;
+}
+
+.detail-right {
+    left: 967px;
+}
+
+.exploration {
+    position: absolute;
+    color: rgb(255, 255, 255);
+    font-size: 22px;
+    top: 717px;
+    width: 76px;
+    text-align: center;
+}
+
+.mondstadt-exp {
+    left: 133px;
+}
+
+.mondstadt-level {
+    left: 252px;
+}
+
+.liyue-exp {
+    left: 474px;
+}
+
+.liyue-level {
+    left: 593px;
+}
+
+.dragonspine-exp {
+    left: 814px;
+}
+
+.dragonspine-level {
+    left: 933px;
+}
+
+.box {
+    position: relative;
+}
+
+.avatar {
+    display: inline-block;
+    height: 243px;
+    margin-right: 13px;
+    margin-bottom: 5px;
+}
+
+.avatar:first-child {
+    margin-left: 131px;
+}
+
+.backdrop {
+    position: absolute;
+    margin-top: -260px;
+    z-index: -1;
+}
+
+.element {
+    position: relative;
+}
+
+.element .profile {
+    position: relative;
+    z-index: 1;
+    width: 133px;
+    top: -218px;
+    left: 13px;
+}
+
+.element .avatar-info {
+    position: relative;
+    font-size: 3px;
+    z-index: 1;
+    float: left;
+    top: -208px;
+    left: 34px;
+    width: 91px;
+    text-align: center;
+}
+
+.avatar-info p {
+    display: inline-block;
+}
+
+.avatar-info .name {
+    font-size: 20px;
+    color: rgb(64, 64, 64);
+}
+
+.avatar-info .level {
+    color: rgb(0, 176, 80);
+    font-size: 16px;
+    margin-right: 2px;
+}
+
+.avatar-info .fetter {
+    color: rgb(231, 13, 177);
+    font-size: 16px;
+    margin-left: 2px;
+}
+
+.home {
+    position: absolute;
+    width: 296px;
+    height: 750px;
+    left: 1088px;
+    top: 64px;
+    border-radius: 20px;
+    background-color: rgb(228, 222, 213);
+}
+
+.home-title {
+    position: relative;
+    font-size: 30px;
+    color: rgb(64, 64, 64);
+    width: 296px;
+    text-align: center;
+    top: 13px;
+}
+
+.map {
+    position: relative;
+    top: 16px;
+}
+
+.home-img {
+    width: 208px;
+    margin-bottom: 15px;
+    margin-left: 44px;
+    border-radius: 32px;
+    z-index: 1;
+}
+
+.unlock, .locked {
+    position: absolute;
+    top: 0;
+}
+
+.map-block {
+    width: 208px;
+    height: 208px;
+    margin-left: 44px;
+    border-radius: 32px;
+}
+
+.lock-block {
+    background-color: rgba(0, 0, 0, 0.6);
+}
+
+.lock-img {
+    position: absolute;
+    height: 80px;
+    width: 66px;
+    top: 64px;
+    left: 115px;
+}
+
+.unlock-block {
+    background-color: rgba(0, 0, 0, 0.22);
+}
+
+.unlock-content-block {
+    position: relative;
+    background-color: rgba(0, 0, 0, 0.3);
+    height: 122px;
+    top: -165px;
+    border-radius: 0;
+}
+
+.map-content {
+    position: relative;
+    width: 208px;
+    text-align: center;
+}
+
+.map-level {
+    position: relative;
+    color: rgb(242, 210, 134);
+    padding-top: 14px;
+    font-size: 24px;
+    padding-bottom: 12px;
+}
+
+.map-comfort {
+    font-size: 22px;
+    color: rgb(255, 255, 255);
+}
+
+@font-face {
+    font-family: GenshinUsedFont;
+    src: url("../../../../data/font/HYWenHei-85W.ttf");
+}

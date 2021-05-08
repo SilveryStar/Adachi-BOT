@@ -8,13 +8,14 @@ exports.newServer = port => {
         let file = path.resolve(__dirname, '..', '..') + url;
 
         fs.readFile(file, (err, data) => {
+            let type = file.substr(file.lastIndexOf(".") + 1, path.length);
             if (err) {
                 res.writeHead(404, {
-                    'content-type' : 'text/html;charset="utf-8"'
+                    'content-type' : `text/${type};charset="utf-8"`
                 });
             } else {
                 res.writeHead(200, {
-                    'content-type' : 'text/html;charset="utf-8"'
+                    'content-type' : `text/${type};charset="utf-8"`
                 });
                 res.write(data);
             }
