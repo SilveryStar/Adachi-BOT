@@ -3,8 +3,9 @@ const { hasAuth, sendPrompt } = require('../../utils/auth');
 const { get } = require('../../utils/database');
 const render = require('../../utils/render');
 
-const generateImage = async ( uid, id, type ) => {
+const generateImage = async ( uid, id, type, userNickname ) => {
     let data = await get('info', 'user', { uid });
+    data.nickname = userNickname;
     await render(data, 'genshin-info', id, type);
 }
 
@@ -52,5 +53,5 @@ module.exports = async Message => {
         }
     }
 
-    await generateImage(dbInfo[0], sendID, type);
+    await generateImage(dbInfo[0], sendID, type, name);
 }
