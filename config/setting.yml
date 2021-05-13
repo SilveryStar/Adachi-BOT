@@ -1,0 +1,4 @@
+botConfig:
+  number: your qq number
+  password: your password or password md5
+master: your master qq number
