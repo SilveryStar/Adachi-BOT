@@ -12,6 +12,7 @@
   "license": "ISC",
   "dependencies": {
     "oicq": "^1.16.1",
+    "typescript": "^4.2.4",
     "yaml": "^1.10.2"
   },
   "devDependencies": {
