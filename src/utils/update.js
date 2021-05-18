@@ -44,10 +44,23 @@ exports.gachaUpdate = async () => {
     if (gachaInfo[1] === undefined) {
         return;
     }
+    
+    const getGachaCode = gachaID => {
+        const gacha = gachaInfo.filter(el => el['gacha_type'] === gachaID);
+        let maxTime = 0, tmpGacha;
+        for (let g of gacha) {
+            let date = new Date(g['begin_time']);
+            if (date.getTime() > maxTime) {
+                maxTime = date.getTime();
+                tmpGacha = g;
+            }
+        }
+        return tmpGacha['gacha_id'];
+    };
 
     const indefinite = await parseData(gachaInfo[0]['gacha_id']);
-    const character  = await parseData(gachaInfo[1]['gacha_id']);
-    const weapon     = await parseData(gachaInfo[2]['gacha_id']);
+    const character  = await parseData(getGachaCode(301));
+    const weapon     = await parseData(getGachaCode(302));
 
     await set('gacha', 'data', [ indefinite, character, weapon ]);
 }
