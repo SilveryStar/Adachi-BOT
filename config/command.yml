@@ -1,5 +1,6 @@
 card:
-  - ^#gq *(\[CQ:at,qq=)?([0-9]*)
+  - ^#gq *\[CQ:at,qq=[0-9]+.*\]$
+  - ^#gq *[0-9]*$
 package:
   - ^#uid *[0-9]+$
 save:
