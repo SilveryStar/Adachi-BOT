@@ -1,91 +1,80 @@
+import { Adachi, groupCommands, privateCommands } from "../bot";
+import { ROOTPATH } from "../../app";
+import { readdirSync } from "fs";
+import { loadYAML, writeYAML } from "../utils/config";
+import { resolve } from "path";
+import { Command, isOrder, Order, Question } from "./command";
+import { MessageScope } from "./message";
 import { AuthLevel } from "./auth";
-import { MessageAllow } from "./message";
-import { CommonMessageEventData as Message } from "oicq";
-
-let id = 0;
-
-interface CommandConfig {
-	docs: string;
-	regexp: string[];
-	authLimit: AuthLevel;
-	main?: string;
-	detail?: string;
-}
-
-class Plugin {
-	public id: number;
-	
-	private readonly authLimit: AuthLevel;
-	private readonly regexp: RegExp[];
-	private readonly docs: string;
-	
-	public run: ( message: Message, sendMessage: ( content: string ) => any ) => void;
-	
-	constructor(
-		id: number, auth: AuthLevel, docs: string, regList: string[],
-		main: ( message: Message, sendMessage: ( content: string ) => any ) => void
-	) {
-		this.id = id;
-		this.docs = docs;
-		this.run = main;
-		this.authLimit = auth;
-		this.regexp = <Array<RegExp>>[];
-		for ( let r of regList ) {
-			this.regexp.push( new RegExp( r ) );
-		}
-	}
-	
-	public getDocs(): string {
-		return this.docs;
-	}
-	
-	public match( message: string ): boolean {
-		for ( let i in this.regexp ) {
-			if ( this.regexp[i].test( message ) ) {
-				return true;
-			}
-		}
-		return false
-	}
-	
-	public checkAuth( userAuthLevel: AuthLevel ): boolean {
-		return this.authLimit > userAuthLevel;
-	}
-}
-
-class Event {
-
-}
 
 declare function require( moduleName: string ): any;
 
-function addPlugin( name: string, allow: MessageAllow, ...commandList: CommandConfig[] ): { type: MessageAllow, plugins: Plugin[] } {
-	let plugins = <Array<Plugin>>[];
+function loadPlugins(): void {
+	let folder: string[] = readdirSync( resolve( `${ ROOTPATH }/src/plugins` ) );
 	
-	for ( let command of commandList ) {
-		if ( command.main === undefined ) {
-			command.main = "index";
-		}
-		if ( command.detail === undefined ) {
-			command.detail = "该命令暂无更多信息";
-		}
-		
-		let { main } = require( `../plugins/${ name }/${ command.main }` );
-		let plugin = new Plugin( ++id, command.authLimit, command.docs, command.regexp, main );
-		plugins.push( plugin );
+	for ( let i = AuthLevel.Banned; i <= AuthLevel.Master; i++ ) {
+		groupCommands[i] = [];
+		privateCommands[i] = [];
 	}
 	
-	return { type: allow, plugins };
+	/* 从 plugins 文件夹从导入 init.ts 进行插件初始化 */
+	for ( let pluginName of folder ) {
+		const pluginPath: string = resolve( `${ ROOTPATH }/src/plugins/${ pluginName }/init` );
+		
+		const { init } = require( pluginPath );
+		const { name, commands }: { name: string, commands: Command[] } = init();
+		
+		for ( let command of commands ) {
+			for ( let auth = command.authLimit; auth <= AuthLevel.Master; auth++ ) {
+				if ( ( command.scope & MessageScope.Group ) !== 0 ) {
+					groupCommands[auth].push( command );
+				}
+				if ( ( command.scope & MessageScope.Private ) !== 0 ) {
+					privateCommands[auth].push( command );
+				}
+			}
+		}
+		
+		Adachi.logger.info( `插件 ${ name } 已成功加载` );
+	}
+	
+	for ( let i = AuthLevel.Banned; i <= AuthLevel.Master; i++ ){
+		groupCommands[i].sort( ( A: Command, B: Command ) => {
+			return A.compare() - B.compare();
+		} );
+		privateCommands[i].sort( ( A: Command, B: Command ) => {
+			return A.compare() - B.compare();
+		} );
+	}
 }
 
-function addEvent(): void {
+function addPlugin( name: string, ...commandList: ( Order | Question )[] ): { name: string, commands: Command[] } {
+	let commands: Command[] = [];
+	const commandFile: object = loadYAML( "commands" );
 	
+	for ( let comm of commandList ) {
+		comm.main = comm.main || "index";
+
+		if ( isOrder( comm ) ) {
+			if ( commandFile[comm.key] ) {
+				comm.headers = commandFile[comm.key];
+			} else {
+				commandFile[comm.key] = comm.headers;
+			}
+		}
+		
+		const mainPath: string = resolve( `${ ROOTPATH }/src/plugins/${ name }/${ comm.main }` );
+		const { main } = require( mainPath );
+		const command: Command = new Command( comm, main );
+		
+		commands.push( command );
+	}
+	
+	writeYAML( "commands", commandFile );
+	return { name, commands };
 }
 
 export {
-	CommandConfig,
-	Plugin,
 	addPlugin,
-	Event,
-	addEvent
+	loadPlugins
 }

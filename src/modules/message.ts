@@ -1,6 +1,8 @@
-import { Adachi, master } from "../bot";
+import { CommonMessageEventData as Message, GroupMessageEventData, PrivateMessageEventData } from "oicq";
+import { Adachi, botConfig } from "../bot";
+import removePrefix = require( "remove-prefix" );
 
-enum MessageAllow {
+enum MessageScope {
 	Neither,
 	Group = 1 << 0,
 	Private = 1 << 1,
@@ -14,23 +16,38 @@ enum MessageType {
 
 function getSendMessageFunc( targetID: number, type: MessageType ): any {
 	if ( type === MessageType.Private ) {
-		return function ( content: string ): any {
-			return Adachi.sendPrivateMsg( targetID, content );
+		return async function ( content: string ): Promise<void> {
+			await Adachi.sendPrivateMsg( targetID, content );
 		}
 	} else if ( type === MessageType.Group ) {
-		return function ( content: string ): any {
-			return Adachi.sendGroupMsg( targetID, content );
+		return async function ( content: string ): Promise<void> {
+			await Adachi.sendGroupMsg( targetID, content );
 		}
 	}
 }
 
 async function sendMaster( content: string ): Promise<void> {
-	await Adachi.sendPrivateMsg( master, content );
+	await Adachi.sendPrivateMsg( botConfig.master, content );
+}
+
+function removeStringPrefix( string: string, prefix: string ): string {
+	return removePrefix( string, prefix )[0];
+}
+
+function isPrivateMessage( data: Message ): data is PrivateMessageEventData {
+	return data.message_type === "private";
+}
+
+function isGroupMessage( data: Message ): data is GroupMessageEventData {
+	return data.message_type === "group";
 }
 
 export {
-	MessageAllow,
+	MessageScope,
 	MessageType,
 	getSendMessageFunc,
-	sendMaster
+	sendMaster,
+	removeStringPrefix,
+	isGroupMessage,
+	isPrivateMessage
 }

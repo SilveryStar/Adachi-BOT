@@ -13,5 +13,8 @@ const greet = `=================================================================
 ====================================================================`
 console.log( greet );
 
+export const ROOTPATH = __dirname;
+
+bot.init();
 bot.setEnvironment();
 bot.run();
