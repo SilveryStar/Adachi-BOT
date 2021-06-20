@@ -1,5 +1,5 @@
 import { createClient, RedisClient } from "redis";
-import { Adachi } from "../bot";
+import { Adachi, migrate } from "../bot";
 
 interface DatabaseMethod {
 	setTimeout( key: string, time: number ): Promise<void>
@@ -21,8 +21,9 @@ class Database implements DatabaseMethod {
 	constructor( port: number ) {
 		this.client = createClient( port );
 		
-		this.client.on( "connect", () => {
+		this.client.on( "connect", async () => {
 			Adachi.logger.info( "Redis 数据库已连接" );
+			await migrate();
 		} );
 	}
 	

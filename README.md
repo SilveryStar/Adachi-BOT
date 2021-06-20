@@ -28,9 +28,8 @@ npm run start
 npm run serve
 ```
 
-### Features
-+ 使用 `TypeScript` 进行重构，更加清晰的代码逻辑和类型检测
-+ 优化插件加载方式，更加灵活便捷地插件增删
+### Migrate
+对于 `Adachi-BOT v1.x` 的用户，在启动应用前，将原版本中的 `./data/db/map.json` 移动至新版本的项目根目录下，即可完成米游社绑定数据迁移。
 
 ### TODO
 + [x] 增加数据库模块

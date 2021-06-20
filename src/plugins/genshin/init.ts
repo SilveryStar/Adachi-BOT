@@ -74,14 +74,14 @@ const defaultCommandList: ( Order | Question )[] = [ {
 	key: "silvery-star.character",
 	docs: [ "角色信息", "<角色名>" ],
 	headers: [ "char" ],
-	regexps: [ " [\u4e00-\u9fa5]+" ],
+	regexps: [ " [\\u4e00-\\u9fa5]+" ],
 	main: "achieves/character"
 }, {
 	commandType: "order",
 	key: "silvery-star.information",
 	docs: [ "信息", "<角色|武器名>" ],
 	headers: [ "info" ],
-	regexps: [ " [\u4e00-\u9fa5]+" ],
+	regexps: [ " [\\u4e00-\\u9fa5]+" ],
 	main: "achieves/info"
 } ];
 
@@ -99,7 +99,7 @@ function elementNum( o: object ) {
 
 function loadConfig(): any {
 	const load: any = loadYAML( "genshin" );
-	if ( elementNum( load ) !== elementNum( defaultCommandList ) ) {
+	if ( elementNum( load ) - 1 !== elementNum( defaultCommandList ) ) {
 		const newConfig: any = {
 			...getKeys(),
 			serverPort: 58612

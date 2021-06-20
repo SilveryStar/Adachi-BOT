@@ -2,9 +2,12 @@ import { Client, CommonMessageEventData, createClient, GroupMessageEventData, Pr
 import { getSendMessageFunc, MessageType, removeStringPrefix } from "./modules/message";
 import { createFolder, createYAML, exists, loadYAML } from "./utils/config";
 import { loadPlugins } from "./modules/plugin";
+import { resolve } from "path";
+import { readFileSync, renameSync } from "fs";
 import { AuthLevel, getAuthLevel } from "./modules/auth";
 import { Database } from "./utils/database";
 import { Command } from "./modules/command";
+import { ROOTPATH } from "../app";
 
 /* setting.yml 配置文件 */
 let botConfig: any;
@@ -43,6 +46,22 @@ function init(): void {
 	
 	console.log( "环境初始化完成，请在 /config 文件夹中配置信息" );
 	process.exit( 0 );
+}
+
+async function migrate(): Promise<void> {
+	const mapPath: string = resolve( `${ ROOTPATH }/map.json` );
+	if ( exists( mapPath ) ) {
+		const content: string = readFileSync( mapPath, "utf-8" );
+		const data: any = JSON.parse( content ).user;
+
+		for ( let i in data ) {
+			if ( data.hasOwnProperty( i ) ) {
+				const dbKey: string = `silvery-star.user-bind-id-${ data[i].userID }`;
+				await Redis.setString( dbKey, data[i].mhyID );
+			}
+		}
+		renameSync( mapPath, `${ ROOTPATH }/used-data.json` )
+	}
 }
 
 function setEnvironment(): void {
@@ -131,6 +150,7 @@ function execute( sendMessage: ( content: string ) => any, message: CommonMessag
 
 export {
 	setEnvironment,
+	migrate,
 	run,
 	init,
 	Redis,

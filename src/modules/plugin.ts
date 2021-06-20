@@ -66,7 +66,7 @@ function addPlugin( name: string, ...commandList: ( Order | Question )[] ): { na
 		const mainPath: string = resolve( `${ ROOTPATH }/src/plugins/${ name }/${ comm.main }` );
 		const { main } = require( mainPath );
 		const command: Command = new Command( comm, main );
-		
+
 		commands.push( command );
 	}
 	
