@@ -17,6 +17,11 @@ async function main( sendMessage: ( content: string ) => any, message: Message )
 		commands = privateCommands[auth];
 	}
 	
+	if ( commandId < 1 || commandId > commands.length )
+	{
+		await sendMessage( `请输入正确的指令编号` );
+		return;
+	}
 	await sendMessage( commands[commandId-1].detail );
 }
 
