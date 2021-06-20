@@ -1,0 +1,76 @@
+.home-box {
+	position: relative;
+	margin-top: -5px;
+	top: 16px;
+}
+
+.home-box .home-background {
+	width: 208px;
+	margin-bottom: 15px;
+	margin-left: 44px;
+	border-radius: 32px;
+	z-index: 1;
+}
+
+.home-box .unlock,
+.home-box .locked {
+	position: absolute;
+	top: 0;
+}
+
+.home-box .box-block {
+	width: 208px;
+	height: 208px;
+	margin-left: 44px;
+	border-radius: 32px;
+}
+
+.home-box .locked-block {
+	background-color: rgba(0, 0, 0, 0.6);
+}
+
+.home-box .lock-icon {
+	position: absolute;
+	height: 80px;
+	width: 66px;
+	top: 64px;
+	left: 115px;
+}
+
+.home-box .unlock-block {
+	background-color: rgba(0, 0, 0, 0.22);
+}
+
+.home-box .unlock-content-block {
+	position: relative;
+	background-color: rgba(0, 0, 0, 0.3);
+	height: 122px;
+	top: -165px;
+	border-radius: 0;
+}
+
+.home-box .box-content {
+	position: relative;
+	width: 208px;
+	text-align: center;
+}
+
+.home-box .name {
+	position: relative;
+	color: rgb(242, 210, 134);
+	padding-top: 14px;
+	font-size: 25px;
+	padding-bottom: 12px;
+}
+
+.home-box .level {
+	font-size: 22px;
+	color: rgb(227, 221, 194);
+}
+
+.home-box .comfort {
+	font-size: 20px;
+	color: rgb(255, 255, 255);
+	margin-top: 2px;
+	-webkit-text-stroke: 0.012cm rgb(92, 82, 4);
+}

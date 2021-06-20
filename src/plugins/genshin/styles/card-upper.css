@@ -1,0 +1,119 @@
+.card-upper {
+	position: relative;
+}
+
+.card-upper .profile {
+	position: absolute;
+	top: 65px;
+	left: 82px;
+	width: 190px;
+}
+
+.card-upper .base-info {
+	position: absolute;
+	text-align: center;
+	top: 124px;
+	left: 284px;
+	width: 280px;
+}
+
+.card-upper .base-info .nickname {
+	color: rgb(64, 64, 64);
+	font-size: 35px;
+}
+
+.card-upper .base-info .user-uid {
+	color: rgb(0, 176, 80);
+	font-size: 23px;
+}
+
+.card-upper .levels {
+	position: absolute;
+	text-align: center;
+	color: rgb(50, 50, 50);
+	top: 118px;
+	left: 833px;
+}
+
+.card-upper .levels .adventure {
+	font-size: 43px;
+}
+
+.card-upper .levels .world {
+	font-size: 23px;
+}
+
+.card-upper .detail {
+	position: absolute;
+	color: rgb(64, 64, 64);
+	top: 294px;
+	left: 285px;
+	font-size: 32px;
+	display: flex;
+}
+
+.card-upper .detail .stats {
+	padding-bottom: 10pt;
+	padding-right: 219px;
+	width: 120px;
+}
+
+.card-upper .exploration {
+	position: absolute;
+	color: rgb(255, 255, 255);
+	font-size: 22px;
+	top: 717px;
+	left: 131px;
+	text-align: center;
+	display: flex;
+}
+
+.card-upper .mondstadt,
+.card-upper .liyue,
+.card-upper .dragonspine {
+	width: 290px;
+	padding-right: 51px;
+	display: flex;
+}
+
+.card-upper .exp,
+.card-upper .level {
+	width: 80px;
+}
+
+.card-upper .exp {
+	margin-right: 37px;
+}
+
+.card-upper .homes {
+	position: absolute;
+	width: 296px;
+	height: 750px;
+	left: 1088px;
+	top: 64px;
+	border-radius: 20px;
+	background-color: rgb(228, 222, 213);
+}
+
+.card-upper .homes .title-and-level,
+.card-upper .homes .comfort-num {
+	position: relative;
+	color: rgb(64, 64, 64);
+	width: 296px;
+	text-align: center;
+}
+
+.card-upper .homes .title-and-level {
+	font-size: 28px;
+	top: 13px;
+}
+
+.card-upper .homes .comfort-num {
+	font-size: 22px;
+	top: 23px;
+}
+
+.card-upper .homes .homes-list {
+	position: relative;
+	top: 7px
+}

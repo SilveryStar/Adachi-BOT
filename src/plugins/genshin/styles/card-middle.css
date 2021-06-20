@@ -1,0 +1,9 @@
+.card-middle .character-line {
+	position: relative;
+}
+
+.card-middle .background {
+	position: absolute;
+	margin-top: -260px;
+	z-index: -1;
+}

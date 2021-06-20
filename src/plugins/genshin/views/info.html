@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>info</title>
+	<script src="https://unpkg.com/vue@3.1.1/dist/vue.global.js"></script>
+	<link rel="stylesheet" href="../styles/reset.css"/>
+	<link rel="stylesheet" href="../styles/info-base.css"/>
+	<link rel="stylesheet" href="../styles/info-character.css"/>
+	<link rel="stylesheet" href="../styles/info-weapon.css"/>
+	<link rel="stylesheet" href="../styles/item-list.css"/>
+</head>
+<body>
+
+<div id="app"></div>
+
+<script type="module">
+	import App from "../components/info-app.js";
+	
+	Vue.createApp( App ).mount( "#app" );
+</script>
+
+</body>
+</html>
+
+<style>
+	#app {
+		width: 1026px;
+		height: 527px;
+	}
+</style>

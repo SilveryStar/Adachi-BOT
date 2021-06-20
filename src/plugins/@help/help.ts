@@ -23,15 +23,15 @@ async function main( sendMessage: ( content: string ) => any, message: Message )
 	if ( isPrivateMessage( message ) ) {
 		commands = privateCommands[auth];
 	}
-
+	
 	for ( let comm of commands ) {
-		if ( message.raw_message === "-k"  ) {
+		if ( message.raw_message === "-k" ) {
 			helpInfo += `\n${ ++id }. ${ comm.getKeysInfo() }`
 		} else if ( comm.display ) {
 			helpInfo += `\n${ ++id }. ${ comm.getDocsInfo() }`;
 		}
 	}
-	console.log(helpInfo);
+	console.log( helpInfo );
 	await sendMessage( helpInfo );
 }
 

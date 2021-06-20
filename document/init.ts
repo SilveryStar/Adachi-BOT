@@ -2,7 +2,7 @@ import { addPlugin } from "../src/modules/plugin";
 import { AuthLevel } from "../src/modules/auth";
 import { MessageScope } from "../src/modules/message";
 
-function init(): any {
+async function init(): Promise<any> {
 	return addPlugin( "test", {
 		commandType: "question",
 		key: "silvery-star.weather-question",

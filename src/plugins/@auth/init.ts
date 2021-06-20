@@ -1,7 +1,7 @@
 import { addPlugin } from "../../modules/plugin";
 import { AuthLevel } from "../../modules/auth";
 
-function init(): any {
+async function init(): Promise<any> {
 	return addPlugin( "@auth", {
 		commandType: "order",
 		key: "adachi.manager",
@@ -21,7 +21,7 @@ function init(): any {
 	}, {
 		commandType: "order",
 		key: "adachi.ban",
-		docs: [ "封禁", "<qq|群号> <-u|-g>"],
+		docs: [ "封禁", "<qq|群号> <-u|-g>" ],
 		headers: [ "ban" ],
 		regexps: [ " [0-9]+ (-u|-g)" ],
 		authLimit: AuthLevel.Manager,

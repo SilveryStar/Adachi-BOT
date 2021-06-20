@@ -1,11 +1,11 @@
 import { addPlugin } from "../../modules/plugin";
 import { AuthLevel } from "../../modules/auth";
 
-function init(): any {
+async function init(): Promise<any> {
 	return addPlugin( "@help", {
 		commandType: "order",
 		key: "adachi.help",
-		docs: [ "帮助", "(-k)" ],
+		docs: [ "帮助", "[-k]" ],
 		headers: [ "help" ],
 		regexps: [ "(-k)?" ],
 		authLimit: AuthLevel.Banned,

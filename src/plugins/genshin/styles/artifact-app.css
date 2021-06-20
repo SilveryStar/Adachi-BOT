@@ -1,0 +1,75 @@
+.artifact .background {
+	position: absolute;
+}
+
+.artifact .up,
+.artifact .down {
+	position: relative;
+}
+
+.artifact .up .name {
+	position: relative;
+	color: white;
+	font-size: 45px;
+	left: 45px;
+	top: 18px;
+}
+
+.artifact .up .slot {
+	position: relative;
+	color: white;
+	font-size: 28px;
+	left: 38px;
+	top: 50px;
+}
+
+.artifact .up .main-stat {
+	position: relative;
+	left: 38px;
+	top: 168px;
+}
+
+.artifact .up .main-stat .property {
+	position: relative;
+	color: rgb(191, 175, 169);
+	font-size: 28px;
+}
+
+.artifact .up .main-stat .value {
+	position: relative;
+	color: white;
+	font-size: 55px;
+}
+
+.artifact .up .rarity {
+	position: relative;
+	height: 52px;
+	left: 31px;
+	top: 171px;
+}
+
+.artifact .up .image {
+	position: relative;
+	left: 408px;
+	top: -142px;
+	width: 320px;
+}
+
+.artifact .down .level {
+	position: relative;
+	color: white;
+	font-size: 31px;
+	top: -81px;
+	left: 45px;
+	width: 80px;
+	text-align: center;
+}
+
+.artifact .down .sub-stats {
+	position: relative;
+	color: rgb(73, 83, 102);
+	font-size: 30px;
+	top: -57px;
+	left: 76px;
+	line-height: 50px;
+}

@@ -1,0 +1,79 @@
+.wish-box {
+	position: relative;
+	width: 93px;
+}
+
+.wish-box .box-background {
+	position: absolute;
+	z-index: 0;
+}
+
+.wish-box .character,
+.wish-box .weapon {
+	position: absolute;
+}
+
+.wish-box .main {
+	position: relative;
+	z-index: 1;
+	width: 90px;
+}
+
+.wish-box .type,
+.wish-box .rank {
+	position: relative;
+	z-index: 2;
+}
+
+.wish-box .rank {
+	position: relative;
+	width: 65px;
+	left: 14px;
+	top: 425px;
+}
+
+.character .type {
+	width: 51px;
+	left: 21px;
+	top: 360px;
+}
+
+.character .main {
+	position: absolute;
+	top: 82px;
+	height: 394px;
+	left: 0.04cm;
+}
+
+.weapon .main {
+	position: relative;
+	top: 141px;
+	z-index: 1;
+}
+
+.weapon .shadow {
+	position: relative;
+	top: -115px;
+	left: 2px;
+	filter: brightness(0%);
+	opacity: 0.72;
+	z-index: 0;
+}
+
+.weapon .type {
+	position: absolute;
+	width: 67px;
+	left: 12px;
+	top: 352px;
+}
+
+.wish-box .times {
+	position: absolute;
+	width: 63px;
+	font-size: 15px;
+	left: 15px;
+	top: 495px;
+	color: rgb(220, 220, 220);
+	background-color: rgba(64, 64, 64, 0.25);
+	text-align: center;
+}

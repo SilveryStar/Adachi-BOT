@@ -16,7 +16,7 @@
 import { addPlugin } from "../../modules/plugin";
 
 // 固定函数名
-export function init(): any {
+export async function init(): Promise<any> {
     return addPlugin( "example", {
     	// config
     } );
@@ -206,7 +206,7 @@ async function setHash( key: string, value: any ): Promise<void> {}
 * `key` Hash 数据键名
 * `value` 值，可以为下面两种类型
   + `Array` 含有偶数个元素的数列，奇数位的元素为 `string` 类型，表示字段名；偶数位为对应的值，`e.g. [ "k1", 1, "k2", "2" ]`
-  + `Object` 对象，它不应该嵌套对象，`e.g. { k1: 1, k2: "2" }`
+  + `Object` 对象，它不应该嵌套对象，正确的格式应为 `e.g. { k1: 1, k2: "2" }`
 
 **获取 Hash 数据**
 ```typescript
@@ -257,6 +257,13 @@ async function deleteKey( ...keys: string[] ): Promise<void> {}
 ```
 * `...keys` 待删除键名，剩余参数列表，可同时删除多个键值对
 * 注意：当该方法删除不存在的键名时不会报错
+
+**设置过期时间**
+```typescript
+async function setTimeout( key: string, time: number ): Promise<void> {}
+```
+* `key` 数据键名
+* `time` 过期时限，单位：秒
 
 **获取 Redis 实例**
 

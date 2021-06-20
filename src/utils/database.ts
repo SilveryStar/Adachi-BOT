@@ -2,6 +2,7 @@ import { createClient, RedisClient } from "redis";
 import { Adachi } from "../bot";
 
 interface DatabaseMethod {
+	setTimeout( key: string, time: number ): Promise<void>
 	deleteKey( ...keys: string[] ): Promise<void>
 	setHash( key: string, value: any ): Promise<void>
 	getHash( key: string ): Promise<any>
@@ -23,6 +24,10 @@ class Database implements DatabaseMethod {
 		this.client.on( "connect", () => {
 			Adachi.logger.info( "Redis 数据库已连接" );
 		} );
+	}
+	
+	public async setTimeout( key: string, time: number ): Promise<void> {
+		this.client.expire( key, time );
 	}
 	
 	public async deleteKey( ...keys: string[] ): Promise<void> {

@@ -1,0 +1,64 @@
+.weapon {
+	position: absolute;
+	left: 512px;
+	width: 450px;
+	top: 112px;
+}
+
+.weapon .access {
+	position: relative;
+	width: 100%;
+}
+
+.weapon .access .title,
+.weapon .access .content {
+	position: relative;
+	display: inline-block;
+	font-size: 10.38pt;
+}
+
+.weapon .access .title {
+	margin-right: 9px;
+	color: rgb(81, 92, 113);
+}
+
+.weapon .access .content {
+	color: rgb(116, 129, 156);
+}
+
+.weapon .data-block {
+	position: relative;
+	top: 6px;
+}
+
+.weapon .materials {
+	position: relative;
+	top: 14px;
+}
+
+.weapon .time {
+	top: 62px;
+}
+
+.weapon .skill {
+	position: relative;
+	top: 26px;
+	left: 9px;
+}
+
+.weapon .skill .name {
+	position: relative;
+	font-size: 18.46pt;
+	font-family: HuaWen, GenshinUsedFont, monospace;
+	color: rgb(85, 97, 120);
+}
+
+.weapon .skill .content {
+	position: relative;
+	width: auto;
+	word-break:break-all;
+	word-wrap:break-word;
+	color: rgb(118, 130, 157);
+	top: 7px;
+	left: 13px;
+}

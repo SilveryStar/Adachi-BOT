@@ -9,7 +9,7 @@ import { AuthLevel } from "./auth";
 
 declare function require( moduleName: string ): any;
 
-function loadPlugins(): void {
+async function loadPlugins(): Promise<void> {
 	let folder: string[] = readdirSync( resolve( `${ ROOTPATH }/src/plugins` ) );
 	
 	for ( let i = AuthLevel.Banned; i <= AuthLevel.Master; i++ ) {
@@ -22,8 +22,8 @@ function loadPlugins(): void {
 		const pluginPath: string = resolve( `${ ROOTPATH }/src/plugins/${ pluginName }/init` );
 		
 		const { init } = require( pluginPath );
-		const { name, commands }: { name: string, commands: Command[] } = init();
-		
+		const { name, commands } = await init();
+
 		for ( let command of commands ) {
 			for ( let auth = command.authLimit; auth <= AuthLevel.Master; auth++ ) {
 				if ( ( command.scope & MessageScope.Group ) !== 0 ) {

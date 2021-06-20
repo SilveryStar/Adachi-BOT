@@ -1,0 +1,55 @@
+.character-box {
+	position: relative;
+	display: inline-block;
+	height: 243px;
+	margin-right: 13px;
+	margin-bottom: 5px;
+}
+
+.character-box:first-child {
+	margin-left: 131px;
+}
+
+.character-box .profile {
+	position: relative;
+	z-index: 1;
+	width: 133px;
+	top: -225px;
+	left: 13px;
+}
+
+.character-box .info {
+	position: relative;
+	font-size: 3px;
+	z-index: 1;
+	float: left;
+	top: -216px;
+	left: 5px;
+	width: 149px;
+	text-align: center;
+}
+
+.character-box .info .name {
+	font-size: 19px;
+	color: rgb(64, 64, 64);
+}
+
+.character-data .constellation {
+	font-size: 15px;
+	color: rgb(64, 64, 64);
+}
+
+.character-data .level {
+	display: inline-block;
+	color: rgb(0, 176, 80);
+	width: 52px;
+	font-size: 16px;
+}
+
+.character-data .fetter {
+	display: inline-block;
+	color: rgb(231, 13, 177);
+	width: 34px;
+	font-size: 16px;
+}
+

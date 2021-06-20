@@ -36,16 +36,9 @@ function init(): void {
 		
 	} );
 	
-	/* 初始化 cookie 配置文件 */
-	createYAML( "cookies", {
-		cookies: [
-			"your Mihoyo BBS cookie"
-		]
-	} );
-	
 	/* 初始化命令头配置文件 */
 	createYAML( "commands", {
-		tips: "you should reboot app after modify"
+		tips: "注意，修改后需重启"
 	} );
 	
 	console.log( "环境初始化完成，请在 /config 文件夹中配置信息" );
@@ -93,8 +86,8 @@ async function run(): Promise<void> {
 	/* 连接 Redis 数据库 */
 	Redis = new Database( botConfig.dbPort );
 	/* 加载插件 */
-	loadPlugins();
-	
+	await loadPlugins();
+
 	/* 监听群消息事件，运行群聊插件 */
 	Adachi.on( "message.group", async ( messageData: GroupMessageEventData ) => {
 		const { raw_message: content, user_id: qqID, group_id: groupID } = messageData;
