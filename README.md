@@ -1,4 +1,4 @@
-**[`Adachi-BOT v2.0Beta`](https://github.com/SilveryStar/Adachi-BOT/tree/v2.0Beta)已发布，目前仅有基本框架，暂未迁移任何功能，欢迎用户和开发者提供交流意见和建议**
+**[`Adachi-BOT v2.0Beta`](https://github.com/SilveryStar/Adachi-BOT/tree/v2.0Beta)已发布，原神相关功能已迁移完成，欢迎用户和开发者提供交流意见和建议**
 
 ## Usage
 ### Install
