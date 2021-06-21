@@ -73,6 +73,8 @@
 <template id="avatar-element">
 	<div>
 		<div class="element">
+			<div class="connum" v-if="avatar.actived_constellation_num!=0&&avatar.actived_constellation_num<=5">{{avatar.actived_constellation_num}}</div>
+			<div class="connum6" v-else-if="avatar.actived_constellation_num==6">{{avatar.actived_constellation_num}}</div>
 			<img src="http://adachi-bot.oss-cn-beijing.aliyuncs.com/module/element.png" alt="ERROR"/>
 			<img class="profile" :src="avatar.icon" alt="ERROR"/>
 			<div class="avatar-info">
