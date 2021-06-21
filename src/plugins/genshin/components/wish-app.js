@@ -1,7 +1,7 @@
 const template =
 `<div class="wish">
     <img class="background" :src="wishBackground" alt="ERROR"/>
-    <p class="time">For {{ nickname }} at {{ fullDate }}</p>
+    <p class="time">@{{ nickname }} at {{ fullDate }}</p>
     <div class="wish-list">
         <WishBox v-for="d in result"
             :d="d"
@@ -21,7 +21,7 @@ export default Vue.defineComponent( {
 	},
 	setup() {
 		const wishBackground = Vue.computed( () => {
-			return "https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/wish/item/background.png";
+			return "/public/images/item/background.png";
 		} );
 		
 		const urlParams = parseURL( location.search );

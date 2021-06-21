@@ -1,11 +1,11 @@
 import express from "express";
-import { getWishConfig } from "../utils/api";
+import { typeData } from "../init";
 
 const router = express.Router();
 
 router.get( "/", async ( req, res ) => {
 	const type: string = <string>req.query.type;
-	const data: any = await getWishConfig( type );
+	const data: any = type === "character" ? typeData.character : typeData.weapon;
 	res.send( data );
 } );
 

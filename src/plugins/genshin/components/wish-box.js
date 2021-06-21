@@ -34,7 +34,7 @@ export default Vue.defineComponent( {
 		}
 		
 		const boxBackground = Vue.computed( () => {
-			return `https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/wish/item/${ toString( props.d.rank ) }Background.png`;
+			return `/public/images/item/${ toString( props.d.rank ) }Background.png`;
 		} );
 		const mainImage = Vue.computed( () => {
 			const type = props.d.type === "武器" ? "weapon" : "character";
@@ -42,10 +42,10 @@ export default Vue.defineComponent( {
 		} );
 		const typeIcon = Vue.computed( () => {
 			const type = props.d.type === "武器" ? "type" : "element";
-			return `https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/wish/${ type }/${ props.d.el }.png`;
+			return `/public/images/${ type }/${ props.d.el }.png`;
 		} );
 		const rankIcon = Vue.computed( () => {
-			return `https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/wish/item/${ toString( props.d.rank ) }Star.png`;
+			return `/public/images/item/${ toString( props.d.rank ) }Star.png`;
 		} );
 		
 		return {

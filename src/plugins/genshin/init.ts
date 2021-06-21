@@ -4,6 +4,7 @@ import { createYAML, loadYAML, writeYAML } from "../../utils/config";
 import { getArtifact } from "./utils/api";
 import { Cookies } from "./module/cookies";
 import { Order, Question } from "../../modules/command";
+import { TypeData } from "./module/type";
 import { ArtClass } from "./module/artifact";
 import { WishClass } from "./module/wish";
 import { createBrowser } from "./utils/render";
@@ -11,6 +12,7 @@ import { createBrowser } from "./utils/render";
 let cookies: Cookies;
 let artClass: ArtClass;
 let wishClass: WishClass;
+let typeData: TypeData;
 let config: any;
 
 const defaultCommandList: ( Order | Question )[] = [ {
@@ -137,10 +139,11 @@ async function init(): Promise<any> {
 	artClass = new ArtClass( await getArtifact() );
 	cookies = new Cookies();
 	wishClass = new WishClass();
+	typeData = new TypeData();
 	createServer();
 	await createBrowser();
 	
 	return addPlugin( "genshin", ...initCommandList( config ) );
 }
 
-export { init, cookies, config, artClass, wishClass }
+export { init, cookies, config, artClass, wishClass, typeData }
