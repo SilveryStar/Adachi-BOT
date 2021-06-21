@@ -31,7 +31,6 @@ async function main( sendMessage: ( content: string ) => any, message: Message )
 			helpInfo += `\n${ ++id }. ${ comm.getDocsInfo() }`;
 		}
 	}
-	console.log( helpInfo );
 	await sendMessage( helpInfo );
 }
 

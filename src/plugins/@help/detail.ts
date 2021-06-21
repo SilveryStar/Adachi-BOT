@@ -6,8 +6,8 @@ import { Command } from "../../modules/command";
 
 async function main( sendMessage: ( content: string ) => any, message: Message ): Promise<void> {
 	let commands: Command[] = [];
+	let commandId: number = parseInt( message.raw_message );
 	const qqID: number = message.user_id;
-	const commandId: number = parseInt( message.raw_message );
 	const auth: AuthLevel = await getAuthLevel( qqID );
 	
 	if ( isGroupMessage( message ) ) {
@@ -17,7 +17,21 @@ async function main( sendMessage: ( content: string ) => any, message: Message )
 		commands = privateCommands[auth];
 	}
 	
-	await sendMessage( commands[commandId-1].detail );
+	const commandNum: number = commands.length;
+	const noDisplay: number = commands.filter( el => !el.display ).length;
+	if ( commandId > commandNum - noDisplay ) {
+		await sendMessage( "未知的指令" );
+		return;
+	}
+	
+	for ( let comm of commands ) {
+		if ( commandId === 1 ) {
+			await sendMessage( comm.detail );
+			return;
+		} else if ( comm.display ) {
+			commandId--;
+		}
+	}
 }
 
 export { main }
