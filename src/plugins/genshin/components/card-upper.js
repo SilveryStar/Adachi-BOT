@@ -81,6 +81,9 @@ export default Vue.defineComponent( {
 			return `http://adachi-bot.oss-cn-beijing.aliyuncs.com/characters/profile/${ props.profile }.png`;
 		} );
 		const worldLevel = Vue.computed( () => {
+			if ( props.level < 20 ) {
+				return 0;
+			}
 			return Math.floor( ( props.level - 15 ) / 5 );
 		} );
 		const packageTop = Vue.computed( () => {
