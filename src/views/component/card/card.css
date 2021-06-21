@@ -250,3 +250,31 @@ img {
     font-family: GenshinUsedFont;
     src: url("../../../../data/font/HYWenHei-85W.ttf");
 }
+
+.connum {
+    position: absolute;
+    border-radius:4px;
+    padding-top:5px;
+    text-align: center;
+    width: 20px;
+    height: 25px;
+    background-color: black;
+    top: 20px;
+    right: 15px;
+    color: white;
+    z-index: 1000;
+}
+
+.connum6 {
+    position: absolute;
+    border-radius:4px;
+    padding-top:5px;
+    text-align: center;
+    width: 20px;
+    height: 25px;
+    background-color: rgb(255, 115, 0);
+    top: 20px;
+    right: 15px;
+    color: black;
+    z-index: 1000;
+}
