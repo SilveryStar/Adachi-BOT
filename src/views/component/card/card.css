@@ -123,7 +123,7 @@ img {
     position: relative;
     z-index: 1;
     width: 133px;
-    top: -218px;
+    top: -205px;
     left: 13px;
 }
 
@@ -132,7 +132,7 @@ img {
     font-size: 3px;
     z-index: 1;
     float: left;
-    top: -208px;
+    top: -195px;
     left: 34px;
     width: 91px;
     text-align: center;
@@ -251,30 +251,59 @@ img {
     src: url("../../../../data/font/HYWenHei-85W.ttf");
 }
 
-.connum {
+.con {
     position: absolute;
     border-radius:4px;
     padding-top:5px;
     text-align: center;
     width: 20px;
     height: 25px;
-    background-color: black;
-    top: 20px;
+    top: 15px;
     right: 15px;
-    color: white;
     z-index: 1000;
 }
 
-.connum6 {
-    position: absolute;
-    border-radius:4px;
-    padding-top:5px;
-    text-align: center;
-    width: 20px;
-    height: 25px;
+.num{
+    background-color: black;
+    color: white;
+}
+
+.num6{
     background-color: rgb(255, 115, 0);
-    top: 20px;
-    right: 15px;
     color: black;
-    z-index: 1000;
+}
+
+.element-border  {
+    background-color:#f3efea;
+    width: 159px;
+    height: 220px;
+    border-radius:18px;
+}
+
+.Anemo {
+    box-shadow:0 0 5px rgb(0, 255, 42);
+}
+
+.Pyro {
+    box-shadow:0 0 5px rgb(255, 62, 62);
+}
+
+.Hydro {
+    box-shadow:0 0 5px rgb(0, 38, 255);
+}
+
+.Electro {
+    box-shadow:0 0 5px rgb(162, 0, 255);
+}
+
+.Cryo {
+    box-shadow:0 0 5px rgb(0, 204, 255);
+}
+
+.Geo {
+    box-shadow:0 0 5px rgba(255, 196, 0, 0.925);
+}
+
+.None {
+    box-shadow:0 0 5px rgba(255, 255, 255, 0.925);
 }
