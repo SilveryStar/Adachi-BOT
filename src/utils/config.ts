@@ -44,7 +44,8 @@ function writeYAML( fileName: string, config: any ): void {
 
 function loadYAML( fileName: string ): any {
 	const file: string = readYAML( fileName );
-	return parse( file );
+	const config: any = parse( file );
+	return config === null ? {} : config;
 }
 
 function updateYAML( fileName: string, newData: any, ...index: string[] ): void {
