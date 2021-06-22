@@ -27,21 +27,21 @@ const defaultCommandList: ( Order | Question )[] = [ {
 	key: "silvery-star.mys-query",
 	docs: [ "查询", "[通行证|@]" ],
 	headers: [ "mys" ],
-	regexps: [ " ?[0-9]*", " \\[CQ:at,qq=[0-9]+.*\\]" ],
+	regexps: [ " *[0-9]*", " \\[CQ:at,qq=[0-9]+.*\\]" ],
 	main: "achieves/mys-query"
 }, {
 	commandType: "order",
 	key: "silvery-star.uid-query",
 	docs: [ "查询", "<UID>" ],
 	headers: [ "uid" ],
-	regexps: [ " [0-9]{9}" ],
+	regexps: [ " *[0-9]{9}" ],
 	main: "achieves/uid-query"
 }, {
 	commandType: "order",
 	key: "silvery-star.art",
 	docs: [ "抽圣遗物", "[秘境ID]" ],
 	headers: [ "art" ],
-	regexps: [ " ?[0-9]*" ],
+	regexps: [ " *[0-9]*" ],
 	main: "achieves/artifact"
 }, {
 	commandType: "order",
@@ -69,21 +69,21 @@ const defaultCommandList: ( Order | Question )[] = [ {
 	key: "silvery-star.choose",
 	docs: [ "切换卡池", "<角色|武器|常驻>" ],
 	headers: [ "choose", "t" ],
-	regexps: [ " (角色|武器|常驻)" ],
+	regexps: [ " *(角色|武器|常驻)" ],
 	main: "achieves/choose"
 }, {
 	commandType: "order",
 	key: "silvery-star.character",
 	docs: [ "角色信息", "<角色名>" ],
 	headers: [ "char" ],
-	regexps: [ " [\\u4e00-\\u9fa5]+" ],
+	regexps: [ " *[\\u4e00-\\u9fa5]+" ],
 	main: "achieves/character"
 }, {
 	commandType: "order",
 	key: "silvery-star.information",
 	docs: [ "信息", "<角色|武器名>" ],
 	headers: [ "info" ],
-	regexps: [ " [\\u4e00-\\u9fa5]+" ],
+	regexps: [ " *[\\u4e00-\\u9fa5]+" ],
 	main: "achieves/info"
 } ];
 
@@ -127,9 +127,6 @@ function initCommandList( config: any ): ( Order | Question )[] {
 }
 
 async function init(): Promise<any> {
-	createYAML( "cookies", {
-		cookies: [ "米游社Cookies(可多个)" ]
-	} );
 	createYAML( "genshin", {
 		...getKeys(),
 		serverPort: 58612

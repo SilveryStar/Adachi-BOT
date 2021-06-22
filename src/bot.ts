@@ -28,6 +28,13 @@ function init(): void {
 	createFolder( "config" );
 	createFolder( "database" );
 	
+	/* 初始化米游社 Cookies 配置文件 */
+	if ( exists( "src/plugins/genshin" ) ) {
+		createYAML( "cookies", {
+			cookies: [ "米游社Cookies(可多个)" ]
+		} );
+	}
+	
 	/* 初始化账号配置文件 */
 	createYAML( "setting", {
 		number: "QQ 账号",
