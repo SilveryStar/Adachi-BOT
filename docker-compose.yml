@@ -1,0 +1,20 @@
+version: "2.0"
+services:
+  redis:
+    image: redis:6.2.3
+    container_name: adachi-redis
+    restart: always
+    command: redis-server /usr/local/etc/redis/redis.conf
+    volumes:
+      - ./database:/data
+      - ./redis.conf:/usr/local/etc/redis/redis.conf
+  bot:
+    build: .
+    container_name: adachi-bot
+    environment:
+      docker: "yes"
+    depends_on:
+      - redis
+    volumes:
+      - ./config:/bot/config
+      - ./src/plugins:/bot/src/plugins

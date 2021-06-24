@@ -40,10 +40,9 @@ function init(): void {
 		number: "QQ 账号",
 		password: "QQ 密码",
 		master: "BOT 持有者账号",
-		header: "命令起始符(可为空)",
+		header: "命令起始符(可为空串\"\")",
 		platform: "1.安卓手机(默认) 2.aPad 3.安卓手表 4.MacOS 5.iPad",
 		dbPort: 56379
-		
 	} );
 	
 	/* 初始化命令头配置文件 */

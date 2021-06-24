@@ -19,7 +19,8 @@ class Database implements DatabaseMethod {
 	public readonly client: RedisClient;
 	
 	constructor( port: number ) {
-		this.client = createClient( port );
+		const host: string = process.env.docker === "yes" ? "redis" : "localhost";
+		this.client = createClient( port, host );
 		
 		this.client.on( "connect", async () => {
 			Adachi.logger.info( "Redis 数据库已连接" );
