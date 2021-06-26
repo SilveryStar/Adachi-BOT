@@ -170,7 +170,7 @@ interface Question extends CommandConfig {
 * `sentences` 询问句式（正则），可以指定多个
   + 对于句式中你想获得的数据，应该使用子表达式包围
   + 在询问式指令成功匹配后，被匹配到的数据列表将作为参数传入`main`
-  + 在 `sentences` 中的 `${HEADER}` 会被替换为用户 `setting.yml` 中设置的命令头
+  + 在 `sentences` 中的 `${HEADER}` 会被替换为用户 `setting.yml` 中设置的指令头
 
 ## 数据库
 ### 简述

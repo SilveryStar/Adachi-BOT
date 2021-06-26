@@ -70,50 +70,55 @@ npm run serve
 ### Migrate
 对于 `Adachi-BOT v1.x` 的用户，在启动应用前，将原版本中的 `./data/db/map.json` 移动至新版本的项目根目录下，即可完成米游社绑定数据迁移。
 
+### Customize
+在每次启动后，所有命令式指令的命令头会以指令键名为索引写入 `/config/commands.yml` 中，你可以修改并重启来自定义命令头：
+* 在使用 `help` 时添加 `-k` 参数可以查看指令对应的指令头
+* 在命令头前使用双下划线可以屏蔽 `/config/setting.yml` 中的 `header` 配置
+
 ### Pictures
 
 <details>
 <summary>生成玩家信息卡片 mys|uid</summary>
 <div align="center">
-  <img src="https://z3.ax1x.com/2021/06/23/RmBLct.png" alt="RmBq1I.png" border="0" />
+  <img src="https://z3.ax1x.com/2021/06/27/RJnkkj.png" alt="ERROR"/>
 </div>
 </details>
 
 <details>
 <summary>祈愿十连 wish|w</summary>
 <div align="center">
-  <img src="https://z3.ax1x.com/2021/06/23/RmBvB8.png" alt="RmBq1I.png" border="0" />
-  <img src="https://z3.ax1x.com/2021/06/23/RmDEuV.png" alt="RmBq1I.png" border="0" />
+  <img src="https://z3.ax1x.com/2021/06/27/RJn3N9.png" alt="ERROR"/>
+  <img src="https://z3.ax1x.com/2021/06/27/RJne10.png" alt="ERROR"/>
 </div>
 </details>
 
 <details>
 <summary>角色/武器信息查询 info</summary>
 <div align="center">
-  <img src="https://z3.ax1x.com/2021/06/23/RmBOjP.png" alt="ERROR">
-  <img src="https://z3.ax1x.com/2021/06/23/RmBTtH.png" alt="ERROR">
-  <img src="https://z3.ax1x.com/2021/06/23/RmDFcq.png" alt="ERROR">
-  <img src="https://z3.ax1x.com/2021/06/23/RmDkj0.png" alt="ERROR">
-  <img src="https://z3.ax1x.com/2021/06/23/RmDi3n.png" alt="ERROR">
+  <img src="https://z3.ax1x.com/2021/06/27/RJnEhn.png" alt="ERROR">
+  <img src="https://z3.ax1x.com/2021/06/27/RJnpX8.png" alt="ERROR">
+  <img src="https://z3.ax1x.com/2021/06/27/RJnQ74.png" alt="ERROR">
+  <img src="https://z3.ax1x.com/2021/06/27/RJn1AJ.png" alt="ERROR">
+  <img src="https://z3.ax1x.com/2021/06/27/RJnMBF.png" alt="ERROR">
 </div>
 </details>
 
 <details>
 <summary>圣遗物抽取/强化 art|imp</summary>
 <div align="center">
-  <img src="https://z3.ax1x.com/2021/06/23/RmBb9A.png" alt="ERROR">
-  <img src="https://z3.ax1x.com/2021/06/23/RmB7hd.png" alt="ERROR">
+  <img src="https://z3.ax1x.com/2021/06/27/RJnP0g.png" alt="ERROR">
+  <img src="https://z3.ax1x.com/2021/06/27/RJnCnS.png" alt="ERROR">
 </div>
 </details>
 
 <details>
 <summary>玩家角色查询 char</summary>
 <div align="center">
-  <img src="https://z3.ax1x.com/2021/06/23/RmDq54.png" alt="ERROR">
-  <img src="https://z3.ax1x.com/2021/06/23/RmDXG9.png" alt="ERROR">
-  <img src="https://z3.ax1x.com/2021/06/23/RmDOPJ.png" alt="ERROR">
-  <img src="https://z3.ax1x.com/2021/06/23/RmDbaF.png" alt="ERROR">
-  <img src="https://z3.ax1x.com/2021/06/23/RmDHVU.png" alt="ERROR">
-  <img src="https://z3.ax1x.com/2021/06/23/RmDj2R.png" alt="ERROR">
+  <img src="https://z3.ax1x.com/2021/06/27/RJni7Q.png" alt="ERROR">
+  <img src="https://z3.ax1x.com/2021/06/27/RJnKnU.png" alt="ERROR">
+  <img src="https://z3.ax1x.com/2021/06/27/RJnnXT.png" alt="ERROR">
+  <img src="https://z3.ax1x.com/2021/06/27/RJnmcV.png" alt="ERROR">
+  <img src="https://z3.ax1x.com/2021/06/27/RJnZpq.png" alt="ERROR">
+  <img src="https://z3.ax1x.com/2021/06/27/RJnAts.png" alt="ERROR">
 </div>
 </details>
