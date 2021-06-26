@@ -7,7 +7,9 @@ const template =
         <div class="character-data">
             <p class="constellation">命之座: {{ char.actived_constellation_num }}层</p>
             <p class="level">Lv.{{ char.level }}</p>
-            <p class="fetter">❤{{ char.fetter }}</p>
+            <p class="fetter" v-if="char.name !== '旅行者'">
+                ❤{{ char.fetter }}
+            </p>
         </div>
     </div>
 </div>`;
