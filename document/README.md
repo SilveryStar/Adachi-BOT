@@ -1,4 +1,4 @@
-## Adachi-Plugin v1.0.2 开发者文档
+## Adachi-Plugin v1.0.3 开发者文档
 本文档持续更新和修正中欢迎开发者提供交流意见和建议
 
 ## 写在前面
@@ -148,6 +148,7 @@ interface Order extends CommandConfig {
     commandType: "order";
     headers: string[];
     regexps: string[];
+    start?: boolean;
 }
 ```
 * `headers` 指令头，可以指定多个
@@ -157,6 +158,7 @@ interface Order extends CommandConfig {
 * `regexps` 正则表达式，可以设置多个
   + 表达式无需包含指令头，这将由系统与`headers`进行拼接
   + 在拼接时，不包含空格的处理，请以自己的喜好进行正则书写
+* `start` 是否匹配输入字符串的开始位置，即在正则表达式前加 `^`
   
 ### 询问式指令
 ```typescript
@@ -168,6 +170,7 @@ interface Question extends CommandConfig {
 * `sentences` 询问句式（正则），可以指定多个
   + 对于句式中你想获得的数据，应该使用子表达式包围
   + 在询问式指令成功匹配后，被匹配到的数据列表将作为参数传入`main`
+  + 在 `sentences` 中的 `${HEADER}` 会被替换为用户 `setting.yml` 中设置的命令头
 
 ## 数据库
 ### 简述

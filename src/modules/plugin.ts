@@ -23,7 +23,7 @@ async function loadPlugins(): Promise<void> {
 		
 		const { init } = require( pluginPath );
 		const { name, commands } = await init();
-
+		
 		for ( let command of commands ) {
 			for ( let auth = command.authLimit; auth <= AuthLevel.Master; auth++ ) {
 				if ( ( command.scope & MessageScope.Group ) !== 0 ) {
@@ -38,7 +38,7 @@ async function loadPlugins(): Promise<void> {
 		Adachi.logger.info( `插件 ${ name } 已成功加载` );
 	}
 	
-	for ( let i = AuthLevel.Banned; i <= AuthLevel.Master; i++ ){
+	for ( let i = AuthLevel.Banned; i <= AuthLevel.Master; i++ ) {
 		groupCommands[i].sort( ( A: Command, B: Command ) => {
 			return A.compare() - B.compare();
 		} );
@@ -54,7 +54,7 @@ function addPlugin( name: string, ...commandList: ( Order | Question )[] ): { na
 	
 	for ( let comm of commandList ) {
 		comm.main = comm.main || "index";
-
+		
 		if ( isOrder( comm ) ) {
 			if ( commandFile[comm.key] ) {
 				comm.headers = commandFile[comm.key];
@@ -66,7 +66,7 @@ function addPlugin( name: string, ...commandList: ( Order | Question )[] ): { na
 		const mainPath: string = resolve( `${ ROOTPATH }/src/plugins/${ name }/${ comm.main }` );
 		const { main } = require( mainPath );
 		const command: Command = new Command( comm, main );
-
+		
 		commands.push( command );
 	}
 	

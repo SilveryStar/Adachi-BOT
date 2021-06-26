@@ -25,6 +25,7 @@ interface Order extends CommandConfig {
 	commandType: "order";
 	headers: string[];
 	regexps: string[];
+	start?: boolean;
 }
 
 interface Question extends CommandConfig {
@@ -71,7 +72,7 @@ export class Command implements CommandMethod {
 		
 		if ( isOrder( config ) ) {
 			for ( let header of config.headers ) {
-				this.headers.push( Command.modifyHeader( header ) );
+				this.headers.push( Command.modifyHeader( header, config.start ) );
 			}
 			for ( let header of this.headers ) {
 				for ( let reg of config.regexps ) {
@@ -81,17 +82,22 @@ export class Command implements CommandMethod {
 		}
 		if ( isQuestion( config ) ) {
 			for ( let sentence of config.sentences ) {
+				sentence = sentence.replace( "${HEADER}", botConfig.header );
 				this.regexps.push( new RegExp( sentence ) );
 			}
 		}
 	}
 	
-	static modifyHeader( rawConfig: string ): string {
-		if ( rawConfig[0] === "_" && rawConfig[1] === "_" ) {
-			return removeStringPrefix( rawConfig, "__" );
+	static modifyHeader( rawConfig: string, start: boolean | undefined ): string {
+		let header: string;
+		
+		if ( rawConfig.substr( 0, 2 ) === "__" ) {
+			header = removeStringPrefix( rawConfig, "__" );
 		} else {
-			return botConfig.header + rawConfig;
+			header = botConfig.header + rawConfig;
 		}
+		
+		return ( start !== false ? "^" : "" ) + header;
 	}
 	
 	public getDocsInfo(): string {
