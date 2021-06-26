@@ -1,10 +1,11 @@
 .wish-box {
 	position: relative;
-	width: 93px;
+	width: 86px;
 }
 
 .wish-box .box-background {
 	position: absolute;
+	width: 86px;
 	z-index: 0;
 }
 
@@ -16,7 +17,7 @@
 .wish-box .main {
 	position: relative;
 	z-index: 1;
-	width: 90px;
+	width: 82px;
 }
 
 .wish-box .type,
@@ -27,21 +28,21 @@
 
 .wish-box .rank {
 	position: relative;
-	width: 65px;
-	left: 14px;
-	top: 425px;
+	width: 61px;
+	left: 13px;
+	top: 393px;
 }
 
 .character .type {
-	width: 51px;
+	width: 44px;
 	left: 21px;
-	top: 360px;
+	top: 336px;
 }
 
 .character .main {
 	position: absolute;
-	top: 82px;
-	height: 394px;
+	top: 76px;
+	height: 363px;
 	left: 0.04cm;
 }
 
@@ -53,8 +54,8 @@
 
 .weapon .shadow {
 	position: relative;
-	top: -115px;
-	left: 2px;
+	top: -93px;
+	left: 3px;
 	filter: brightness(0%);
 	opacity: 0.72;
 	z-index: 0;
@@ -62,18 +63,18 @@
 
 .weapon .type {
 	position: absolute;
-	width: 67px;
-	left: 12px;
-	top: 352px;
+	width: 56px;
+	left: 14px;
+	top: 328px;
 }
 
 .wish-box .times {
 	position: absolute;
-	width: 63px;
+	width: 64px;
 	font-size: 15px;
-	left: 15px;
-	top: 495px;
+	left: 10px;
+	top: 449px;
 	color: rgb(220, 220, 220);
-	background-color: rgba(64, 64, 64, 0.25);
+	background-color: rgba(64, 64, 64, 0.3);
 	text-align: center;
 }
