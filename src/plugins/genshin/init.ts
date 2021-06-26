@@ -101,7 +101,7 @@ function elementNum( o: object ) {
 
 function loadConfig(): any {
 	const load: any = loadYAML( "genshin" );
-	if ( elementNum( load ) - 1 !== elementNum( defaultCommandList ) ) {
+	if ( elementNum( load ) - 1 !== defaultCommandList.length ) {
 		const newConfig: any = {
 			...getKeys(),
 			serverPort: 58612
