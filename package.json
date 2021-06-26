@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "login": "node ./src/login.js",
     "start": "ts-node app.ts",
     "serve": "forever start -v -c ts-node app.ts"
   },
