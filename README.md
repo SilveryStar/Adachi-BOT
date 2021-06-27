@@ -1,9 +1,9 @@
 ## Adachi-BOT v2.0！
-功能迁移已基本完成并进行了渲染优化，进入测试阶段，欢迎各位用户和开发者提供交流意见和建议<br>
+更好的管理模块与图片样式<br>
 对于开发者，若有意愿开发插件，请参考 [插件开发文档](https://github.com/SilveryStar/Adachi-BOT/tree/v2.0Beta/document)
 
-### Install
-#### Docker （推荐）
+## Install
+### Docker （推荐）
 
 **下载**
 
@@ -49,7 +49,7 @@ docker-compose stop
 docker-compose start
 ```
 
-#### Forever
+### Forever
 
 ```
 git clone -b v2.0Beta https://github.com/SilveryStar/Adachi-BOT.git
@@ -67,15 +67,15 @@ npm run start
 npm run serve
 ```
 
-### Migrate
+## Migrate
 对于 `Adachi-BOT v1.x` 的用户，在启动应用前，将原版本中的 `./data/db/map.json` 移动至新版本的项目根目录下，即可完成米游社绑定数据迁移。
 
-### Customize
+## Customize
 在每次启动后，所有命令式指令的命令头会以指令键名为索引写入 `/config/commands.yml` 中，你可以修改并重启来自定义命令头：
 * 在使用 `help` 时添加 `-k` 参数可以查看指令对应的指令头
 * 在命令头前使用双下划线可以屏蔽 `/config/setting.yml` 中的 `header` 配置
 
-### Pictures
+## Pictures
 
 <details>
 <summary>生成玩家信息卡片 mys|uid</summary>
@@ -122,3 +122,6 @@ npm run serve
   <img src="https://z3.ax1x.com/2021/06/27/RJnAts.png" alt="ERROR">
 </div>
 </details>
+
+## Licenses
+[MIT](https://github.com/SilveryStar/Adachi-BOT/blob/master/LICENSE)
