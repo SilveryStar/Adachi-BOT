@@ -72,11 +72,12 @@ export class Command implements CommandMethod {
 		
 		if ( isOrder( config ) ) {
 			for ( let header of config.headers ) {
-				this.headers.push( Command.modifyHeader( header, config.start ) );
+				this.headers.push( Command.modifyHeader( header ) );
 			}
 			for ( let header of this.headers ) {
 				for ( let reg of config.regexps ) {
-					this.regexps.push( new RegExp( header + reg ) );
+					let h: string = ( config.start !== false ? "^" : "" ) + header;
+					this.regexps.push( new RegExp( h + reg ) );
 				}
 			}
 		}
@@ -88,16 +89,12 @@ export class Command implements CommandMethod {
 		}
 	}
 	
-	static modifyHeader( rawConfig: string, start: boolean | undefined ): string {
-		let header: string;
-		
+	static modifyHeader( rawConfig: string ): string {
 		if ( rawConfig.substr( 0, 2 ) === "__" ) {
-			header = removeStringPrefix( rawConfig, "__" );
+			return removeStringPrefix( rawConfig, "__" );
 		} else {
-			header = botConfig.header + rawConfig;
+			return botConfig.header + rawConfig;
 		}
-		
-		return ( start !== false ? "^" : "" ) + header;
 	}
 	
 	public getDocsInfo(): string {
