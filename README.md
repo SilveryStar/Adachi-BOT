@@ -8,7 +8,7 @@
 **下载**
 
 ```
-git clone -b v2.0Beta https://github.com/SilveryStar/Adachi-BOT.git
+git clone https://github.com/SilveryStar/Adachi-BOT.git
 cd Adachi-BOT
 mkdir config && cd config
 touch setting.yml commands.yml cookies.yml
@@ -52,7 +52,7 @@ docker-compose start
 ### Forever
 
 ```
-git clone -b v2.0Beta https://github.com/SilveryStar/Adachi-BOT.git
+git clone https://github.com/SilveryStar/Adachi-BOT.git
 cd Adachi-BOT
 npm install
 
