@@ -4,7 +4,7 @@ import { Redis } from "../../../bot";
 import { render } from "../utils/render";
 
 function getID( data: string ): [ number, string ] | string {
-	if ( data.length !== 9 || ( data[0] !== "1" && data[0] !== "9" ) ) {
+	if ( data.length !== 9 || ( data[0] !== "1" && data[0] !== "5" ) ) {
 		return "输入 UID 不合法";
 	}
 	const uid: number = parseInt( data );
