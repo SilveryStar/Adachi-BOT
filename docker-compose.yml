@@ -18,3 +18,8 @@ services:
     volumes:
       - ./config:/bot/config
       - ./src/plugins:/bot/src/plugins
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
+        max-file: "5"

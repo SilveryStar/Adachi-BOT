@@ -75,6 +75,15 @@ npm run serve
 * 在使用 `help` 时添加 `-k` 参数可以查看指令对应的指令头
 * 在命令头前使用双下划线可以屏蔽 `/config/setting.yml` 中的 `header` 配置
 
+应用启动后，使用 `{header}help` 查询权限对应的所有指令，使用 `{header}help -k` 查询指令的 `key`
+
+## Log
+`Adachi-BOT` 使用 `docker json-file` 作为日志输出
+```
+# 查看日志目录
+docker inspect --format='{{.LogPath}}' adachi-bot
+```
+
 ## Pictures
 
 <details>
