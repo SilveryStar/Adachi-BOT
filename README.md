@@ -63,7 +63,7 @@ npm run start
 # 暴露端口可在 /config/setting.yml 的 dbPort 中修改
 
 # 使用 forever 模块启动
-# 注意，请在 Node.js v12 环境中运行，参考 issues #14 
+# 注意，请在 Node.js 版本高于 v12.16 且低于 v14 的环境中运行，参考 issues #14 
 npm run serve
 ```
 
