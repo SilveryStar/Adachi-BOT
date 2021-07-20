@@ -1,4 +1,11 @@
-import { Client, CommonMessageEventData, createClient, GroupMessageEventData, PrivateMessageEventData } from "oicq";
+import {
+	Client,
+	CommonMessageEventData,
+	createClient,
+	GroupInfo,
+	GroupMessageEventData,
+	PrivateMessageEventData
+} from "oicq";
 import { getSendMessageFunc, MessageType, removeStringPrefix } from "./modules/message";
 import { createFolder, createYAML, exists, loadYAML } from "./utils/config";
 import { loadPlugins } from "./modules/plugin";
@@ -59,7 +66,7 @@ async function migrate(): Promise<void> {
 	if ( exists( mapPath ) ) {
 		const content: string = readFileSync( mapPath, "utf-8" );
 		const data: any = JSON.parse( content ).user;
-
+		
 		for ( let i in data ) {
 			if ( data.hasOwnProperty( i ) ) {
 				const dbKey: string = `silvery-star.user-bind-id-${ data[i].userID }`;
@@ -112,12 +119,14 @@ async function run(): Promise<void> {
 	Redis = new Database( botConfig.dbPort );
 	/* 加载插件 */
 	await loadPlugins();
-
+	
 	/* 监听群消息事件，运行群聊插件 */
 	Adachi.on( "message.group", async ( messageData: GroupMessageEventData ) => {
 		const { raw_message: content, user_id: qqID, group_id: groupID } = messageData;
 		const isBanned: boolean = await Redis.existListElement( "adachi.banned-group", groupID );
-		if ( !isBanned ) {
+		const info = ( await Adachi.getGroupInfo( messageData.group_id ) ).data as GroupInfo;
+
+		if ( !isBanned && info.shutup_time_me === 0 ) {
 			const auth: AuthLevel = await getAuthLevel( qqID );
 			const groupLimit: string[] = await Redis.getList( `adachi.group-command-limit-${ groupID }` );
 			const userLimit: string[] = await Redis.getList( `adachi.user-command-limit-${ qqID }` );
