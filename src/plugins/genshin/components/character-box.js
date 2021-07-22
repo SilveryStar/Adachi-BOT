@@ -24,7 +24,7 @@ export default Vue.defineComponent( {
 	},
 	setup() {
 		const elementBackground = Vue.computed( () => {
-			return "http://adachi-bot.oss-cn-beijing.aliyuncs.com/module/element.png";
+			return "https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/module/element.png";
 		} );
 		
 		return {

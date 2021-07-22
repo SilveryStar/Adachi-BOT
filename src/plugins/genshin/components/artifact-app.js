@@ -27,7 +27,7 @@ export default Vue.defineComponent( {
 	template,
 	setup() {
 		const artifactBackground = Vue.computed( () => {
-			return "https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/artifact/other/background.png";
+			return "https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/module/artifact.png";
 		} );
 		const rarityIcon = Vue.computed( () => {
 			return "https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/artifact/other/rarity.png";

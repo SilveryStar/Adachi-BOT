@@ -34,21 +34,26 @@ const template =
             <div class="exp">{{ percentage(1) }}</div>
             <div class="level">{{ expLevel(1) }}</div>
         </div>
+        <div class="dragonspine">
+            <div class="exp">{{ percentage(3) }}</div>
+            <div class="level">{{ expLevel(3) }}</div>
+        </div>
         <div class="liyue">
             <div class="exp">{{ percentage(2) }}</div>
             <div class="level">{{ expLevel(2) }}</div>
         </div>
-        <div class="dragonspine">
-            <div class="exp">{{ percentage(0) }}</div>
-            <div class="level">{{ expLevel(0) }}</div>
-        </div>
+        <div class="inazuma">
+            <div class="exp">{{ percentage(4) }}</div>
+            <div class="level">{{ expLevel(4) }}</div>
+            <div class="sakura">{{ sakura() }}</div>
+		</div>
     </div>
     <div class="homes">
         <p class="title-and-level">尘歌壶 Lv.{{ homesLevel }}</p>
         <div class="homes-list">
-            <HomeBox :data="hole"></HomeBox>
-            <HomeBox :data="mountain"></HomeBox>
-            <HomeBox :data="island"></HomeBox>
+            <HomeBox :data="hole" />
+            <HomeBox :data="mountain" />
+            <HomeBox :data="island" />
         </div>
         <p class="comfort-num">仙力: {{ maxComfort }}</p>
     </div>
@@ -75,7 +80,7 @@ export default Vue.defineComponent( {
 	},
 	setup( props ) {
 		const backgroundImage = Vue.computed( () => {
-			return `http://adachi-bot.oss-cn-beijing.aliyuncs.com/module/${ parseInt( props.level ) === 0 ? "info" : "card" }-new-upper.png`;
+			return `https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/module/${ parseInt( props.level ) === 0 ? "uid" : "mys" }-upper.png`;
 		} );
 		const profileImage = Vue.computed( () => {
 			return `http://adachi-bot.oss-cn-beijing.aliyuncs.com/characters/profile/${ props.profile }.png`;
@@ -87,14 +92,20 @@ export default Vue.defineComponent( {
 			return Math.floor( ( props.level - 15 ) / 5 );
 		} );
 		const packageTop = Vue.computed( () => {
-			return "http://adachi-bot.oss-cn-beijing.aliyuncs.com/module/card-new-package.png";
+			return "https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/module/card-package.png";
 		} );
 
 		function percentage( id ) {
-			return `${ props.exploration[id].exploration_percentage / 10 }%`;
+			const data = props.exploration.find( el => el.id === id );
+			return `${ data.exploration_percentage / 10 }%`;
 		}
 		function expLevel( id ) {
-			return `Lv.${ props.exploration[id].level }`;
+			const data = props.exploration.find( el => el.id === id );
+			return `Lv.${ data.level }`;
+		}
+		function sakura() {
+			const data = props.exploration.find( el => el.id === 4 );
+			return `Lv.${ data.offerings.find( el => el.name === "神樱眷顾" ).level }`;
 		}
 		function homeData( name ) {
 			let data = props.homes.find( el => el.name === name );
@@ -105,9 +116,6 @@ export default Vue.defineComponent( {
 		if ( props.homes.length !== 0 ) {
 			homesLevel = props.homes[0].level;
 			maxComfort = props.homes[0].comfort_num;
-		}
-		if ( !props.stats.electroculus_number ) {
-			props.stats.electroculus_number = "--";
 		}
 		
 		const hole = homeData( "罗浮洞" );
@@ -121,6 +129,7 @@ export default Vue.defineComponent( {
 			packageTop,
 			percentage,
 			expLevel,
+			sakura,
 			homesLevel,
 			maxComfort,
 			hole,

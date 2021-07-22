@@ -22,7 +22,7 @@ export default Vue.defineComponent( {
 	},
 	setup() {
 		const middleBackground = Vue.computed( () => {
-			return "http://adachi-bot.oss-cn-beijing.aliyuncs.com/module/card-new-middle.png";
+			return "https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/module/card-middle.png";
 		} )
 		
 		return {

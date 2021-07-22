@@ -10,7 +10,7 @@ export default Vue.defineComponent( {
 	template,
 	setup() {
 		const footerBackground = Vue.computed( () => {
-			return "http://adachi-bot.oss-cn-beijing.aliyuncs.com/module/card-new-bottom.png";
+			return "https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/module/card-bottom.png";
 		} )
 		
 		return {

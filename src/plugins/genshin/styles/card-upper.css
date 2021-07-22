@@ -61,28 +61,39 @@
 .card-upper .exploration {
 	position: absolute;
 	color: rgb(255, 255, 255);
-	font-size: 22px;
-	top: 717px;
-	left: 131px;
-	text-align: center;
+	font-size: 25px;
+	width: 1030px;
+	top: 547px;
+	left: 400px;
 	display: flex;
+	flex-wrap: wrap;
 }
 
 .card-upper .mondstadt,
 .card-upper .liyue,
-.card-upper .dragonspine {
+.card-upper .dragonspine,
+.card-upper .inazuma {
 	width: 290px;
-	padding-right: 51px;
-	display: flex;
+	padding-right: 225px;
+	padding-bottom: 73px;
 }
 
 .card-upper .exp,
 .card-upper .level {
-	width: 80px;
+	width: 90px;
 }
 
 .card-upper .exp {
-	margin-right: 37px;
+	margin-bottom: 18px;
+}
+
+.card-upper .inazuma {
+	margin-top: -9px;
+}
+
+.card-upper .inazuma .exp,
+.card-upper .inazuma .level {
+	margin-bottom: 0.15cm;
 }
 
 .card-upper .homes {
