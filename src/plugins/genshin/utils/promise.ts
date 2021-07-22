@@ -27,7 +27,7 @@ async function baseInfoPromise( qqID: number, mysID: number ): Promise<string | 
 async function detailInfoPromise( qqID: number, uid: number, server: string, flag: boolean ): Promise<string | number[]> {
 	const detail: any = await Redis.getHash( `silvery-star.card-data-${ qqID }` );
 	
-	if ( flag && detail.stats !== undefined ) {
+	if ( flag && detail.stats !== undefined && uid === parseInt( detail.stats.uid ) ) {
 		Adachi.logger.info( `用户 ${ uid } 在一小时内进行过查询操作，将返回上次数据` );
 		return Promise.reject( "gotten" );
 	}
