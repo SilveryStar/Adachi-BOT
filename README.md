@@ -89,7 +89,7 @@ docker inspect --format='{{.LogPath}}' adachi-bot
 <details>
 <summary>生成玩家信息卡片 mys|uid</summary>
 <div align="center">
-  <img src="https://z3.ax1x.com/2021/06/27/RJnkkj.png" alt="ERROR"/>
+  <img src="https://z3.ax1x.com/2021/07/22/WBzWmd.png" alt="ERROR"/>
 </div>
 </details>
 
