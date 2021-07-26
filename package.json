@@ -1,6 +1,6 @@
 {
   "name": "adachi-bot",
-  "version": "2.0.3",
+  "version": "2.0.4",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -26,7 +26,7 @@
     "node-fetch": "^2.6.1",
     "node-schedule": "^2.0.0",
     "object-immutable-set": "^1.0.0",
-    "oicq": "^1.16.1",
+    "oicq": "^1.18.0",
     "puppeteer": "^10.0.0",
     "redis": "^3.1.2",
     "remove-prefix": "^2.0.0",

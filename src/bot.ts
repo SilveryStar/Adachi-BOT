@@ -44,6 +44,7 @@ function init(): void {
 	
 	/* 初始化账号配置文件 */
 	createYAML( "setting", {
+		qrcode: "true 启用扫码登录,无需填写password,每次登录都需重新验证,Docker启动勿用",
 		number: "QQ 账号",
 		password: "QQ 密码",
 		master: "BOT 持有者账号",
@@ -83,38 +84,42 @@ function setEnvironment(): void {
 	if ( typeof botConfig.platform === "string" ) {
 		botConfig.platform = 1;
 	}
-	
 	Adachi = createClient( botConfig.number, {
 		log_level: "debug",
 		platform: botConfig.platform
 	} );
 	
-	/* 处理登录滑动验证码 */
-	Adachi.on( "system.login.slider", () => {
-		process.stdin.once( "data", ( input: Buffer ) => {
-			Adachi.sliderLogin( input.toString() );
+	if ( botConfig.qrcode === true ) {
+		/* 扫码登录 */
+		Adachi.on( "system.login.qrcode", () => {
+			Adachi.logger.mark( "手机扫码完成后按下 Enter 继续...\n" );
+			process.stdin.once( "data", () => {
+				Adachi.login();
+			} );
 		} );
-	} );
-	
-	/* 处理登录图片验证码 */
-	Adachi.on( "system.login.captcha", () => {
-		process.stdin.once( "data", ( input: Buffer ) => {
-			Adachi.sliderLogin( input.toString() );
+		
+		Adachi.login();
+	} else {
+		/* 处理登录滑动验证码 */
+		Adachi.on( "system.login.slider", () => {
+			process.stdin.once( "data", ( input: Buffer ) => {
+				Adachi.sliderLogin( input.toString() );
+			} );
 		} );
-	} );
-	
-	/* 处理设备锁事件 */
-	Adachi.on( "system.login.device", () => {
-		Adachi.logger.mark( "手机扫码完成后按下 Enter 继续...\n" );
-		process.stdin.once( "data", () => {
-			Adachi.login();
+		
+		/* 处理设备锁事件 */
+		Adachi.on( "system.login.device", () => {
+			Adachi.logger.mark( "手机扫码完成后按下 Enter 继续...\n" );
+			process.stdin.once( "data", () => {
+				Adachi.login();
+			} );
 		} );
-	} );
+		
+		Adachi.login( botConfig.password );
+	}
 }
 
 async function run(): Promise<void> {
-	/* 登录 bot 账号 */
-	Adachi.login( botConfig.password );
 	/* 连接 Redis 数据库 */
 	Redis = new Database( botConfig.dbPort );
 	/* 加载插件 */
@@ -125,7 +130,7 @@ async function run(): Promise<void> {
 		const { raw_message: content, user_id: qqID, group_id: groupID } = messageData;
 		const isBanned: boolean = await Redis.existListElement( "adachi.banned-group", groupID );
 		const info = ( await Adachi.getGroupInfo( messageData.group_id ) ).data as GroupInfo;
-
+		
 		if ( !isBanned && info.shutup_time_me === 0 ) {
 			const auth: AuthLevel = await getAuthLevel( qqID );
 			const groupLimit: string[] = await Redis.getList( `adachi.group-command-limit-${ groupID }` );
