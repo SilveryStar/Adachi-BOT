@@ -16,6 +16,11 @@ async function baseInfoPromise( qqID: number, mysID: number ): Promise<string | 
 		}
 		
 		const genshinInfo: any = data.list.find( el => el.game_id === 2 );
+		if ( !genshinInfo ) {
+			reject( "未查询到角色数据，请检查米哈游通行证（非UID）是否有误或是否设置角色信息公开" );
+			return;
+		}
+		
 		const { game_role_id, nickname, region, level } = genshinInfo;
 		const uid: number = parseInt( game_role_id );
 		
