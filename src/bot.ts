@@ -22,6 +22,8 @@ let botConfig: any;
 let Adachi: Client;
 /* redis 数据库实例 */
 let Redis: Database;
+/* 操作时间戳缓存 */
+let unixTimeTemp: { [key: string]: number } = {};
 /* 插件列表 */
 let groupCommands: Command[][] = [];
 let privateCommands: Command[][] = [];
@@ -44,13 +46,14 @@ function init(): void {
 	
 	/* 初始化账号配置文件 */
 	createYAML( "setting", {
-		qrcode: "true 启用扫码登录,每次登录都需验证,Docker启动禁用",
+		qrcode: "true 启用扫码登录,每次登录都需验证,Docker 启动禁用,默认不启用",
 		number: "QQ 账号",
 		password: "QQ 密码",
 		master: "BOT 持有者账号",
 		header: "命令起始符(可为空串\"\")",
 		platform: "1.安卓手机(默认) 2.aPad 3.安卓手表 4.MacOS 5.iPad",
 		atUser: "true 启用回复 at 用户,默认关闭",
+		intervalTime: "指令操作CD,单位 ms,默认 1500ms",
 		dbPort: 56379
 	} );
 	
@@ -84,6 +87,9 @@ function setEnvironment(): void {
 	
 	if ( typeof botConfig.platform === "string" ) {
 		botConfig.platform = 1;
+	}
+	if ( typeof botConfig.intervalTime === "string" || !botConfig.intervalTime ) {
+		botConfig.intervalTime = 1500;
 	}
 	Adachi = createClient( botConfig.number, {
 		log_level: "debug",
@@ -129,9 +135,12 @@ async function run(): Promise<void> {
 	/* 监听群消息事件，运行群聊插件 */
 	Adachi.on( "message.group", async ( messageData: GroupMessageEventData ) => {
 		const { raw_message: content, user_id: qqID, group_id: groupID } = messageData;
+		if ( timeCheck( qqID ) ) {
+			return;
+		}
+		
 		const isBanned: boolean = await Redis.existListElement( "adachi.banned-group", groupID );
 		const info = ( await Adachi.getGroupInfo( messageData.group_id ) ).data as GroupInfo;
-		
 		if ( !isBanned && info.shutup_time_me === 0 ) {
 			const auth: AuthLevel = await getAuthLevel( qqID );
 			const groupLimit: string[] = await Redis.getList( `adachi.group-command-limit-${ groupID }` );
@@ -144,11 +153,24 @@ async function run(): Promise<void> {
 	/* 监听私聊消息事件，运行私聊插件 */
 	Adachi.on( "message.private", async ( messageData: PrivateMessageEventData ) => {
 		const { raw_message: content, user_id: qqID } = messageData;
+		if ( timeCheck( qqID ) ) {
+			return;
+		}
+		
 		const auth: AuthLevel = await getAuthLevel( qqID );
 		const limit: string[] = await Redis.getList( `adachi.user-command-limit-${ qqID }` );
 		const sendMessage: ( content: string ) => any = getSendMessageFunc( qqID, MessageType.Private );
 		execute( sendMessage, messageData, content, privateCommands[auth], limit );
 	} );
+}
+
+function timeCheck( qqID: number ): boolean {
+	const nowTime: number = ( new Date() ).valueOf();
+	if ( unixTimeTemp[qqID] && nowTime - unixTimeTemp[qqID] <= botConfig.intervalTime ) {
+		return true;
+	}
+	unixTimeTemp[qqID] = nowTime;
+	return false;
 }
 
 function execute( sendMessage: ( content: string ) => any, message: CommonMessageEventData, content: string, commands: Command[], limit: string[] ): void {

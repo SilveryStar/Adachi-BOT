@@ -18,7 +18,7 @@ touch setting.yml commands.yml cookies.yml
 
 ```
 > setting.yml
-qrcode: true 启用扫码登录,每次登录都需验证,Docker启动禁用
+qrcode: true 启用扫码登录,每次登录都需验证,Docker 启动禁用,默认不启用
 number: QQ 账号
 password: QQ 密码
 master: BOT 持有者账号
@@ -26,6 +26,7 @@ header: 命令起始符(可为空串"")
 platform: 1.安卓手机(默认) 2.aPad 3.安卓手表 4.MacOS 5.iPad
 atUser: true 启用回复 at 用户,默认关闭
 dbPort: 56379 # 修改该选项需同时修改 redis.conf -> port
+intervalTime: 指令操作CD,单位 ms,默认 1500ms
 
 > cookies.yml
 cookies:
