@@ -44,12 +44,13 @@ function init(): void {
 	
 	/* 初始化账号配置文件 */
 	createYAML( "setting", {
-		qrcode: "true 启用扫码登录,无需填写password,每次登录都需重新验证,Docker启动勿用",
+		qrcode: "true 启用扫码登录,每次登录都需验证,Docker启动禁用",
 		number: "QQ 账号",
 		password: "QQ 密码",
 		master: "BOT 持有者账号",
 		header: "命令起始符(可为空串\"\")",
 		platform: "1.安卓手机(默认) 2.aPad 3.安卓手表 4.MacOS 5.iPad",
+		atUser: "true 启用回复 at 用户,默认关闭",
 		dbPort: 56379
 	} );
 	
@@ -135,7 +136,7 @@ async function run(): Promise<void> {
 			const auth: AuthLevel = await getAuthLevel( qqID );
 			const groupLimit: string[] = await Redis.getList( `adachi.group-command-limit-${ groupID }` );
 			const userLimit: string[] = await Redis.getList( `adachi.user-command-limit-${ qqID }` );
-			const sendMessage: ( content: string ) => any = getSendMessageFunc( groupID, MessageType.Group );
+			const sendMessage: ( content: string ) => any = getSendMessageFunc( qqID, MessageType.Group, groupID );
 			execute( sendMessage, messageData, content, groupCommands[auth], [ ...groupLimit, ...userLimit ] );
 		}
 	} );

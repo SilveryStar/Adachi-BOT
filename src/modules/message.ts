@@ -14,14 +14,17 @@ enum MessageType {
 	Private
 }
 
-function getSendMessageFunc( targetID: number, type: MessageType ): any {
+function getSendMessageFunc( qqID: number, type: MessageType, groupID?: number ): any {
 	if ( type === MessageType.Private ) {
 		return async function ( content: string ): Promise<void> {
-			await Adachi.sendPrivateMsg( targetID, content );
+			await Adachi.sendPrivateMsg( qqID, content );
 		}
 	} else if ( type === MessageType.Group ) {
 		return async function ( content: string ): Promise<void> {
-			await Adachi.sendGroupMsg( targetID, content );
+			if ( botConfig.atUser === true ) {
+				content = `[CQ:at,qq=${ qqID }]\n${ content }`;
+			}
+			await Adachi.sendGroupMsg( groupID as number, content );
 		}
 	}
 }
