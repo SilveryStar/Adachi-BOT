@@ -1,4 +1,5 @@
 import { Redis } from "../../../bot";
+import { randomInt } from "crypto";
 
 interface Domain {
 	name: string;
@@ -66,11 +67,6 @@ class ArtClass {
 		}
 	}
 	
-	private static randomInt( min: number, max: number ): number {
-		const range: number = max - min - 1;
-		return min + Math.floor( Math.random() * range );
-	}
-	
 	private static getProperty( dataArr: number[] ): number {
 		let sufSum: number[] = [];
 		let sum: number = 0;
@@ -79,7 +75,7 @@ class ArtClass {
 		for ( let w of dataArr ) {
 			sufSum.push( sum += w );
 		}
-		const rand: number = ArtClass.randomInt( 1, sum );
+		const rand: number = randomInt( 1, sum );
 		for ( let i = 0; i < length; i++ ) {
 			if ( rand <= sufSum[i] ) {
 				return i;
@@ -104,9 +100,9 @@ class ArtClass {
 		return new Promise( ( resolve, reject ) => {
 			if ( domainID === -1 ) {
 				const domainNum: number = this.suitNames.length;
-				resolve( ArtClass.randomInt( 0, domainNum - 1 ) );
+				resolve( randomInt( 0, domainNum - 1 ) );
 			} else if ( domainID < this.domains.length ) {
-				resolve( this.domains[domainID].product[ArtClass.randomInt( 0, 1 )] );
+				resolve( this.domains[domainID].product[randomInt( 0, 1 )] );
 			} else {
 				reject( "未知的秘境ID" );
 			}
@@ -127,7 +123,7 @@ class ArtClass {
 		const length: number = this.values[0].length;
 		
 		for ( let i = 0; i < length; i++ ) {
-			const w: number = this.weights.prob[slot].sub[i] * ArtClass.randomInt( 0, 1e5 );
+			const w: number = this.weights.prob[slot].sub[i] * randomInt( 0, 1e5 );
 			pairs.push( { property: i, weight: w } );
 		}
 		pairs.sort( ( x: PairData, y: PairData ) => {
@@ -154,7 +150,7 @@ class ArtClass {
 		let improves: any[] = [];
 		for ( let i = 0; i < 5; i++ ) {
 			improves.push( {
-				place: ArtClass.randomInt( 0, 3 ),
+				place: randomInt( 0, 3 ),
 				stage: ArtClass.getProperty( this.weights.stage )
 			} );
 		}

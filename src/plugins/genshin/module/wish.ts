@@ -1,5 +1,6 @@
 import { scheduleJob } from "node-schedule";
 import { updateWish } from "../utils/update";
+import { randomInt } from "crypto";
 import { Redis } from "../../../bot";
 
 interface WishResult {
@@ -64,7 +65,7 @@ class Wish {
 	}
 	
 	private static getRandom( max: number = 1e4 ): number {
-		return 1 + Math.floor( Math.random() * max );
+		return randomInt( 1, max );
 	}
 	
 	private readonly probFunc: probFn;

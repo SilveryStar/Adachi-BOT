@@ -10,7 +10,7 @@ const __API = {
 	FETCH_GACHA_LIST: "https://webstatic.mihoyo.com/hk4e/gacha_info/cn_gf01/gacha/list.json",
 	FETCH_GACHA_DETAIL: "https://webstatic.mihoyo.com/hk4e/gacha_info/cn_gf01/$/zh-cn.json",
 	FETCH_ARTIFACT: "http://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/artifact/artifact.yml",
-	FETCH_SLIP: "https://static-1252071452.cos.ap-shanghai.myqcloud.com/slip.yml ",
+	FETCH_SLIP: "https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/slip/index.yml",
 	FETCH_WISH_CONFIG: "https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/wish/config/$.json",
 	FETCH_INFO: "http://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/info/docs/$.json",
 };
@@ -130,7 +130,7 @@ async function getWishDetail( wishID: number ): Promise<any> {
 
 async function getInfo( name: string ): Promise<any> {
 	const charLinkWithName: string = __API.FETCH_INFO.replace( "$", encodeURI( name ) );
-
+	
 	return new Promise( ( resolve, reject ) => {
 		fetch( charLinkWithName )
 			.then( ( result: Response ) => {
@@ -153,10 +153,10 @@ async function getArtifact(): Promise<any> {
 }
 
 async function getSlip(): Promise<any> {
-	return new Promise( (resolve) => {
-		fetch(__API.FETCH_SLIP)
+	return new Promise( ( resolve ) => {
+		fetch( __API.FETCH_SLIP )
 			.then( async ( result: Response ) => {
-				resolve( parse (await result.text() ) );
+				resolve( parse( await result.text() ) );
 			} );
 	} );
 }
@@ -167,7 +167,7 @@ async function getWishConfig( type: string ): Promise<any> {
 	return new Promise( ( resolve, reject ) => {
 		fetch( wishLinkWithType )
 			.then( ( result: Response ) => {
-				if ( result.status === 404 ){
+				if ( result.status === 404 ) {
 					reject( "" );
 				} else {
 					resolve( result.json() );
