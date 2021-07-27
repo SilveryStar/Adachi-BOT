@@ -100,9 +100,9 @@ class ArtClass {
 		return new Promise( ( resolve, reject ) => {
 			if ( domainID === -1 ) {
 				const domainNum: number = this.suitNames.length;
-				resolve( randomInt( 0, domainNum - 1 ) );
+				resolve( randomInt( 0, domainNum ) );
 			} else if ( domainID < this.domains.length ) {
-				resolve( this.domains[domainID].product[randomInt( 0, 1 )] );
+				resolve( this.domains[domainID].product[randomInt( 0, 2 )] );
 			} else {
 				reject( "未知的秘境ID" );
 			}
