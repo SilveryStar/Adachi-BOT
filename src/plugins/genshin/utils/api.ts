@@ -10,6 +10,7 @@ const __API = {
 	FETCH_GACHA_LIST: "https://webstatic.mihoyo.com/hk4e/gacha_info/cn_gf01/gacha/list.json",
 	FETCH_GACHA_DETAIL: "https://webstatic.mihoyo.com/hk4e/gacha_info/cn_gf01/$/zh-cn.json",
 	FETCH_ARTIFACT: "http://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/artifact/artifact.yml",
+	FETCH_SLIP: "https://static-1252071452.cos.ap-shanghai.myqcloud.com/slip.yml ",
 	FETCH_WISH_CONFIG: "https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/wish/config/$.json",
 	FETCH_INFO: "http://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/info/docs/$.json",
 };
@@ -151,6 +152,15 @@ async function getArtifact(): Promise<any> {
 	} );
 }
 
+async function getSlip(): Promise<any> {
+	return new Promise( (resolve) => {
+		fetch(__API.FETCH_SLIP)
+			.then( async ( result: Response ) => {
+				resolve( parse (await result.text() ) );
+			} );
+	} );
+}
+
 async function getWishConfig( type: string ): Promise<any> {
 	const wishLinkWithType: string = __API.FETCH_WISH_CONFIG.replace( "$", type );
 	
@@ -174,5 +184,6 @@ export {
 	getWishDetail,
 	getInfo,
 	getArtifact,
+	getSlip,
 	getWishConfig
 }

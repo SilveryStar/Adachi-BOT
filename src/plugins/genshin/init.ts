@@ -1,17 +1,19 @@
 import { addPlugin } from "../../modules/plugin";
 import { createServer } from "./server";
 import { createYAML, loadYAML, writeYAML } from "../../utils/config";
-import { getArtifact } from "./utils/api";
+import { getArtifact, getSlip } from "./utils/api";
 import { Cookies } from "./module/cookies";
 import { Order, Question } from "../../modules/command";
 import { TypeData } from "./module/type";
 import { ArtClass } from "./module/artifact";
 import { WishClass } from "./module/wish";
+import { SlipClass } from "./module/slip";
 import { createBrowser } from "./utils/render";
 
 let cookies: Cookies;
 let artClass: ArtClass;
 let wishClass: WishClass;
+let slipClass: SlipClass;
 let typeData: TypeData;
 let config: any;
 
@@ -85,6 +87,13 @@ const defaultCommandList: ( Order | Question )[] = [ {
 	headers: [ "info" ],
 	regexps: [ " *[\\u4e00-\\u9fa5]+" ],
 	main: "achieves/info"
+}, {
+	commandType: "order",
+	key: "silvery-star.slip",
+	docs: [ "御神签", "" ],
+	headers: [ "s", "slip" ],
+	regexps: [ "" ],
+	main: "achieves/slip"
 } ];
 
 function getKeys(): any {
@@ -136,6 +145,7 @@ async function init(): Promise<any> {
 	artClass = new ArtClass( await getArtifact() );
 	cookies = new Cookies();
 	wishClass = new WishClass();
+	slipClass = new SlipClass( await getSlip() );
 	typeData = new TypeData();
 	createServer();
 	await createBrowser();
@@ -143,4 +153,4 @@ async function init(): Promise<any> {
 	return addPlugin( "genshin", ...initCommandList( config ) );
 }
 
-export { init, cookies, config, artClass, wishClass, typeData }
+export { init, cookies, config, artClass, wishClass, slipClass, typeData }
