@@ -1,17 +1,5 @@
 import { Md5 } from "md5-typescript";
-
-function randomString( length: number ): string {
-	const characterSet: string = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-	const characterLen: number = characterSet.length;
-	let result: string = "";
-	
-	for ( let i = 0; i < length; i++ ) {
-		const randNum: number = Math.floor( Math.random() * characterLen );
-		result += characterSet.charAt( randNum );
-	}
-	
-	return result;
-}
+import { randomString } from "./random";
 
 function calculate() {
 	const n: string = "14bmu1mz0yuljprsfgpvjh3ju2ni468r";

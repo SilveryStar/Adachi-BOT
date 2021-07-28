@@ -1,5 +1,5 @@
-import { randomInt } from "crypto";
 import { Redis } from "../../../bot";
+import { randomInt } from "../utils/random";
 
 interface SlipDetail {
 	SlipInfo: string[];

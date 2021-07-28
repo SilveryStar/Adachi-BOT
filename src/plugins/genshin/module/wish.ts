@@ -1,6 +1,6 @@
 import { scheduleJob } from "node-schedule";
 import { updateWish } from "../utils/update";
-import { randomInt } from "crypto";
+import { randomInt } from "../utils/random";
 import { Redis } from "../../../bot";
 
 interface WishResult {

@@ -1,5 +1,5 @@
 import { Redis } from "../../../bot";
-import { randomInt } from "crypto";
+import { randomInt } from "../utils/random";
 
 interface Domain {
 	name: string;
