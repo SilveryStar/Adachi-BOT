@@ -89,7 +89,7 @@ const defaultCommandList: ( Order | Question )[] = [ {
 	main: "achieves/info"
 }, {
 	commandType: "order",
-	key: "silvery-star.slip",
+	key: "by-ha.slip",
 	docs: [ "御神签", "" ],
 	headers: [ "s", "slip" ],
 	regexps: [ "" ],
