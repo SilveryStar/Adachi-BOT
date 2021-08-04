@@ -1,6 +1,6 @@
 import { Adachi, Redis } from "../../../bot";
 import { cookies } from "../init";
-import { getBaseInfo, getCharactersInfo, getDetailInfo } from "./api";
+import { getBaseInfo, getCharactersInfo, getDetailInfo, getSpiralAbyssInfo } from "./api";
 import { omit } from "lodash";
 
 async function baseInfoPromise( qqID: number, mysID: number ): Promise<string | [ number, string ]> {
@@ -29,10 +29,10 @@ async function baseInfoPromise( qqID: number, mysID: number ): Promise<string | 
 	} );
 }
 
-async function detailInfoPromise( qqID: number, uid: number, server: string, flag: boolean ): Promise<string | number[]> {
+async function detailInfoPromise( qqID: number, uid: number, server: string, useCache: boolean ): Promise<string | number[]> {
 	const detail: any = await Redis.getHash( `silvery-star.card-data-${ qqID }` );
 	
-	if ( flag && detail.stats !== undefined && uid === parseInt( detail.stats.uid ) ) {
+	if ( useCache && detail.stats !== undefined && uid === parseInt( detail.stats.uid ) ) {
 		Adachi.logger.info( `用户 ${ uid } 在一小时内进行过查询操作，将返回上次数据` );
 		return Promise.reject( "gotten" );
 	}
@@ -92,8 +92,42 @@ async function characterInfoPromise( qqID: number, uid: number, server: string, 
 	} );
 }
 
+async function spiralAbyssInfoPromise( queryPeriod: string, uid: number, server: string, useCache: boolean ): Promise<string | void> {
+	if ( useCache ) {
+		const cacheData = await Redis.getHash( `kernel-bin.abyss-data-${ uid }` );
+		if ( cacheData !== null && cacheData[queryPeriod] !== undefined ) {
+			const lastTimestamp = parseInt( cacheData[queryPeriod + "Timestamp"] );
+			if ( lastTimestamp !== undefined && ( Date.now() - lastTimestamp ) <= 3600 * 1000 ) {
+				Adachi.logger.info( `用户 ${ uid } 在一小时内进行过查询深渊操作，将返回上次数据` );
+				return Promise.reject( "gotten" );
+			}
+		}
+	}
+	
+	const abyssInfo = await getSpiralAbyssInfo( uid, server, queryPeriod, cookies.get() );
+	cookies.increaseIndex();
+	const { retcode, message, data } = abyssInfo;
+	
+	return new Promise( async ( resolve, reject ) => {
+		if ( retcode !== 0 ) {
+			reject( `米游社接口报错: ${ message }` );
+			return;
+		}
+		
+		// FIXME: This code may lead to info being delayed when abyss data is renewed each half month
+		//        for at most one hour.
+		await Redis.setHash( `kernel-bin.abyss-data-${ uid }`, {
+			[queryPeriod]: JSON.stringify( data ),
+			[queryPeriod + "Timestamp"]: Date.now()
+		} );
+		await Redis.setTimeout( `kernel-bin.abyss-data-${ uid }`, 3600 );
+		resolve();
+	} );
+}
+
 export {
 	baseInfoPromise,
 	detailInfoPromise,
-	characterInfoPromise
+	characterInfoPromise,
+	spiralAbyssInfoPromise
 }

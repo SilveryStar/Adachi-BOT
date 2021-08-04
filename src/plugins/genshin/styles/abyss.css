@@ -1,0 +1,50 @@
+h1, h2 {
+	color: rgb(238, 206, 136);
+	font-weight: normal;
+}
+
+h1 {
+	font-size: 25px;
+	padding: 15px 0 35px 0;
+	text-align: center;
+}
+
+h2 {
+	font-size: 20px;
+	padding: 25px 0 25px 30px;
+}
+
+.alt-bg {
+	background: rgba(54, 71, 88, 0.64);
+}
+
+.abyss {
+	background: rgb(47, 77, 111);
+}
+
+.abyss .overview-stat {
+	width: 100%;
+	height: 30px;
+	padding: 8px 0 8px 0;
+	color: white;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+.abyss .overview-stat > span {
+	height: 100%;
+	padding: 0 15px 0 15px;
+	display: flex;
+	align-items: center;
+}
+
+.abyss .overview-stat .overview_result {
+	font-weight: bolder;
+}
+
+.abyss .abyss-footer {
+	padding: 30px 15px 8px 15px;
+	text-align: right;
+	color: rgb(255, 255, 255);
+}

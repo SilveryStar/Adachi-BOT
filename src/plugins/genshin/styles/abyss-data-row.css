@@ -1,0 +1,26 @@
+.abyss-data-row {
+	display: flex;
+	padding: 0 40px 0 40px;
+	height: 45px;
+	color: white;
+	font-size: 20px;
+	line-height: 45px;
+}
+
+.abyss-data-row .data-row-title {
+	width: 28%;
+}
+
+.abyss-data-row .data-row-item {
+	width: 24%;
+	display: flex;
+	justify-content: flex-end;
+	align-items: center;
+	font-size: smaller;
+}
+
+.abyss-data-row .data-row-item > img {
+	position: relative;
+	height: 80%;
+	top: -15%
+}

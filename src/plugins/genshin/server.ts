@@ -6,6 +6,7 @@ import WishRouter from "./routes/wish-route";
 import TypeRouter from "./routes/type-route";
 import CharRouter from "./routes/character-route";
 import InfoRouter from "./routes/info-route";
+import AbyssRouter from "./routes/abyss-route";
 import express from "express";
 
 function createServer(): void {
@@ -18,6 +19,7 @@ function createServer(): void {
 	app.use( "/api/wish/config", TypeRouter );
 	app.use( "/api/character", CharRouter );
 	app.use( "/api/info", InfoRouter );
+	app.use( "/api/abyss", AbyssRouter );
 	
 	app.listen( config.serverPort, () => {
 		Adachi.logger.info( "Express 服务器已启动" )

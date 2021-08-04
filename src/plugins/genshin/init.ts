@@ -94,6 +94,13 @@ const defaultCommandList: ( Order | Question )[] = [ {
 	headers: [ "s", "slip" ],
 	regexps: [ "" ],
 	main: "achieves/slip"
+}, {
+	commandType: "order",
+	key: "kernel-bin.abyss",
+	docs: [ "深渊查询", "[UID|@] [last]" ],
+	headers: [ "aby" ],
+	regexps: [ " *(\[CQ:at,qq=[0-9]+.*\]|[0-9]{9})? *(last)?$" ],
+	main: "achieves/abyss-query"
 } ];
 
 function getKeys(): any {

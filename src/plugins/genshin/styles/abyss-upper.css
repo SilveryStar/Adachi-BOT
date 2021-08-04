@@ -1,0 +1,13 @@
+.abyss-upper .reveal-rank-container {
+	display: flex;
+	padding: 0 60px 0 60px;
+	flex-wrap: wrap;
+}
+
+.abyss-upper .char-box-flexbox {
+	width: 25%;
+	padding-bottom: 20px;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}

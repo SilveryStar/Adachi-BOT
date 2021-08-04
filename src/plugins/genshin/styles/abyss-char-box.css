@@ -1,0 +1,29 @@
+.abyss-char-box {
+	width: 112px;
+	height: 136px;
+	position: relative;
+}
+
+.abyss-char-box .rarity-background {
+	width: 100%;
+	position: absolute;
+	z-index: 1;
+}
+
+.abyss-char-box .avatar {
+	position: absolute;
+	width: 100px;
+	left: 6px;
+	top: 12px;
+	z-index: 2;
+}
+
+.abyss-char-box .info {
+	position: absolute;
+	width: 100%;
+	height: 24px;
+	top: 112px;
+	line-height: 24px;
+	z-index: 2;
+	text-align: center;
+}
