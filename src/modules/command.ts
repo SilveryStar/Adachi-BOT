@@ -2,6 +2,7 @@ import { botConfig } from "../bot";
 import { CommonMessageEventData as Message } from "oicq";
 import { MessageScope, removeStringPrefix } from "./message";
 import { AuthLevel, checkAuthLevel } from "./auth";
+import { escapeRegExp } from "lodash"
 
 interface CommandMethod {
 	getDocsInfo(): string
@@ -76,14 +77,14 @@ export class Command implements CommandMethod {
 			}
 			for ( let header of this.headers ) {
 				for ( let reg of config.regexps ) {
-					let h: string = ( config.start !== false ? "^" : "" ) + header;
+					let h: string = ( config.start !== false ? "^" : "" ) + escapeRegExp( header );
 					this.regexps.push( new RegExp( h + reg ) );
 				}
 			}
 		}
 		if ( isQuestion( config ) ) {
 			for ( let sentence of config.sentences ) {
-				sentence = sentence.replace( "${HEADER}", botConfig.header );
+				sentence = sentence.replace( "${HEADER}", escapeRegExp( botConfig.header ) );
 				this.regexps.push( new RegExp( sentence ) );
 			}
 		}
