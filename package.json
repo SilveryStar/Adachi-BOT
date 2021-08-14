@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "login": "node ./src/login.js",
     "start": "ts-node app.ts",
-    "serve": "forever start -v -c ts-node app.ts"
+    "serve": "forever start --minUptime 1000 --spinSleepTime 1000 -v -c ts-node app.ts"
   },
   "keywords": [],
   "author": "",
