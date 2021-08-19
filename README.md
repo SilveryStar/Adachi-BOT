@@ -1,8 +1,10 @@
 ## Adachi-BOT v2.0！
 更好的管理模块与图片样式<br>
-对于开发者，若有意愿开发插件，请参考 [插件开发文档](https://github.com/SilveryStar/Adachi-BOT/tree/v2.0Beta/document)
+对于开发者，若有意愿开发插件，请参考 [插件开发文档](https://github.com/SilveryStar/Adachi-BOT/tree/v2.0Beta/document)<br>
+[常见问题汇总](https://github.com/SilveryStar/Adachi-BOT/blob/master/FAQ.md)
 
-## Install
+## Deploy
+> 注意：以下内容仅供 Linux 环境下部署使用，Windows 环境下的部署不予解答
 ### Docker （推荐）
 
 **下载**
@@ -18,15 +20,18 @@ touch setting.yml commands.yml cookies.yml
 
 ```
 > setting.yml
-qrcode: true 启用扫码登录,每次登录都需验证,Docker 启动禁用,默认不启用
-number: QQ 账号
-password: QQ 密码
-master: BOT 持有者账号
-header: 命令起始符(可为空串"")
-platform: 1.安卓手机(默认) 2.aPad 3.安卓手表 4.MacOS 5.iPad
-atUser: true 启用回复 at 用户,默认关闭
-dbPort: 56379 # 修改该选项需同时修改 redis.conf -> port
-intervalTime: 指令操作CD,单位 ms,默认 1500ms
+qrcode: false       # 是否启用扫码登录
+                    # 每次登录都需验证,Docker启动禁用,默认不启用
+number: 12345678    # QQ 账号
+password: ""        # QQ 密码
+master: 87654321    # BOT 持有者账号
+header: ""          # 命令起始符(可为空串"")
+platform: 1         # 登录平台
+                    # 1.安卓手机(默认) 2.aPad 3.安卓手表 4.MacOS 5.iPad
+atUser: true        # 是否启用回复时 at 用户,默认关闭
+dbPort: 56379       # 数据库端口
+                    # 修改该选项需同时修改 redis.conf -> port
+intervalTime: 1500  # 指令操作冷却时间,单位毫秒,默认 1500ms
 
 > cookies.yml
 cookies:
@@ -70,22 +75,25 @@ npm run start
 npm run serve
 ```
 
-## Migrate
-对于 `Adachi-BOT v1.x` 的用户，在启动应用前，将原版本中的 `./data/db/map.json` 移动至新版本的项目根目录下，即可完成米游社绑定数据迁移。
-
 ## Customize
 在每次启动后，所有命令式指令的命令头会以指令键名为索引写入 `/config/commands.yml` 中，你可以修改并重启来自定义命令头：
 * 在使用 `help` 时添加 `-k` 参数可以查看指令对应的指令头
-* 在命令头前使用双下划线可以屏蔽 `/config/setting.yml` 中的 `header` 配置
+* 在命令头前使用双下划线可以屏蔽 `/config/setting.yml` 中的 `header` 配置，如 `__mys`
 
-应用启动后，使用 `{header}help` 查询权限对应的所有指令，使用 `{header}help -k` 查询指令的 `key`
+应用启动后，使用 `header+help` 查询权限对应的所有指令，如 `header` 设定为 `#` 时，即为 `#help`， 使用 `#help -k` 查询指令的 `key`
 
 ## Log
-`Adachi-BOT` 使用 `docker json-file` 作为日志输出
 ```
-# 查看日志目录
+# Adachi-BOT 使用 docker json-file 作为日志输出
+# Docker 启动，查看日志目录
 docker inspect --format='{{.LogPath}}' adachi-bot
+
+# Forever 启动，查看日志目录
+forever list
 ```
+
+## Migrate
+对于 `Adachi-BOT v1.x` 的用户，在启动应用前，将原版本中的 `./data/db/map.json` 移动至新版本的项目根目录下，即可完成米游社绑定数据迁移
 
 ## Pictures
 
