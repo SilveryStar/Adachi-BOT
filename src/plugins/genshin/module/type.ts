@@ -17,6 +17,10 @@ class TypeData {
 			this.character = await getWishConfig( "character" );
 		} );
 	}
+	
+	public getNameList(): string[] {
+		return [ ...Object.keys( this.weapon ), ...Object.keys( this.character ) ];
+	}
 }
 
 export { TypeData }
