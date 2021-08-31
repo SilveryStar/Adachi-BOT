@@ -19,8 +19,12 @@ async function main( sendMessage: ( content: string ) => any, message: Message )
 		await Redis.setHash( `silvery-star.wish-weapon-${ qqID }`, { five: 1, four: 1 } );
 	}
 	
-	const result: WishResult[] = await wishClass.get( qqID, choice );
-	
+	const result: WishResult[] | null = await wishClass.get( qqID, choice );
+	if ( result === null ) {
+		await sendMessage( `${ choice }卡池暂未开放，请在游戏内卡池开放后再尝试` );
+		return;
+	}
+
 	await Redis.setString( `silvery-star.wish-result-${ qqID }`, JSON.stringify( {
 		type: choice,
 		data: result,

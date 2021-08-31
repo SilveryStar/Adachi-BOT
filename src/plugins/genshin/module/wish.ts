@@ -25,6 +25,7 @@ interface WishDetail {
 	threeStar: WishInfo[];
 }
 
+export type WishDetailNull = WishDetail | null;
 type probFn = ( counter: number, rank: number ) => number;
 
 class Wish {
@@ -178,12 +179,12 @@ class Wish {
 }
 
 class WishClass {
-	private indefinite?: WishDetail;
-	private character?: WishDetail;
-	private weapon?: WishDetail;
+	private indefinite?: WishDetailNull;
+	private character?: WishDetailNull;
+	private weapon?: WishDetailNull;
 	
 	constructor() {
-		updateWish().then( ( data: WishDetail[] ) => {
+		updateWish().then( ( data: WishDetailNull[] ) => {
 			[ this.indefinite, this.character, this.weapon ] = data;
 		} );
 		scheduleJob( "0 31 10 * * *", async () => {
@@ -194,7 +195,7 @@ class WishClass {
 		} );
 	}
 	
-	public async get( qqID: number, choice: string ): Promise<WishResult[]> {
+	public async get( qqID: number, choice: string ): Promise<WishResult[] | null> {
 		let fn: probFn;
 		let table: WishDetail;
 		let wishType: string;
@@ -212,7 +213,10 @@ class WishClass {
 			table = this.weapon as WishDetail;
 			wishType = "weapon";
 		}
-		
+		if ( table === null ) {
+			return null;
+		}
+
 		const wish: Wish = new Wish( fn, table, wishType, qqID );
 		return await wish.tenTimes();
 	}
