@@ -38,11 +38,11 @@ function removeStringPrefix( string: string, prefix: string ): string {
 }
 
 function isPrivateMessage( data: Message ): data is PrivateMessageEventData {
-	return data.message_type === "private";
+	return ( <PrivateMessageEventData | GroupMessageEventData>data ).message_type === "private";
 }
 
 function isGroupMessage( data: Message ): data is GroupMessageEventData {
-	return data.message_type === "group";
+	return ( <PrivateMessageEventData | GroupMessageEventData>data ).message_type === "group";
 }
 
 export {
