@@ -233,7 +233,7 @@ class ArtClass {
 			await Redis.setString( `silvery-star.artifact-${ qqID }`, JSON.stringify( {
 				initProp, reinProp
 			} ) );
-		} catch ( reason ) {
+		} catch ( reason: any ) {
 			flag = reason;
 		}
 		return flag;
