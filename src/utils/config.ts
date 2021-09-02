@@ -12,7 +12,7 @@ function exists( path: string ): boolean {
 	try {
 		accessSync( path );
 		return true;
-	} catch (error) {
+	} catch ( error ) {
 		return false;
 	}
 }

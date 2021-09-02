@@ -17,7 +17,7 @@ async function main( sendMessage: ( content: string ) => any, message: Message )
 				const detailInfo = await detailInfoPromise( qqID, ...baseInfo, true ) as number[];
 				await characterInfoPromise( qqID, ...baseInfo, detailInfo );
 			} catch ( error ) {
-				await sendMessage( error );
+				await sendMessage( error as string );
 				return;
 			}
 			data = await Redis.getHash( `silvery-star.card-data-${ qqID }` );

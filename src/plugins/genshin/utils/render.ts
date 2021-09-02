@@ -1,10 +1,10 @@
-import { launch, Browser, Page } from "puppeteer";
+import puppeteer from "puppeteer";
 import { config } from "../init";
 
-let browser: Browser;
+let browser: puppeteer.Browser;
 
 async function createBrowser(): Promise<void> {
-	browser = await launch( {
+	browser = await puppeteer.launch( {
 		headless: true,
 		args: [
 			"--no-sandbox",
@@ -34,7 +34,7 @@ function getURL( target: string, params?: any ): string {
 async function render( target: string, params?: any ): Promise<string> {
 	const url: string = getURL( target, params );
 
-	const page: Page = await browser.newPage();
+	const page: puppeteer.Page = await browser.newPage();
 	await page.goto( url );
 	const htmlElement = await page.$( "#app" );
 	const base64 = await htmlElement?.screenshot( {

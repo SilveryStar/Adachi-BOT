@@ -35,7 +35,7 @@ async function main( sendMessage: ( content: string ) => any, message: Message )
 		await characterInfoPromise( qqID, ...info, detailInfo );
 	} catch ( error ) {
 		if ( error !== "gotten" ) {
-			await sendMessage( error );
+			await sendMessage( error as string );
 			return;
 		}
 	}
