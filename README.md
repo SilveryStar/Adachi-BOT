@@ -143,5 +143,14 @@ forever list
 </div>
 </details>
 
+## Thanks
+| Nickname                                                     | Contribution                        |
+| :----------------------------------------------------------: | ----------------------------------- |
+|[GenshinImpactWiki](https://genshin-impact.fandom.com/wiki/Genshin_Impact_Wiki) | 本项目的绝大多数图片资源 |
+|[lulu666lulu](https://github.com/lulu666lulu)| 提供了最新的DS算法 |
+
+## Resources
+因为本项目的绝大多数图片资源都来自维基百科，我们依照 [CC-BY-SA-3.0](https://creativecommons.org/licenses/by-sa/3.0/legalcode) 协议将内容公开，发送申请到邮箱 `silverystar.top@gmail.com` 来获取图包，注意说明来意
+
 ## Licenses
-[MIT](https://github.com/SilveryStar/Adachi-BOT/blob/master/LICENSE)
+[MIT](https://github.com/SilveryStar/Adachi-BOT/blob/master/LICENSE)<br>
