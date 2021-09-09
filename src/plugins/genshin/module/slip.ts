@@ -27,14 +27,14 @@ class Slip {
 	
 	public async get() {
 		const today: string = Slip.getDay();
-		const lastSlip = await Redis.getString( this.dbKey );
-		if ( lastSlip === today ) {
-			return "今天已经摇过了。明天再来看看吧…";
+		const lastSlipData = ( await Redis.getString( this.dbKey ) )?.split( "|" );
+		if ( lastSlipData !== undefined && lastSlipData[0] === today ) {
+			return lastSlipData[1];
 		}
-		await Redis.setString( this.dbKey, today );
-		const index = randomInt( 0, this.detailLength );
+		const slipContent = this.SlipDetail.SlipInfo[ randomInt( 0, this.detailLength ) ];
+		await Redis.setString( this.dbKey, `${ today }|${ slipContent }` );
 		
-		return this.SlipDetail.SlipInfo[index];
+		return slipContent;
 	}
 }
 
