@@ -75,6 +75,12 @@ npm run start
 npm run serve
 ```
 
+## About Issues
+符合以下条件的 issue，将会被**直接关闭**
+1. 可以在 `README.md` 或 `FAQ.md` 中找到解决方案的 issue
+2. 未依照模板提交或未提供完整信息的运行时错误 issue
+3. 提出不合理需求的 issue
+
 ## Customize
 在每次启动后，所有命令式指令的命令头会以指令键名为索引写入 `/config/commands.yml` 中，你可以修改并重启来自定义命令头：
 * 在使用 `help` 时添加 `-k` 参数可以查看指令对应的指令头
