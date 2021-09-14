@@ -1,16 +1,19 @@
 import { CommonMessageEventData as Message } from "oicq";
-import { Redis } from "../../../bot";
+import { NameResult, getRealName } from "../utils/name";
 import { baseInfoPromise, characterInfoPromise, detailInfoPromise } from "../utils/promise";
 import { render } from "../utils/render";
+import { Redis } from "../../../bot";
 
 async function main( sendMessage: ( content: string ) => any, message: Message ): Promise<void> {
 	const qqID: number = message.user_id;
 	const name: string = message.raw_message;
-
-	let data: any = await Redis.getHash( `silvery-star.card-data-${ qqID }` );
-	const mysID: string | null = await Redis.getString( `silvery-star.user-bind-id-${ qqID }` );
 	
+	/* 若用户在一小时内存在查询操作，则使用上一次操作的数据缓存 */
+	let data: any = await Redis.getHash( `silvery-star.card-data-${ qqID }` );
+	
+	/* 若无数据缓存，则尝试获取用户绑定的通行证，并通过其获取数据 */
 	if ( data === null ) {
+		const mysID: string | null = await Redis.getString( `silvery-star.user-bind-id-${ qqID }` );
 		if ( mysID !== null ) {
 			try {
 				const baseInfo = await baseInfoPromise( qqID, parseInt( mysID ) ) as [ number, string ];
@@ -27,12 +30,12 @@ async function main( sendMessage: ( content: string ) => any, message: Message )
 		}
 	}
 	data = JSON.parse( data.avatars );
-	
-	if ( !data.find( el => el.name === name ) ) {
+	const result: NameResult = getRealName( name );
+	if ( !result.definite || !data.some( el => el.name === result.info ) ) {
 		await sendMessage( "查询失败，请检查角色名称是否正确或该用户是否拥有该角色" );
 		return;
 	}
-	const image: string = await render( "character", { qq: qqID, name } );
+	const image: string = await render( "character", { qq: qqID, name: result.info } );
 	await sendMessage( image );
 }
 

@@ -4,12 +4,14 @@ import { Adachi, migrate } from "../bot";
 interface DatabaseMethod {
 	setTimeout( key: string, time: number ): Promise<void>
 	deleteKey( ...keys: string[] ): Promise<void>
+	getKeysByPrefix( prefix: string ): Promise<Array<string>>
 	setHash( key: string, value: any ): Promise<void>
 	getHash( key: string ): Promise<any>
 	delHash( key: string, ...fields: string[] ): Promise<void>
 	setString( key: string, value: any, timeout?: number ): Promise<void>
 	getString( key: string ): Promise<string | null>
 	getList( key: string ): Promise<Array<string>>
+	getListLength( key: string ): Promise<number>
 	addListElement( key: string, ...value: any[] ): Promise<void>
 	delListElement( key: string, ...value: any[] ): Promise<void>
 	existListElement( key: string, value: any ): Promise<boolean>
@@ -36,6 +38,18 @@ class Database implements DatabaseMethod {
 		for ( let k of keys ) {
 			this.client.del( k );
 		}
+	}
+	
+	public async getKeysByPrefix( prefix: string ): Promise<Array<string>> {
+		return new Promise( ( resolve, reject ) => {
+			this.client.keys( prefix + "*", ( error: Error | null, keys: string[] ) => {
+				if ( error !== null ) {
+					reject( [] );
+				} else {
+					resolve( keys );
+				}
+			} );
+		} );
 	}
 	
 	public async setHash( key: string, value: any ): Promise<void> {
@@ -85,6 +99,18 @@ class Database implements DatabaseMethod {
 					reject( [] );
 				} else {
 					resolve( data );
+				}
+			} );
+		} );
+	}
+	
+	public async getListLength( key: string ): Promise<number> {
+		return new Promise( ( resolve, reject ) => {
+			this.client.llen( key, ( error: Error | null, length: number ) => {
+				if ( error !== null ) {
+					reject( -1 );
+				} else {
+					resolve( length );
 				}
 			} );
 		} );

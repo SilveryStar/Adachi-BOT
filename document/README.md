@@ -1,4 +1,4 @@
-## Adachi-Plugin v1.0.3 开发者文档
+## Adachi-Plugin v1.0.4 开发者文档
 本文档持续更新和修正中欢迎开发者提供交流意见和建议
 
 ## 写在前面
@@ -237,6 +237,13 @@ async function getList( key: string ): Promise<Array<string>> {}
 * `key` 列表数据键名
 * 注意：当键值对不存在时，将会返回空数组
 
+**获取列表长度**
+```typescript
+async function getListLength( key: string ): Promise<number> {}
+```
+* `key` 列表数据键名
+* 注意：当键值对不存在时，将会返回 -1
+
 **添加/删除列表数据**
 ```typescript
 async function addListElement( key: string, ...value: any[] ): Promise<void> {}
@@ -267,6 +274,12 @@ async function setTimeout( key: string, time: number ): Promise<void> {}
 ```
 * `key` 数据键名
 * `time` 过期时限，单位：秒
+
+**根据前缀获取所有键名**
+```typescript
+async function getKeysByPrefix( prefix: string ): Promise<Array<string>> {}
+```
+* `prefix` 键名前缀
 
 **获取 Redis 实例**
 

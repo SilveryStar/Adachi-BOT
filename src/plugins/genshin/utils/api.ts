@@ -13,6 +13,7 @@ const __API = {
 	FETCH_SLIP: "https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/slip/index.yml",
 	FETCH_WISH_CONFIG: "https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/wish/config/$.json",
 	FETCH_INFO: "https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/info/docs/$.json",
+	FETCH_ALIAS_SET: "https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/alias/alias.yml",
 };
 
 const HEADERS = {
@@ -180,6 +181,15 @@ async function getWishConfig( type: string ): Promise<any> {
 	} );
 }
 
+async function getAliasName(): Promise<any> {
+	return new Promise( ( resolve ) => {
+		fetch( __API.FETCH_ALIAS_SET )
+			.then( async ( result: Response ) => {
+				resolve( parse( await result.text() ).set );
+			} );
+	} );
+}
+
 export {
 	getBaseInfo,
 	getDetailInfo,
@@ -189,5 +199,6 @@ export {
 	getInfo,
 	getArtifact,
 	getSlip,
-	getWishConfig
+	getWishConfig,
+	getAliasName
 }
