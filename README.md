@@ -1,7 +1,8 @@
 ## Adachi-BOT v2.0！
 更好的管理模块与图片样式<br>
-对于开发者，若有意愿开发插件，请参考 [插件开发文档](https://github.com/SilveryStar/Adachi-BOT/tree/v2.0Beta/document)<br>
-[常见问题汇总](https://github.com/SilveryStar/Adachi-BOT/blob/master/FAQ.md)
+对于开发者，若有意愿开发插件，请参考 [插件开发文档](https://github.com/SilveryStar/Adachi-BOT/tree/v2.0Beta/document)
+
+[常见问题汇总](https://github.com/SilveryStar/Adachi-BOT/blob/master/document/FAQ.md) | [管理者手册](https://github.com/SilveryStar/Adachi-BOT/blob/master/document/MASTER.md)
 
 ## Deploy
 > 注意：以下内容仅供 Linux 环境下部署使用，Windows 环境下的部署不予解答
@@ -76,30 +77,10 @@ npm run serve
 ```
 
 ## About Issues
-符合以下条件的 issue，将会被**直接关闭**
-1. 可以在 `README.md` 或 `FAQ.md` 中找到解决方案的 issue
+符合以下条件之一的 issue，将会被**直接关闭**
+1. 可以在 `README.md` 或常见问题汇总中找到解决方案的 issue
 2. 未依照模板提交或未提供完整信息的运行时错误 issue
 3. 提出不合理需求的 issue
-
-## Customize
-在每次启动后，所有命令式指令的命令头会以指令键名为索引写入 `/config/commands.yml` 中，你可以修改并重启来自定义命令头：
-* 在使用 `help` 时添加 `-k` 参数可以查看指令对应的指令头
-* 在命令头前使用双下划线可以屏蔽 `/config/setting.yml` 中的 `header` 配置，如 `__mys`
-
-应用启动后，使用 `header+help` 查询权限对应的所有指令，如 `header` 设定为 `#` 时，即为 `#help`， 使用 `#help -k` 查询指令的 `key`
-
-## Log
-```
-# Adachi-BOT 使用 docker json-file 作为日志输出
-# Docker 启动，查看日志目录
-docker inspect --format='{{.LogPath}}' adachi-bot
-
-# Forever 启动，查看日志目录
-forever list
-```
-
-## Migrate
-对于 `Adachi-BOT v1.x` 的用户，在启动应用前，将原版本中的 `./data/db/map.json` 移动至新版本的项目根目录下，即可完成米游社绑定数据迁移
 
 ## Pictures
 
@@ -156,7 +137,7 @@ forever list
 |[lulu666lulu](https://github.com/lulu666lulu)| 提供了最新的DS算法 |
 
 ## Resources
-因为本项目的绝大多数图片资源都来自维基百科，我们依照 [CC-BY-SA-3.0](https://creativecommons.org/licenses/by-sa/3.0/legalcode) 协议将内容公开，发送申请到邮箱 `silverystar.top@gmail.com` 来获取图包，注意说明来意
+由于本项目的绝大多数图片资源都来自维基百科，我们依照 [CC-BY-SA-3.0](https://creativecommons.org/licenses/by-sa/3.0/legalcode) 协议将内容公开，发送申请到邮箱 `silverystar.top@gmail.com` 来获取图包，注意说明来意
 
 ## Licenses
-[MIT](https://github.com/SilveryStar/Adachi-BOT/blob/master/LICENSE)<br>
+[MIT](https://github.com/SilveryStar/Adachi-BOT/blob/master/LICENSE)
