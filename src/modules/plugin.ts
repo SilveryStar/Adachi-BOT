@@ -61,6 +61,9 @@ function addPlugin( name: string, ...commandList: ( Order | Question )[] ): { na
 			} else {
 				commandFile[comm.key] = comm.headers;
 			}
+			if ( commandFile[comm.key].length === 0 ) {
+				continue;
+			}
 		}
 		
 		const mainPath: string = resolve( `${ ROOTPATH }/src/plugins/${ name }/${ comm.main }` );
