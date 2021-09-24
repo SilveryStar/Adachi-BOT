@@ -1,0 +1,122 @@
+.character-base .background {
+	position: absolute;
+}
+
+.character-base .background .pure-box {
+	float: left;
+	height: 1164px;
+	width: 1107px;
+	background-color: var( --backgroundColor );
+}
+
+.character-base .background .transparent-box {
+	position: relative;
+	left: 35px;
+	top: 37px;
+	height: 1090px;
+	width: 1037px;
+	background-color: rgba(255, 255, 255, 0.73);
+}
+
+.character-base .background .author,
+.character-base .background .uid {
+	position: absolute;
+	font-size: 21px;
+	color: white;
+}
+
+.character-base .background .author {
+	left: 10px;
+	top: 5px;
+}
+
+.character-base .background .uid {
+	position: absolute;
+	width: 230px;
+	text-align: right;
+	left: 870px;
+	top: 1132px;
+}
+
+.character-base .background .title {
+	position: absolute;
+	font-size: 36px;
+	left: 80px;
+	color: var( --titleColor );
+}
+
+.background .artifact-title {
+	top: 250px;
+}
+
+.background .weapon-title {
+	top: 664px;
+}
+
+.character-base .background .split {
+	position: absolute;
+	height: 4px;
+	left: 73px;
+	background-color: var( --splitLineColor );
+}
+
+.background .artifact-split {
+	width: 730px;
+	top: 298px;
+}
+
+.background .weapon-split {
+	width: 380px;
+	top: 712px;
+}
+
+.character-base .background .portrait {
+	position: absolute;
+	width: 515px;
+	height: 515px;
+	left: 557px;
+	top: 612px;
+}
+
+.character-base .info .left {
+	position: absolute;
+	left: 75px;
+	top: 60px;
+	font-size: 88px;
+	color: var( --baseInfoColor );
+	font-family: HuaWen, monospace;
+}
+
+.info .left .name {
+	display: inline-block;
+}
+
+.info .left .element {
+	position: relative;
+	display: inline-block;
+	font-size: 36px;
+	color: var( --elementColor );
+	font-family: GenshinUsedFont, monospace;
+	margin-left: 37px;
+}
+
+.character-base .info .right {
+	position: absolute;
+	font-size: 36px;
+	color: var( --contentColor );
+	left: 788px;
+	top: 60px;
+	text-align: right;
+	font-weight: bolder;
+	font-family: HuaWen, monospace;
+}
+
+.info .right .level {
+	font-size: 50px;
+	color: var( --baseInfoColor );
+}
+
+@font-face {
+	font-family: HuaWen;
+	src: url("../../public/fonts/HWZhongSong.ttf");
+}

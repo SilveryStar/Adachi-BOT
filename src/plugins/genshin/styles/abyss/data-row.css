@@ -1,0 +1,51 @@
+.data-row {
+	position: relative;
+	height: 32px;
+	font-size: 15px;
+}
+
+.data-title {
+	position: relative;
+	left: 28px;
+	height: 32px;
+	width: 100px;
+	line-height: 32px;
+	color: rgb(255, 255, 255);
+}
+
+.tagged {
+	background-color: rgba(54, 71, 88, 0.64);
+}
+
+.data-row .list {
+	position: absolute;
+	top: 0;
+	width: 400px;
+	left: 132px;
+	z-index: 1;
+}
+
+.data-item {
+	position: relative;
+	display: inline-block;
+	width: 100px;
+	height: 32px;
+	margin-left: 18px;
+}
+
+.side-icon {
+	position: relative;
+	display: inline-block;
+	height: 36px;
+	width: 36px;
+	margin-top: -8px;
+}
+
+.data-num {
+	position: absolute;
+	top: 0;
+	margin-left: 6px;
+	font-size: 13px;
+	line-height: 32px;
+	color: rgb(255, 255, 255);
+}

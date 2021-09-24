@@ -1,0 +1,63 @@
+.overview .title {
+	top: 2px;
+	padding-bottom: 0;
+}
+
+.overview .character-list {
+	position: relative;
+	left: 0;
+	display: -webkit-box;
+	-webkit-box-pack: center;
+	-webkit-box-align: center;
+}
+
+.overview .character-item {
+	margin-right: 24px;
+	margin-bottom: 16px;
+	height: 95px;
+	width: 76px;
+}
+
+.overview .character-item .background,
+.overview .character-item .main {
+	width: 76px;
+	height: 76px;
+}
+
+.overview .character-item .level {
+	height: 19px;
+	line-height: 19px;
+}
+
+.overview .info {
+	position: relative;
+	display: -webkit-box;
+	height: 28px;
+	width: 100%;
+	font-size: 12px;
+	color: rgb(255, 255, 255);
+	background-color: rgba(54, 71, 88, 0.64);
+	margin-bottom: 14px;
+	-webkit-box-pack: center;
+	-webkit-box-align: center;
+}
+
+.overview .max-floor,
+.overview .battle-times {
+	margin-right: 28px;
+}
+
+.overview .star-img {
+	height: 22px;
+	width: 22px;
+	margin-right: 4px;
+}
+
+.overview .subtitle {
+	position: relative;
+	display: block;
+	color: rgb(238, 206, 136);
+	left: 14px;
+	font-size: 15px;
+	padding-bottom: 6px;
+}

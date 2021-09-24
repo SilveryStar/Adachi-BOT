@@ -1,0 +1,105 @@
+.split-line {
+	position: relative;
+	height: 2px;
+	width: 90%;
+	margin: 1px 5% 0 5%;
+	background-color: rgba(128, 128, 128, 0.85);
+}
+
+.unlocked {
+	color: rgb(210, 210, 210);
+	width: 100%;
+	text-align: center;
+	font-size: 19px;
+}
+
+.floor.long .unlocked {
+	height: 231px;
+	line-height: 231px;
+}
+
+.floor.short .unlocked {
+	height: 132px;
+	line-height: 132px;
+}
+
+.battle {
+	position: relative;
+}
+
+.battle .room-name,
+.battle .time {
+	position: relative;
+	display: inline-block;
+	font-family: Microsoft YaHei, monospace;
+	padding: 6px 0;
+	height: 21px;
+	line-height: 21px;
+	left: 27px;
+}
+
+.battle .room-name {
+	color: rgb(255, 255, 255);
+	font-size: 14px;
+	margin-right: 6px;
+}
+
+.battle .time {
+	color: rgb(220, 220, 220);
+	font-size: 13px;
+}
+
+.battle .up,
+.battle .down {
+	position: absolute;
+	display: inline-block;
+	color: rgb(255, 255, 255);
+	font-family: Microsoft YaHei, monospace;
+	left: 365px;
+	font-size: 14px;
+}
+
+.battle .up {
+	top: 35px;
+}
+
+.battle .down {
+	bottom: 13px;
+}
+
+.battle .star {
+	position: absolute;
+	right: 90px;
+	height: 35px;
+	z-index: 1;
+}
+
+.floor.long .battle .star {
+	top: 109px;
+}
+
+.floor.short .battle .star {
+	top: 60px;
+}
+
+.battle .star-img {
+	position: relative;
+	display: inline-block;
+	width: 35px;
+	height: 35px;
+}
+
+.battle .star-num {
+	position: absolute;
+	display: inline-block;
+	height: 100%;
+	line-height: 35px;
+	margin-left: 15px;
+	top: 0;
+	color: rgb(255, 255, 255);
+}
+
+@font-face {
+	font-family: ZhongSong;
+	src: url( "../../public/fonts/HWZhongSong.ttf" );
+}

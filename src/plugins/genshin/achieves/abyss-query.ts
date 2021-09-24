@@ -1,0 +1,94 @@
+import { GroupMessageEventData, PrivateMessageEventData } from "oicq";
+import { abyssInfoPromise, baseInfoPromise } from "../utils/promise";
+import { getRegion } from "../utils/region";
+import { Adachi, Redis } from "../../../bot";
+import { render } from "../utils/render";
+
+async function getBindData( id: string | null, qqID: number ): Promise<[ number, string ] | string> {
+	if ( id !== null ) {
+		try {
+			return await baseInfoPromise( qqID, parseInt( id ) ) as [ number, string ];
+		} catch ( error ) {
+			return error as string;
+		}
+	}
+	return `用户 ${ qqID } 未绑定米游社通行证`;
+}
+
+async function getUserInfo( data: string, qqID: number ): Promise<[ number, string ] | string> {
+	if ( data === "" || data === "last" ) {
+		const mysID: string | null = await Redis.getString( `silvery-star.user-bind-id-${ qqID }` );
+		return await getBindData( mysID, qqID );
+	} else if ( data.includes( "CQ:at" ) ) {
+		const match = data.match( /\d+/g ) as string[];
+		const atID: string = match[0];
+		const mysID: string | null = await Redis.getString( `silvery-star.user-bind-id-${ atID }` );
+		return await getBindData( mysID, parseInt( atID ) );
+	} else {
+		return [ parseInt( data ), getRegion( data[0] ) ];
+	}
+}
+
+type Message = GroupMessageEventData | PrivateMessageEventData;
+
+async function main( sendMessage: ( content: string ) => any, message: Message ): Promise<void> {
+	const [ data, last ] = message.raw_message.split( " " );
+	const qqID: number = message.user_id;
+	const info: [ number, string ] | string = await getUserInfo( data, qqID );
+	const period: number = last !== undefined || data === "last" ? 2 : 1;
+
+	if ( typeof info === "string" ) {
+		await sendMessage( info );
+		return;
+	}
+
+	try {
+		await abyssInfoPromise( qqID, ...info, period );
+	} catch ( error ) {
+		if ( error !== "gotten" ) {
+			await sendMessage( error as string );
+			return;
+		}
+	}
+
+	const [ uid ]: [ number, string ] = info;
+	const abyss: any = JSON.parse( await Redis.getString( `silvery-star.abyss-data-${ qqID }` ) as string );
+	const userInfo: string = `${ message.sender.nickname }|${ uid }`
+	let imageList: string[] = [];
+	
+	imageList[0] = await render( "abyss", {
+		floor: -1,
+		info: userInfo,
+		data: Buffer.from( JSON.stringify( {
+			revealRank: abyss.reveal_rank.splice( 0, 8 ),
+			defeatRank: abyss.defeat_rank.splice( 0, 3 ),
+			takeDamageRank: abyss.take_damage_rank.splice( 0, 3 ),
+			normalSkillRank: abyss.normal_skill_rank.splice( 0, 3 ),
+			energySkillRank: abyss.energy_skill_rank.splice( 0, 3 ),
+			damageRank: abyss.damage_rank,
+			maxFloor: abyss.max_floor,
+			totalBattleTimes: abyss.total_battle_times,
+			totalStar: abyss.total_star
+		} ) ).toString( "base64" )
+	} );
+	
+	for ( let floorData of abyss.floors ) {
+		const base64: string = Buffer.from( JSON.stringify( floorData ) ).toString( "base64" );
+		const floor: number = floorData.index;
+		
+		imageList[floor] = await render( "abyss", {
+			floor,
+			info: userInfo,
+			data: base64
+		} );
+	}
+	
+	imageList = imageList.filter( el => el !== undefined );
+	for ( let image of imageList ) {
+		// TODO: waiting the feat of oicq
+		await sendMessage( image );
+	}
+}
+
+export { main }
+

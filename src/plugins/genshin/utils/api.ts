@@ -7,6 +7,7 @@ const __API = {
 	FETCH_ROLE_ID: "https://api-takumi.mihoyo.com/game_record/app/card/wapi/getGameRecordCard",
 	FETCH_ROLE_INDEX: "https://api-takumi.mihoyo.com/game_record/app/genshin/api/index",
 	FETCH_ROLE_CHARACTERS: "https://api-takumi.mihoyo.com/game_record/app/genshin/api/character",
+	FETCH_ROLE_SPIRAL_ABYSS: "https://api-takumi.mihoyo.com/game_record/app/genshin/api/spiralAbyss",
 	FETCH_GACHA_LIST: "https://webstatic.mihoyo.com/hk4e/gacha_info/cn_gf01/gacha/list.json",
 	FETCH_GACHA_DETAIL: "https://webstatic.mihoyo.com/hk4e/gacha_info/cn_gf01/$/zh-cn.json",
 	FETCH_ARTIFACT: "https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/artifact/artifact.yml",
@@ -94,6 +95,34 @@ async function getCharactersInfo( roleID: number, server: string, charIDs: numbe
 		} )
 			.then( ( result ) => {
 				resolve( result );
+			} )
+			.catch( ( reason ) => {
+				reject( reason );
+			} );
+	} );
+}
+
+/* period 为 1 时表示本期深渊，2 时为上期深渊 */
+async function getSpiralAbyssInfo( roleID: number, server: string, period: number, cookie: string ): Promise<any> {
+	const query = {
+		role_id: roleID,
+		schedule_type: period,
+		server
+	};
+	
+	return new Promise( ( resolve, reject ) => {
+		request( {
+			method: "GET",
+			url: __API.FETCH_ROLE_SPIRAL_ABYSS,
+			qs: query,
+			headers: {
+				...HEADERS,
+				"DS": getDS( query ),
+				"Cookie": cookie
+			}
+		} )
+			.then( ( result ) => {
+				resolve( JSON.parse( result ) );
 			} )
 			.catch( ( reason ) => {
 				reject( reason );
@@ -194,6 +223,7 @@ export {
 	getBaseInfo,
 	getDetailInfo,
 	getCharactersInfo,
+	getSpiralAbyssInfo,
 	getWishList,
 	getWishDetail,
 	getInfo,

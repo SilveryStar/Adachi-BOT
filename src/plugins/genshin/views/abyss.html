@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>abyss</title>
+	<script src="https://unpkg.com/vue@3.1.1/dist/vue.global.js"></script>
+	<link rel="stylesheet" href="../styles/reset.css"/>
+	<link rel="stylesheet" href="../styles/abyss/app.css"/>
+	<link rel="stylesheet" href="../styles/abyss/floor.css"/>
+	<link rel="stylesheet" href="../styles/abyss/room.css"/>
+	<link rel="stylesheet" href="../styles/abyss/character.css"/>
+	<link rel="stylesheet" href="../styles/abyss/overview.css"/>
+	<link rel="stylesheet" href="../styles/abyss/data-row.css"/>
+</head>
+<body>
+
+<div id="app"></div>
+
+<script type="module">
+	import App from "../components/abyss/app.js";
+	
+	Vue.createApp( App ).mount( "#app" );
+</script>
+
+</body>
+</html>
+
+<style>
+	#app {
+		width: 528px;
+	}
+</style>

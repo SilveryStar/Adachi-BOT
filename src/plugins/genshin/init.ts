@@ -105,6 +105,14 @@ const defaultCommandList: ( Order | Question )[] = [ {
 	regexps: [ " (remove|add) [\\u4e00-\\u9fa5]+ [0-9a-z\\u4e00-\\u9fa5]+$" ],
 	main: "achieves/alias",
 	authLimit: AuthLevel.Manager
+}, {
+	commandType: "order",
+	key: "silvery-star.abyss",
+	docs: [ "深渊查询", "[UID|@] [last]" ],
+	headers: [ "aby" ],
+	regexps: [ " *[0-9]*( last)?$", " \\[CQ:at,qq=[0-9]+.*\\]( last)?$", "( last)?$" ],
+	main: "achieves/abyss-query",
+	detail: "在查询指令最后添加 last 将会返回上一期深渊的战绩"
 } ];
 
 function getKeys(): any {

@@ -1,16 +1,8 @@
 import { GroupMessageEventData, PrivateMessageEventData } from "oicq";
 import { characterInfoPromise, detailInfoPromise } from "../utils/promise";
-import { Redis } from "../../../bot";
 import { render } from "../utils/render";
-
-function getRegion( first: string ): string {
-	switch ( first ) {
-		case "1": return "cn_gf01";
-		case "2": return "cn_gf01";
-		case "5": return "cn_qd01";
-		default:  return "unknown";
-	}
-}
+import { getRegion } from "../utils/region";
+import { Redis } from "../../../bot";
 
 function getUserInfo( data: string ): [ number, string ] | string {
 	const reg = new RegExp( /^[125][0-9]{8}$/g );

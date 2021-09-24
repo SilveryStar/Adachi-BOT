@@ -1,0 +1,54 @@
+.character-list {
+	position: relative;
+	left: 26px;
+}
+
+.character-item {
+	position: relative;
+	display: inline-flex;
+	height: 90px;
+	width: 72px;
+	background-color: rgb(233, 229, 220);
+	border-radius: 6px;
+	margin-right: 11px;
+	margin-bottom: 9px;
+}
+
+.character-item .background,
+.character-item .main {
+	display: inline-block;
+	width: 72px;
+	height: 72px;
+}
+
+.character-item .background {
+	position: relative;
+	z-index: 0;
+	border-radius: 6px 6px 0 0;
+}
+
+.character-item .main {
+	position: absolute;
+}
+
+.character-item .corner {
+	position: absolute;
+	right: 0;
+	bottom: 20%;
+	height: 16%;
+	width: 20%;
+	background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAMAAACdt4HsAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAATlBMVEUAAADv39/n49vq5t/p5d3q5d3k5N/n5Nzq5d3p5t3n59/q5tzp5dvo5t3p5dzp5drq5Nzf39/q5dzq5N3p5tzk5Nrp5dzn5Nrp5dz///+n0gbyAAAAGHRSTlMAEEBvr+8wYJ/fIL+AcM+gkBDPj98wr2B/7pr1AAAAAWJLR0QZ7G61iAAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB+UBDAEzHvJNhP0AAADqSURBVFjDpdFbDoIwFEVRLFT6AkVEz/xHqsREo0FK2f3f6962VcXOAfaVoUBNgYYCFvZHQaClQEMBCwEjCDgKeAg8b8AARwEPgfkGCHAQCIJASwEPgdcCAIgQOAoCDgJBEHAQeC+wF4gQaAUBD4EkBgRBIEKgEwOChYAXA5IY0IoBPw9QDAQvBvRiwEkMOIsBSQxYnF8AnISAoRcCFv6/CDBWCEgSAUIUAjorAmTG54Ah2Vy/ChifzdcAk91+FdiY/wM254vAUF825wuAGfMv/x8w6VpUfwNmLK4/wFTfyjb/AMN0H+POeD4P1uJnHYtJkLEAAAAldEVYdGRhdGU6Y3JlYXRlADIwMjEtMDEtMTJUMDE6NTE6MzArMDA6MDAB3HVQAAAAJXRFWHRkYXRlOm1vZGlmeQAyMDIxLTAxLTEyVDAxOjUxOjMwKzAwOjAwcIHN7AAAACB0RVh0c29mdHdhcmUAaHR0cHM6Ly9pbWFnZW1hZ2ljay5vcme8zx2dAAAAGHRFWHRUaHVtYjo6RG9jdW1lbnQ6OlBhZ2VzADGn/7svAAAAF3RFWHRUaHVtYjo6SW1hZ2U6OkhlaWdodAA2NLzgqYQAAAAWdEVYdFRodW1iOjpJbWFnZTo6V2lkdGgANjRET2kJAAAAGXRFWHRUaHVtYjo6TWltZXR5cGUAaW1hZ2UvcG5nP7JWTgAAABd0RVh0VGh1bWI6Ok1UaW1lADE2MTA0MTYyOTCfeSSgAAAAEHRFWHRUaHVtYjo6U2l6ZQA3NjVCTanUWAAAADV0RVh0VGh1bWI6OlVSSQBmaWxlOi8vL3RtcC90aHVtYmxyL2ltZzY4NDUzMTY2NjkzNTkyMzM1NDZD0TyOAAAAAElFTkSuQmCC");
+	background-size: 100% 100%;
+	background-repeat: no-repeat;
+}
+
+.character-item .level {
+	position: absolute;
+	display: block;
+	bottom: 0;
+	width: 100%;
+	height: 18px;
+	line-height: 18px;
+	text-align: center;
+	font-size: 13px;
+}

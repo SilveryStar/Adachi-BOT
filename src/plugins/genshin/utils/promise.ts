@@ -1,6 +1,6 @@
 import { Adachi, Redis } from "../../../bot";
 import { cookies } from "../init";
-import { getBaseInfo, getCharactersInfo, getDetailInfo } from "./api";
+import { getBaseInfo, getCharactersInfo, getDetailInfo, getSpiralAbyssInfo } from "./api";
 import { omit } from "lodash";
 
 async function baseInfoPromise( qqID: number, mysID: number ): Promise<string | [ number, string ]> {
@@ -92,8 +92,37 @@ async function characterInfoPromise( qqID: number, uid: number, server: string, 
 	} );
 }
 
+async function abyssInfoPromise( qqID: number, uid: number, server: string, period: number ): Promise<string | void> {
+	const dbKey: string = `silvery-star.abyss-data-${ qqID }`;
+	const detail: string | null = await Redis.getString( dbKey );
+	
+	if ( detail !== null ) {
+		const data: any = JSON.parse( detail );
+		if ( data.uid === uid && data.period === period ) {
+			Adachi.logger.info( `用户 ${ uid } 在一小时内进行过深渊查询操作，将返回上次数据` );
+			return Promise.reject( "gotten" );
+		}
+	}
+	
+	const { retcode, message, data } = await getSpiralAbyssInfo( uid, server, period, cookies.get() );
+	cookies.increaseIndex();
+	
+	return new Promise( async ( resolve, reject ) => {
+		if ( retcode !== 0 ) {
+			reject( `米游社接口报错: ${ message }` );
+			return;
+		}
+		
+		await Redis.setString( dbKey, JSON.stringify( { ...data, uid, period } ) );
+		await Redis.setTimeout( dbKey, 3600 );
+		Adachi.logger.info( `用户 ${ uid } 的深渊数据查询成功，数据已缓存` );
+		resolve();
+	} );
+}
+
 export {
 	baseInfoPromise,
 	detailInfoPromise,
-	characterInfoPromise
+	characterInfoPromise,
+	abyssInfoPromise
 }
