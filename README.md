@@ -144,7 +144,13 @@ npm run serve
 | Nickname                                                     | Contribution                        |
 | :----------------------------------------------------------: | ----------------------------------- |
 |[GenshinImpactWiki](https://genshin-impact.fandom.com/wiki/Genshin_Impact_Wiki) | 本项目的绝大多数图片资源 |
-|[lulu666lulu](https://github.com/lulu666lulu)| 提供了最新的DS算法 |
+|[lulu666lulu](https://github.com/lulu666lulu) | 提供了最新的DS算法 |
+|[JetBrains](https://www.jetbrains.com?from=Adachi-BOT) | 为开源项目提供免费的 WebStorm 等 IDE 的授权 |
+
+
+> [WebStorm](https://www.jetbrains.com/webstorm?from=Adachi-BOT) 是一个在各个方面都最大程度地提高开发人员的生产力的 IDE
+
+[![Webstorm](document/icon-webstorm.svg)](https://www.jetbrains.com/webstorm?from=Adachi-BOT)
 
 ## Resources
 由于本项目的绝大多数图片资源都来自维基百科，我们依照 [CC-BY-SA-3.0](https://creativecommons.org/licenses/by-sa/3.0/legalcode) 协议将内容公开，发送申请到邮箱 `silverystar.top@gmail.com` 来获取图包，注意说明来意
