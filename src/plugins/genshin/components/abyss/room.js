@@ -17,7 +17,7 @@ const template =
 		</div>
 		<div class="star">
 			<img class="star-img" src="../../public/images/abyss/star.png" alt="ERROR"/>
-			<span class="star-num">{{ roomData.star }}/{{ roomData.max_star }}</span>
+			<span class="star-num">{{ roomData.star }}/{{ roomData.maxStar }}</span>
 		</div>
 	</div>
 </div>`;

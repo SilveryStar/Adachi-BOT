@@ -1,8 +1,9 @@
 import { GroupMessageEventData, PrivateMessageEventData } from "oicq";
 import { abyssInfoPromise, baseInfoPromise } from "../utils/promise";
 import { getRegion } from "../utils/region";
-import { Adachi, Redis } from "../../../bot";
 import { render } from "../utils/render";
+import { Redis } from "../../../bot";
+import { Abyss } from "../types";
 
 async function getBindData( id: string | null, qqID: number ): Promise<[ number, string ] | string> {
 	if ( id !== null ) {
@@ -52,7 +53,7 @@ async function main( sendMessage: ( content: string ) => any, message: Message )
 	}
 
 	const [ uid ]: [ number, string ] = info;
-	const abyss: any = JSON.parse( await Redis.getString( `silvery-star.abyss-data-${ qqID }` ) as string );
+	const abyss: Abyss = JSON.parse( await Redis.getString( `silvery-star.abyss-data-${ qqID }` ) as string );
 	const userInfo: string = `${ message.sender.nickname }|${ uid }`
 	let imageList: string[] = [];
 	
@@ -60,15 +61,15 @@ async function main( sendMessage: ( content: string ) => any, message: Message )
 		floor: -1,
 		info: userInfo,
 		data: Buffer.from( JSON.stringify( {
-			revealRank: abyss.reveal_rank.splice( 0, 8 ),
-			defeatRank: abyss.defeat_rank.splice( 0, 3 ),
-			takeDamageRank: abyss.take_damage_rank.splice( 0, 3 ),
-			normalSkillRank: abyss.normal_skill_rank.splice( 0, 3 ),
-			energySkillRank: abyss.energy_skill_rank.splice( 0, 3 ),
-			damageRank: abyss.damage_rank,
-			maxFloor: abyss.max_floor,
-			totalBattleTimes: abyss.total_battle_times,
-			totalStar: abyss.total_star
+			revealRank: abyss.revealRank.splice( 0, 8 ),
+			defeatRank: abyss.defeatRank.splice( 0, 3 ),
+			takeDamageRank: abyss.takeDamageRank.splice( 0, 3 ),
+			normalSkillRank: abyss.normalSkillRank.splice( 0, 3 ),
+			energySkillRank: abyss.energySkillRank.splice( 0, 3 ),
+			damageRank: abyss.damageRank,
+			maxFloor: abyss.maxFloor,
+			totalBattleTimes: abyss.totalBattleTimes,
+			totalStar: abyss.totalStar
 		} ) ).toString( "base64" )
 	} );
 	
@@ -82,7 +83,7 @@ async function main( sendMessage: ( content: string ) => any, message: Message )
 			data: base64
 		} );
 	}
-	
+
 	imageList = imageList.filter( el => el !== undefined );
 	for ( let image of imageList ) {
 		// TODO: waiting the feat of oicq

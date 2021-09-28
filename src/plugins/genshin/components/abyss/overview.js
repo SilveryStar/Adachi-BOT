@@ -34,7 +34,7 @@ export default Vue.defineComponent( {
 	},
 	setup( props ) {
 		const arr = props.data.revealRank.map( el => {
-			el.icon = el.avatar_icon;
+			el.icon = el.avatarIcon;
 			return el;
 		} );
 		const reveal = [ arr.splice( 0,4 ), arr ];

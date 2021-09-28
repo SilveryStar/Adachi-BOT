@@ -1,7 +1,9 @@
 import request from "./requests";
 import getDS from "./ds";
-import fetch from "node-fetch";
 import { parse } from "yaml";
+import { toCamelCase } from "./camel-case";
+import { ResponseBody } from "../types/response";
+import fetch from "node-fetch";
 
 const __API = {
 	FETCH_ROLE_ID: "https://api-takumi.mihoyo.com/game_record/app/card/wapi/getGameRecordCard",
@@ -26,7 +28,7 @@ const HEADERS = {
 	"Cookie": ""
 };
 
-async function getBaseInfo( mysID: number, cookie: string ): Promise<any> {
+async function getBaseInfo( mysID: number, cookie: string ): Promise<ResponseBody> {
 	const query = { uid: mysID };
 	return new Promise( ( resolve, reject ) => {
 		request( {
@@ -40,7 +42,9 @@ async function getBaseInfo( mysID: number, cookie: string ): Promise<any> {
 			}
 		} )
 			.then( ( result ) => {
-				resolve( JSON.parse( result ) );
+				const response: ResponseBody = JSON.parse( result );
+				response.data.type = "bbs";
+				resolve( toCamelCase( response ) );
 			} )
 			.catch( ( reason ) => {
 				reject( reason );
@@ -48,7 +52,7 @@ async function getBaseInfo( mysID: number, cookie: string ): Promise<any> {
 	} );
 }
 
-async function getDetailInfo( uid: number, server: string, cookie: string ): Promise<any> {
+async function getDetailInfo( uid: number, server: string, cookie: string ): Promise<ResponseBody> {
 	const query = {
 		role_id: uid,
 		server
@@ -65,7 +69,9 @@ async function getDetailInfo( uid: number, server: string, cookie: string ): Pro
 			}
 		} )
 			.then( ( result ) => {
-				resolve( JSON.parse( result ) );
+				const response: ResponseBody = JSON.parse( result );
+				response.data.type = "user-info";
+				resolve( toCamelCase( response ) );
 			} )
 			.catch( ( reason ) => {
 				reject( reason );
@@ -73,7 +79,7 @@ async function getDetailInfo( uid: number, server: string, cookie: string ): Pro
 	} );
 }
 
-async function getCharactersInfo( roleID: number, server: string, charIDs: number[], cookie: string ): Promise<any> {
+async function getCharactersInfo( roleID: number, server: string, charIDs: number[], cookie: string ): Promise<ResponseBody> {
 	const body = {
 		character_ids: charIDs,
 		role_id: roleID,
@@ -94,7 +100,9 @@ async function getCharactersInfo( roleID: number, server: string, charIDs: numbe
 			}
 		} )
 			.then( ( result ) => {
-				resolve( result );
+				const response: ResponseBody = result;
+				response.data.type = "character";
+				resolve( toCamelCase( response ) );
 			} )
 			.catch( ( reason ) => {
 				reject( reason );
@@ -103,7 +111,7 @@ async function getCharactersInfo( roleID: number, server: string, charIDs: numbe
 }
 
 /* period 为 1 时表示本期深渊，2 时为上期深渊 */
-async function getSpiralAbyssInfo( roleID: number, server: string, period: number, cookie: string ): Promise<any> {
+async function getSpiralAbyssInfo( roleID: number, server: string, period: number, cookie: string ): Promise<ResponseBody> {
 	const query = {
 		role_id: roleID,
 		schedule_type: period,
@@ -122,7 +130,9 @@ async function getSpiralAbyssInfo( roleID: number, server: string, period: numbe
 			}
 		} )
 			.then( ( result ) => {
-				resolve( JSON.parse( result ) );
+				const response: ResponseBody = JSON.parse( result );
+				response.data.type = "abyss";
+				resolve( toCamelCase( response ) );
 			} )
 			.catch( ( reason ) => {
 				reject( reason );
