@@ -4,7 +4,7 @@ const template =
     <div class="content">
         <div class="up">
             <p class="name">{{ weapon.name }}</p>
-            <p class="refine">精炼{{ weapon.affix_level }}阶</p>
+            <p class="refine">精炼{{ weapon.affixLevel }}阶</p>
         </div>
         <div class="down">
             <p class="rarity">{{ stars }}</p>

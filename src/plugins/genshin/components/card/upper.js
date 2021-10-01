@@ -12,21 +12,21 @@ const template =
     </div>
     <div class="detail">
         <div class="left">
-            <p class="stats">{{ stats.active_day_number }}</p>
-            <p class="stats">{{ stats.achievement_number }}</p>
-            <p class="stats">{{ stats.avatar_number }}</p>
-            <p class="stats">{{ stats.spiral_abyss }}</p>
+            <p class="stats">{{ stats.activeDayNumber }}</p>
+            <p class="stats">{{ stats.achievementNumber }}</p>
+            <p class="stats">{{ stats.avatarNumber }}</p>
+            <p class="stats">{{ stats.spiralAbyss }}</p>
         </div>
         <div class="middle">
-            <p class="stats">{{ stats.common_chest_number }}</p>
-            <p class="stats">{{ stats.exquisite_chest_number }}</p>
-            <p class="stats">{{ stats.precious_chest_number }}</p>
-            <p class="stats">{{ stats.luxurious_chest_number }}</p>
+            <p class="stats">{{ stats.commonChestNumber }}</p>
+            <p class="stats">{{ stats.exquisiteChestNumber }}</p>
+            <p class="stats">{{ stats.preciousChestNumber }}</p>
+            <p class="stats">{{ stats.luxuriousChestNumber }}</p>
         </div>
         <div class="right">
-            <p class="stats">{{ stats.anemoculus_number }}</p>
-            <p class="stats">{{ stats.geoculus_number }}</p>
-            <p class="stats">{{ stats.electroculus_number }}</p>
+            <p class="stats">{{ stats.anemoculusNumber }}</p>
+            <p class="stats">{{ stats.geoculusNumber }}</p>
+            <p class="stats">{{ stats.electroculusNumber }}</p>
         </div>
     </div>
     <div class="exploration">
@@ -97,7 +97,7 @@ export default Vue.defineComponent( {
 
 		function percentage( id ) {
 			const data = props.exploration.find( el => el.id === id );
-			return `${ data.exploration_percentage / 10 }%`;
+			return `${ data.explorationPercentage / 10 }%`;
 		}
 		function expLevel( id ) {
 			const data = props.exploration.find( el => el.id === id );
@@ -115,7 +115,7 @@ export default Vue.defineComponent( {
 		let homesLevel = 0, maxComfort = 0;
 		if ( props.homes.length !== 0 ) {
 			homesLevel = props.homes[0].level;
-			maxComfort = props.homes[0].comfort_num;
+			maxComfort = props.homes[0].comfortNum;
 		}
 		
 		const hole = homeData( "罗浮洞" );

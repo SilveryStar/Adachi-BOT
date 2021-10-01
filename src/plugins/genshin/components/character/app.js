@@ -6,7 +6,7 @@ const template =
         :element="data.element"
         :level="data.level"
         :fetter="data.fetter"
-        :constellation="data.actived_constellation_num"
+        :constellation="data.activedConstellationNum"
         :id="data.id"
     ></CharacterBase>
     <CharacterArtifact

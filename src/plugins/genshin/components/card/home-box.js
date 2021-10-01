@@ -6,7 +6,7 @@ const template =
         <div class="box-block unlock-content-block">
             <p class="box-content name">{{ data.name }}</p>
             <p class="box-content level">洞天等级</p>
-            <p class="box-content comfort">{{ data.comfort_level_name }}</p>
+            <p class="box-content comfort">{{ data.comfortLevelName }}</p>
         </div>
     </div>
     <div class="locked" v-else>
