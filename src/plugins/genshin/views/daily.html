@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>daily</title>
+	<script src="https://unpkg.com/vue@3.1.1/dist/vue.global.js"></script>
+	<link rel="stylesheet" href="../styles/reset.css"/>
+	<link rel="stylesheet" href="../styles/daily/app.css"/>
+	<link rel="stylesheet" href="../styles/daily/column.css"/>
+	<link rel="stylesheet" href="../styles/daily/unit.css"/>
+</head>
+<body>
+
+<div id="app"></div>
+
+<script type="module">
+	import App from "../components/daily/app.js";
+	
+	Vue.createApp( App ).mount( "#app" );
+</script>
+
+</body>
+</html>
+
+<style>
+	#app {
+		width: 768px;
+		background-color: rgb(246, 242, 238);
+	}
+</style>

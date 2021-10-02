@@ -51,4 +51,4 @@ class SlipClass {
 	}
 }
 
-export { SlipClass }
+export { SlipClass, SlipDetail }

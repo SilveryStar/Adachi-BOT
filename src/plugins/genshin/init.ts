@@ -2,21 +2,23 @@ import { addPlugin } from "../../modules/plugin";
 import { createServer } from "./server";
 import { createYAML, loadYAML, writeYAML } from "../../utils/config";
 import { getArtifact, getSlip } from "./utils/api";
-import { Cookies } from "./module/cookies";
+import { createBrowser } from "./utils/render";
 import { Order, Question } from "../../modules/command";
+import { AuthLevel } from "../../modules/auth";
+import { Cookies } from "./module/cookies";
 import { TypeData } from "./module/type";
 import { ArtClass } from "./module/artifact";
 import { WishClass } from "./module/wish";
 import { SlipClass } from "./module/slip";
-import { createBrowser } from "./utils/render";
 import { AliasClass } from "./module/alias";
-import { AuthLevel } from "../../modules/auth";
+import { DailyClass } from "./module/daily";
 
 let cookies: Cookies;
 let artClass: ArtClass;
 let wishClass: WishClass;
 let slipClass: SlipClass;
 let aliasClass: AliasClass;
+let dailyClass: DailyClass;
 let typeData: TypeData;
 let config: any;
 
@@ -95,7 +97,7 @@ const defaultCommandList: ( Order | Question )[] = [ {
 	key: "by-ha.slip",
 	docs: [ "御神签", "" ],
 	headers: [ "s", "slip" ],
-	regexps: [ "" ],
+	regexps: [ "$" ],
 	main: "achieves/slip"
 }, {
 	commandType: "order",
@@ -113,6 +115,15 @@ const defaultCommandList: ( Order | Question )[] = [ {
 	regexps: [ " *[0-9]*( last)?$", " \\[CQ:at,qq=[0-9]+.*\\]( last)?$", "( last)?$" ],
 	main: "achieves/abyss-query",
 	detail: "在查询指令最后添加 last 将会返回上一期深渊的战绩"
+}, {
+	commandType: "order",
+	key: "silvery-star.daily",
+	docs: [ "材料订阅", "<remove|add> <角色名|武器名|群号>" ],
+	headers: [ "sub" ],
+	regexps: [ " (remove|add) [0-9a-z\\u4e00-\\u9fa5]+$" ],
+	main: "achieves/daily",
+	detail: "为自己添加/删除角色天赋/武器的突破材料，每天的 6:00~7:00 将会你随机推送\n" +
+			"若使用群号，则将在 6:00 向该群发送所有角色天赋/武器的突破材料"
 } ];
 
 function getKeys(): any {
@@ -165,6 +176,7 @@ async function init(): Promise<any> {
 	cookies = new Cookies();
 	wishClass = new WishClass();
 	slipClass = new SlipClass( await getSlip() );
+	dailyClass = new DailyClass();
 	typeData = new TypeData();
 	aliasClass = new AliasClass();
 	createServer();
@@ -181,5 +193,6 @@ export {
 	wishClass,
 	slipClass,
 	aliasClass,
+	dailyClass,
 	typeData
 }
