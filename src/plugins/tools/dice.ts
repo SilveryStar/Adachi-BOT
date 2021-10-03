@@ -2,6 +2,7 @@
 // 2021 He Yang @kernel.bin <1160386205@qq.com>
 
 import { CommonMessageEventData as Message } from "oicq";
+import { sendType } from "../../modules/message";
 
 const MAX_TIMES = 100;
 const MAX_FACES = 32767;
@@ -22,7 +23,7 @@ function getRandomInt( maxNumber: number ): number {
 	return Math.floor( Math.random() * maxNumber ) + 1;
 }
 
-async function main( sendMessage: ( content: string ) => any, message: Message, match: string[] ): Promise<void> {
+async function main( sendMessage: sendType, message: Message, match: string[] ): Promise<void> {
 	let times = 1, faces = 6, top_n = 0;
 	
 	/* command format should looks like `r3d6k2` */

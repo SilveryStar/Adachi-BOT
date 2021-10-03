@@ -42,7 +42,7 @@ import { CommonMessageEventData as Message } from "oicq";
 
 // 固定函数名
 export async function main(
-    sendMessage: ( content: string ) => any,
+    sendMessage: sendType,
     message: Message, match: string | string[]
 ): Promise<void> {
     // do something
@@ -53,7 +53,7 @@ export async function main(
 **形参列表**
 ```typescript
 async function main(
-    sendMessage: ( content: string ) => any,
+    sendMessage: sendType,
     message: Message,
     match: string | string[]
 ): Promise<void> {}

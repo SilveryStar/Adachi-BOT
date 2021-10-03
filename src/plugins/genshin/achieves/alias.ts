@@ -1,8 +1,9 @@
 import { CommonMessageEventData as Message } from "oicq";
+import { sendType } from "../../../modules/message";
 import { aliasClass, typeData } from "../init";
 import { Redis } from "../../../bot";
 
-async function main( sendMessage: ( content: string ) => any, message: Message ): Promise<void> {
+async function main( sendMessage: sendType, message: Message ): Promise<void> {
 	const [ operation, name, alias ] = message.raw_message.split( " " );
 	
 	const nameList: string[] = typeData.getNameList();

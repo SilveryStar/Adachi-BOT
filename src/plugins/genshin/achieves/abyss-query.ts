@@ -1,4 +1,5 @@
 import { GroupMessageEventData, PrivateMessageEventData } from "oicq";
+import { sendType } from "../../../modules/message";
 import { abyssInfoPromise, baseInfoPromise } from "../utils/promise";
 import { getRegion } from "../utils/region";
 import { render } from "../utils/render";
@@ -32,7 +33,7 @@ async function getUserInfo( data: string, qqID: number ): Promise<[ number, stri
 
 type Message = GroupMessageEventData | PrivateMessageEventData;
 
-async function main( sendMessage: ( content: string ) => any, message: Message ): Promise<void> {
+async function main( sendMessage: sendType, message: Message ): Promise<void> {
 	const [ data, last ] = message.raw_message.split( " " );
 	const qqID: number = message.user_id;
 	const info: [ number, string ] | string = await getUserInfo( data, qqID );

@@ -1,12 +1,12 @@
 import {
 	Client,
 	CommonMessageEventData,
-	createClient,
 	GroupInfo,
 	GroupMessageEventData,
-	PrivateMessageEventData
+	PrivateMessageEventData,
+	createClient
 } from "oicq";
-import { getSendMessageFunc, MessageType, removeStringPrefix } from "./modules/message";
+import { getSendMessageFunc, removeStringPrefix, sendType, MessageType } from "./modules/message";
 import { createFolder, createYAML, exists, loadYAML } from "./utils/config";
 import { loadPlugins } from "./modules/plugin";
 import { resolve } from "path";
@@ -145,7 +145,7 @@ async function run(): Promise<void> {
 			const auth: AuthLevel = await getAuthLevel( qqID );
 			const groupLimit: string[] = await Redis.getList( `adachi.group-command-limit-${ groupID }` );
 			const userLimit: string[] = await Redis.getList( `adachi.user-command-limit-${ qqID }` );
-			const sendMessage: ( content: string ) => any = getSendMessageFunc( qqID, MessageType.Group, groupID );
+			const sendMessage: sendType = getSendMessageFunc( qqID, MessageType.Group, groupID );
 			execute( sendMessage, messageData, content, groupCommands[auth], [ ...groupLimit, ...userLimit ] );
 		}
 	} );
@@ -159,7 +159,7 @@ async function run(): Promise<void> {
 		
 		const auth: AuthLevel = await getAuthLevel( qqID );
 		const limit: string[] = await Redis.getList( `adachi.user-command-limit-${ qqID }` );
-		const sendMessage: ( content: string ) => any = getSendMessageFunc( qqID, MessageType.Private );
+		const sendMessage: sendType = getSendMessageFunc( qqID, MessageType.Private );
 		execute( sendMessage, messageData, content, privateCommands[auth], limit );
 	} );
 }
@@ -173,7 +173,7 @@ function timeCheck( qqID: number ): boolean {
 	return false;
 }
 
-function execute( sendMessage: ( content: string ) => any, message: CommonMessageEventData, content: string, commands: Command[], limit: string[] ): void {
+function execute( sendMessage: sendType, message: CommonMessageEventData, content: string, commands: Command[], limit: string[] ): void {
 	for ( let command of commands ) {
 		/* 判断命令限制 */
 		if ( !limit.includes( command.key ) ) {

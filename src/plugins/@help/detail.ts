@@ -1,10 +1,11 @@
 import { CommonMessageEventData as Message } from "oicq";
+import { sendType } from "../../modules/message";
 import { isGroupMessage, isPrivateMessage } from "../../modules/message";
 import { groupCommands, privateCommands } from "../../bot";
 import { AuthLevel, getAuthLevel } from "../../modules/auth";
 import { Command } from "../../modules/command";
 
-async function main( sendMessage: ( content: string ) => any, message: Message ): Promise<void> {
+async function main( sendMessage: sendType, message: Message ): Promise<void> {
 	let commands: Command[] = [];
 	let commandId: number = parseInt( message.raw_message );
 	const qqID: number = message.user_id;
