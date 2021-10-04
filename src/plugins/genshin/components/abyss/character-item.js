@@ -22,7 +22,7 @@ export default Vue.defineComponent( {
 			if ( props.char.rarity === 105 ) {
 				star = 5;
 			}
-			return `/public/images/rarity/${ star }-star.png`;
+			return `/public/images/rarity/${ star }-Star.png`;
 		} );
 		
 		return {

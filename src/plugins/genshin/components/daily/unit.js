@@ -51,7 +51,7 @@ export default Vue.defineComponent( {
 		}
 		const styles = function ( rarity ) {
 			return {
-				background: `url('/public/images/rarity/${ rarity }-star.png')`,
+				background: `url('/public/images/rarity/${ rarity }-Star.png')`,
 				"background-size": "100% 100%"
 			}
 		}
