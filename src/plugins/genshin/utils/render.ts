@@ -31,18 +31,22 @@ function getURL( target: string, params?: any ): string {
 	return url;
 }
 
-async function render( target: string, params?: any ): Promise<string> {
+async function render( target: string, params?: any, cqCode: boolean = true ): Promise<string> {
 	const url: string = getURL( target, params );
-
+	
 	const page: puppeteer.Page = await browser.newPage();
 	await page.goto( url );
 	const htmlElement = await page.$( "#app" );
-	const base64 = await htmlElement?.screenshot( {
+	const result = await htmlElement?.screenshot( {
 		encoding: "base64"
 	} ) as string;
+	const base64: string = "base64://" + result;
 	
 	await page.close();
-	return `[CQ:image,file=base64://${ base64 }]`;
+	if ( cqCode ) {
+		return `[CQ:image,file=${ base64 }]`;
+	}
+	return base64;
 }
 
 export {

@@ -1,9 +1,9 @@
-import { GroupMessageEventData, PrivateMessageEventData } from "oicq";
+import { GroupMessageEventData, PrivateMessageEventData, FakeMessage } from "oicq";
 import { sendType } from "../../../modules/message";
 import { abyssInfoPromise, baseInfoPromise } from "../utils/promise";
 import { getRegion } from "../utils/region";
 import { render } from "../utils/render";
-import { Redis } from "../../../bot";
+import { Redis, Adachi, botConfig } from "../../../bot";
 import { Abyss } from "../types";
 
 async function getBindData( id: string | null, qqID: number ): Promise<[ number, string ] | string> {
@@ -72,7 +72,7 @@ async function main( sendMessage: sendType, message: Message ): Promise<void> {
 			totalBattleTimes: abyss.totalBattleTimes,
 			totalStar: abyss.totalStar
 		} ) ).toString( "base64" )
-	} );
+	}, false );
 	
 	for ( let floorData of abyss.floors ) {
 		const base64: string = Buffer.from( JSON.stringify( floorData ) ).toString( "base64" );
@@ -82,13 +82,24 @@ async function main( sendMessage: sendType, message: Message ): Promise<void> {
 			floor,
 			info: userInfo,
 			data: base64
+		}, false );
+	}
+	
+	imageList = imageList.filter( el => el !== undefined );
+	const content: FakeMessage[] = [];
+	for ( let image of imageList ) {
+		content.push( {
+			user_id: botConfig.number,
+			message: {
+				type: "image",
+				data: { file: image }
+			}
 		} );
 	}
-
-	imageList = imageList.filter( el => el !== undefined );
-	for ( let image of imageList ) {
-		// TODO: waiting the feat of oicq
-		await sendMessage( image );
+	
+	const replyMessage = await Adachi.makeForwardMsg( content );
+	if ( replyMessage.status === "ok" ) {
+		await sendMessage( replyMessage.data );
 	}
 }
 
