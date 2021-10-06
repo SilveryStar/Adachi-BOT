@@ -1,9 +1,10 @@
 import {
 	Client,
-	CommonMessageEventData,
 	GroupInfo,
+	CommonMessageEventData,
 	GroupMessageEventData,
 	PrivateMessageEventData,
+	GroupInviteEventData,
 	createClient
 } from "oicq";
 import { getSendMessageFunc, removeStringPrefix, sendType, MessageType } from "./modules/message";
@@ -11,13 +12,14 @@ import { createFolder, createYAML, exists, loadYAML } from "./utils/config";
 import { loadPlugins } from "./modules/plugin";
 import { resolve } from "path";
 import { readFileSync, renameSync } from "fs";
-import { AuthLevel, getAuthLevel } from "./modules/auth";
+import { AuthLevel, checkAuthLevel, getAuthLevel } from "./modules/auth";
 import { Database } from "./utils/database";
+import { BotConfig } from "./modules/config";
 import { Command } from "./modules/command";
 import { ROOTPATH } from "../app";
 
 /* setting.yml 配置文件 */
-let botConfig: any;
+let botConfig: BotConfig;
 /* bot 实例对象 */
 let Adachi: Client;
 /* redis 数据库实例 */
@@ -45,17 +47,7 @@ function init(): void {
 	}
 	
 	/* 初始化账号配置文件 */
-	createYAML( "setting", {
-		qrcode: "true 启用扫码登录,每次登录都需验证,Docker 启动禁用,默认不启用",
-		number: "QQ 账号",
-		password: "QQ 密码",
-		master: "BOT 持有者账号",
-		header: "命令起始符(可为空串\"\")",
-		platform: "1.安卓手机(默认) 2.aPad 3.安卓手表 4.MacOS 5.iPad",
-		atUser: "true 启用回复 at 用户,默认关闭",
-		intervalTime: "指令操作CD,单位 ms,默认 1500ms",
-		dbPort: 56379
-	} );
+	createYAML( "setting", BotConfig.initObject );
 	
 	/* 初始化命令头配置文件 */
 	createYAML( "commands", {
@@ -83,20 +75,14 @@ async function migrate(): Promise<void> {
 }
 
 function setEnvironment(): void {
-	botConfig = loadYAML( "setting" );
+	botConfig = new BotConfig();
 	
-	if ( typeof botConfig.platform === "string" ) {
-		botConfig.platform = 1;
-	}
-	if ( typeof botConfig.intervalTime === "string" || !botConfig.intervalTime ) {
-		botConfig.intervalTime = 1500;
-	}
 	Adachi = createClient( botConfig.number, {
 		log_level: "debug",
 		platform: botConfig.platform
 	} );
 	
-	if ( botConfig.qrcode === true ) {
+	if ( botConfig.qrcode ) {
 		/* 扫码登录 */
 		Adachi.on( "system.login.qrcode", () => {
 			Adachi.logger.mark( "手机扫码完成后按下 Enter 继续...\n" );
@@ -161,6 +147,16 @@ async function run(): Promise<void> {
 		const limit: string[] = await Redis.getList( `adachi.user-command-limit-${ qqID }` );
 		const sendMessage: sendType = getSendMessageFunc( qqID, MessageType.Private );
 		execute( sendMessage, messageData, content, privateCommands[auth], limit );
+	} );
+	
+	/* 自动接受入群邀请 */
+	Adachi.on( "request.group.invite", async ( inviteData: GroupInviteEventData ) => {
+		const inviterID: number = inviteData.user_id;
+		if ( await checkAuthLevel( inviterID, botConfig.inviteAuth ) ) {
+			await Adachi.setGroupAddRequest( inviteData.flag );
+		} else {
+			Adachi.logger.info( `用户 ${ inviterID } 权限不足邀请入群` );
+		}
 	} );
 }
 
