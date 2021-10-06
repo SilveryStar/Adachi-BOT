@@ -63,3 +63,10 @@
 .content.has-empty {
 	align-items: center;
 }
+
+.author {
+	position: absolute;
+	font-size: 15px;
+	right: 36px;
+	bottom: 21px;
+}

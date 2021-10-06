@@ -11,6 +11,7 @@ const template =
 			</div>
 		</div>
 	</div>
+	<p class="author">Created by Adachi-BOT</p>
 </div>`;
 
 import Vue from "../../public/js/vue.js";
