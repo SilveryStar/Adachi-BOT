@@ -1,12 +1,13 @@
 import { PrivateMessageEventData, GroupMessageEventData } from "oicq";
+import { sendType } from "../../../modules/message";
+import { WishResult } from "../module/wish";
 import { wishClass } from "../init";
 import { Redis } from "../../../bot";
-import { WishResult } from "../module/wish";
 import { render } from "../utils/render";
 
 type Message = PrivateMessageEventData | GroupMessageEventData;
 
-async function main( sendMessage: ( content: string ) => any, message: Message ): Promise<void> {
+async function main( sendMessage: sendType, message: Message ): Promise<void> {
 	const qqID: number = message.user_id;
 	const nickname: string = message.sender.nickname;
 	

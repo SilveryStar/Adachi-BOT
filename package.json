@@ -29,7 +29,7 @@
     "node-fetch": "^2.6.1",
     "node-schedule": "^2.0.0",
     "object-immutable-set": "^1.0.0",
-    "oicq": "^1.18.0",
+    "oicq": "^1.21.1",
     "puppeteer": "^10.0.0",
     "redis": "^3.1.2",
     "remove-prefix": "^2.0.0",

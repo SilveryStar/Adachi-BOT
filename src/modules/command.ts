@@ -1,6 +1,6 @@
 import { botConfig } from "../bot";
 import { CommonMessageEventData as Message } from "oicq";
-import { MessageScope, removeStringPrefix } from "./message";
+import { MessageScope, removeStringPrefix, sendType } from "./message";
 import { AuthLevel, checkAuthLevel } from "./auth";
 import { escapeRegExp } from "lodash"
 
@@ -53,11 +53,11 @@ export class Command implements CommandMethod {
 	public readonly display: boolean;
 	public readonly scope: MessageScope;
 	public readonly authLimit: AuthLevel;
-	public readonly run: ( sendMessage: ( content: string ) => any, message: Message, match: string | string[] ) => void | Promise<void>;
+	public readonly run: ( sendMessage: sendType, message: Message, match: string | string[] ) => void | Promise<void>;
 	
 	constructor(
 		config: CommandConfig,
-		main: ( sendMessage: ( content: string ) => any, message: Message, match: string | string[] ) => void | Promise<void>
+		main: ( sendMessage: sendType, message: Message, match: string | string[] ) => void | Promise<void>
 	) {
 		this.run = main;
 		this.key = config.key;

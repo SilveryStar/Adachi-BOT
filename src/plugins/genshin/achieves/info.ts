@@ -1,8 +1,9 @@
 import { CommonMessageEventData as Message } from "oicq";
+import { sendType } from "../../../modules/message";
 import { NameResult, getRealName } from "../utils/name";
 import { render } from "../utils/render";
 
-async function main( sendMessage: ( content: string ) => any, message: Message ): Promise<void> {
+async function main( sendMessage: sendType, message: Message ): Promise<void> {
 	const name: string = message.raw_message;
 	const result: NameResult = getRealName( name );
 	

@@ -1,8 +1,9 @@
 import { CommonMessageEventData as Message } from "oicq";
-import { Redis } from "../../bot";
+import { sendType } from "../../modules/message";
 import { AuthLevel } from "../../modules/auth";
+import { Redis } from "../../bot";
 
-async function main( sendMessage: ( content: string ) => any, message: Message ): Promise<void> {
+async function main( sendMessage: sendType, message: Message ): Promise<void> {
 	const data: string[] = message.raw_message.split( " " );
 	const targetID: number = parseInt( data[0] );
 	

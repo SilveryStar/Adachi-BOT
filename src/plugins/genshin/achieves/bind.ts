@@ -1,7 +1,8 @@
 import { CommonMessageEventData as Message } from "oicq";
+import { sendType } from "../../../modules/message";
 import { Redis } from "../../../bot";
 
-async function main( sendMessage: ( content: string ) => any, message: Message ): Promise<void> {
+async function main( sendMessage: sendType, message: Message ): Promise<void> {
 	const mysID: string = message.raw_message;
 	const qqID: number = message.user_id;
 	

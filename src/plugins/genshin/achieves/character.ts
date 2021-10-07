@@ -1,10 +1,11 @@
 import { CommonMessageEventData as Message } from "oicq";
+import { sendType } from "../../../modules/message";
 import { NameResult, getRealName } from "../utils/name";
 import { baseInfoPromise, characterInfoPromise, detailInfoPromise } from "../utils/promise";
 import { render } from "../utils/render";
 import { Redis } from "../../../bot";
 
-async function main( sendMessage: ( content: string ) => any, message: Message ): Promise<void> {
+async function main( sendMessage: sendType, message: Message ): Promise<void> {
 	const qqID: number = message.user_id;
 	const name: string = message.raw_message;
 	

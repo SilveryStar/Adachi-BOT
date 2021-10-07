@@ -1,4 +1,5 @@
 import { GroupMessageEventData, PrivateMessageEventData } from "oicq";
+import { sendType } from "../../../modules/message";
 import { characterInfoPromise, detailInfoPromise } from "../utils/promise";
 import { render } from "../utils/render";
 import { getRegion } from "../utils/region";
@@ -17,7 +18,7 @@ function getUserInfo( data: string ): [ number, string ] | string {
 
 type Message = GroupMessageEventData | PrivateMessageEventData;
 
-async function main( sendMessage: ( content: string ) => any, message: Message ): Promise<void> {
+async function main( sendMessage: sendType, message: Message ): Promise<void> {
 	const data: string = message.raw_message;
 	const qqID: number = message.user_id;
 	const info: [ number, string ] | string = getUserInfo( data );

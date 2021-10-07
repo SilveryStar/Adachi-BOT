@@ -1,8 +1,9 @@
 import { CommonMessageEventData as Message } from "oicq";
+import { sendType } from "../../modules/message";
+import { Command } from "../../modules/command";
 import { isGroupMessage, isPrivateMessage } from "../../modules/message";
 import { groupCommands, privateCommands } from "../../bot";
 import { ROOTPATH } from "../../../app";
-import { Command } from "../../modules/command";
 import { AuthLevel, getAuthLevel } from "../../modules/auth";
 
 function getVersion(): string {
@@ -10,7 +11,7 @@ function getVersion(): string {
 	return version;
 }
 
-async function main( sendMessage: ( content: string ) => any, message: Message ): Promise<void> {
+async function main( sendMessage: sendType, message: Message ): Promise<void> {
 	let helpInfo: string = `Adachi-BOT v${ getVersion() }~`;
 	let commands: Command[] = [];
 	let id: number = 0;
