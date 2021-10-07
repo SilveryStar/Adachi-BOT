@@ -33,3 +33,6 @@ cookies: foo
 1. 安装 Docker，见[菜鸟教程](https://www.runoob.com/docker/centos-docker-install.html)
 2. 创建一个存放数据的目录，如 `/usr/data/redis`
 3. 运行命令 `docker run -d -p 56379:6379 --name bot-redis -v /usr/data/redis:/data redis --appendonly yes`
+
+### Q9：从较低版本更新至 v2.0.8+ 后，启动时报错？
+需执行 `npm install` 更新 `oicq` 版本
