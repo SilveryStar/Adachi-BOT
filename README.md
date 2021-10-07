@@ -2,7 +2,7 @@
 更好的管理模块与图片样式<br>
 对于开发者，若有意愿开发插件，请参考 [插件开发文档](https://github.com/SilveryStar/Adachi-BOT/tree/v2.0Beta/document)
 
-[常见问题汇总](https://github.com/SilveryStar/Adachi-BOT/blob/master/document/FAQ.md) | [管理者手册](https://github.com/SilveryStar/Adachi-BOT/blob/master/document/MASTER.md)
+[常见问题汇总](https://github.com/SilveryStar/Adachi-BOT/blob/master/document/FAQ.md) | [管理者手册](https://github.com/SilveryStar/Adachi-BOT/blob/master/document/MASTER.md) | [插件库](https://github.com/SilveryStar/Adachi-Plugin)
 
 ## Deploy
 > 注意：以下内容仅供 Linux 环境下部署使用，Windows 环境下的部署不予解答
@@ -34,7 +34,7 @@ dbPort: 56379        # 数据库端口
                      # 修改该选项需同时修改 redis.conf -> port
 intervalTime: 1500   # 指令操作冷却时间, 单位毫秒, 默认1500ms
 inviteAuth: "master" # 邀请自动入群权限
-                     # master表示BOT持有者, manager表示BOT管理员, 默认master",
+                     # master表示BOT持有者, manager表示BOT管理员, 默认master
 
 > cookies.yml
 cookies:
@@ -160,7 +160,7 @@ npm run serve
 
 > [WebStorm](https://www.jetbrains.com/webstorm?from=Adachi-BOT) 是一个在各个方面都最大程度地提高开发人员的生产力的 IDE
 
-[![Webstorm](document/icon-webstorm.svg)](https://www.jetbrains.com/webstorm?from=Adachi-BOT)
+[![Webstorm](https://github.com/SilveryStar/Adachi-BOT/blob/master/document/icon-webstorm.svg)](https://www.jetbrains.com/webstorm?from=Adachi-BOT)
 
 ## Resources
 由于本项目的绝大多数图片资源都来自维基百科，我们依照 [CC-BY-SA-3.0](https://creativecommons.org/licenses/by-sa/3.0/legalcode) 协议将内容公开，发送申请到邮箱 `silverystar.top@gmail.com` 来获取图包，注意说明来意
