@@ -99,7 +99,7 @@ async function main( sendMessage: sendType, message: Message ): Promise<void> {
 	
 	const replyMessage = await Adachi.makeForwardMsg( content );
 	if ( replyMessage.status === "ok" ) {
-		await sendMessage( replyMessage.data );
+		await sendMessage( replyMessage.data, false );
 	}
 }
 

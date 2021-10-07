@@ -14,16 +14,16 @@ enum MessageType {
 	Private
 }
 
-type sendType = ( content: Sendable ) => Promise<void>;
+type sendType = ( content: Sendable, allowAt?: boolean ) => Promise<void>;
 
 function getSendMessageFunc( qqID: number, type: MessageType, groupID?: number ): any {
 	if ( type === MessageType.Private ) {
-		return async function ( content: Sendable ): Promise<void> {
+		return async function ( content: Sendable, allowAt?: boolean ): Promise<void> {
 			await Adachi.sendPrivateMsg( qqID, content );
 		}
 	} else if ( type === MessageType.Group ) {
-		return async function ( content: Sendable ): Promise<void> {
-			if ( botConfig.atUser === true ) {
+		return async function ( content: Sendable, allowAt?: boolean ): Promise<void> {
+			if ( botConfig.atUser && allowAt !== false ) {
 				content = `[CQ:at,qq=${ qqID }]\n${ content }`;
 			}
 			await Adachi.sendGroupMsg( groupID as number, content );
