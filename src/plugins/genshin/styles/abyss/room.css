@@ -31,7 +31,7 @@
 .battle .time {
 	position: relative;
 	display: inline-block;
-	font-family: Microsoft YaHei, monospace;
+	font-family: ZhongSong, monospace;
 	padding: 6px 0;
 	height: 21px;
 	line-height: 21px;
@@ -54,7 +54,7 @@
 	position: absolute;
 	display: inline-block;
 	color: rgb(255, 255, 255);
-	font-family: Microsoft YaHei, monospace;
+	font-family: ZhongSong, monospace;
 	left: 365px;
 	font-size: 14px;
 }

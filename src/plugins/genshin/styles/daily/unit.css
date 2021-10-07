@@ -1,0 +1,54 @@
+.unit {
+	vertical-align: top;
+	padding-right: 24px;
+	margin-bottom: 16px;
+}
+
+.top-box {
+	position: relative;
+	margin-bottom: 8px;
+	vertical-align: top;
+	height: 32px;
+	width: 100%;
+}
+
+.ascension-name {
+	position: relative;
+	display: inline-block;
+	left: 0;
+	top: 0;
+	margin: 1px 0;
+	height: 30px;
+	width: 72px;
+	line-height: 30px;
+	text-align: center;
+	border-radius: 8px;
+	background-color: rgb(73, 96, 131);
+	color: rgb(234, 229, 216);
+	font-size: 13px;
+	box-shadow: 2px 2px 2px 1px rgba(0, 0, 0, 0.2);
+}
+
+.materials-list {
+	position: absolute;
+	display: inline-block;
+	right: 0;
+	top: 0;
+}
+
+.materials {
+	position: relative;
+	display: inline-block;
+	width: 32px;
+	border-radius: 6px;
+	margin-left: 4px;
+}
+
+.item {
+	position: relative;
+	display: inline-block;
+	width: 60px;
+	margin-right: 4px;
+	margin-bottom: 3px;
+	border-radius: 6px;
+}

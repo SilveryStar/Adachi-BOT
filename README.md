@@ -142,11 +142,19 @@ npm run serve
 </div>
 </details>
 
+<details>
+<summary>每日素材订阅 sub</summary>
+<div align="center">
+    <img src="https://z3.ax1x.com/2021/10/06/4zJ4JI.png" alt="ERROR">
+</div>
+</details>
+
 ## Thanks
 | Nickname                                                     | Contribution                        |
 | :----------------------------------------------------------: | ----------------------------------- |
 |[GenshinImpactWiki](https://genshin-impact.fandom.com/wiki/Genshin_Impact_Wiki) | 本项目的绝大多数图片资源 |
 |[lulu666lulu](https://github.com/lulu666lulu) | 提供了最新的DS算法 |
+|[可莉特调](https://genshin.pub/daily) | 本项目每日素材订阅页面样式参考 |
 |[JetBrains](https://www.jetbrains.com?from=Adachi-BOT) | 为开源项目提供免费的 WebStorm 等 IDE 的授权 |
 
 

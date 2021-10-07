@@ -4,6 +4,9 @@ import { parse } from "yaml";
 import { toCamelCase } from "./camel-case";
 import { ResponseBody } from "../types/response";
 import fetch from "node-fetch";
+import { SlipDetail } from "../module/slip";
+import { DailyMaterial } from "../module/daily";
+import { InfoResponse } from "../types";
 
 const __API = {
 	FETCH_ROLE_ID: "https://api-takumi.mihoyo.com/game_record/app/card/wapi/getGameRecordCard",
@@ -17,6 +20,7 @@ const __API = {
 	FETCH_WISH_CONFIG: "https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/wish/config/$.json",
 	FETCH_INFO: "https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/info/docs/$.json",
 	FETCH_ALIAS_SET: "https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/alias/alias.yml",
+	FETCH_DAILY_MAP: "https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/daily/daily.yml"
 };
 
 const HEADERS = {
@@ -172,7 +176,7 @@ async function getWishDetail( wishID: number ): Promise<any> {
 	} );
 }
 
-async function getInfo( name: string ): Promise<any> {
+async function getInfo( name: string ): Promise<InfoResponse | string> {
 	const charLinkWithName: string = __API.FETCH_INFO.replace( "$", encodeURI( name ) );
 	
 	return new Promise( ( resolve, reject ) => {
@@ -181,7 +185,7 @@ async function getInfo( name: string ): Promise<any> {
 				if ( result.status === 404 ) {
 					reject( "" );
 				} else {
-					resolve( result.json() );
+					resolve( result.json() as unknown as InfoResponse );
 				}
 			} );
 	} );
@@ -196,7 +200,7 @@ async function getArtifact(): Promise<any> {
 	} );
 }
 
-async function getSlip(): Promise<any> {
+async function getSlip(): Promise<SlipDetail> {
 	return new Promise( ( resolve ) => {
 		fetch( __API.FETCH_SLIP )
 			.then( async ( result: Response ) => {
@@ -229,6 +233,15 @@ async function getAliasName(): Promise<any> {
 	} );
 }
 
+async function getDailyMaterial(): Promise<DailyMaterial> {
+	return new Promise( ( resolve ) => {
+		fetch( __API.FETCH_DAILY_MAP )
+			.then( async ( result: Response ) => {
+				resolve( parse( await result.text() ) );
+			} );
+	} );
+}
+
 export {
 	getBaseInfo,
 	getDetailInfo,
@@ -240,5 +253,6 @@ export {
 	getArtifact,
 	getSlip,
 	getWishConfig,
-	getAliasName
+	getAliasName,
+	getDailyMaterial
 }

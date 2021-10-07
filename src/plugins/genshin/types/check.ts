@@ -3,7 +3,9 @@ import { Abyss } from "./abyss";
 import { BBS } from "./hoyobbs";
 import { Character } from "./character";
 import { UserInfo } from "./user-info";
+import { CharacterInfo, InfoResponse, WeaponInfo } from "./info";
 
+/* 对于米游社 API 返回数据的类型检查 */
 export function isAbyss( obj: ResponseDataType ): obj is Abyss {
 	return obj.type === "abyss";
 }
@@ -18,4 +20,13 @@ export function isCharacter( obj: ResponseDataType ): obj is Character {
 
 export function isUserInfo( obj: ResponseDataType ): obj is UserInfo {
 	return obj.type === "user-info";
+}
+
+/* 对于 OSS 返回数据的类型检查 */
+export function isWeaponInfo( obj: InfoResponse ): obj is WeaponInfo {
+	return obj.type === "武器";
+}
+
+export function isCharacterInfo( obj: InfoResponse ): obj is CharacterInfo {
+	return obj.type === "角色";
 }
