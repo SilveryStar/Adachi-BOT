@@ -8,14 +8,14 @@ import {
 	createClient
 } from "oicq";
 import { getSendMessageFunc, removeStringPrefix, sendType, MessageType } from "./modules/message";
-import { createFolder, createYAML, exists, loadYAML } from "./utils/config";
+import { createFolder, createYAML, exists } from "./utils/config";
 import { loadPlugins } from "./modules/plugin";
 import { resolve } from "path";
 import { readFileSync, renameSync } from "fs";
 import { AuthLevel, checkAuthLevel, getAuthLevel } from "./modules/auth";
+import { Command, CommandMatchResult } from "./modules/command";
 import { Database } from "./utils/database";
 import { BotConfig } from "./modules/config";
-import { Command } from "./modules/command";
 import { ROOTPATH } from "../app";
 
 /* setting.yml 配置文件 */
@@ -173,15 +173,16 @@ function execute( sendMessage: sendType, message: CommonMessageEventData, conten
 	for ( let command of commands ) {
 		/* 判断命令限制 */
 		if ( !limit.includes( command.key ) ) {
-			const match: string | string[] = command.match( content );
-			if ( typeof match === "string" && match !== "" ) {
-				message.raw_message = removeStringPrefix( removeStringPrefix( content, match ), " " );
-				command.run( sendMessage, message, match );
-				break;
+			const res: CommandMatchResult = command.match( content );
+			if ( !res.flag ) {
+				continue;
 			}
-			if ( match instanceof Array && match.length !== 0 ) {
-				command.run( sendMessage, message, match );
+			if ( res.type === "order") {
+				message.raw_message = removeStringPrefix( removeStringPrefix( content, res.data as string ), " " );
+				command.run( sendMessage, message, res );
 				break;
+			} else if ( res.type === "switch" ) {
+				command.run( sendMessage, message, res );
 			}
 		}
 	}

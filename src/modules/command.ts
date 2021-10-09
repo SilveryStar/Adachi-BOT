@@ -1,18 +1,21 @@
 import { botConfig } from "../bot";
 import { CommonMessageEventData as Message } from "oicq";
-import { MessageScope, removeStringPrefix, sendType } from "./message";
+import { MessageScope, sendType } from "./message";
 import { AuthLevel, checkAuthLevel } from "./auth";
-import { escapeRegExp } from "lodash"
+import { escapeRegExp, trimStart } from "lodash"
 
 interface CommandMethod {
-	getDocsInfo(): string
-	getKeysInfo(): string
-	match( message: string ): string | string[]
-	checkAuth( id: number, auth: AuthLevel ): Promise<boolean>
+	getKeysInfo(): string;
+	match( message: string ): CommandMatchResult;
+	checkAuth( id: number, auth: AuthLevel ): Promise<boolean>;
 }
 
+/**
+ * @interface
+ * @enable 无需配置，仅用于用户配置文件写入
+ * */
 interface CommandConfig {
-	commandType: "order" | "question";
+	commandType: "order" | "switch" | "question";
 	key: string;
 	docs: string[];
 	authLimit?: AuthLevel;
@@ -20,13 +23,24 @@ interface CommandConfig {
 	main?: string;
 	detail?: string;
 	display?: boolean;
+	start?: boolean;
+	end?: boolean;
+	enable?: boolean;
 }
 
 interface Order extends CommandConfig {
 	commandType: "order";
 	headers: string[];
-	regexps: string[];
-	start?: boolean;
+	regexps: string[] | string[][];
+}
+
+interface Switch extends CommandConfig {
+	commandType: "switch";
+	mode: "single" | "divided";
+	header: string;
+	regexp: string | string[];
+	onKeyword: string;
+	offKeyword: string;
 }
 
 interface Question extends CommandConfig {
@@ -34,84 +48,156 @@ interface Question extends CommandConfig {
 	sentences: string[];
 }
 
+type CommandType = Order | Switch | Question;
+
 function isOrder( data: CommandConfig ): data is Order {
 	return data.commandType === "order";
+}
+
+function isSwitch( data: CommandConfig ): data is Switch {
+	return data.commandType === "switch";
 }
 
 function isQuestion( data: CommandConfig ): data is Question {
 	return data.commandType === "question";
 }
 
+interface SwitchMatch {
+	switch: string;
+	match: string[];
+	isOn: () => boolean;
+}
+
+interface CommandMatchResult {
+	type: "order" | "switch" | "question" | "unmatch";
+	data: string | SwitchMatch | string[];
+	flag: boolean;
+}
+
+type mainFunc = ( sendMessage: sendType, message: Message, match: CommandMatchResult ) => void | Promise<void>;
+
 export class Command implements CommandMethod {
 	private readonly type: string;
-	private readonly regexps: RegExp[];
-	private readonly docs: string[];
-	private readonly headers: string[];
+	private readonly headers: string[] = [];
+	private readonly regexps: RegExp[] = [];
+	private readonly rawConfig: CommandType;
+	private readonly startCharacter: boolean;
+	private readonly endCharacter: boolean;
 	
 	public readonly key: string;
+	public readonly docs: string;
 	public readonly detail: string;
 	public readonly display: boolean;
 	public readonly scope: MessageScope;
 	public readonly authLimit: AuthLevel;
-	public readonly run: ( sendMessage: sendType, message: Message, match: string | string[] ) => void | Promise<void>;
+	public readonly run: mainFunc
 	
-	constructor(
-		config: CommandConfig,
-		main: ( sendMessage: sendType, message: Message, match: string | string[] ) => void | Promise<void>
-	) {
+	constructor( config: CommandType, main: mainFunc ) {
 		this.run = main;
 		this.key = config.key;
-		this.docs = config.docs;
 		this.type = config.commandType;
-		this.headers = <Array<string>>[];
-		this.regexps = <Array<RegExp>>[];
+		this.rawConfig = config;
 		
-		this.detail = config.detail === undefined ? "该指令暂无更多信息" : config.detail;
-		this.scope = config.scope === undefined ? MessageScope.Both : config.scope;
-		this.authLimit = config.authLimit === undefined ? AuthLevel.User : config.authLimit;
-		this.display = config.display === undefined ? true : config.display;
+		this.detail = config.detail || "该指令暂无更多信息";
+		this.scope = config.scope || MessageScope.Both;
+		this.authLimit = config.authLimit || AuthLevel.User;
+		this.display = config.display !== false;
+		this.startCharacter = config.start !== false;
+		this.endCharacter = config.end !== false;
 		
 		if ( isOrder( config ) ) {
 			for ( let header of config.headers ) {
 				this.headers.push( Command.modifyHeader( header ) );
 			}
+			
+			let rawRegs = config.regexps;
+			const isDeep: boolean = config.regexps.some( el => el instanceof Array );
+			if ( !isDeep ) {
+				rawRegs = [ rawRegs as string[] ];
+			}
+			
 			for ( let header of this.headers ) {
-				for ( let reg of config.regexps ) {
-					let h: string = ( config.start !== false ? "^" : "" ) + escapeRegExp( header );
-					this.regexps.push( new RegExp( h + reg ) );
+				for ( let reg of rawRegs as string[][] ) {
+					const r: string = [ "", ...reg ].join( " *" );
+					const h: string = escapeRegExp( header );
+					this.regexps.push( new RegExp( this.addStartStopCharacter( h + r ) ) );
 				}
 			}
 		}
+
+		if ( isSwitch( config ) ) {
+			const process: ( h: string ) => string = h => escapeRegExp( Command.modifyHeader( h ) );
+			
+			if ( config.mode === "single" ) {
+				let reg: string = config.regexp instanceof Array
+								? [ "", ...config.regexp ].join( " *" )
+								: config.regexp;
+				
+				const h: string = process( config.header );
+				const r: string = reg.replace( "${OPT}", `(${ config.onKeyword }|${ config.offKeyword })` );
+				this.headers.push( h );
+				this.regexps.push( new RegExp( this.addStartStopCharacter( h + r ) ) );
+			} else {
+				const r: string = config.regexp instanceof Array
+								? [ "", ...config.regexp.filter( el => el !== "${OPT}" ) ].join( " *" )
+								: config.regexp.replace( " ${OPT}", "" );
+				const h1: string = process( config.onKeyword );
+				const h2: string = process( config.offKeyword );
+				this.headers.push( h1, h2 );
+				this.regexps.push(
+					new RegExp( this.addStartStopCharacter( h1 + r ) ),
+					new RegExp( this.addStartStopCharacter( h2 + r ) )
+				);
+			}
+		}
+		
 		if ( isQuestion( config ) ) {
 			for ( let sentence of config.sentences ) {
 				sentence = sentence.replace( "${HEADER}", escapeRegExp( botConfig.header ) );
 				this.regexps.push( new RegExp( sentence ) );
 			}
 		}
-	}
-	
-	static modifyHeader( rawConfig: string ): string {
-		if ( rawConfig.substr( 0, 2 ) === "__" ) {
-			return removeStringPrefix( rawConfig, "__" );
-		} else {
-			return botConfig.header + rawConfig;
-		}
-	}
-	
-	public getDocsInfo(): string {
-		let info = this.docs[0] + " ";
 		
-		for ( let i = 0; i < this.headers.length; i++ ) {
-			if ( i !== 0 ) {
-				info += "|";
+		/* 最后处理 docs 信息 */
+		this.docs = this.parseDocs();
+	}
+	
+	static modifyHeader( raw: string ): string {
+		if ( raw.substr( 0, 2 ) === "__" ) {
+			return trimStart( raw, "_" );
+		} else {
+			return botConfig.header + raw;
+		}
+	}
+	
+	private addStartStopCharacter( raw: string ): string {
+		return ( this.startCharacter ? "^" : "" ) + raw + ( this.endCharacter ? "$" : "" );
+	}
+	
+	private parseDocs(): string {
+		let info = this.rawConfig.docs[0] + " ";
+		
+		if ( isOrder( this.rawConfig ) ) {
+			for ( let i = 0; i < this.headers.length; i++ ) {
+				if ( i !== 0 ) {
+					info += "|";
+				}
+				info += this.headers[i];
 			}
-			info += this.headers[i];
-		}
-		if ( this.type === "order" && this.docs[1] !== "" ) {
-			info += " " + this.docs[1];
-		}
-		if ( this.type === "question" ) {
-			info += "发送:" + this.docs[1];
+			if ( this.rawConfig.docs[1] !== "" ) {
+				info += " " + this.rawConfig.docs[1];
+			}
+		} else if ( isSwitch( this.rawConfig ) ) {
+			if ( this.rawConfig.mode === "single" ) {
+				const s: string = `<${ this.rawConfig.onKeyword }|${ this.rawConfig.offKeyword }>`
+				info += this.headers[0] + " ";
+				info += this.rawConfig.docs[1].replace( "${OPT}", s );
+			} else {
+				info += `${ this.headers[0] }|${ this.headers[1] } `;
+				info += this.rawConfig.docs[1].replace( /\${OPT}/, "" ).trim().replace( /\s+/g, " " );
+			}
+		} else if ( isQuestion( this.rawConfig ) ) {
+			info += "发送:" + this.rawConfig.docs[1];
 		}
 		
 		return info;
@@ -121,27 +207,53 @@ export class Command implements CommandMethod {
 		return `${ this.docs[0] } -- ${ this.key }`
 	}
 	
-	public match( message: string ): string | string[] {
-		if ( this.type === "order" ) {
-			for ( let i = 0; i < this.regexps.length; i++ ) {
+	public match( message: string ): CommandMatchResult {
+		let data: any;
+		if ( isOrder( this.rawConfig ) ) {
+			const regNum: number = this.regexps.length;
+			for ( let i = 0; i < regNum; i++ ) {
 				if ( this.regexps[i].test( message ) ) {
-					return this.headers[i];
+					data = this.headers[i];
+					return { type: "order", data, flag: true };
 				}
 			}
-			return "";
-		} else {
+		} else if ( isSwitch( this.rawConfig ) ) {
+			data = {};
 			for ( let regexp of this.regexps ) {
-				const result: RegExpExecArray | null = regexp.exec( message );
-				if ( result !== null ) {
-					return result.splice( 1 );
+				const res: RegExpExecArray | null = regexp.exec( message );
+				const onKeyword: string = this.rawConfig.onKeyword;
+				const offKeyword: string = this.rawConfig.offKeyword;
+				
+				if ( res === null ) {
+					continue;
+				}
+				const tmp: string[] = res.splice( 1 );
+				if ( tmp.includes( onKeyword ) ) {
+					data.switch = onKeyword;
+				}
+				if ( tmp.includes( offKeyword ) ) {
+					data.switch = offKeyword;
+				}
+				
+				data.match = res[0].split( " " ).filter( el => el !== data.switch );
+				data.isOn = () => data.switch === onKeyword;
+				return { type: "switch", data, flag: true };
+			}
+		} else if ( isQuestion( this.rawConfig ) ) {
+			for ( let regexp of this.regexps ) {
+				const res: RegExpExecArray | null = regexp.exec( message );
+				if ( res !== null ) {
+					data = res.splice( 1 );
+					return { type: "question", data, flag: true };
 				}
 			}
-			return [];
 		}
+		
+		return { type: "unmatch", data, flag: false };
 	}
 	
 	public compare(): number {
-		return this.type === "order" ? 0 : 1;
+		return this.type !== "question" ? 0 : 1;
 	}
 	
 	public async checkAuth( userID: number ): Promise<boolean> {
@@ -150,8 +262,11 @@ export class Command implements CommandMethod {
 }
 
 export {
-	Order,
-	Question,
+	CommandType,
 	CommandConfig,
-	isOrder
+	CommandMatchResult,
+	SwitchMatch,
+	isOrder,
+	isSwitch,
+	isQuestion
 }

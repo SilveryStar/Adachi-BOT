@@ -142,23 +142,21 @@ class DailyClass {
 		} );
 	}
 	
-	public async modifySubscription( qqID: number, operation: string, name: string, isGroup: boolean ): Promise<string> {
-		const opType: boolean = operation === "add";
-		
+	public async modifySubscription( qqID: number, operation: boolean, name: string, isGroup: boolean ): Promise<string> {
 		/* 添加/删除群聊订阅 */
 		if ( isGroup ) {
 			const dbKey: string = "silvery-star.daily-sub-group";
 			const exist: boolean = await Redis.existListElement( dbKey, name );
 		
-			if ( exist === opType ) {
-				return `群聊 ${ name } ${ opType ? "已订阅" : "未曾订阅" }`;
-			} else if ( opType ) {
+			if ( exist === operation ) {
+				return `群聊 ${ name } ${ operation ? "已订阅" : "未曾订阅" }`;
+			} else if ( operation ) {
 				await Redis.addListElement( dbKey, name );
 			} else {
 				await Redis.delListElement( dbKey, name );
 			}
 			
-			return `群聊订阅${ operation === "add" ? "添加" : "取消" }成功`;
+			return `群聊订阅${ operation ? "添加" : "取消" }成功`;
 		}
 		
 		/* 添加/删除私聊订阅 */
@@ -169,15 +167,15 @@ class DailyClass {
 			const dbKey: string = `silvery-star.daily-sub-${ qqID }`;
 			const exist: boolean = await Redis.existListElement( dbKey, realName );
 
-			if ( exist === opType ) {
-				return `「${ realName }」${ opType ? "已订阅" : "未曾订阅" }`;
-			} else if ( opType ) {
+			if ( exist === operation ) {
+				return `「${ realName }」${ operation ? "已订阅" : "未曾订阅" }`;
+			} else if ( operation ) {
 				await Redis.addListElement( dbKey, realName );
 			} else {
 				await Redis.delListElement( dbKey, realName );
 			}
 			
-			return `订阅${ operation === "add" ? "添加" : "取消" }成功`;
+			return `订阅${ operation ? "添加" : "取消" }成功`;
 		} else if ( result.info === "" ) {
 			return `未找到名为「${ name }」的角色或武器，若确认名称输入无误，请前往 github.com/SilveryStar/Adachi-BOT 进行反馈`;
 		} else {

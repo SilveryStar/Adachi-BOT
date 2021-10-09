@@ -15,7 +15,7 @@ async function init(): Promise<any> {
 		key: "adachi.detail",
 		docs: [ "详细", "<编号>" ],
 		headers: [ "detail" ],
-		regexps: [ " [0-9]+$" ],
+		regexps: [ "[0-9]+" ],
 		authLimit: AuthLevel.Banned,
 		main: "detail"
 	} );

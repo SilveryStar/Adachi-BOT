@@ -29,7 +29,7 @@ async function main( sendMessage: sendType, message: Message ): Promise<void> {
 		if ( message.raw_message === "-k" ) {
 			helpInfo += `\n${ ++id }. ${ comm.getKeysInfo() }`
 		} else if ( comm.display ) {
-			helpInfo += `\n${ ++id }. ${ comm.getDocsInfo() }`;
+			helpInfo += `\n${ ++id }. ${ comm.docs }`;
 		}
 	}
 	await sendMessage( helpInfo );

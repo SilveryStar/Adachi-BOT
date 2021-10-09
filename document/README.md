@@ -1,4 +1,4 @@
-## Adachi-Plugin v1.0.4 开发者文档
+## Adachi-Plugin v1.1.0 开发者文档
 本文档持续更新和修正中欢迎开发者提供交流意见和建议
 
 ## 写在前面
@@ -28,7 +28,7 @@ export async function init(): Promise<any> {
 ```typescript
 function addPlugin(
     name: string,
-    ...commandList: CommandConfig[]
+    ...commandList: CommandType[]
 ): any {}
 ```
 * `name` 插件名称
@@ -43,27 +43,17 @@ import { CommonMessageEventData as Message } from "oicq";
 // 固定函数名
 export async function main(
     sendMessage: sendType,
-    message: Message, match: string | string[]
+    message: Message,
+    match: CommandMatchResult
 ): Promise<void> {
     // do something
 }
 ```
 参数详细如下：
-
-**形参列表**
-```typescript
-async function main(
-    sendMessage: sendType,
-    message: Message,
-    match: string | string[]
-): Promise<void> {}
-```
 * `sendMessage` 发送信息到对应群聊/私聊，异步函数
 * `message` 消息事件，详见 [message事件文档](https://github.com/takayama-lily/oicq/wiki/92.%E4%BA%8B%E4%BB%B6%E6%96%87%E6%A1%A3#event-message)
   + `Message.raw_message` 消息内容，类型为 string ，当指令为命令式时，其指令头已被删去
-* `match` 正则匹配信息
-  + `string` 当指令为命令式时，该值为取出的指令头
-  + `string[]` 当指令为询问式时，该值为匹配到的子表达式列表
+* `match` 正则匹配信息，类型详见 [指令匹配数据](#match-type)
 
 ## 消息
 ### 简述
@@ -112,13 +102,13 @@ enum AuthLevel {
 
 ## 指令 <span id="command"/>
 ### 简述
-`指令(Command)`是插件中的基本单位，是一个由声明和实现组成的「请求-响应」体，根据请求句式的不同，我们将其分为`命令式(Order)`和`询问式(Question)`两种类型，下面将分别介绍
+`指令(Command)`是插件中的基本单位，是一个由声明和实现组成的「请求-响应」体，根据请求句式的不同，我们将其分为`命令式(Order)`、`开关式(Switch)`和`询问式(Question)`两种类型，下面将分别介绍
 
 ### 声明指令
 **指令配置**
 ```typescript
 interface CommandConfig {
-    commandType: "order" | "question";
+    commandType: "order" | "switch" | "question";
     key: string;
     docs: string[];
     authLimit?: AuthLevel;
@@ -126,6 +116,9 @@ interface CommandConfig {
     main?: string;
     detail?: string;
     display?: boolean;
+    start?: boolean;
+    end?: boolean;
+    enable?: boolean;
 }
 ```
 * `commandType` 指令类型，用于指定请求类型
@@ -141,25 +134,49 @@ interface CommandConfig {
 * `main` 指令实现文件名，可选属性，默认为`index`
 * `detail` 更多命令信息，可选属性
 * `display` 是否在「帮助」中显示命令，可选属性，默认为`true`
+* `start` 是否在指令正则前添加开始匹配符号 `^`，可选属性，默认为`true`
+* `end` 是否在指令正则后添加结束匹配符号 `$`，可选属性，默认为`true`
 
 ### 命令式指令
 ```typescript
 interface Order extends CommandConfig {
     commandType: "order";
     headers: string[];
-    regexps: string[];
-    start?: boolean;
+    regexps: string[] | string[][];
 }
 ```
 * `headers` 指令头，可以指定多个
   + 你不需要为这个指令头添加额外的特殊字符开头，这应该由用户在 `/config/setting.yml` 中设置
   + 如果你不希望某个指令头开头被添加特殊字符，请以`__`为开头
-  + 在命令式指令成功匹配后，被匹配到的`header`会作为参数传入`main`函数
+  + 在命令式指令成功匹配后，被匹配到的`header`会作为参数传入 `main` 函数
 * `regexps` 正则表达式，可以设置多个
-  + 表达式无需包含指令头，这将由系统与`headers`进行拼接
-  + 在拼接时，不包含空格的处理，请以自己的喜好进行正则书写
-* `start` 是否匹配输入字符串的开始位置，即在正则表达式前加 `^`
+  1. 表达式无需包含指令头，这将由系统与`headers`进行拼接
+  2. 如果只需设置一个正则表达式，可使用 `string[]` 类型，数组元素为正则的组成，并被 ` *` 连接，例：
+    + `[ "(add|dec)", "[0-9]+" ]` 将会最终被处理为 `^headers[i] *(add|dec) *[0-9]+$`
+  3. 如果需要设置多个正则表达式，则使用 `string[][]` 类型
+  4. 如果一个指令无需匹配数据，只包含指令头时，使用空数组 `[]` 即可
   
+### 开关式指令
+开关式指令实质上是命令式指令的一类特化
+```typescript
+interface Switch extends CommandConfig {
+    commandType: "switch";
+    mode: "single" | "divided";
+    header: string;
+    regexp: string | string[];
+    onKeyword: string;
+    offKeyword: string;
+}
+```
+* `mode` 开关式指令模式
+  + `single` 为单语句模式，开/关关键词作为参数，例如 `#header onKeyword` 或 `#header offKeyword`
+  + `divided` 为拆分语句模式，开/关关键词作为指令头，例如 `#onKeyword` 或 `#offKeyword`
+* `header` 指令头，只可指定一个，仅在 `single` 模式下生效，规则与命令式指令相同
+* `regexp` 正则表达式，只可设置一个
+  + 当传入 `string` 类型时，正则将会被原生处理，否则会同上文规则一样被连接处理
+  + 在正则表达式和 `docs` 中使用 `${OPT}` 字段，它将被替换为开/关关键词，以便用户自定义
+* `onKeyword`,`offKeyword` 开/关关键词
+
 ### 询问式指令
 ```typescript
 interface Question extends CommandConfig {
@@ -171,6 +188,28 @@ interface Question extends CommandConfig {
   + 对于句式中你想获得的数据，应该使用子表达式包围
   + 在询问式指令成功匹配后，被匹配到的数据列表将作为参数传入`main`
   + 在 `sentences` 中的 `${HEADER}` 会被替换为用户 `setting.yml` 中设置的指令头
+
+### 指令匹配数据 <span id="match-type"/>
+在指令实现函数中，开发者可以获取正则匹配阶段获得的信息，其类型声明如下
+```typescript
+interface CommandMatchResult {
+    type: "order" | "switch" | "question" | "unmatch";
+    data: string | SwitchMatch | string[] ;
+    flag: boolean;
+}
+
+interface SwitchMatch {
+    switch: string;
+    match: string[];
+    isOn: () => boolean;
+}
+```
+* `Order` 类型插件的 `data` 类型为 `string`，值为所匹配到的指令头
+* `Switch` 类型插件的 `data` 类型为 `SwitchMatch`
+  + `switch` 为匹配到的开/关关键词
+  + `match` 为指令中除关键词外的其他匹配部分的列表
+  + `isOn` 用于判断指令匹配到的为 `onKeyword` 或 `offKeyword`，前者返回值为 `true`，后者为 `false`
+* `Question` 类型插件的 `data` 类型为 `string[]`，值为 `sentences` 正则中所匹配到的所有子表达式
 
 ## 数据库
 ### 简述
