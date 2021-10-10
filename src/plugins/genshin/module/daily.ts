@@ -36,7 +36,7 @@ class DailySet {
 		}
 	}
 	
-	public add( keyAsArr: string[], value: any, type: string ): void {
+	private add( keyAsArr: string[], value: any, type: string ): void {
 		const name: string = `${ type }Set`;
 		const keys: string[] = Object.keys( this[name] );
 		const key: string = JSON.stringify( keyAsArr );
@@ -59,6 +59,7 @@ class DailySet {
 
 class DailyClass {
 	private detail: DailyMaterial;
+	private userSubTmp: Record<number, DailySet> = {};
 	
 	constructor() {
 		this.detail = { "Mon&Thu": [], "Tue&Fri": [], "Wed&Sat": [] };
@@ -131,6 +132,8 @@ class DailyClass {
 				}
 				
 				const privateData = new DailySet( privateSub );
+				this.userSubTmp[qqID] = privateData;
+				
 				const randomMinute: number = randomInt( 3, 59 );
 				date.setMinutes( randomMinute );
 				
@@ -140,6 +143,18 @@ class DailyClass {
 				} );
 			}
 		} );
+	}
+	
+	public async getUserSubscription( qqID: number ): Promise<string> {
+		const date: Date = new Date();
+		if ( date.getDay() === 0 ) {
+			return "周日所有材料都可以刷取哦~";
+		}
+		
+		const data: DailySet | undefined = this.userSubTmp[qqID];
+		return data === undefined
+			        ? "您还没有订阅过素材或 BOT 当日数据未更新，请先订阅素材并在早晨六点后再次尝试"
+					: await render( "daily", data.get() );
 	}
 	
 	public async modifySubscription( qqID: number, operation: boolean, name: string, isGroup: boolean ): Promise<string> {

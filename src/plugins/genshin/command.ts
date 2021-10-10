@@ -114,8 +114,15 @@ const defaultCommandList: CommandType[] = [ {
 	offKeyword: "remove",
 	regexp: [ "${OPT}", "[0-9a-z\\u4e00-\\u9fa5]+" ],
 	main: "achieves/daily",
-	detail: "为自己添加/删除角色天赋/武器的突破材料，每天的 6:00~7:00 将会你随机推送\n" +
+	detail: "为自己添加/删除角色天赋/武器的突破材料，每天的 6:00~7:00 随机时间进行推送\n" +
 			"若使用群号，则将在 6:00 向该群发送所有角色天赋/武器的突破材料"
+}, {
+	commandType: "order",
+	key: "silvery-star.today",
+	docs: [ "今日订阅", "" ],
+	headers: [ "today" ],
+	regexps: [],
+	main: "achieves/today"
 } ];
 
 export default defaultCommandList;
