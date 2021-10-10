@@ -2,7 +2,7 @@
 更好的管理模块与图片样式<br>
 对于开发者，若有意愿开发插件，请参考 [插件开发文档](https://github.com/SilveryStar/Adachi-BOT/tree/v2.0Beta/document)
 
-[常见问题汇总](https://github.com/SilveryStar/Adachi-BOT/blob/master/document/FAQ.md) | [管理者手册](https://github.com/SilveryStar/Adachi-BOT/blob/master/document/MASTER.md) | [插件库](https://github.com/SilveryStar/Adachi-Plugin)
+[常见问题汇总](https://github.com/SilveryStar/Adachi-BOT/blob/master/document/FAQ.md) | [管理者手册](https://github.com/SilveryStar/Adachi-BOT/blob/master/document/MASTER.md) | [插件库](https://github.com/SilveryStar/Adachi-Plugin) | [功能及改进征集](https://github.com/SilveryStar/Adachi-BOT/issues/70)
 
 ## Deploy
 > 注意：以下内容仅供 Linux 环境下部署使用，Windows 环境下的部署不予解答
