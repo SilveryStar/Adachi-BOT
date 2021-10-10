@@ -181,7 +181,7 @@ function execute( sendMessage: sendType, message: CommonMessageEventData, conten
 				message.raw_message = removeStringPrefix( removeStringPrefix( content, res.data as string ), " " );
 				command.run( sendMessage, message, res );
 				break;
-			} else if ( res.type === "switch" ) {
+			} else {
 				command.run( sendMessage, message, res );
 			}
 		}
