@@ -1,4 +1,4 @@
-## Adachi-Plugin v1.1.0 开发者文档
+## Adachi-Plugin v1.1.1 开发者文档
 本文档持续更新和修正中欢迎开发者提供交流意见和建议
 
 ## 写在前面
@@ -328,17 +328,19 @@ async function getKeysByPrefix( prefix: string ): Promise<Array<string>> {}
 ### 操作
 **创建配置文件**
 ```typescript
-function createYAML( fileName: string, config: any ): void {}
+function createYAML( fileName: string, config: any ): boolean {}
 ```
 * `fileName` 配置文件名称，将创建文件 `/config/fileName.yml`
 * `config` 配置文件内容
+* 函数将会返回该文件是否存在
 * 注意：使用该方法无需判断配置文件是否存在
 
 **创建目录**
 ```typescript
-function createFolder( dirName: string ): void {}
+function createFolder( dirName: string ): boolean {}
 ```
 * `dirName` 目录名称，将创建文件夹 `/dirName`
+* 函数将会返回该文件是否存在
 * 注意：使用该方法无需判断配置目录是否存在
 
 **加载配置文件**

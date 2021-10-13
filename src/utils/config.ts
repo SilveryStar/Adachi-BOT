@@ -17,18 +17,22 @@ function exists( path: string ): boolean {
 	}
 }
 
-function createFolder( dirName: string ): void {
+function createFolder( dirName: string ): boolean {
 	const dirPath: string = resolve( `${ ROOTPATH }/${ dirName }` );
-	if ( !exists( dirPath ) ) {
+	const exist: boolean = exists( dirPath );
+	if ( exist ) {
 		mkdirSync( dirPath );
 	}
+	return exist;
 }
 
-function createYAML( fileName: string, config: any ): void {
+function createYAML( fileName: string, config: any ): boolean {
 	const filePath: string = getFilePath( fileName );
-	if ( !exists( filePath ) ) {
+	const exist: boolean = exists( filePath );
+	if ( exist ) {
 		writeYAML( fileName, config );
 	}
+	return exist
 }
 
 function readYAML( fileName: string ): string {
