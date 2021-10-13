@@ -1,94 +1,70 @@
 import { addPlugin } from "../../modules/plugin";
 import { createServer } from "./server";
-import { createYAML, loadYAML, writeYAML } from "../../utils/config";
-import { getArtifact, getSlip } from "./utils/api";
 import { createBrowser } from "./utils/render";
-import { CommandType } from "../../modules/command";
-import { Cookies } from "./module/cookies";
-import { TypeData } from "./module/type";
-import { ArtClass } from "./module/artifact";
-import { WishClass } from "./module/wish";
-import { SlipClass } from "./module/slip";
-import { AliasClass } from "./module/alias";
-import { DailyClass } from "./module/daily";
-import defaultCommandList from "./command";
+import { resolve } from "path";
+import { exists, createYAML, loadYAML, writeYAML } from "../../utils/config";
+import { Config } from "./types";
+import { ROOTPATH } from "../../../app";
+import commands from "./command";
+import * as m from "./module";
 
-let cookies: Cookies;
-let artClass: ArtClass;
-let wishClass: WishClass;
-let slipClass: SlipClass;
-let aliasClass: AliasClass;
-let dailyClass: DailyClass;
-let typeData: TypeData;
 let config: any;
+export const artClass = new m.ArtClass();
+export const cookies = new m.Cookies();
+export const typeData = new m.TypeData();
+export const aliasClass = new m.AliasClass();
+export const dailyClass = new m.DailyClass();
+export const wishClass = new m.WishClass();
+export const slipClass = new m.SlipClass();
 
-function getKeys(): any {
-	let res: any = {};
-	for ( let c of defaultCommandList ) {
-		res[c.key] = true;
-	}
-	return res;
-}
-
-function elementNum( o: object ) {
-	return Object.getOwnPropertyNames( o ).length;
-}
-
-function loadConfig(): any {
-	const load: any = loadYAML( "genshin" );
-	if ( elementNum( load ) - 1 !== defaultCommandList.length ) {
-		const newConfig: any = {
-			...getKeys(),
-			serverPort: 58612
-		}
-		writeYAML( "genshin", newConfig );
+function loadConfig() {
+	const defaultConfig: Config = {
+		// cardWeaponStyle: "none",
+		serverPort: 58612
+	};
+	
+	function load(): Config {
+		const config: any = loadYAML( "genshin" );
 		
-		return newConfig;
-	}
-	return load;
-}
-
-function initCommandList( config: any ): CommandType[] {
-	let commandList: CommandType[] = [];
-	
-	for ( let key in config ) {
-		if ( config.hasOwnProperty( key ) && config[key] === true ) {
-			const comm: any = defaultCommandList.find( el => el.key === key );
-			commandList.push( comm );
+		/* 针对旧版 genshin.yml 配置进行修改 */
+		if ( config["silvery-star.art"] !== undefined ) {
+			const c: any = {};
+			// c.cardWeaponStyle = "none";
+			c.serverPort = config.serverPort;
+			writeYAML( "genshin", c );
+			return c;
 		}
+		
+		/* 检查 defaultConfig 是否更新 */
+		const keysNum = o => Object.keys( o ).length;
+		if ( keysNum( config ) !== keysNum( defaultConfig ) ) {
+			const c: any = {};
+			const keys: string[] = Object.keys( defaultConfig );
+			for ( let k of keys ) {
+				c[k] = config[k] ? config[k] : defaultConfig[k];
+			}
+			writeYAML( "genshin", c );
+			return c;
+		}
+		
+		return config;
 	}
 	
-	return commandList;
+	const isExist: boolean = exists( resolve( ROOTPATH, "config/genshin.yml" ) );
+	if ( !isExist ) {
+		createYAML( "genshin", defaultConfig );
+		return defaultConfig;
+	} else {
+		return load();
+	}
 }
 
 async function init(): Promise<any> {
-	createYAML( "genshin", {
-		...getKeys(),
-		serverPort: 58612
-	} );
-	
 	config = loadConfig();
-	artClass = new ArtClass( await getArtifact() );
-	cookies = new Cookies();
-	wishClass = new WishClass();
-	slipClass = new SlipClass( await getSlip() );
-	dailyClass = new DailyClass();
-	typeData = new TypeData();
-	aliasClass = new AliasClass();
 	createServer();
 	await createBrowser();
 	
-	return addPlugin( "genshin", ...initCommandList( config ) );
+	return addPlugin( "genshin", ...commands );
 }
 
-export {
-	init,
-	cookies,
-	config,
-	artClass,
-	wishClass,
-	slipClass,
-	aliasClass,
-	dailyClass,
-	typeData
-}
+export { init, config }

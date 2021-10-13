@@ -1,5 +1,6 @@
 import { Redis } from "../../../bot";
 import { randomInt } from "../utils/random";
+import { getSlip } from "../utils/api";
 
 interface SlipDetail {
 	SlipInfo: string[];
@@ -39,10 +40,12 @@ class Slip {
 }
 
 class SlipClass {
-	private readonly SlipDetail: SlipDetail;
+	private SlipDetail: SlipDetail = { SlipInfo: [] };
 	
-	constructor( data: SlipDetail ) {
-		this.SlipDetail = data;
+	constructor() {
+		getSlip().then( ( data: SlipDetail ) => {
+			this.SlipDetail = data;
+		} );
 	}
 	
 	public async get( qqID: number ): Promise<string> {

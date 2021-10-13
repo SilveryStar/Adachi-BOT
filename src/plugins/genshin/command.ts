@@ -1,7 +1,7 @@
 import { CommandType } from "../../modules/command";
 import { AuthLevel } from "../../modules/auth";
 
-const defaultCommandList: CommandType[] = [ {
+const commands: CommandType[] = [ {
 	commandType: "order",
 	key: "silvery-star.bind",
 	docs: [ "绑定", "<通行证>" ],
@@ -125,4 +125,4 @@ const defaultCommandList: CommandType[] = [ {
 	main: "achieves/today"
 } ];
 
-export default defaultCommandList;
+export default commands;

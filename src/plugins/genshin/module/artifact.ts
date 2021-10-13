@@ -1,5 +1,6 @@
 import { Redis } from "../../../bot";
 import { randomInt } from "../utils/random";
+import { getArtifact } from "../utils/api";
 
 interface Domain {
 	name: string;
@@ -84,16 +85,18 @@ class ArtClass {
 		return -1;
 	}
 	
-	private readonly domains: Domain[];
-	private readonly suitNames: string[][];
-	private readonly weights: any;
-	private readonly values: number[][];
+	private weights: any;
+	private suitNames: string[][] = [];
+	private domains: Domain[] = [];
+	private values: number[][] = [];
 	
-	constructor( data: any ) {
-		this.domains = data.domains;
-		this.suitNames = data.suits;
-		this.weights = data.data.weights;
-		this.values = data.data.values;
+	constructor() {
+		getArtifact().then( ( data: any ) => {
+			this.domains = data.domains;
+			this.suitNames = data.suits;
+			this.weights = data.data.weights;
+			this.values = data.data.values;
+		} );
 	}
 	
 	private async getID( domainID: number = -1 ): Promise<number | string> {
