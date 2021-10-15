@@ -2,11 +2,12 @@ import request from "./requests";
 import getDS from "./ds";
 import { parse } from "yaml";
 import { toCamelCase } from "./camel-case";
+import { set } from "lodash";
 import { ResponseBody } from "../types/response";
-import fetch from "node-fetch";
 import { SlipDetail } from "../module/slip";
 import { DailyMaterial } from "../module/daily";
 import { InfoResponse } from "../types";
+import fetch from "node-fetch";
 
 const __API = {
 	FETCH_ROLE_ID: "https://api-takumi.mihoyo.com/game_record/app/card/wapi/getGameRecordCard",
@@ -46,9 +47,9 @@ async function getBaseInfo( mysID: number, cookie: string ): Promise<ResponseBod
 			}
 		} )
 			.then( ( result ) => {
-				const response: ResponseBody = JSON.parse( result );
-				response.data.type = "bbs";
-				resolve( toCamelCase( response ) );
+				const resp = toCamelCase( JSON.parse( result ) );
+				const data: ResponseBody = set( resp, "data.type", "bbs" )
+				resolve( data );
 			} )
 			.catch( ( reason ) => {
 				reject( reason );
@@ -73,9 +74,9 @@ async function getDetailInfo( uid: number, server: string, cookie: string ): Pro
 			}
 		} )
 			.then( ( result ) => {
-				const response: ResponseBody = JSON.parse( result );
-				response.data.type = "user-info";
-				resolve( toCamelCase( response ) );
+				const resp = toCamelCase( JSON.parse( result ) );
+				const data: ResponseBody = set( resp, "data.type", "user-info" )
+				resolve( data );
 			} )
 			.catch( ( reason ) => {
 				reject( reason );
@@ -104,9 +105,9 @@ async function getCharactersInfo( roleID: number, server: string, charIDs: numbe
 			}
 		} )
 			.then( ( result ) => {
-				const response: ResponseBody = result;
-				response.data.type = "character";
-				resolve( toCamelCase( response ) );
+				const resp = toCamelCase( result );
+				const data: ResponseBody = set( resp, "data.type", "character" )
+				resolve( data );
 			} )
 			.catch( ( reason ) => {
 				reject( reason );
