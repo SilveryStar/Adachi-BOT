@@ -18,25 +18,81 @@
 	left: 13px;
 }
 
+/* 通用 */
 .character-box .info {
-	position: relative;
-	font-size: 3px;
+	position: absolute;
 	z-index: 1;
 	float: left;
-	top: -216px;
+	top: 151px;
+	height: 86px;
 	left: 5px;
 	width: 149px;
 	text-align: center;
 }
 
-.character-box .info .name {
-	font-size: 19px;
+.character-box {
 	color: rgb(64, 64, 64);
 }
 
-.character-data .constellation {
+.character-data {
+	position: relative;
+}
+
+/* none */
+.none-style .name {
+	position: relative;
+	margin-top: 9px;
+	font-size: 19px;
+}
+
+.none-style .constellation {
 	font-size: 15px;
 	color: rgb(64, 64, 64);
+}
+
+/* weapon-A */
+.planA-style .base {
+	position: relative;
+	margin-top: 2px;
+	margin-bottom: 1px;
+}
+
+.planA-style .name {
+	display: inline-block;
+	font-size: 17px;
+	margin-right: 4px;
+}
+
+.planA-style .constellation {
+	display: inline-block;
+	font-size: 15px;
+}
+
+.planA-style .character-data {
+	top: -2px;
+}
+
+/* weapon-B */
+.planB-style {
+	position: relative;
+	margin-top: 4px;
+}
+
+.planB-style .level,
+.planB-style .fetter {
+	margin-top: -3px;
+	margin-bottom: 2px;
+	font-size: 15px;
+}
+
+.planB-style .constellation {
+	position: relative;
+	font-size: 14px;
+}
+
+.planB-style .weapon {
+	position: relative;
+	font-size: 13px;
 }
 
 .character-data .level {
@@ -52,4 +108,3 @@
 	width: 34px;
 	font-size: 16px;
 }
-

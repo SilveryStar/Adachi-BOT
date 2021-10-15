@@ -5,9 +5,9 @@
 }
 
 .home-box .home-background {
-	width: 208px;
+	width: 184px;
 	margin-bottom: 15px;
-	margin-left: 44px;
+	margin-left: 56px;
 	border-radius: 32px;
 	z-index: 1;
 }
@@ -19,9 +19,9 @@
 }
 
 .home-box .box-block {
-	width: 208px;
-	height: 208px;
-	margin-left: 44px;
+	width: 184px;
+	height: 184px;
+	margin-left: 56px;
 	border-radius: 32px;
 }
 
@@ -33,7 +33,7 @@
 	position: absolute;
 	height: 80px;
 	width: 66px;
-	top: 64px;
+	top: 52px;
 	left: 115px;
 }
 
@@ -45,13 +45,13 @@
 	position: relative;
 	background-color: rgba(0, 0, 0, 0.3);
 	height: 122px;
-	top: -165px;
+	top: -153px;
 	border-radius: 0;
 }
 
 .home-box .box-content {
 	position: relative;
-	width: 208px;
+	width: 184px;
 	text-align: center;
 }
 

@@ -8,7 +8,7 @@ import { ROOTPATH } from "../../../app";
 import commands from "./command";
 import * as m from "./module";
 
-let config: any;
+let config: Config;
 export const artClass = new m.ArtClass();
 export const cookies = new m.Cookies();
 export const typeData = new m.TypeData();
@@ -17,9 +17,9 @@ export const dailyClass = new m.DailyClass();
 export const wishClass = new m.WishClass();
 export const slipClass = new m.SlipClass();
 
-function loadConfig() {
+function loadConfig(): Config {
 	const defaultConfig: Config = {
-		// cardWeaponStyle: "none",
+		cardWeaponStyle: "normal",
 		serverPort: 58612
 	};
 	
@@ -29,7 +29,7 @@ function loadConfig() {
 		/* 针对旧版 genshin.yml 配置进行修改 */
 		if ( config["silvery-star.art"] !== undefined ) {
 			const c: any = {};
-			// c.cardWeaponStyle = "none";
+			c.cardWeaponStyle = "normal";
 			c.serverPort = config.serverPort;
 			writeYAML( "genshin", c );
 			return c;

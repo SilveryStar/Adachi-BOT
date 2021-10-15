@@ -1,4 +1,4 @@
 export interface Config {
-	// cardWeaponStyle: "none" | "weaponA" | "weaponB";
+	cardWeaponStyle: "normal" | "weaponA" | "weaponB";
 	serverPort: number;
 }

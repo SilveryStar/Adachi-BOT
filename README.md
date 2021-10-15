@@ -87,9 +87,25 @@ npm run serve
 ## Pictures
 
 <details>
-<summary>生成玩家信息卡片 mys|uid</summary>
+<summary>生成玩家信息卡片(含配置) mys|uid</summary>
+
+`v2.1.5` 版本后，信息卡可显示角色使用的武器信息，该信息的样式需在 `genshin.yml` 中的 `cardWeaponStyle` 配置，默认为 `normal`，区别如下:
+
+<table border="1" align="center">
+    <tr>
+        <td><img src="https://z3.ax1x.com/2021/10/16/58XYND.png" alt="ERROR"/></td>
+        <td><img src="https://z3.ax1x.com/2021/10/16/58X8HK.png" alt="ERROR"/></td>
+        <td><img src="https://z3.ax1x.com/2021/10/16/58XJAO.png" alt="ERROR"/></td>
+    </tr>
+    <tr>
+        <td align="center">normal 模式</td>
+        <td align="center">weaponA 模式</td>
+        <td align="center">weaponB 模式</td>
+    </tr>
+</table>
+
 <div align="center">
-  <img src="https://z3.ax1x.com/2021/07/22/WBzWmd.png" alt="ERROR"/>
+  <img src="https://z3.ax1x.com/2021/10/16/58Xt4e.png" alt="ERROR"/>
 </div>
 </details>
 

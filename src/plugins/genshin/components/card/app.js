@@ -11,6 +11,7 @@ const template =
     ></CardUpper>
     <CardMiddle
         :characters="charData"
+        :style="style"
     ></CardMiddle>
     <CardFooter></CardFooter>
 </div>`;
@@ -41,6 +42,7 @@ export default Vue.defineComponent( {
 		
 		const urlParams = parseURL( location.search );
 		const data = request( `/api/card?qq=${ urlParams.qq }` );
+		const style = urlParams.style;
 		
 		const charList = data.avatars;
 		const charNum = charList.length;
@@ -51,6 +53,6 @@ export default Vue.defineComponent( {
 		} );
 		const charData = cutArray( charList, 7 );
 
-		return { data, profile, charData };
+		return { data, profile, charData, style };
 	}
 } );

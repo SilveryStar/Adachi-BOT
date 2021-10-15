@@ -56,6 +56,7 @@ interface Character {
  * @luxuriousChestNumber 华丽宝箱数
  * @exquisiteChestNumber 精致宝箱数
  * @commonChestNumber 普通宝箱数
+ * @magicChestNumber 奇馈宝箱
  * @electroculusNumber 雷神瞳数
  * */
 interface Stats {
@@ -72,6 +73,7 @@ interface Stats {
 	luxuriousChestNumber: number;
 	exquisiteChestNumber: number;
 	commonChestNumber: number;
+	magicChestNumber: number;
 	electroculusNumber: number;
 }
 

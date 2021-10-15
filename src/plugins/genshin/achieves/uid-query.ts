@@ -4,6 +4,7 @@ import { characterInfoPromise, detailInfoPromise } from "../utils/promise";
 import { render } from "../utils/render";
 import { getRegion } from "../utils/region";
 import { Redis } from "../../../bot";
+import { config } from "../init";
 
 function getUserInfo( data: string ): [ number, string ] | string {
 	const reg = new RegExp( /^[125][0-9]{8}$/g );
@@ -42,7 +43,7 @@ async function main( sendMessage: sendType, message: Message ): Promise<void> {
 			return;
 		}
 	}
-	const image: string = await render( "card", { qq: qqID } );
+	const image: string = await render( "card", { qq: qqID, style: config.cardWeaponStyle } );
 	await sendMessage( image );
 }
 

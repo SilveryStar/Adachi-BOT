@@ -46,14 +46,14 @@
 .card-upper .detail {
 	position: absolute;
 	color: rgb(64, 64, 64);
-	top: 294px;
+	top: 303px;
 	left: 285px;
 	font-size: 32px;
 	display: flex;
 }
 
 .card-upper .detail .stats {
-	padding-bottom: 10pt;
+	padding-bottom: 13pt;
 	padding-right: 219px;
 	width: 120px;
 }
@@ -63,7 +63,7 @@
 	color: rgb(255, 255, 255);
 	font-size: 25px;
 	width: 1030px;
-	top: 547px;
+	top: 641px;
 	left: 400px;
 	display: flex;
 	flex-wrap: wrap;
@@ -75,7 +75,7 @@
 .card-upper .inazuma {
 	width: 290px;
 	padding-right: 225px;
-	padding-bottom: 73px;
+	padding-bottom: 93px;
 }
 
 .card-upper .exp,
@@ -84,7 +84,7 @@
 }
 
 .card-upper .exp {
-	margin-bottom: 18px;
+	margin-bottom: 20px;
 }
 
 .card-upper .inazuma {

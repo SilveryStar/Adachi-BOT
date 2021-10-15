@@ -16,12 +16,14 @@ const template =
             <p class="stats">{{ stats.achievementNumber }}</p>
             <p class="stats">{{ stats.avatarNumber }}</p>
             <p class="stats">{{ stats.spiralAbyss }}</p>
+            <p class="stats">{{ stats.domainNumber }}</p>
         </div>
         <div class="middle">
             <p class="stats">{{ stats.commonChestNumber }}</p>
             <p class="stats">{{ stats.exquisiteChestNumber }}</p>
             <p class="stats">{{ stats.preciousChestNumber }}</p>
             <p class="stats">{{ stats.luxuriousChestNumber }}</p>
+            <p class="stats">{{ stats.magicChestNumber }}</p>
         </div>
         <div class="right">
             <p class="stats">{{ stats.anemoculusNumber }}</p>
@@ -54,6 +56,7 @@ const template =
             <HomeBox :data="hole" />
             <HomeBox :data="mountain" />
             <HomeBox :data="island" />
+            <HomeBox :data="hall" />
         </div>
         <p class="comfort-num">仙力: {{ maxComfort }}</p>
     </div>
@@ -80,7 +83,7 @@ export default Vue.defineComponent( {
 	},
 	setup( props ) {
 		const backgroundImage = Vue.computed( () => {
-			return `https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/module/${ parseInt( props.level ) === 0 ? "uid" : "mys" }-upper.png`;
+			return `https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/module/${ parseInt( props.level ) === 0 ? "uid" : "mys" }-upper-v2-2.png`;
 		} );
 		const profileImage = Vue.computed( () => {
 			return `https://adachi-bot.oss-cn-beijing.aliyuncs.com/characters/profile/${ props.profile }.png`;
@@ -121,20 +124,14 @@ export default Vue.defineComponent( {
 		const hole = homeData( "罗浮洞" );
 		const mountain = homeData( "翠黛峰" );
 		const island = homeData( "清琼岛" );
+		const hall = homeData( "绘绮庭" );
 
 		return {
-			backgroundImage,
-			profileImage,
-			worldLevel,
-			packageTop,
-			percentage,
-			expLevel,
-			sakura,
-			homesLevel,
-			maxComfort,
-			hole,
-			mountain,
-			island
+			backgroundImage, profileImage,
+			worldLevel, packageTop,
+			percentage, expLevel, sakura,
+			homesLevel, maxComfort,
+			hole, mountain, island, hall
 		}
 	}
 } );

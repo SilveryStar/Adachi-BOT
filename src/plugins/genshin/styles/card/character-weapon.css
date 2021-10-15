@@ -1,0 +1,47 @@
+.character-weapon {
+	position: relative;
+	display: table;
+	margin: -3px auto 0 auto;
+	height: 40px;
+}
+
+.character-weapon .icon {
+	position: relative;
+	display: inline-block;
+	vertical-align: middle;
+	width: 36px;
+	margin: 2px;
+}
+
+.character-weapon .detail {
+	position: relative;
+	display: inline-block;
+	vertical-align: middle;
+	width: 80px;
+	height: 40px;
+	line-height: 16px;
+}
+
+.character-weapon .detail .w-name {
+	position: relative;
+	height: 16px;
+	font-size: 13px;
+	margin-top: 4px;
+}
+
+.character-weapon .detail .level {
+	position: relative;
+	display: inline-block;
+	height: 16px;
+	margin-bottom: 4px;
+	margin-right: 6px;
+	font-size: 12px;
+}
+
+.character-weapon .detail .refine {
+	position: relative;
+	display: inline-block;
+	height: 16px;
+	margin-bottom: 4px;
+	font-size: 12px;
+}

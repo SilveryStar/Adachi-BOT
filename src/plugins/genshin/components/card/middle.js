@@ -3,6 +3,7 @@ const template =
     <div class="character-line" v-for="charLineData in characters">
         <CharacterBox v-for="char in charLineData"
             :char="char"
+            :style="style"
         ></CharacterBox>
         <img class="background" :src="middleBackground" alt="ERROR"/>
     </div>
@@ -18,7 +19,8 @@ export default Vue.defineComponent( {
 		CharacterBox
 	},
 	props: {
-		characters: Array
+		characters: Array,
+		style: String
 	},
 	setup() {
 		const middleBackground = Vue.computed( () => {
