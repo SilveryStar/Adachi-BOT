@@ -1,27 +1,37 @@
 import { Adachi, Redis } from "../../../bot";
 import { cookies } from "../init";
-import { getBaseInfo, getCharactersInfo, getDetailInfo, getSpiralAbyssInfo } from "./api";
+import { getBaseInfo, getCharactersInfo, getDailyNoteInfo, getDetailInfo, getSpiralAbyssInfo } from "./api";
 import { omit } from "lodash";
 import * as ApiType from "../types";
+import { Note } from "../types";
 
-async function baseInfoPromise( qqID: number, mysID: number ): Promise<string | [ number, string ]> {
+enum ErrorMsg {
+	NOT_FOUND = "未查询到角色数据，请检查米哈游通行证（非UID）是否有误或是否设置角色信息公开",
+	UNKNOWN = "发生未知错误",
+	FORM_MESSAGE = "米游社接口报错: "
+}
+
+async function baseInfoPromise(
+	qqID: number,
+	mysID: number
+): Promise<string | [ number, string ]> {
 	const { retcode, message, data } = await getBaseInfo( mysID, cookies.get() );
 	if ( !ApiType.isBBS( data ) ) {
-		return Promise.reject( "未知错误" );
+		return Promise.reject( ErrorMsg.UNKNOWN );
 	}
 	
 	return new Promise( async ( resolve, reject ) => {
 		if ( retcode !== 0 ) {
-			reject( `米游社接口报错: ${ message }` );
+			reject( ErrorMsg.FORM_MESSAGE + message );
 			return;
 		} else if ( !data.list || data.list.length === 0 ) {
-			reject( "未查询到角色数据，请检查米哈游通行证（非UID）是否有误或是否设置角色信息公开" );
+			reject( ErrorMsg.NOT_FOUND );
 			return;
 		}
 
 		const genshinInfo: ApiType.Game | undefined = data.list.find( el => el.gameId === 2 );
 		if ( !genshinInfo ) {
-			reject( "未查询到角色数据，请检查米哈游通行证（非UID）是否有误或是否设置角色信息公开" );
+			reject( ErrorMsg.NOT_FOUND );
 			return;
 		}
 
@@ -33,7 +43,12 @@ async function baseInfoPromise( qqID: number, mysID: number ): Promise<string | 
 	} );
 }
 
-async function detailInfoPromise( qqID: number, uid: number, server: string, flag: boolean ): Promise<string | number[]> {
+async function detailInfoPromise(
+	qqID: number,
+	uid: number,
+	server: string,
+	flag: boolean
+): Promise<string | number[]> {
 	const detail: any = await Redis.getHash( `silvery-star.card-data-${ qqID }` );
 
 	if ( flag && detail.stats !== undefined && uid === parseInt( detail.uid ) ) {
@@ -44,12 +59,12 @@ async function detailInfoPromise( qqID: number, uid: number, server: string, fla
 	const { retcode, message, data } = await getDetailInfo( uid, server, cookies.get() );
 	cookies.increaseIndex();
 	if ( !ApiType.isUserInfo( data ) ) {
-		return Promise.reject( "未知错误" );
+		return Promise.reject( ErrorMsg.UNKNOWN );
 	}
 	
 	return new Promise( async ( resolve, reject ) => {
 		if ( retcode !== 0 ) {
-			reject( `米游社接口报错: ${ message }` );
+			reject( ErrorMsg.FORM_MESSAGE + message );
 			return;
 		}
 		
@@ -66,16 +81,21 @@ async function detailInfoPromise( qqID: number, uid: number, server: string, fla
 	} );
 }
 
-async function characterInfoPromise( qqID: number, uid: number, server: string, charIDs: number[] ): Promise<string | void> {
+async function characterInfoPromise(
+	qqID: number,
+	uid: number,
+	server: string,
+	charIDs: number[]
+): Promise<string | void> {
 	const { retcode, message, data } = await getCharactersInfo( uid, server, charIDs, cookies.get() );
 	cookies.increaseIndex();
 	if ( !ApiType.isCharacter( data ) ) {
-		return Promise.reject( "未知错误" );
+		return Promise.reject( ErrorMsg.UNKNOWN );
 	}
 
 	return new Promise( async ( resolve, reject ) => {
 		if ( retcode !== 0 ) {
-			reject( `米游社接口报错: ${ message }` );
+			reject( ErrorMsg.FORM_MESSAGE + message );
 			return;
 		}
 		
@@ -102,7 +122,12 @@ async function characterInfoPromise( qqID: number, uid: number, server: string, 
 	} );
 }
 
-async function abyssInfoPromise( qqID: number, uid: number, server: string, period: number ): Promise<string | void> {
+async function abyssInfoPromise(
+	qqID: number,
+	uid: number,
+	server: string,
+	period: number
+): Promise<string | void> {
 	const dbKey: string = `silvery-star.abyss-data-${ qqID }`;
 	const detail: string | null = await Redis.getString( dbKey );
 	
@@ -117,12 +142,12 @@ async function abyssInfoPromise( qqID: number, uid: number, server: string, peri
 	const { retcode, message, data } = await getSpiralAbyssInfo( uid, server, period, cookies.get() );
 	cookies.increaseIndex();
 	if ( !ApiType.isAbyss( data ) ) {
-		return Promise.reject( "未知错误" );
+		return Promise.reject( ErrorMsg.UNKNOWN );
 	}
 	
 	return new Promise( async ( resolve, reject ) => {
 		if ( retcode !== 0 ) {
-			reject( `米游社接口报错: ${ message }` );
+			reject( ErrorMsg.FORM_MESSAGE+ message );
 			return;
 		}
 
@@ -133,9 +158,32 @@ async function abyssInfoPromise( qqID: number, uid: number, server: string, peri
 	} );
 }
 
+async function dailyNotePromise(
+	uid: string,
+	server: string,
+	cookie: string
+): Promise<Note | string> {
+	const { retcode, message, data } = await getDailyNoteInfo( parseInt( uid ), server, cookie );
+	if ( !ApiType.isNote( data ) ) {
+		return Promise.reject( ErrorMsg.UNKNOWN );
+	}
+	
+	return new Promise( ( resolve, reject ) => {
+		if ( retcode !== 0 ) {
+			reject( ErrorMsg.FORM_MESSAGE+ message );
+			return;
+		}
+		
+		Adachi.logger.info( `用户 ${ uid } 的实时便笺数据查询成功` );
+		resolve( data );
+	} );
+}
+
 export {
+	ErrorMsg,
 	baseInfoPromise,
 	detailInfoPromise,
 	characterInfoPromise,
-	abyssInfoPromise
+	abyssInfoPromise,
+	dailyNotePromise
 }

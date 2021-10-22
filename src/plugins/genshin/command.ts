@@ -1,5 +1,6 @@
 import { CommandType } from "../../modules/command";
 import { AuthLevel } from "../../modules/auth";
+import { MessageScope } from "../../modules/message";
 
 const commands: CommandType[] = [ {
 	commandType: "order",
@@ -119,10 +120,63 @@ const commands: CommandType[] = [ {
 }, {
 	commandType: "order",
 	key: "silvery-star.today",
-	docs: [ "今日订阅", "" ],
+	docs: [ "今日素材", "" ],
 	headers: [ "today" ],
 	regexps: [],
 	main: "achieves/today"
+}, {
+	commandType: "order",
+	key: "silvery-star.private-subscribe",
+	docs: [ "私人服务", "" ],
+	headers: [ "ps" ],
+	regexps: [],
+	main: "achieves/private",
+	scope: MessageScope.Private,
+	detail: "私人服务，一类通过使用个人 cookie 获取私密信息\n" +
+			"目前包含实时便笺订阅功能，未来可能会添加新功能"
+}, {
+	commandType: "order",
+	key: "silvery-star.private-confirm",
+	docs: [ "", "" ],
+	headers: [ "confirm" ],
+	regexps: [ ".+" ],
+	display: false,
+	main: "achieves/private",
+	scope: MessageScope.Private
+}, {
+	commandType: "order",
+	key: "silvery-star.private-list",
+	docs: [ "私人服务列表", "" ],
+	headers: [ "pl" ],
+	regexps: [],
+	main: "achieves/private",
+	scope: MessageScope.Private
+}, {
+	commandType: "order",
+	key: "silvery-star.cancel-private",
+	docs: [ "取消私人服务", "<账户编号>" ],
+	headers: [ "pr" ],
+	regexps: [ "[0-9]+" ],
+	main: "achieves/private",
+	scope: MessageScope.Private,
+	detail: "账户编号在私人服务列表中查看"
+}, {
+	commandType: "order",
+	key: "silvery-star.now-note",
+	docs: [ "实时便笺", "" ],
+	headers: [ "note" ],
+	regexps: [],
+	main: "achieves/note"
+}, {
+	commandType: "order",
+	key: "silvery-star.note-set-time",
+	docs: [ "便笺提醒时间", "<账户编号> <树脂量>" ],
+	headers: [ "nt" ],
+	regexps: [ "[0-9 ]+" ],
+	main: "achieves/note",
+	scope: MessageScope.Private,
+	detail: "用于设置 BOT 自动提醒时间点，树脂量可设置多个\n" +
+			"如: 60 90 120 160，数字间用空格隔开"
 } ];
 
 export default commands;
