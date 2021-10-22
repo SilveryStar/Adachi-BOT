@@ -15,7 +15,7 @@ class NoteService implements Service {
 	private timePoint: number[];
 	private events: PushEvent[] = [];
 	private globalData: Note | string = "";
-	private lastRefreshTime: number = 0;
+	private readonly feedbackCatch: () => Promise<void>;
 	
 	static FixedField: string = "note";
 	
@@ -24,11 +24,11 @@ class NoteService implements Service {
 		
 		this.parent = p;
 		this.timePoint = options.timePoint || [ 120, 155 ];
-		
-		this.refreshPushEvent().catch( async () => {
+		this.feedbackCatch = async () => {
 			await this.parent.sendMessage( this.globalData as string );
-		} );
-		console.log( this.timePoint );
+		};
+		
+		this.refreshPushEvent().catch( this.feedbackCatch );
 	}
 	
 	public getOptions(): any {
@@ -52,9 +52,7 @@ class NoteService implements Service {
 	public async modifyTimePoint( time: number[] ): Promise<void> {
 		/* 过滤超过 160 的树脂量 */
 		this.timePoint = time.filter( el => el <= 160 );
-		this.refreshPushEvent().catch( async () => {
-			await this.parent.sendMessage( this.globalData as string );
-		} );
+		this.refreshPushEvent().catch( this.feedbackCatch );
 		/* 回传进行数据库更新 */
 		await this.parent.refreshDBContent( NoteService.FixedField );
 	}
@@ -80,13 +78,7 @@ class NoteService implements Service {
 	}
 	
 	private async refreshPushEvent(): Promise<void> {
-		const d = new Date();
-		
-		/* 半小时内只刷新一次 */
-		const nowTime: number = d.valueOf();
-		if ( nowTime - this.lastRefreshTime < 30 * 60 * 1000 ) {
-			return Promise.resolve();
-		}
+		const now: number = new Date().getTime();
 		
 		await this.getData();
 		if ( typeof this.globalData === "string" ) {
@@ -95,8 +87,6 @@ class NoteService implements Service {
 		
 		/* 清空当前事件 */
 		this.clearEvents();
-		/* 重设时间 */
-		this.lastRefreshTime = nowTime;
 		
 		for ( let t of this.timePoint ) {
 			/* 当前树脂量超过设定量则不处理 */
@@ -106,10 +96,11 @@ class NoteService implements Service {
 
 			const recovery: number = parseInt( this.globalData.resinRecoveryTime );
 			const remaining: number = recovery - ( 160 - t ) * 8 * 60;
-			const date = d.setSeconds( d.getSeconds() + remaining );
-			
-			const job: Job = scheduleJob( date, async () => {
+			const time = new Date( now + remaining * 1000 );
+
+			const job: Job = scheduleJob( time, async () => {
 				await this.parent.sendMessage( `树脂量已经到达 ${ t } 了哦~` );
+				this.refreshPushEvent().catch( this.feedbackCatch );
 			} );
 			this.events.push( { type: "resin", job } );
 		}
@@ -138,9 +129,10 @@ class NoteService implements Service {
 		}
 		
 		for ( let c of compressed ) {
-			const date = d.setSeconds( d.getSeconds() + parseInt( c.remainedTime ) );
-			const job: Job = scheduleJob( date, async () => {
+			const time = new Date( now + parseInt( c.remainedTime ) * 1000 );
+			const job: Job = scheduleJob( time, async () => {
 				await this.parent.sendMessage( `已有 ${ c.num } 个探索派遣任务完成` );
+				this.refreshPushEvent().catch( this.feedbackCatch );
 			} );
 			this.events.push( { type: "expedition", job } );
 		}
