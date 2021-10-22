@@ -2,26 +2,25 @@ import { CommonMessageEventData as Message } from "oicq";
 import { CommandMatchResult } from "../../../modules/command";
 import { sendType } from "../../../modules/message";
 import { ErrorMsg } from "../utils/promise";
-import { Private, UserInfo } from "../module/private";
+import { Private } from "../module/private";
 import { NoteService } from "../module/note";
 import { getHeader as h } from "../utils/header";
+import { render } from "../utils/render";
 import { privateClass } from "../init";
 
 async function getNowNote( qqID: number ): Promise<string[]> {
-	const settings: UserInfo[] = privateClass.getUserInfoList( qqID );
-	if ( settings.length === 0 ) {
+	const accounts: Private[] = privateClass.getUserPrivateList( qqID );
+	if ( accounts.length === 0 ) {
 		return [ "你还未订阅过任何账号" ];
 	}
 	
-	// const imageList: string[] = [];
-	// for ( let s of settings ) {
-	// 	const cookie: string = s.cookie;
-	// 	imageList.push( cookie );
-	// 	await render( "note", {} );
-	// }
-	// return imageList;
-	
-	return [ "施工中，当前版本仅包含推送功能，主动查询暂未开放" ];
+	const imageList: string[] = [];
+	for ( let a of accounts ) {
+		const data: string = await ( a.services.note as NoteService ).toBase64();
+		const image: string = await render( "note", { data } );
+		imageList.push( image );
+	}
+	return imageList;
 }
 
 async function modifyTimePoint( qqID: number, data: string ): Promise<string> {

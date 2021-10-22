@@ -57,6 +57,16 @@ class NoteService implements Service {
 		await this.parent.refreshDBContent( NoteService.FixedField );
 	}
 	
+	public async toBase64(): Promise<string> {
+		await this.getData();
+		return Buffer.from(
+			JSON.stringify( {
+				...this.globalData as Note,
+				uid: this.parent.setting.uid
+			} )
+		).toString( "base64" );
+	}
+	
 	private async getData(): Promise<void> {
 		try {
 			const setting: UserInfo = this.parent.setting;

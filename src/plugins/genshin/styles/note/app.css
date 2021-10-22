@@ -1,0 +1,47 @@
+.note {
+	position: relative;
+	padding: 0 18px;
+	width: auto;
+}
+
+.uid {
+	position: relative;
+	width: 100%;
+	text-align: center;
+	font-size: 17px;
+	padding: 12px 0;
+	color: rgb(36, 36, 36);
+}
+
+.title {
+	color: rgb(90, 90, 90);
+}
+
+.list-info {
+	position: relative;
+	width: auto;
+}
+
+.expedition-title {
+	font-size: 16px;
+}
+
+.expedition-box {
+	position: relative;
+	width: auto;
+	padding: 18px;
+}
+
+.box {
+	background-color: rgb(245, 242, 235);
+	border: 2px solid rgb(222, 218, 210);
+}
+
+.author {
+	position: relative;
+	font-size: 13px;
+	padding-top: 9px;
+	padding-bottom: 6px;
+	color: rgb(36, 36, 36);
+	text-align: right;
+}

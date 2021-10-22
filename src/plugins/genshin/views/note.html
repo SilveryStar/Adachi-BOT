@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>note</title>
+	<script src="https://unpkg.com/vue@3.1.1/dist/vue.global.js"></script>
+	<link rel="stylesheet" href="../styles/reset.css"/>
+	<link rel="stylesheet" href="../styles/note/app.css"/>
+	<link rel="stylesheet" href="../styles/note/info.css"/>
+	<link rel="stylesheet" href="../styles/note/expedition.css"/>
+</head>
+<body>
+
+<div id="app"></div>
+
+<script type="module">
+	import App from "../components/note/app.js";
+	
+	Vue.createApp( App ).mount( "#app" );
+</script>
+
+</body>
+</html>
+
+<style>
+	#app {
+		width: 436px;
+		background-color: rgb(241, 234, 226);
+	}
+</style>
