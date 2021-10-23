@@ -207,6 +207,10 @@ export class Command implements CommandMethod {
 		return `${ this.docs[0] } -- ${ this.key }`
 	}
 	
+	public getHeaders(): string[] {
+		return this.headers;
+	}
+	
 	public match( message: string ): CommandMatchResult {
 		let data: any;
 		if ( isOrder( this.rawConfig ) ) {

@@ -1,0 +1,43 @@
+.info {
+	position: relative;
+	height: 60px;
+	width: auto;
+	margin-bottom: 12px;
+}
+
+.text {
+	position: relative;
+	display: inline-block;
+	margin: 10px 0;
+	width: 80%;
+}
+
+.info-title {
+	position: relative;
+	height: 22px;
+	line-height: 22px;
+	color: rgb(90, 90, 90);
+	font-size: 16px;
+	left: 24px;
+}
+
+.info-subtitle {
+	position: relative;
+	height: 18px;
+	line-height: 18px;
+	color: rgb(192, 184, 173);
+	font-size: 14px;
+	left: 40px;
+}
+
+.data {
+	position: absolute;
+	display: inline-block;
+	height: 60px;
+	line-height: 60px;
+	text-align: center;
+	font-size: 15px;
+	width: 20%;
+	background-color: rgb(235, 227, 216);
+	color: rgb(99, 82, 65);
+}

@@ -170,3 +170,45 @@ silvery-star.today:
   enable: true
   headers:
     - 今日素材
+silvery-star.private-subscribe:
+  type: order
+  auth: 1
+  scope: 2
+  enable: true
+  headers:
+    - 添加服务
+silvery-star.private-confirm:
+  type: order
+  auth: 1
+  scope: 2
+  enable: true
+  headers:
+    - 确认
+silvery-star.private-list:
+  type: order
+  auth: 1
+  scope: 2
+  enable: true
+  headers:
+    - 服务列表
+silvery-star.cancel-private:
+  type: order
+  auth: 1
+  scope: 2
+  enable: true
+  headers:
+    - 取消服务
+silvery-star.now-note:
+  type: order
+  auth: 1
+  scope: 3
+  enable: true
+  headers:
+    - 便笺
+silvery-star.note-set-time:
+  type: order
+  auth: 1
+  scope: 2
+  enable: true
+  headers:
+    - 推送时间

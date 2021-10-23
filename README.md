@@ -84,6 +84,12 @@ npm run serve
 2. 未依照模板提交或未提供完整信息的运行时错误 issue
 3. 提出不合理需求的 issue
 
+## Disclaimer
+本项目自 `v2.1.6` 版本后，提供了私人服务功能，该功能旨在提供如实时便笺等私密功能，需个人提供**自己游戏账号对应的米游社cookie**后才可正常使用。这不可避免的会产生一定的账号安全隐患。为避免个人隐私信息泄露产生的纠纷，特做如下声明：
+1. 本项目不使用任何云端服务器收集用户的隐私信息
+2. 隐私数据仅存储在部署应用的服务器上，一切安全问题均为应用部署者的个人行为，与本项目无关
+3. 本项目仅供学习交流技术使用，严禁用于任何商业用途和非法行为
+
 ## Pictures
 
 <details>
@@ -91,7 +97,7 @@ npm run serve
 
 `v2.1.5` 版本后，信息卡可显示角色使用的武器信息，该信息的样式需在 `genshin.yml` 中的 `cardWeaponStyle` 配置，默认为 `normal`，区别如下:
 
-<table border="1" align="center">
+<table align="center">
     <tr>
         <td><img src="https://z3.ax1x.com/2021/10/16/58XYND.png" alt="ERROR"/></td>
         <td><img src="https://z3.ax1x.com/2021/10/16/58X8HK.png" alt="ERROR"/></td>
@@ -162,6 +168,13 @@ npm run serve
 <summary>每日素材订阅 sub</summary>
 <div align="center">
     <img src="https://z3.ax1x.com/2021/10/06/4zJ4JI.png" alt="ERROR">
+</div>
+</details>
+
+<details>
+<summary>实时便笺 note</summary>
+<div align="center">
+    <img src="https://z3.ax1x.com/2021/10/23/5gm1bt.png" alt="ERROR">
 </div>
 </details>
 

@@ -16,6 +16,7 @@ export const aliasClass = new m.AliasClass();
 export const dailyClass = new m.DailyClass();
 export const wishClass = new m.WishClass();
 export const slipClass = new m.SlipClass();
+export const privateClass = new m.PrivateClass();
 
 function loadConfig(): Config {
 	const defaultConfig: Config = {
