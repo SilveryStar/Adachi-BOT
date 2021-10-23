@@ -18,7 +18,7 @@ export default Vue.defineComponent( {
 	},
 	setup() {
 		const urlParams = parseURL( location.search );
-		const data = JSON.parse( atob( urlParams.data ) );
+		const data = JSON.parse( atob( decodeURIComponent( urlParams.data ) ) );
 		const [ nickname, uid ] = urlParams.info.split( "|" );
 		const floor = parseInt( urlParams.floor );
 

@@ -183,7 +183,8 @@ npm run serve
 | :----------------------------------------------------------: | ----------------------------------- |
 |[GenshinImpactWiki](https://genshin-impact.fandom.com/wiki/Genshin_Impact_Wiki) | 本项目的绝大多数图片资源 |
 |[lulu666lulu](https://github.com/lulu666lulu) | 提供了最新的DS算法 |
-|[可莉特调](https://genshin.pub/daily) | 本项目每日素材订阅页面样式参考 |
+|[可莉特调](https://genshin.pub/daily) | 本项目每日素材订阅页面样式参考及黄历 |
+|[西风驿站](https://bbs.mihoyo.com/ys/collection/307224)| 本项目攻略图图源 |
 |[JetBrains](https://www.jetbrains.com?from=Adachi-BOT) | 为开源项目提供免费的 WebStorm 等 IDE 的授权 |
 
 

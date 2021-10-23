@@ -177,6 +177,20 @@ const commands: CommandType[] = [ {
 	scope: MessageScope.Private,
 	detail: "用于设置 BOT 自动提醒时间点，树脂量可设置多个\n" +
 			"如: 60 90 120 160，数字间用空格隔开"
+}, {
+	commandType: "order",
+	key: "silvery-star.character-guide",
+	docs: [ "西风驿站攻略", "<角色名>" ],
+	headers: [ "guide" ],
+	regexps: [ "[0-9a-z\\u4e00-\\u9fa5]+" ],
+	main: "achieves/guide"
+}, {
+	commandType: "order",
+	key: "silvery-star.almanac",
+	docs: [ "原神黄历", "" ],
+	headers: [ "alm" ],
+	regexps: [],
+	main: "achieves/almanac"
 } ];
 
 export default commands;

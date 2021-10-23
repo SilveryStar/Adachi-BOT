@@ -5,14 +5,16 @@ import {
 	GroupMessageEventData,
 	PrivateMessageEventData,
 	GroupInviteEventData,
+	FriendAddEventData,
 	createClient
 } from "oicq";
-import { getSendMessageFunc, removeStringPrefix, sendType, MessageType } from "./modules/message";
-import { createFolder, createYAML, exists } from "./utils/config";
 import { loadPlugins } from "./modules/plugin";
+import { scheduleJob } from "node-schedule";
 import { resolve } from "path";
-import { readFileSync, renameSync } from "fs";
-import { AuthLevel, checkAuthLevel, getAuthLevel } from "./modules/auth";
+import { createFolder, createYAML, exists } from "./utils/config";
+import { readFileSync, renameSync, unlinkSync, readdirSync } from "fs";
+import { getSendMessageFunc, removeStringPrefix, sendType, MessageType } from "./modules/message";
+import { checkAuthLevel, getAuthLevel, AuthLevel } from "./modules/auth";
 import { Command, CommandMatchResult } from "./modules/command";
 import { Database } from "./utils/database";
 import { BotConfig } from "./modules/config";
@@ -157,6 +159,22 @@ async function run(): Promise<void> {
 		} else {
 			Adachi.logger.info( `用户 ${ inviterID } 权限不足邀请入群` );
 		}
+	} );
+	
+	/* 自动接受添加好友邀请 */
+	Adachi.on( "request.friend.add", async ( addDate: FriendAddEventData ) => {
+		await Adachi.setFriendAddRequest( addDate.flag );
+	} );
+	
+	/* 定时清理图片下载缓存 */
+	scheduleJob( "0 0 0 ? * WED", () => {
+		const dirPath: string = resolve( ROOTPATH, "data/image" );
+		const files: string[] = readdirSync( dirPath );
+		files.forEach( el => {
+			const path: string = resolve( dirPath, el );
+			unlinkSync( path );
+		} );
+		Adachi.logger.info( "图片缓存已清空" );
 	} );
 }
 

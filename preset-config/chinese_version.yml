@@ -212,3 +212,17 @@ silvery-star.note-set-time:
   enable: true
   headers:
     - 推送时间
+silvery-star.almanac:
+  type: order
+  auth: 1
+  scope: 3
+  enable: true
+  headers:
+    - 今日黄历
+silvery-star.character-guide:
+  type: order
+  auth: 1
+  scope: 3
+  enable: true
+  headers:
+    - 攻略

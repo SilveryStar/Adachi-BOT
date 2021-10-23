@@ -1,4 +1,5 @@
 import puppeteer from "puppeteer";
+import { URL, URLSearchParams } from "url";
 import { config } from "../init";
 
 let browser: puppeteer.Browser;
@@ -6,6 +7,10 @@ let browser: puppeteer.Browser;
 async function createBrowser(): Promise<void> {
 	browser = await puppeteer.launch( {
 		headless: true,
+		defaultViewport: {
+			width: 1620,
+			height: 1132
+		},
 		args: [
 			"--no-sandbox",
 			"--disable-setuid-sandbox",
@@ -15,28 +20,28 @@ async function createBrowser(): Promise<void> {
 }
 
 function getURL( target: string, params?: any ): string {
-	let url: string = `http://localhost:${ config.serverPort }/views/${ target }.html`;
+	const paramStr: string = new URLSearchParams( params ).toString();
 	
-	if ( params === undefined ) {
-		return url;
+	try {
+		new URL( target );
+		return target + "?" + paramStr;
+	} catch ( e ) {
+		const url: string = `http://localhost:${ config.serverPort }/views/${ target }.html`;
+		return url + "?" + paramStr;
 	}
-	
-	let num: number = 0;
-	for ( let key in params ) {
-		if ( params.hasOwnProperty( key ) ) {
-			url += `${ num++ === 0 ? "?" : "&" }${ key }=${ params[key] }`;
-		}
-	}
-	
-	return url;
 }
 
-async function render( target: string, params?: any, cqCode: boolean = true ): Promise<string> {
+async function render(
+	target: string,
+	params: any = {},
+	selector: string = "#app",
+	cqCode: boolean = true
+): Promise<string> {
 	const url: string = getURL( target, params );
 	
 	const page: puppeteer.Page = await browser.newPage();
 	await page.goto( url );
-	const htmlElement = await page.$( "#app" );
+	const htmlElement = await page.$( selector );
 	const result = await htmlElement?.screenshot( {
 		encoding: "base64"
 	} ) as string;

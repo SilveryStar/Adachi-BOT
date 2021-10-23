@@ -33,7 +33,7 @@ export default Vue.defineComponent( {
 	},
 	setup() {
 		const urlParams = parseURL( location.search );
-		const data = JSON.parse( decodeURIComponent( atob( urlParams.data ) ) );
+		const data = JSON.parse( atob( decodeURIComponent( urlParams.data ) ) );
 		
 		const resin = {
 			title: "原粹树脂",
