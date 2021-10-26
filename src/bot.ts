@@ -18,16 +18,17 @@ import { checkAuthLevel, getAuthLevel, AuthLevel } from "./modules/auth";
 import { Command, CommandMatchResult } from "./modules/command";
 import { Database } from "./utils/database";
 import { BotConfig } from "./modules/config";
+import { Interval } from "./modules/interval";
 import { ROOTPATH } from "../app";
 
 /* setting.yml 配置文件 */
 let botConfig: BotConfig;
+/* 操作时间间隔 */
+let interval: Interval;
 /* bot 实例对象 */
 let Adachi: Client;
 /* redis 数据库实例 */
 let Redis: Database;
-/* 操作时间戳缓存 */
-let unixTimeTemp: { [key: string]: number } = {};
 /* 插件列表 */
 let groupCommands: Command[][] = [];
 let privateCommands: Command[][] = [];
@@ -117,13 +118,15 @@ function setEnvironment(): void {
 async function run(): Promise<void> {
 	/* 连接 Redis 数据库 */
 	Redis = new Database( botConfig.dbPort );
+	/* 加载命令间隔控制 */
+	interval = new Interval();
 	/* 加载插件 */
 	await loadPlugins();
 	
 	/* 监听群消息事件，运行群聊插件 */
 	Adachi.on( "message.group", async ( messageData: GroupMessageEventData ) => {
 		const { raw_message: content, user_id: qqID, group_id: groupID } = messageData;
-		if ( timeCheck( qqID ) ) {
+		if ( !interval.check( qqID, groupID ) ) {
 			return;
 		}
 		
@@ -141,7 +144,7 @@ async function run(): Promise<void> {
 	/* 监听私聊消息事件，运行私聊插件 */
 	Adachi.on( "message.private", async ( messageData: PrivateMessageEventData ) => {
 		const { raw_message: content, user_id: qqID } = messageData;
-		if ( timeCheck( qqID ) ) {
+		if ( !interval.check( qqID, -1 ) ) {
 			return;
 		}
 		
@@ -178,15 +181,6 @@ async function run(): Promise<void> {
 	} );
 }
 
-function timeCheck( qqID: number ): boolean {
-	const nowTime: number = ( new Date() ).valueOf();
-	if ( unixTimeTemp[qqID] && nowTime - unixTimeTemp[qqID] <= botConfig.intervalTime ) {
-		return true;
-	}
-	unixTimeTemp[qqID] = nowTime;
-	return false;
-}
-
 function execute( sendMessage: sendType, message: CommonMessageEventData, content: string, commands: Command[], limit: string[] ): void {
 	for ( let command of commands ) {
 		/* 判断命令限制 */
@@ -208,12 +202,8 @@ function execute( sendMessage: sendType, message: CommonMessageEventData, conten
 
 export {
 	setEnvironment,
-	migrate,
-	run,
-	init,
-	Redis,
-	Adachi,
-	botConfig,
-	groupCommands,
-	privateCommands
+	migrate, run, init,
+	Redis, Adachi,
+	botConfig, interval,
+	groupCommands, privateCommands
 }

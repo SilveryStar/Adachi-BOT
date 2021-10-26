@@ -9,9 +9,13 @@ class BotConfig {
 	public readonly header: string;
 	public readonly platform: 1 | 2 | 3 | 4 | 5;
 	public readonly atUser: boolean;
-	public readonly intervalTime: number;
 	public readonly dbPort: number;
 	public readonly inviteAuth: AuthLevel;
+	public readonly groupIntervalTime: number;
+	public readonly privateIntervalTime: number;
+	
+	/** @deprecated */
+	public readonly intervalTime?: number;
 	
 	static initObject = {
 		qrcode: "true 启用扫码登录,每次登录都需验证,Docker 启动禁用,默认不启用",
@@ -21,8 +25,9 @@ class BotConfig {
 		header: "命令起始符(可为空串\"\")",
 		platform: "1.安卓手机(默认) 2.aPad 3.安卓手表 4.MacOS 5.iPad",
 		atUser: "true 启用回复 at 用户,默认关闭",
-		intervalTime: "指令操作CD,单位 ms,默认 1500ms",
 		inviteAuth: "邀请自动入群权限,master 表示 BOT持有者,manager 表示 BOT管理员,默认 master",
+		groupIntervalTime: "群聊指令操作冷却时间, 单位毫秒, 默认 1500ms",
+		privateIntervalTime: "私聊指令操作冷却时间, 单位毫秒, 默认 2000ms",
 		dbPort: 56379
 	};
 	
@@ -40,10 +45,16 @@ class BotConfig {
 					? false : config.atUser;
 		this.platform = typeof config.platform === "string"
 					  ? 1 : config.platform;
-		this.intervalTime = typeof config.intervalTime !== "number"
-						  ? 1500 : config.intervalTime;
 		this.inviteAuth = config.inviteAuth === "manager"
 						? AuthLevel.Manager : AuthLevel.Master;
+		
+		this.groupIntervalTime = config.groupIntervalTime || 1500;
+		this.privateIntervalTime = config.privateIntervalTime || 2000;
+		
+		if ( config.intervalTime && !config.privateIntervalTime && !config.groupIntervalTime ) {
+			this.groupIntervalTime = config.intervalTime;
+			this.privateIntervalTime = config.intervalTime;
+		}
 	}
 }
 

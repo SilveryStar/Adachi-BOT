@@ -21,20 +21,24 @@ touch setting.yml commands.yml cookies.yml
 
 ```
 > setting.yml
-qrcode: false        # 是否启用扫码登录
-                     # 每次登录都需验证,Docker启动禁用,默认不启用
-number: 12345678     # QQ 账号
-password: ""         # QQ 密码
-master: 87654321     # BOT 持有者账号
-header: ""           # 命令起始符(可为空串"")
-platform: 1          # 登录平台
-                     # 1.安卓手机(默认) 2.aPad 3.安卓手表 4.MacOS 5.iPad
-atUser: true         # 是否启用回复时@用户, 默认关闭
-dbPort: 56379        # 数据库端口
-                     # 修改该选项需同时修改 redis.conf -> port
-intervalTime: 1500   # 指令操作冷却时间, 单位毫秒, 默认1500ms
-inviteAuth: "master" # 邀请自动入群权限
-                     # master表示BOT持有者, manager表示BOT管理员, 默认master
+qrcode: false               # 是否启用扫码登录
+                            # 每次登录都需验证,Docker启动禁用,默认不启用
+number: 12345678            # QQ 账号
+password: ""                # QQ 密码
+master: 87654321            # BOT 持有者账号
+header: ""                  # 命令起始符(可为空串"")
+platform: 1                 # 登录平台
+                            # 1.安卓手机(默认) 2.aPad 3.安卓手表 4.MacOS 5.iPad
+atUser: true                # 是否启用回复时@用户, 默认关闭
+dbPort: 56379               # 数据库端口
+                            # 修改该选项需同时修改 redis.conf -> port
+inviteAuth: "master"        # 邀请自动入群权限
+                            # master表示BOT持有者, manager表示BOT管理员, 默认master
+groupIntervalTime: 1500     # 群聊指令操作冷却时间, 单位毫秒, 默认 1500ms
+privateIntervalTime: 2000   # 私聊指令操作冷却时间, 单位毫秒, 默认 2000ms
+
+# intervalTime: 1500  [已弃用]指令操作冷却时间, 单位毫秒, 默认1500ms
+                      [向后兼容]当仅配置该项, 上两项未配置时, 群聊/私聊冷却时间均设为该项
 
 > cookies.yml
 cookies:
