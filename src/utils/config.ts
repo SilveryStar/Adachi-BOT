@@ -20,7 +20,7 @@ function exists( path: string ): boolean {
 function createFolder( dirName: string ): boolean {
 	const dirPath: string = resolve( `${ ROOTPATH }/${ dirName }` );
 	const exist: boolean = exists( dirPath );
-	if ( exist ) {
+	if ( !exist ) {
 		mkdirSync( dirPath );
 	}
 	return exist;
@@ -29,7 +29,7 @@ function createFolder( dirName: string ): boolean {
 function createYAML( fileName: string, config: any ): boolean {
 	const filePath: string = getFilePath( fileName );
 	const exist: boolean = exists( filePath );
-	if ( exist ) {
+	if ( !exist ) {
 		writeYAML( fileName, config );
 	}
 	return exist
