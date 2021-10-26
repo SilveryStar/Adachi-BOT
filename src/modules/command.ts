@@ -144,10 +144,7 @@ export class Command implements CommandMethod {
 				const h1: string = process( config.onKeyword );
 				const h2: string = process( config.offKeyword );
 				this.headers.push( h1, h2 );
-				this.regexps.push(
-					new RegExp( this.addStartStopCharacter( h1 + r ) ),
-					new RegExp( this.addStartStopCharacter( h2 + r ) )
-				);
+				this.regexps.push( new RegExp( this.addStartStopCharacter( `(${ h1 }|${ h2 })${ r }` ) ) );
 			}
 		}
 		
@@ -194,7 +191,10 @@ export class Command implements CommandMethod {
 				info += this.rawConfig.docs[1].replace( "${OPT}", s );
 			} else {
 				info += `${ this.headers[0] }|${ this.headers[1] } `;
-				info += this.rawConfig.docs[1].replace( /\${OPT}/, "" ).trim().replace( /\s+/g, " " );
+				info += this.rawConfig.docs[1]
+							.replace( /\${OPT}/, "" )
+							.trim()
+							.replace( /\s+/g, " " );
 			}
 		} else if ( isQuestion( this.rawConfig ) ) {
 			info += "发送:" + this.rawConfig.docs[1];
@@ -225,12 +225,20 @@ export class Command implements CommandMethod {
 			data = {};
 			for ( let regexp of this.regexps ) {
 				const res: RegExpExecArray | null = regexp.exec( message );
-				const onKeyword: string = this.rawConfig.onKeyword;
-				const offKeyword: string = this.rawConfig.offKeyword;
-				
 				if ( res === null ) {
 					continue;
 				}
+				
+				let onKeyword: string = "";
+				let offKeyword: string = "";
+				if ( this.rawConfig.mode === "single" ) {
+					onKeyword = this.rawConfig.onKeyword;
+					offKeyword = this.rawConfig.offKeyword;
+				} else if ( this.rawConfig.mode === "divided" ) {
+					onKeyword = this.headers[0];
+					offKeyword = this.headers[1];
+				}
+				
 				const tmp: string[] = res.splice( 1 );
 				if ( tmp.includes( onKeyword ) ) {
 					data.switch = onKeyword;
@@ -239,8 +247,12 @@ export class Command implements CommandMethod {
 					data.switch = offKeyword;
 				}
 				
-				data.match = res[0].split( " " ).filter( el => el !== data.switch );
 				data.isOn = () => data.switch === onKeyword;
+				data.match = res[0].split( " " ).filter( el => el !== data.switch );
+				if ( this.rawConfig.mode === "single" ) {
+					data.match.shift();
+				}
+				
 				return { type: "switch", data, flag: true };
 			}
 		} else if ( isQuestion( this.rawConfig ) ) {

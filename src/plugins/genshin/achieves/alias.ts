@@ -6,8 +6,8 @@ import { Redis } from "../../../bot";
 
 async function main( sendMessage: sendType, message: Message, match: CommandMatchResult ): Promise<void> {
 	const data = match.data as SwitchMatch;
-	const [ , , name, alias ] = data.match;
-	
+	const [ name, alias ] = data.match;
+
 	const nameList: string[] = typeData.getNameList();
 	if ( !nameList.some( el => el === name ) ) {
 		await sendMessage( `不存在名称为「${ name }」的角色或武器，若确认名称输入无误，请前往 github.com/SilveryStar/Ada.chi-BOT 进行反馈` );
