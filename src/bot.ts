@@ -181,7 +181,13 @@ async function run(): Promise<void> {
 	} );
 }
 
-function execute( sendMessage: sendType, message: CommonMessageEventData, content: string, commands: Command[], limit: string[] ): void {
+function execute(
+	sendMessage: sendType,
+	message: CommonMessageEventData,
+	content: string,
+	commands: Command[],
+	limit: string[]
+): void {
 	for ( let command of commands ) {
 		/* 判断命令限制 */
 		if ( !limit.includes( command.key ) ) {

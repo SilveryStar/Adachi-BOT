@@ -214,10 +214,12 @@ export class Command implements CommandMethod {
 	public match( message: string ): CommandMatchResult {
 		let data: any;
 		if ( isOrder( this.rawConfig ) ) {
-			const regNum: number = this.regexps.length;
-			for ( let i = 0; i < regNum; i++ ) {
+			const regexpNum: number = this.regexps.length;
+			const headerNum: number = this.headers.length;
+			console.log( this.regexps );
+			for ( let i = 0; i < regexpNum; i++ ) {
 				if ( this.regexps[i].test( message ) ) {
-					data = this.headers[i];
+					data = this.headers[ Math.floor( i / headerNum ) ];
 					return { type: "order", data, flag: true };
 				}
 			}
