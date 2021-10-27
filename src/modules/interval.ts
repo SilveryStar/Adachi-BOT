@@ -37,10 +37,8 @@ export class Interval {
 							? this.p.get( qqID )
 							: this.g.get( groupID );
 		if ( past <= limit ) {
-			console.log( `拦截，limit: ${ limit } past: ${ past }` )
 			return false;
 		} else {
-			console.log( `放行，limit: ${ limit } past: ${ past }` )
 			this.unixTimeTemp[qqID] = nowTime;
 			return true;
 		}

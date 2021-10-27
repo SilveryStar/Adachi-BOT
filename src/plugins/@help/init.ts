@@ -5,7 +5,7 @@ async function init(): Promise<any> {
 	return addPlugin( "@help", {
 		commandType: "order",
 		key: "adachi.help",
-		docs: [ "帮助", "[-k]" ],
+		docs: [ "帮助", "(-k)" ],
 		headers: [ "help" ],
 		regexps: [ "(-k)?" ],
 		authLimit: AuthLevel.Banned,
@@ -13,11 +13,12 @@ async function init(): Promise<any> {
 	}, {
 		commandType: "order",
 		key: "adachi.detail",
-		docs: [ "详细", "<编号>" ],
+		docs: [ "详细", "[编号]" ],
 		headers: [ "detail" ],
 		regexps: [ "[0-9]+" ],
 		authLimit: AuthLevel.Banned,
-		main: "detail"
+		main: "detail",
+		display: false
 	} );
 }
 

@@ -11,7 +11,8 @@ enum MessageScope {
 
 enum MessageType {
 	Group,
-	Private
+	Private,
+	Unknown
 }
 
 type sendType = ( content: Sendable, allowAt?: boolean ) => Promise<void>;

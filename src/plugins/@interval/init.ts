@@ -6,7 +6,7 @@ async function init(): Promise<any> {
 		commandType: "switch",
 		mode: "single",
 		key: "adachi.interval",
-		docs: [ "操作冷却", "${OPT} <群号|QQ号> <时间>" ],
+		docs: [ "操作冷却", "${OPT} [群号|QQ号] [时间]" ],
 		header: "int",
 		regexp: [ "${OPT}", "[0-9]+", "[0-9]+" ],
 		onKeyword: "-g",

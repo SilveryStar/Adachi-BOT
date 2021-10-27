@@ -13,6 +13,7 @@ class BotConfig {
 	public readonly inviteAuth: AuthLevel;
 	public readonly groupIntervalTime: number;
 	public readonly privateIntervalTime: number;
+	public readonly helpMessageStyle: string;
 	
 	/** @deprecated */
 	public readonly intervalTime?: number;
@@ -28,6 +29,7 @@ class BotConfig {
 		inviteAuth: "邀请自动入群权限,master 表示 BOT持有者,manager 表示 BOT管理员,默认 master",
 		groupIntervalTime: "群聊指令操作冷却时间, 单位毫秒, 默认 1500ms",
 		privateIntervalTime: "私聊指令操作冷却时间, 单位毫秒, 默认 2000ms",
+		helpMessageStyle: "帮助信息样式, 分为 message, forward, xml 三种, 默认 message",
 		dbPort: 56379
 	};
 	
@@ -47,6 +49,10 @@ class BotConfig {
 					  ? 1 : config.platform;
 		this.inviteAuth = config.inviteAuth === "manager"
 						? AuthLevel.Manager : AuthLevel.Master;
+		
+		const helpList: string[] = [ "message", "forward", "xml" ];
+		this.helpMessageStyle = helpList.includes( config.helpMessageStyle )
+		                      ? config.helpMessageStyle : "message";
 		
 		this.groupIntervalTime = config.groupIntervalTime || 1500;
 		this.privateIntervalTime = config.privateIntervalTime || 2000;

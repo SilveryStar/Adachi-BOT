@@ -86,6 +86,7 @@ export class Command implements CommandMethod {
 	
 	public readonly key: string;
 	public readonly docs: string;
+	public readonly desc: string;
 	public readonly detail: string;
 	public readonly display: boolean;
 	public readonly scope: MessageScope;
@@ -155,8 +156,9 @@ export class Command implements CommandMethod {
 			}
 		}
 		
-		/* 最后处理 docs 信息 */
+		/* 最后处理描述信息 */
 		this.docs = this.parseDocs();
+		this.desc = config.docs[0];
 	}
 	
 	static modifyHeader( raw: string ): string {
@@ -172,39 +174,51 @@ export class Command implements CommandMethod {
 	}
 	
 	private parseDocs(): string {
-		let info = this.rawConfig.docs[0] + " ";
+		const info: string = this.rawConfig.docs[0] + " ";
 		
+		function getLength( str: string ): number {
+			return str.replace( /[\u0391-\uFFE5]/g, "aa" ).length;
+		}
+		
+		function getCharacter( str: string ): string {
+			if ( botConfig.helpMessageStyle === "xml" && getLength( str ) > 30 ) {
+				return "\n";
+			}
+			return "";
+		}
+		
+		let cmd: string = "";
 		if ( isOrder( this.rawConfig ) ) {
 			for ( let i = 0; i < this.headers.length; i++ ) {
 				if ( i !== 0 ) {
-					info += "|";
+					cmd += "|";
 				}
-				info += this.headers[i];
+				cmd += this.headers[i];
 			}
 			if ( this.rawConfig.docs[1] !== "" ) {
-				info += " " + this.rawConfig.docs[1];
+				cmd += " " + this.rawConfig.docs[1];
 			}
 		} else if ( isSwitch( this.rawConfig ) ) {
 			if ( this.rawConfig.mode === "single" ) {
-				const s: string = `<${ this.rawConfig.onKeyword }|${ this.rawConfig.offKeyword }>`
-				info += this.headers[0] + " ";
-				info += this.rawConfig.docs[1].replace( "${OPT}", s );
+				const s: string = `[${ this.rawConfig.onKeyword }|${ this.rawConfig.offKeyword }]`
+				cmd += this.headers[0] + " ";
+				cmd += this.rawConfig.docs[1].replace( "${OPT}", s );
 			} else {
-				info += `${ this.headers[0] }|${ this.headers[1] } `;
-				info += this.rawConfig.docs[1]
-							.replace( /\${OPT}/, "" )
-							.trim()
-							.replace( /\s+/g, " " );
+				cmd += `${ this.headers[0] }|${ this.headers[1] } `;
+				cmd += this.rawConfig.docs[1]
+						   .replace( /\${OPT}/, "" )
+						   .trim()
+						   .replace( /\s+/g, " " );
 			}
 		} else if ( isQuestion( this.rawConfig ) ) {
-			info += "发送:" + this.rawConfig.docs[1];
+			cmd += "发送:" + this.rawConfig.docs[1];
 		}
 		
-		return info;
+		return info + getCharacter( info + cmd ) + cmd;
 	}
 	
 	public getKeysInfo(): string {
-		return `${ this.docs[0] } -- ${ this.key }`
+		return `${ this.desc } -- ${ this.key }`
 	}
 	
 	public getHeaders(): string[] {
@@ -216,7 +230,7 @@ export class Command implements CommandMethod {
 		if ( isOrder( this.rawConfig ) ) {
 			const regexpNum: number = this.regexps.length;
 			const headerNum: number = this.headers.length;
-			console.log( this.regexps );
+
 			for ( let i = 0; i < regexpNum; i++ ) {
 				if ( this.regexps[i].test( message ) ) {
 					data = this.headers[ Math.floor( i / headerNum ) ];

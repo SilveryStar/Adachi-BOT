@@ -5,14 +5,14 @@ import { MessageScope } from "../../modules/message";
 const commands: CommandType[] = [ {
 	commandType: "order",
 	key: "silvery-star.bind",
-	docs: [ "绑定", "<通行证>" ],
+	docs: [ "绑定", "[通行证]" ],
 	headers: [ "bind" ],
 	regexps: [ "[0-9]+" ],
 	main: "achieves/bind"
 }, {
 	commandType: "order",
 	key: "silvery-star.mys-query",
-	docs: [ "查询", "[通行证|@]" ],
+	docs: [ "查询", "(通行证|@)" ],
 	headers: [ "mys" ],
 	regexps: [
 		[ "[0-9]*" ],
@@ -22,14 +22,14 @@ const commands: CommandType[] = [ {
 }, {
 	commandType: "order",
 	key: "silvery-star.uid-query",
-	docs: [ "查询", "<UID>" ],
+	docs: [ "查询", "[UID]" ],
 	headers: [ "uid" ],
 	regexps: [ "[0-9]{9}" ],
 	main: "achieves/uid-query"
 }, {
 	commandType: "order",
 	key: "silvery-star.art",
-	docs: [ "抽圣遗物", "[秘境ID]" ],
+	docs: [ "抽圣遗物", "(秘境ID)" ],
 	headers: [ "art" ],
 	regexps: [ "[0-9]*" ],
 	main: "achieves/artifact"
@@ -57,21 +57,21 @@ const commands: CommandType[] = [ {
 }, {
 	commandType: "order",
 	key: "silvery-star.choose",
-	docs: [ "切换卡池", "<角色|武器|常驻>" ],
+	docs: [ "切换卡池", "[角色|武器|常驻]" ],
 	headers: [ "choose", "t" ],
 	regexps: [ "(角色|武器|常驻)" ],
 	main: "achieves/choose"
 }, {
 	commandType: "order",
 	key: "silvery-star.character",
-	docs: [ "角色信息", "<角色名>" ],
+	docs: [ "角色信息", "[角色名]" ],
 	headers: [ "char" ],
 	regexps: [ "[0-9a-z\\u4e00-\\u9fa5]+" ],
 	main: "achieves/character"
 }, {
 	commandType: "order",
 	key: "silvery-star.information",
-	docs: [ "信息", "<角色|武器名>" ],
+	docs: [ "信息", "[角色|武器名]" ],
 	headers: [ "info" ],
 	regexps: [ "[0-9a-z\\u4e00-\\u9fa5]+" ],
 	main: "achieves/info"
@@ -86,7 +86,7 @@ const commands: CommandType[] = [ {
 	commandType: "switch",
 	mode: "single",
 	key: "silvery-star.alias-customize",
-	docs: [ "修改别名", "${OPT} <本名> <别名>" ],
+	docs: [ "修改别名", "${OPT} [本名] [别名]" ],
 	header: "alias",
 	regexp: [ "${OPT}", "[\\u4e00-\\u9fa5]+", "[0-9a-z\\u4e00-\\u9fa5]+" ],
 	main: "achieves/alias",
@@ -96,7 +96,7 @@ const commands: CommandType[] = [ {
 }, {
 	commandType: "order",
 	key: "silvery-star.abyss",
-	docs: [ "深渊查询", "[UID|@] [last]" ],
+	docs: [ "深渊查询", "(UID|@) (last)" ],
 	headers: [ "aby" ],
 	regexps: [
 		[ "[0-9]*( last)?" ],
@@ -109,7 +109,7 @@ const commands: CommandType[] = [ {
 	commandType: "switch",
 	mode: "single",
 	key: "silvery-star.daily",
-	docs: [ "材料订阅", "${OPT} <角色名|武器名|群号>" ],
+	docs: [ "材料订阅", "${OPT} [角色|武器名|群号]" ],
 	header: "sub",
 	onKeyword: "add",
 	offKeyword: "remove",
@@ -154,7 +154,7 @@ const commands: CommandType[] = [ {
 }, {
 	commandType: "order",
 	key: "silvery-star.cancel-private",
-	docs: [ "取消私人服务", "<账户编号>" ],
+	docs: [ "取消私人服务", "[账户编号]" ],
 	headers: [ "pr" ],
 	regexps: [ "[0-9]+" ],
 	main: "achieves/private",
@@ -170,7 +170,7 @@ const commands: CommandType[] = [ {
 }, {
 	commandType: "order",
 	key: "silvery-star.note-set-time",
-	docs: [ "便笺提醒时间", "<账户编号> <树脂量>" ],
+	docs: [ "便笺提醒时间", "[账户编号] [树脂量]" ],
 	headers: [ "nt" ],
 	regexps: [ "[0-9 ]+" ],
 	main: "achieves/note",
@@ -180,7 +180,7 @@ const commands: CommandType[] = [ {
 }, {
 	commandType: "order",
 	key: "silvery-star.character-guide",
-	docs: [ "西风驿站攻略", "<角色名>" ],
+	docs: [ "西风驿站攻略", "[角色名]" ],
 	headers: [ "guide" ],
 	regexps: [ "[0-9a-z\\u4e00-\\u9fa5]+" ],
 	main: "achieves/guide"

@@ -32,10 +32,12 @@ platform: 1                 # 登录平台
 atUser: true                # 是否启用回复时@用户, 默认关闭
 dbPort: 56379               # 数据库端口
                             # 修改该选项需同时修改 redis.conf -> port
-inviteAuth: "master"        # 邀请自动入群权限
+inviteAuth: master          # 邀请自动入群权限
                             # master表示BOT持有者, manager表示BOT管理员, 默认master
 groupIntervalTime: 1500     # 群聊指令操作冷却时间, 单位毫秒, 默认 1500ms
 privateIntervalTime: 2000   # 私聊指令操作冷却时间, 单位毫秒, 默认 2000ms
+helpMessageStyle: message   # 帮助信息样式, 分为 message, forward, xml 三种
+                            # 默认为 message. xml 疑似有封号风险, 谨慎使用, 大群勿用
 
 # intervalTime: 1500  [已弃用]指令操作冷却时间, 单位毫秒, 默认1500ms
                       [向后兼容]当仅配置该项, 上两项未配置时, 群聊/私聊冷却时间均设为该项
