@@ -13,7 +13,6 @@ export function getRealName( name: string ): NameResult {
 	}
 	
 	const fuzzyMatchResult: Array<MatchResult> = fuzzyMatch( name );
-	console.log( fuzzyMatchResult )
 	if ( fuzzyMatchResult.length === 0 ) {
 		return { definite: false, info: "" };
 	} else if ( fuzzyMatchResult[0].ratio >= 0.98 ) {
