@@ -1,5 +1,5 @@
 import { CommonMessageEventData as Message } from "oicq";
-import { CommandMatchResult } from "../../../modules/command";
+import { OrderMatch } from "../../../modules/command";
 import { sendType } from "../../../modules/message";
 import { ErrorMsg } from "../utils/promise";
 import { Private } from "../module/private";
@@ -36,12 +36,12 @@ async function modifyTimePoint( qqID: number, data: string ): Promise<string> {
 	}
 }
 
-async function main( sendMessage: sendType, message: Message, match: CommandMatchResult ): Promise<void> {
+async function main( sendMessage: sendType, message: Message, match: OrderMatch ): Promise<void> {
 	const qqID: number = message.user_id;
 	const data: string = message.raw_message;
 	let respMsg: string = "";
 	
-	const header = match.data as string;
+	const header = match.header as string;
 	const auth: AuthLevel = await getAuthLevel( qqID );
 	switch ( true ) {
 		/* 修改提醒时间 */

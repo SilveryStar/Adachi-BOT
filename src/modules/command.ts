@@ -14,7 +14,7 @@ interface CommandMethod {
  * @interface
  * @enable 无需配置，仅用于用户配置文件写入
  * */
-interface CommandConfig {
+export interface CommandConfig {
 	commandType: "order" | "switch" | "question";
 	key: string;
 	docs: string[];
@@ -48,32 +48,42 @@ interface Question extends CommandConfig {
 	sentences: string[];
 }
 
-type CommandType = Order | Switch | Question;
+export type CommandType = Order | Switch | Question;
 
-function isOrder( data: CommandConfig ): data is Order {
+export function isOrder( data: CommandConfig ): data is Order {
 	return data.commandType === "order";
 }
 
-function isSwitch( data: CommandConfig ): data is Switch {
+export function isSwitch( data: CommandConfig ): data is Switch {
 	return data.commandType === "switch";
 }
 
-function isQuestion( data: CommandConfig ): data is Question {
+export function isQuestion( data: CommandConfig ): data is Question {
 	return data.commandType === "question";
 }
 
-interface SwitchMatch {
+export interface SwitchMatch {
+	type: "switch";
 	switch: string;
 	match: string[];
 	isOn: () => boolean;
 }
 
-interface CommandMatchResult {
-	type: "order" | "switch" | "question" | "unmatch";
-	data: string | SwitchMatch | string[];
-	flag: boolean;
+export interface OrderMatch {
+	type: "order";
+	header: string;
 }
 
+export interface QuestionMatch {
+	type: "question";
+	list: string[];
+}
+
+export interface Unmatch {
+	type: "unmatch";
+}
+
+export type CommandMatchResult = OrderMatch | SwitchMatch | QuestionMatch | Unmatch;
 type mainFunc = ( sendMessage: sendType, message: Message, match: CommandMatchResult ) => void | Promise<void>;
 
 export class Command implements CommandMethod {
@@ -115,6 +125,7 @@ export class Command implements CommandMethod {
 			const isDeep: boolean = config.regexps.some( el => el instanceof Array );
 			if ( !isDeep ) {
 				rawRegs = [ rawRegs as string[] ];
+				( this.rawConfig as Order ).regexps = rawRegs;
 			}
 			
 			for ( let header of this.headers ) {
@@ -226,19 +237,22 @@ export class Command implements CommandMethod {
 	}
 	
 	public match( message: string ): CommandMatchResult {
-		let data: any;
+		let data: any = {};
 		if ( isOrder( this.rawConfig ) ) {
 			const regexpNum: number = this.regexps.length;
-			const headerNum: number = this.headers.length;
-
+			const rawRegNum: number = this.rawConfig.regexps.length;
+			
+			data.type = "order";
+			
 			for ( let i = 0; i < regexpNum; i++ ) {
 				if ( this.regexps[i].test( message ) ) {
-					data = this.headers[ Math.floor( i / headerNum ) ];
-					return { type: "order", data, flag: true };
+					data.header = this.headers[ Math.floor( i / rawRegNum ) ];
+					return data;
 				}
 			}
 		} else if ( isSwitch( this.rawConfig ) ) {
-			data = {};
+			data.type = "switch";
+			
 			for ( let regexp of this.regexps ) {
 				const res: RegExpExecArray | null = regexp.exec( message );
 				if ( res === null ) {
@@ -262,26 +276,31 @@ export class Command implements CommandMethod {
 				if ( tmp.includes( offKeyword ) ) {
 					data.switch = offKeyword;
 				}
-				
+
 				data.isOn = () => data.switch === onKeyword;
-				data.match = res[0].split( " " ).filter( el => el !== data.switch );
+				data.match = res[0].replace( / +/g, " " )
+								   .split( " " )
+								   .filter( el => el !== data.switch )
+								   .map( el => trimStart( el ) );
 				if ( this.rawConfig.mode === "single" ) {
 					data.match.shift();
 				}
 				
-				return { type: "switch", data, flag: true };
+				return data;
 			}
 		} else if ( isQuestion( this.rawConfig ) ) {
+			data.type = "question";
+			
 			for ( let regexp of this.regexps ) {
 				const res: RegExpExecArray | null = regexp.exec( message );
 				if ( res !== null ) {
-					data = res.splice( 1 );
-					return { type: "question", data, flag: true };
+					data.list = res.splice( 1 );
+					return data;
 				}
 			}
 		}
 		
-		return { type: "unmatch", data, flag: false };
+		return { type: "unmatch" };
 	}
 	
 	public compare(): number {
@@ -291,14 +310,4 @@ export class Command implements CommandMethod {
 	public async checkAuth( userID: number ): Promise<boolean> {
 		return await checkAuthLevel( userID, this.authLimit );
 	}
-}
-
-export {
-	CommandType,
-	CommandConfig,
-	CommandMatchResult,
-	SwitchMatch,
-	isOrder,
-	isSwitch,
-	isQuestion
 }

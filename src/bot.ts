@@ -11,6 +11,7 @@ import {
 import { loadPlugins } from "./modules/plugin";
 import { scheduleJob } from "node-schedule";
 import { resolve } from "path";
+import { trim } from "lodash";
 import { createFolder, createYAML, exists } from "./utils/config";
 import { readFileSync, renameSync, unlinkSync, readdirSync } from "fs";
 import { getSendMessageFunc, removeStringPrefix, sendType, MessageType } from "./modules/message";
@@ -192,11 +193,14 @@ function execute(
 		/* 判断命令限制 */
 		if ( !limit.includes( command.key ) ) {
 			const res: CommandMatchResult = command.match( content );
-			if ( !res.flag ) {
+			if ( res.type === "unmatch" ) {
 				continue;
 			}
 			if ( res.type === "order") {
-				message.raw_message = removeStringPrefix( removeStringPrefix( content, res.data as string ), " " );
+				message.raw_message = trim(
+					removeStringPrefix( content, res.header )
+						.replace( / +/g, " " )
+				);
 				command.run( sendMessage, message, res );
 				break;
 			} else {

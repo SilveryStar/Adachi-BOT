@@ -163,9 +163,9 @@ export async function getSpiralAbyssInfo( roleID: number, server: string, period
 			}
 		} )
 			.then( ( result ) => {
-				const response: ResponseBody = JSON.parse( result );
-				response.data.type = "abyss";
-				resolve( toCamelCase( response ) );
+				const resp = toCamelCase( JSON.parse( result ) );
+				const data: ResponseBody = set( resp, "data.type", "abyss" )
+				resolve( data );
 			} )
 			.catch( ( reason ) => {
 				reject( reason );
