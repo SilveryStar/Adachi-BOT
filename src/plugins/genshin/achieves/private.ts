@@ -4,7 +4,8 @@ import { UserInfo } from "../module/private";
 import { sendType } from "../../../modules/message";
 import { ErrorMsg } from "../utils/promise";
 import * as ApiType from "../types";
-import { getHeader as h } from "../utils/header";
+import { AuthLevel, getAuthLevel } from "../../../modules/auth";
+import { getHeader as h, existHeader as e } from "../utils/header";
 import { scheduleJob } from "node-schedule";
 import { pull } from "lodash";
 import { getBaseInfo } from "../utils/api";
@@ -13,7 +14,7 @@ import { privateClass } from "../init";
 /* 临时存储用户输入的 cookie，若用户不确认则 3min 后清除 */
 const tempSubscriptionList: number[] = [];
 
-function subscribe( qqID: number, s: sendType ): string {
+function subscribe( qqID: number, s: sendType, a: AuthLevel ): string {
 	if ( tempSubscriptionList.includes( qqID ) ) {
 		return "您已经处于私人服务申请状态";
 	}
@@ -33,14 +34,14 @@ function subscribe( qqID: number, s: sendType ): string {
 	return "这是一条提醒，请确保你非常明确你在做什么\n" +
 		   "如果要开启私人服务功能，必须提供你的米游社 cookie\n" +
 		   "这可能会导致你的账号出现安全风险，请务必确保 BOT 持有者可信\n" +
-		   `如果确定开启该功能，使用「${ h( "silvery-star.private-confirm" )[0] }+cookie」来继续\n` +
+		   `如果确定开启该功能，使用「${ h( "silvery-star.private-confirm", a )[0] }+cookie」来继续\n` +
 		   "你可以在 https://ddl.ink/acookie 中查看获取 cookie 的方法\n" +
 		   "这需要在 3 分钟内进行，此后将会自动取消本次申请";
 }
 
-async function confirm( qqID: number, cookie: string ): Promise<string> {
+async function confirm( qqID: number, cookie: string, a: AuthLevel ): Promise<string> {
 	if ( !tempSubscriptionList.some( el => el === qqID ) ) {
-		return `你还未申请私人服务，请先使用「${ h( "silvery-star.private-subscribe" )[0] }」`;
+		return `你还未申请私人服务，请先使用「${ h( "silvery-star.private-subscribe", a )[0] }」`;
 	}
 	
 	const reg = new RegExp( /.*?ltuid=([0-9]+).*?/g );
@@ -101,21 +102,23 @@ async function main( sendMessage: sendType, message: Message, match: CommandMatc
 	const data: string = message.raw_message;
 	let respMsg: string;
 	
-	switch ( match.data ) {
+	const header = match.data as string;
+	const auth: AuthLevel = await getAuthLevel( qqID );
+	switch ( true ) {
 		/* 触发订阅事件 */
-		case h( "silvery-star.private-subscribe" )[0]:
-			respMsg = subscribe( qqID, sendMessage );
+		case e( header, "silvery-star.private-subscribe", auth ):
+			respMsg = subscribe( qqID, sendMessage, auth );
 			break;
 		/* 确认订阅 */
-		case h( "silvery-star.private-confirm" )[0]:
-			respMsg = await confirm( qqID, data );
+		case e( header, "silvery-star.private-confirm", auth ):
+			respMsg = await confirm( qqID, data, auth );
 			break;
 		/* 删除私人服务 */
-		case h( "silvery-star.cancel-private" )[0]:
+		case e( header, "silvery-star.cancel-private", auth ):
 			respMsg = await cancelPrivate( qqID, data );
 			break;
 		/* 获取所有私人服务 */
-		case h( "silvery-star.private-list" )[0]:
+		case e( header, "silvery-star.private-list", auth ):
 			respMsg = await getPrivateList( qqID );
 			break;
 		default:

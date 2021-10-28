@@ -4,8 +4,8 @@ import { groupCommands, privateCommands } from "../../../bot";
 
 function getHeader(
 	key: string,
-	type: string = "private",
-	level: AuthLevel = AuthLevel.User
+	level: AuthLevel = AuthLevel.User,
+	type: string = "private"
 ): string[] {
 	const commands: Command[] = type === "private"
 		                      ? privateCommands[level]
@@ -13,4 +13,17 @@ function getHeader(
 	return commands.find( el => el.key === key )?.getHeaders() || [];
 }
 
-export { getHeader }
+function existHeader(
+	value: string,
+	key: string,
+	level: AuthLevel = AuthLevel.User,
+	type: string = "private"
+): boolean {
+	const list: string[] = getHeader( key, level, type );
+	return list.includes( value );
+}
+
+export {
+	getHeader,
+	existHeader
+}

@@ -1,7 +1,8 @@
 import { getRegion } from "../utils/region";
-import { getSendMessageFunc, MessageType, sendType } from "../../../modules/message";
-import { getHeader as h } from "../utils/header";
 import { pull } from "lodash";
+import { getHeader as h } from "../utils/header";
+import { getSendMessageFunc, MessageType, sendType } from "../../../modules/message";
+import { getAuthLevel, AuthLevel } from "../../../modules/auth";
 import { NoteService } from "./note";
 import { Md5 } from "md5-typescript";
 import { Redis } from "../../../bot";
@@ -107,10 +108,11 @@ class PrivateClass {
 		return this.list.filter( el => el.setting.userID === userID );
 	}
 	
-	public getSinglePrivate( userID: number, privateID: number ): Private | string {
+	public async getSinglePrivate( userID: number, privateID: number ): Promise<Private | string> {
 		const list: Private[] = this.getUserPrivateList( userID );
+		const auth: AuthLevel = await getAuthLevel( userID );
 		if ( privateID > list.length ) {
-			return `无效的编号，请使用 ${ h( "silvery-star.private-list" )[0] } 检查`;
+			return `无效的编号，请使用 ${ h( "silvery-star.private-list", auth )[0] } 检查`;
 		} else {
 			return list[privateID - 1];
 		}
@@ -136,7 +138,7 @@ class PrivateClass {
 	}
 	
 	public async delPrivate( userID: number, privateID: number ): Promise<string> {
-		const single: Private | string = this.getSinglePrivate( userID, privateID );
+		const single: Private | string = await this.getSinglePrivate( userID, privateID );
 		if ( typeof single === "string" ) {
 			return single;
 		} else {

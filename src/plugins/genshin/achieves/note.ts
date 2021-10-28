@@ -4,7 +4,8 @@ import { sendType } from "../../../modules/message";
 import { ErrorMsg } from "../utils/promise";
 import { Private } from "../module/private";
 import { NoteService } from "../module/note";
-import { getHeader as h } from "../utils/header";
+import { AuthLevel, getAuthLevel } from "../../../modules/auth";
+import { existHeader as e } from "../utils/header";
 import { render } from "../utils/render";
 import { privateClass } from "../init";
 
@@ -25,7 +26,7 @@ async function getNowNote( qqID: number ): Promise<string[]> {
 
 async function modifyTimePoint( qqID: number, data: string ): Promise<string> {
 	const list: number[] = data.split( " " ).map( el => parseInt( el ) );
-	const single: Private | string = privateClass.getSinglePrivate( qqID, list.shift() as number );
+	const single: Private | string = await privateClass.getSinglePrivate( qqID, list.shift() as number );
 	
 	if ( typeof single === "string" ) {
 		return single;
@@ -40,13 +41,15 @@ async function main( sendMessage: sendType, message: Message, match: CommandMatc
 	const data: string = message.raw_message;
 	let respMsg: string = "";
 	
-	switch ( match.data ) {
+	const header = match.data as string;
+	const auth: AuthLevel = await getAuthLevel( qqID );
+	switch ( true ) {
 		/* 修改提醒时间 */
-		case h( "silvery-star.note-set-time" )[0]:
+		case e( header, "silvery-star.note-set-time", auth ):
 			respMsg = await modifyTimePoint( qqID, data );
 			break;
 		/* 渲染便笺 */
-		case h( "silvery-star.now-note" )[0]:
+		case e( header, "silvery-star.now-note", auth ):
 			const res: string[] = await getNowNote( qqID );
 			for ( let msg of res ) {
 				await sendMessage( msg );

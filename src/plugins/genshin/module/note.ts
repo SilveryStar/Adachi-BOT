@@ -1,6 +1,7 @@
 import { dailyNotePromise } from "../utils/promise";
 import { scheduleJob, Job } from "node-schedule";
 import { getHeader as h } from "../utils/header";
+import { getAuthLevel, AuthLevel } from "../../../modules/auth";
 import { Private, Service, UserInfo } from "./private";
 import { Note, Expedition } from "../types";
 
@@ -42,9 +43,10 @@ class NoteService implements Service {
 				   this.globalData + "\n" +
 				   "可能是因为米游社数据未公开或米游社内未开启实时便笺";
 		} else {
+			const auth: AuthLevel = await getAuthLevel( this.parent.setting.userID );
 			return "实时便笺功能已开启：\n" +
 				   "默认情况下，树脂数量达到 120 和 155 时会发送进行私聊推送\n" +
-				   `也可以通过「${ h( "silvery-star.note-set-time" )[0] }+账户编号+树脂量」来设置\n` +
+				   `也可以通过「${ h( "silvery-star.note-set-time", auth )[0] }+账户编号+树脂量」来设置\n` +
 				   "当冒险探索结束时，BOT 也会进行提醒";
 		}
 	}
