@@ -13,8 +13,9 @@ export const artClass = new m.ArtClass();
 export const cookies = new m.Cookies();
 export const typeData = new m.TypeData();
 export const aliasClass = new m.AliasClass();
-export const dailyClass = new m.DailyClass();
+export const almanacClass = new m.AlmanacClass();
 export const wishClass = new m.WishClass();
+export const dailyClass = new m.DailyClass();
 export const slipClass = new m.SlipClass();
 export const privateClass = new m.PrivateClass();
 

@@ -20,7 +20,7 @@ import DailyColumn from "./column.js";
 
 function parse( str ) {
 	const result = [];
-	const obj = JSON.parse( decodeURIComponent( escape( decodeURIComponent( atob( str ) ) ) ) );
+	const obj = JSON.parse( decodeURIComponent( escape( atob( decodeURIComponent( str ) ) ) ) );
 
 	Object.keys( obj ).forEach( k => {
 		const dataList = obj[k];

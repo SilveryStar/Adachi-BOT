@@ -7,6 +7,7 @@ import { ResponseBody } from "../types/response";
 import { SlipDetail } from "../module/slip";
 import { DailyMaterial } from "../module/daily";
 import { InfoResponse } from "../types";
+import { FortuneData } from "../module/almanac";
 import fetch from "node-fetch";
 
 const __API = {
@@ -22,7 +23,8 @@ const __API = {
 	FETCH_WISH_CONFIG: "https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/wish/config/$.json",
 	FETCH_INFO: "https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/info/docs/$.json",
 	FETCH_ALIAS_SET: "https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/alias/alias.yml",
-	FETCH_DAILY_MAP: "https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/daily/daily.yml"
+	FETCH_DAILY_MAP: "https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/daily/daily.yml",
+	FETCH_ALMANAC: "https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/almanac/almanac.yml"
 };
 
 const HEADERS = {
@@ -265,6 +267,16 @@ export async function getAliasName(): Promise<any> {
 export async function getDailyMaterial(): Promise<DailyMaterial> {
 	return new Promise( ( resolve ) => {
 		fetch( __API.FETCH_DAILY_MAP )
+			.then( async ( result: Response ) => {
+				resolve( parse( await result.text() ) );
+			} );
+	} );
+}
+
+/* 文本来源 可莉特调 https: //genshin.pub/ */
+export async function getAlmanacText(): Promise<Record<string, FortuneData[]>> {
+	return new Promise( ( resolve ) => {
+		fetch( __API.FETCH_ALMANAC )
 			.then( async ( result: Response ) => {
 				resolve( parse( await result.text() ) );
 			} );

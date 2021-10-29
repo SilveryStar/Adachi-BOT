@@ -1,8 +1,9 @@
 import { sendType } from "../../../modules/message";
 import { render } from "../utils/render";
+import { almanacClass } from "../init";
 
 async function main( sendMessage: sendType ): Promise<void> {
-	const image: string = await render( "https://genshin.pub/", {}, ".GSAlmanacs_gs_almanacs__3qT_A" );
+	const image: string = await render( "almanac", { data: almanacClass.get() } );
 	await sendMessage( image );
 }
 

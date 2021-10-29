@@ -1,5 +1,6 @@
 export { ArtClass } from "./artifact";
 export { AliasClass } from "./alias";
+export { AlmanacClass } from "./almanac";
 export { Cookies } from "./cookies";
 export { DailyClass } from "./daily";
 export { SlipClass } from "./slip";

@@ -26,28 +26,32 @@ function createFolder( dirName: string ): boolean {
 	return exist;
 }
 
-function createYAML( fileName: string, config: any ): boolean {
-	const filePath: string = getFilePath( fileName );
+function createYAML( fileName: string, config: any, root: boolean = true ): boolean {
+	const filePath: string = root ? getFilePath( fileName )
+								  : fileName;
 	const exist: boolean = exists( filePath );
 	if ( !exist ) {
-		writeYAML( fileName, config );
+		writeYAML( fileName, config, root );
 	}
 	return exist
 }
 
-function readYAML( fileName: string ): string {
-	return readFileSync( getFilePath( fileName ), "utf-8" );
+function readYAML( fileName: string, root: boolean = true ): string {
+	const filePath: string = root ? getFilePath( fileName )
+								  : fileName;
+	return readFileSync( filePath, "utf-8" );
 }
 
-function writeYAML( fileName: string, config: any ): void {
-	const filePath: string = getFilePath( fileName );
+function writeYAML( fileName: string, config: any, root: boolean = true ): void {
+	const filePath: string = root ? getFilePath( fileName )
+							      : fileName;
 	const openedFile: number = openSync( filePath, "w" );
 	writeSync( openedFile, stringify( config ) );
 	closeSync( openedFile );
 }
 
-function loadYAML( fileName: string ): any {
-	const file: string = readYAML( fileName );
+function loadYAML( fileName: string, root: boolean = true ): any {
+	const file: string = readYAML( fileName, root );
 	const config: any = parse( file );
 	return config === null ? {} : config;
 }

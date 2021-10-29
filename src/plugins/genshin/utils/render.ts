@@ -8,8 +8,8 @@ async function createBrowser(): Promise<void> {
 	browser = await puppeteer.launch( {
 		headless: true,
 		defaultViewport: {
-			width: 1620,
-			height: 1132
+			width: 1920,
+			height: 1080
 		},
 		args: [
 			"--no-sandbox",
