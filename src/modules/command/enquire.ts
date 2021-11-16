@@ -1,6 +1,6 @@
 import { BasicConfig, CommandInfo, Unmatch } from "./main";
 import BotConfig from "../config";
-import { snakeCase, escapeRegExp } from "lodash";
+import { snakeCase } from "lodash";
 
 export interface EnquireMatchResult {
 	type: "enquire";
@@ -56,33 +56,37 @@ export class Enquire extends BasicConfig {
 			this.units.push( {
 				upperSnakeCase: upper,
 				lowerCamelCase: el,
-				reg: escapeRegExp( config.definedPair[el].regexp ),
+				reg: config.definedPair[el].regexp,
 				desc: config.definedPair[el].senDesc
 			} );
 		} );
 		
 		const globalHeader: string = botCfg.header;
-		if ( config.sentences[0].includes( "#{HEADER}" ) ) {
-			this.units.push( {
-				upperSnakeCase: "#{HEADER}",
-				lowerCamelCase: "header",
-				reg: escapeRegExp( globalHeader ),
-				desc: globalHeader
-			} );
+		for ( let sen of config.sentences ) {
+			if ( sen.includes( "#{HEADER}" ) ) {
+				this.units.push( {
+					upperSnakeCase: "#{HEADER}",
+					lowerCamelCase: "header",
+					reg: globalHeader,
+					desc: globalHeader
+				} );
+				break;
+			}
 		}
 		
 		config.sentences.forEach( el => {
-			this.units.forEach( unit => el.replace(
+			let tmpSen: string = el;
+			this.units.forEach( unit => tmpSen = tmpSen.replace(
 				unit.upperSnakeCase, `(${ unit.reg })`
 			) );
 			
-			const match = <RegExpMatchArray>el.match( /#{[A-Z1-9_]}/g );
+			const match = <RegExpMatchArray>el.match( /#{[A-Z1-9_]+}/g );
 			const keywords: string[] = match.map( key =>
 				( <MatchKeyword>this.units.find( el => el.upperSnakeCase === key ) )
 					.lowerCamelCase
 			);
 			this.sentences.push( {
-				keywords, reg: Enquire.regexp( el, this.ignoreCase )
+				keywords, reg: Enquire.regexp( tmpSen, this.ignoreCase )
 			} );
 		} );
 	}
@@ -95,8 +99,8 @@ export class Enquire extends BasicConfig {
 		const cfg = <EnquireConfig>this.raw;
 		return {
 			type: "enquire",
-			auth: cfg.auth,
-			scope: cfg.scope,
+			auth: this.auth,
+			scope: this.scope,
 			sentences: cfg.sentences,
 			enable: true
 		};
@@ -138,6 +142,10 @@ export class Enquire extends BasicConfig {
 		} );
 		
 		const [ func ] = this.desc;
-		return func + [ "", ...sentences ].join( "\n" );
+		if ( sentences.length === 1 ) {
+			return func + " " + sentences[0];
+		} else {
+			return func + [ "", ...sentences ].join( "\n" );
+		}
 	}
 }
