@@ -1,20 +1,3 @@
-import * as bot from "./src/bot";
+import Adachi from "@modules/bot";
 
-/* Created by http://patorjk.com/software/taag  */
-/* Font Name: Big                               */
-const greet = `====================================================================
-                _            _     _        ____   ____ _______
-       /\\      | |          | |   (_)      |  _ \\ / __ \\__   __|
-      /  \\   __| | __ _  ___| |__  _ ______| |_) | |  | | | |
-     / /\\ \\ / _\` |/ _\` |/ __| '_ \\| |______|  _ <| |  | | | |
-    / ____ \\ (_| | (_| | (__| | | | |      | |_) | |__| | | |
-   /_/    \\_\\__,_|\\__,_|\\___|_| |_|_|      |____/ \\____/  |_|
- 
-====================================================================`
-console.log( greet );
-
-export const ROOTPATH = __dirname;
-
-bot.init();
-bot.setEnvironment();
-bot.run();
+export default new Adachi( __dirname ).run();

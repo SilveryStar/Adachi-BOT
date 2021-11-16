@@ -16,9 +16,9 @@ const template =
     <img class="rank" :src="rankIcon" alt="ERROR"/>
 </div>`;
 
-import Vue from "../../public/js/vue.js";
+const { defineComponent, computed } = Vue;
 
-export default Vue.defineComponent( {
+export default defineComponent( {
 	name: "WishBox",
 	template,
 	props: {
@@ -33,19 +33,19 @@ export default Vue.defineComponent( {
 			}
 		}
 		
-		const boxBackground = Vue.computed( () => {
-			return `/public/images/item/${ toString( props.d.rank ) }Background.png`;
+		const boxBackground = computed( () => {
+			return `../../public/images/item/${ toString( props.d.rank ) }Background.png`;
 		} );
-		const mainImage = Vue.computed( () => {
+		const mainImage = computed( () => {
 			const type = props.d.type === "武器" ? "weapon" : "character";
 			return `https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/wish/${ type }/${ props.d.name }.png`;
 		} );
-		const typeIcon = Vue.computed( () => {
+		const typeIcon = computed( () => {
 			const type = props.d.type === "武器" ? "type" : "element";
-			return `/public/images/${ type }/${ props.d.el }.png`;
+			return `../../public/images/${ type }/${ props.d.el }.png`;
 		} );
-		const rankIcon = Vue.computed( () => {
-			return `/public/images/item/${ toString( props.d.rank ) }Star.png`;
+		const rankIcon = computed( () => {
+			return `../../public/images/item/${ toString( props.d.rank ) }Star.png`;
 		} );
 		
 		return {

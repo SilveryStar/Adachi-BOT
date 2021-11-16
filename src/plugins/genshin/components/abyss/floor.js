@@ -6,10 +6,10 @@ const template =
 	<AbyssRoom v-for="r in 3" :roomData="data.levels[r - 1]" :floor="data.floor"/>
 </div>`;
 
-import Vue from "../../public/js/vue.js";
 import AbyssRoom from "./room.js";
+const { defineComponent, computed } = Vue;
 
-export default Vue.defineComponent( {
+export default defineComponent( {
 	name: "AbyssFloor",
 	template,
 	components: {
@@ -19,8 +19,8 @@ export default Vue.defineComponent( {
 		data: Object
 	},
 	setup( props ) {
-		const floorLongBackground = Vue.computed( () => {
-			return `/public/images/abyss/Floor${ props.data.floor >= 5 ? "Long" : "Short" }Background.png`;
+		const floorLongBackground = computed( () => {
+			return `../../public/images/abyss/Floor${ props.data.floor >= 5 ? "Long" : "Short" }Background.png`;
 		} );
 		
 		return {

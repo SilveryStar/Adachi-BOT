@@ -9,10 +9,9 @@ const template =
 	</div>
 </div>`;
 
-import Vue from "../../public/js/vue.js";
-import CharacterItem from "./character-item.js";
+const { defineComponent } = Vue;
 
-export default Vue.defineComponent( {
+export default defineComponent( {
 	name: "DataRow",
 	template,
 	props: {

@@ -4,12 +4,12 @@ const template =
 	<AbyssFloor v-else :data="data"/>
 </div>`;
 
-import Vue from "../../public/js/vue.js";
 import { parseURL } from "../../public/js/src.js";
 import AbyssFloor from "./floor.js";
 import AbyssOverview from "./overview.js";
+const { defineComponent } = Vue;
 
-export default Vue.defineComponent( {
+export default defineComponent( {
 	name: "AbyssApp",
 	template,
 	components: {

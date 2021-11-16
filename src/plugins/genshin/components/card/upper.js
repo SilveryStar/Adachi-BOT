@@ -63,10 +63,10 @@ const template =
     <img class="package" :src="packageTop" alt="ERROR"/>
 </div>`;
 
-import Vue from "../../public/js/vue.js";
 import HomeBox from "./home-box.js";
+const { defineComponent, computed } = Vue;
 
-export default Vue.defineComponent( {
+export default defineComponent( {
 	name: "CardUpper",
 	template,
 	components: {
@@ -82,19 +82,19 @@ export default Vue.defineComponent( {
 		homes: Array
 	},
 	setup( props ) {
-		const backgroundImage = Vue.computed( () => {
+		const backgroundImage = computed( () => {
 			return `https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/module/${ parseInt( props.level ) === 0 ? "uid" : "mys" }-upper-v2-2.png`;
 		} );
-		const profileImage = Vue.computed( () => {
+		const profileImage = computed( () => {
 			return `https://adachi-bot.oss-cn-beijing.aliyuncs.com/characters/profile/${ props.profile }.png`;
 		} );
-		const worldLevel = Vue.computed( () => {
+		const worldLevel = computed( () => {
 			if ( props.level < 20 ) {
 				return 0;
 			}
 			return Math.floor( ( props.level - 15 ) / 5 );
 		} );
-		const packageTop = Vue.computed( () => {
+		const packageTop = computed( () => {
 			return "https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/module/card-package.png";
 		} );
 

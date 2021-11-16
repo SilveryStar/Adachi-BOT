@@ -36,13 +36,13 @@ const template =
 	></InfoCharacter>
 </div>`;
 
-import Vue from "../../public/js/vue.js";
 import { parseURL, request } from "../../public/js/src.js";
 import InfoBase from "./base.js";
 import InfoWeapon from "./weapon.js";
 import InfoCharacter from "./character.js";
+const { defineComponent } = Vue;
 
-export default Vue.defineComponent( {
+export default defineComponent( {
 	name: "InfoApp",
 	template,
 	components: {

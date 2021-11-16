@@ -16,13 +16,13 @@ const template =
     <CardFooter></CardFooter>
 </div>`;
 
-import Vue from "../../public/js/vue.js";
 import CardUpper from "./upper.js";
 import CardMiddle from "./middle.js";
 import CardFooter from "./footer.js"
 import { parseURL, request } from "../../public/js/src.js";
+const { defineComponent } = Vue;
 
-export default Vue.defineComponent( {
+export default defineComponent( {
 	name: "CardApp",
 	template,
 	components: {

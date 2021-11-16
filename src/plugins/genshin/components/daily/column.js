@@ -12,10 +12,10 @@ const template =
 	</div>
 </div>`;
 
-import Vue from "../../public/js/vue.js";
 import DailyUnit from "./unit.js"
+const { defineComponent, computed } = Vue;
 
-export default Vue.defineComponent( {
+export default defineComponent( {
 	name: "DailyColumn",
 	template,
 	components: {
@@ -26,7 +26,7 @@ export default Vue.defineComponent( {
 		type: String
 	},
 	setup( props ) {
-		const title = Vue.computed( () => {
+		const title = computed( () => {
 			return `今日${ props.type === "weapon" ? "武器" : "角色" }素材`;
 		} );
 		

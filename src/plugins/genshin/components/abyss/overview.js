@@ -18,11 +18,11 @@ const template =
 	</div>
 </div>`;
 
-import Vue from "../../public/js/vue.js";
 import CharacterList from "./character-list.js";
 import DataRow from "./data-row.js";
+const { defineComponent, computed } = Vue;
 
-export default Vue.defineComponent( {
+export default defineComponent( {
 	name: "AbyssOverview",
 	template,
 	components: {
@@ -43,8 +43,8 @@ export default Vue.defineComponent( {
 						   props.data.normalSkillRank, props.data.energySkillRank ];
 		const titleList = [ "最强一击", "击破数", "承受伤害", "元素战技次数", "元素爆发次数" ]
 		
-		const abyssBackground = Vue.computed( () => {
-			return "/public/images/abyss/OverviewBackground.png";
+		const abyssBackground = computed( () => {
+			return "../../public/images/abyss/OverviewBackground.png";
 		} );
 
 		return {

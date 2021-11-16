@@ -1,0 +1,21 @@
+.home-content {
+	position: absolute;
+	width: 100%;
+	height: auto;
+	top: 50%;
+	transform: translateY(-50%);
+}
+
+.home-content p {
+	text-align: center;
+	font-family: Consolas, "宋体", monospace;
+	font-weight: 800;
+	font-size: 17px;
+}
+
+@media (max-width: 768px) {
+	.home-content p {
+		font-size: 16px;
+		font-weight: 500;
+	}
+}

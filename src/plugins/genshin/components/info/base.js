@@ -9,9 +9,9 @@ const template =
     <div class="dotted"></div>
 </div>`;
 
-import Vue from "../../public/js/vue.js";
+const { defineComponent, computed } = Vue;
 
-export default Vue.defineComponent( {
+export default defineComponent( {
 	name: "InfoApp",
 	template,
 	props: {
@@ -23,10 +23,10 @@ export default Vue.defineComponent( {
 		introduce: String
 	},
 	setup( props ) {
-		const infoBackground = Vue.computed( () => {
+		const infoBackground = computed( () => {
 			return `https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/info/other/BaseBackground${ props.rarity }.png`
 		} );
-		const mainImage = Vue.computed( () => {
+		const mainImage = computed( () => {
 			const link = props.type === "角色" ? `character/${ props.id }.png`
 											   : `weapon/${ props.name }.png`;
 			return `https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/${ link }`;

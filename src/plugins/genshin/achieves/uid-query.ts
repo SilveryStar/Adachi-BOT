@@ -1,10 +1,8 @@
-import { GroupMessageEventData, PrivateMessageEventData } from "oicq";
-import { sendType } from "../../../modules/message";
+import { InputParameter } from "@modules/command";
 import { characterInfoPromise, detailInfoPromise } from "../utils/promise";
 import { render } from "../utils/render";
 import { getRegion } from "../utils/region";
-import { Redis } from "../../../bot";
-import { config } from "../init";
+import { config } from "#genshin/init";
 
 function getUserInfo( data: string ): [ number, string ] | string {
 	const reg = new RegExp( /^[125][0-9]{8}$/g );
@@ -17,11 +15,11 @@ function getUserInfo( data: string ): [ number, string ] | string {
 	return [ uid, region ];
 }
 
-type Message = GroupMessageEventData | PrivateMessageEventData;
-
-async function main( sendMessage: sendType, message: Message ): Promise<void> {
-	const data: string = message.raw_message;
-	const qqID: number = message.user_id;
+export async function main(
+	{ sendMessage, messageData, redis, logger }: InputParameter
+): Promise<void> {
+	const data: string = messageData.raw_message;
+	const qqID: number = messageData.user_id;
 	const info: [ number, string ] | string = getUserInfo( data );
 	
 	if ( typeof info === "string" ) {
@@ -30,21 +28,22 @@ async function main( sendMessage: sendType, message: Message ): Promise<void> {
 	}
 	
 	try {
-		await Redis.setHash( `silvery-star.card-data-${ qqID }`, {
-			nickname: message.sender.nickname,
+		await redis.setHash( `silvery-star.card-data-${ qqID }`, {
+			nickname: messageData.sender.nickname,
 			uid: info[0],
 			level: 0
 		} );
-		const detailInfo = await detailInfoPromise( qqID, ...info, false ) as number[]
-		await characterInfoPromise( qqID, ...info, detailInfo );
+		const detailInfo = <number[]>await detailInfoPromise( qqID, ...info, false, logger, redis );
+		await characterInfoPromise( qqID, ...info, detailInfo, redis );
 	} catch ( error ) {
 		if ( error !== "gotten" ) {
-			await sendMessage( error as string );
+			await sendMessage( <string>error );
 			return;
 		}
 	}
-	const image: string = await render( "card", { qq: qqID, style: config.cardWeaponStyle } );
+	const image: string = await render(
+		"card",
+		{ qq: qqID, style: config.cardWeaponStyle }
+	);
 	await sendMessage( image );
 }
-
-export { main }

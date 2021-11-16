@@ -1,19 +1,19 @@
-import { getRegion } from "../utils/region";
-import { pull } from "lodash";
-import { getHeader as h } from "../utils/header";
-import { getSendMessageFunc, MessageType, sendType } from "../../../modules/message";
-import { getAuthLevel, AuthLevel } from "../../../modules/auth";
+import bot from "ROOT";
+import { MessageType, SendFunc } from "@modules/message";
+import { AuthLevel } from "@modules/management/auth";
+import { Order } from "@modules/command";
 import { NoteService } from "./note";
 import { Md5 } from "md5-typescript";
-import { Redis } from "../../../bot";
+import { pull } from "lodash";
+import { getRegion } from "../utils/region";
 
-interface Service {
+export interface Service {
 	parent: Private;
 	getOptions: () => any;
 	initTest: () => Promise<string>;
 }
 
-class UserInfo {
+export class UserInfo {
 	public readonly uid: string;
 	public readonly cookie: string;
 	public readonly server: string;
@@ -33,10 +33,10 @@ const dbPrefix: string = "silvery-star.private-";
 * 依据 https://github.com/SilveryStar/Adachi-BOT/issues/70#issuecomment-946331850 重新设计
 * 期望在未来可以进行功能扩展
 * */
-class Private {
+export class Private {
 	public readonly setting: UserInfo;
 	public readonly services: Record<string, Service>;
-	public readonly sendMessage: sendType;
+	public readonly sendMessage: SendFunc;
 	public readonly dbKey: string;
 	
 	public options: Record<string, any>;
@@ -54,7 +54,7 @@ class Private {
 	constructor( uid: string, cookie: string, userID: number, options?: Record<string, any> ) {
 		this.options = options || {};
 		this.setting = new UserInfo( uid, cookie, userID );
-		this.sendMessage = getSendMessageFunc( userID, MessageType.Private );
+		this.sendMessage = bot.message.getSendMessageFunc( userID, MessageType.Private );
 		
 		const md5: string = Md5.init( `${ userID }-${ uid }` );
 		this.dbKey = dbPrefix + md5;
@@ -82,20 +82,20 @@ class Private {
 	
 	public async refreshDBContent( field: string ): Promise<void> {
 		this.options[field] = this.services[field].getOptions();
-		await Redis.setString( this.dbKey, this.stringify() );
+		await bot.redis.setString( this.dbKey, this.stringify() );
 	}
 }
 
-class PrivateClass {
+export class PrivateClass {
 	private readonly list: Private[];
 	
 	constructor() {
 		this.list = [];
 		
-		Redis.getKeysByPrefix( dbPrefix )
+		bot.redis.getKeysByPrefix( dbPrefix )
 			.then( async ( keys: string[] ) => {
 				for ( let k of keys ) {
-					const data = await Redis.getString( k );
+					const data = await bot.redis.getString( k );
 					if ( !data ) {
 						continue;
 					}
@@ -110,9 +110,12 @@ class PrivateClass {
 	
 	public async getSinglePrivate( userID: number, privateID: number ): Promise<Private | string> {
 		const list: Private[] = this.getUserPrivateList( userID );
-		const auth: AuthLevel = await getAuthLevel( userID );
+		const auth: AuthLevel = await bot.auth.get( userID );
 		if ( privateID > list.length ) {
-			return `无效的编号，请使用 ${ h( "silvery-star.private-list", auth )[0] } 检查`;
+			const PRIVATE_LIST = <Order>bot.command.getSingle(
+				"silvery-star.private-list", auth
+			);
+			return `无效的编号，请使用 ${ PRIVATE_LIST.getHeaders()[0] } 检查`;
 		} else {
 			return list[privateID - 1];
 		}
@@ -130,7 +133,7 @@ class PrivateClass {
 		
 		const newPrivate = new Private( uid, cookie, userID );
 		this.list.push( newPrivate );
-		await Redis.setString( newPrivate.dbKey, newPrivate.stringify() );
+		await bot.redis.setString( newPrivate.dbKey, newPrivate.stringify() );
 
 		const values: Service[] = Object.values( newPrivate.services );
 		const contents: string[] = await Promise.all( values.map( async el => await el.initTest() ) );
@@ -143,15 +146,8 @@ class PrivateClass {
 			return single;
 		} else {
 			pull( this.list, single );
-			await Redis.deleteKey( single.dbKey );
+			await bot.redis.deleteKey( single.dbKey );
 			return "私人服务取消成功";
 		}
 	}
-}
-
-export {
-	Private,
-	Service,
-	PrivateClass,
-	UserInfo
 }

@@ -1,18 +1,15 @@
-import { CommonMessageEventData as Message } from "oicq";
-import { sendType } from "../../modules/message";
 import { filterUserUsableCommand } from "./filter";
+import { InputParameter } from "@modules/command/main";
 
-async function main( sendMessage: sendType, message: Message ): Promise<void> {
-	const commands = await filterUserUsableCommand( message );
-	const id: number = parseInt( message.raw_message );
+export async function main( i: InputParameter ): Promise<void> {
+	const commands = await filterUserUsableCommand( i );
+	const id: number = parseInt( i.messageData.raw_message );
 	
 	const length: number = commands.length;
 	if ( id > length ) {
-		await sendMessage( "未知的指令" );
+		await i.sendMessage( "未知的指令" );
 		return;
 	}
 	
-	await sendMessage( commands[id - 1].detail );
+	await i.sendMessage( commands[id - 1].detail );
 }
-
-export { main }

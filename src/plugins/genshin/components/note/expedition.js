@@ -8,16 +8,16 @@ const template =
 	<p class="time">{{ time }}</p>
 </div>`;
 
-import Vue from "../../public/js/vue.js";
+const { defineComponent, computed } = Vue;
 
-export default Vue.defineComponent( {
+export default defineComponent( {
 	name: "NoteExpedition",
 	template,
 	props: {
 		data: Object
 	},
 	setup( props ) {
-		const time = Vue.computed( () => {
+		const time = computed( () => {
 			return props.data.status === "Ongoing"
 				 ? "剩余探索时间 " + props.data.remainedTime
 				 : "探险完成";

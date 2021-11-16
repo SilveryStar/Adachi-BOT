@@ -1,7 +1,7 @@
 import { getWishConfig } from "../utils/api";
 import { scheduleJob } from "node-schedule";
 
-class TypeData {
+export class TypeData {
 	public weapon: any;
 	public character: any;
 	
@@ -22,5 +22,3 @@ class TypeData {
 		return [ ...Object.keys( this.weapon ), ...Object.keys( this.character ) ];
 	}
 }
-
-export { TypeData }

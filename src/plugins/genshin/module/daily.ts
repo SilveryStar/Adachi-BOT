@@ -1,13 +1,13 @@
-import { Adachi, Redis } from "../../../bot";
+import bot from "ROOT"
+import { getRealName, NameResult } from "../utils/name";
 import { scheduleJob } from "node-schedule";
-import { getDailyMaterial, getInfo } from "../utils/api";
 import { isCharacterInfo, isWeaponInfo, InfoResponse } from "../types";
 import { randomInt } from "../utils/random";
+import { getDailyMaterial, getInfo } from "../utils/api";
 import { render } from "../utils/render";
-import { getRealName, NameResult } from "../utils/name";
 import { take } from "lodash";
 
-interface DailyMaterial {
+export interface DailyMaterial {
 	"Mon&Thu": string[];
 	"Tue&Fri": string[];
 	"Wed&Sat": string[];
@@ -18,7 +18,7 @@ interface DailyInfo {
 	rarity: number;
 }
 
-class DailySet {
+export class DailySet {
 	private readonly weaponSet: Record<string, DailyInfo[]>;
 	private readonly characterSet: Record<string, DailyInfo[]>;
 	
@@ -57,7 +57,7 @@ class DailySet {
 	}
 }
 
-class DailyClass {
+export class DailyClass {
 	private detail: DailyMaterial;
 	private userSubTmp: Record<number, DailySet> = {};
 	
@@ -71,7 +71,7 @@ class DailyClass {
 		} );
 
 		scheduleJob( "0 0 6 * * *", async () => {
-			const users: string[] = await Redis.getKeysByPrefix( "silvery-star.daily-sub-" );
+			const users: string[] = await bot.redis.getKeysByPrefix( "silvery-star.daily-sub-" );
 			const date: Date = new Date();
 			
 			/* 获取当日副本对应的角色和武器 */
@@ -87,6 +87,7 @@ class DailyClass {
 			
 			/* 获取所有角色和武器的信息 */
 			const allData: InfoResponse[] = [];
+
 			if ( week !== 0 ) {
 				for ( let targetName of todayInfoSet ) {
 					const data = await getInfo( targetName );
@@ -98,14 +99,14 @@ class DailyClass {
 
 			/* 群发订阅信息 */
 			const groupData = new DailySet( allData );
-			const groupIDs: string[] = await Redis.getList( "silvery-star.daily-sub-group" );
+			const groupIDs: string[] = await bot.redis.getList( "silvery-star.daily-sub-group" );
 			const subMessage: string = week === 0
 									 ? "周日所有材料都可以刷取哦~"
 								     : await render( "daily", groupData.get() ); // 渲染全体图片
 			for ( let id of groupIDs ) {
-				await Adachi.sendGroupMsg( parseInt( id ), subMessage );
+				await bot.client.sendGroupMsg( parseInt( id ), subMessage );
 			}
-			
+
 			/* 周日不对订阅信息的用户进行私发 */
 			if ( week === 0 ) {
 				return;
@@ -113,8 +114,8 @@ class DailyClass {
 			
 			/* 私发订阅信息 */
 			for ( let key of users ) {
-				const subList: string[] = await Redis.getList( key );
-				const qqID: number = parseInt( key.split( "-" ).pop() as string );
+				const subList: string[] = await bot.redis.getList( key );
+				const qqID: number = parseInt( <string>key.split( "-" ).pop() );
 				if ( subList.length === 0 ) {
 					continue;
 				}
@@ -139,7 +140,7 @@ class DailyClass {
 				
 				scheduleJob( date, async () => {
 					const image: string = await render( "daily", privateData.get() );
-					await Adachi.sendPrivateMsg( qqID, image );
+					await bot.client.sendPrivateMsg( qqID, image );
 				} );
 			}
 		} );
@@ -161,14 +162,14 @@ class DailyClass {
 		/* 添加/删除群聊订阅 */
 		if ( isGroup ) {
 			const dbKey: string = "silvery-star.daily-sub-group";
-			const exist: boolean = await Redis.existListElement( dbKey, name );
+			const exist: boolean = await bot.redis.existListElement( dbKey, name );
 		
 			if ( exist === operation ) {
 				return `群聊 ${ name } ${ operation ? "已订阅" : "未曾订阅" }`;
 			} else if ( operation ) {
-				await Redis.addListElement( dbKey, name );
+				await bot.redis.addListElement( dbKey, name );
 			} else {
-				await Redis.delListElement( dbKey, name );
+				await bot.redis.delListElement( dbKey, name );
 			}
 			
 			return `群聊订阅${ operation ? "添加" : "取消" }成功`;
@@ -178,25 +179,23 @@ class DailyClass {
 		const result: NameResult = getRealName( name );
 		
 		if ( result.definite ) {
-			const realName: string = result.info as string;
+			const realName: string = <string>result.info;
 			const dbKey: string = `silvery-star.daily-sub-${ qqID }`;
-			const exist: boolean = await Redis.existListElement( dbKey, realName );
+			const exist: boolean = await bot.redis.existListElement( dbKey, realName );
 
 			if ( exist === operation ) {
 				return `「${ realName }」${ operation ? "已订阅" : "未曾订阅" }`;
 			} else if ( operation ) {
-				await Redis.addListElement( dbKey, realName );
+				await bot.redis.addListElement( dbKey, realName );
 			} else {
-				await Redis.delListElement( dbKey, realName );
+				await bot.redis.delListElement( dbKey, realName );
 			}
 			
 			return `订阅${ operation ? "添加" : "取消" }成功`;
 		} else if ( result.info === "" ) {
 			return `未找到名为「${ name }」的角色或武器，若确认名称输入无误，请前往 github.com/SilveryStar/Adachi-BOT 进行反馈`;
 		} else {
-			return `未找到相关信息，是否要找：${ [ "", ...result.info as string[] ].join( "\n  - " ) }`;
+			return `未找到相关信息，是否要找：${ [ "", ...<string[]>result.info ].join( "\n  - " ) }`;
 		}
 	}
 }
-
-export { DailyClass, DailyMaterial }

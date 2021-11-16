@@ -26,17 +26,17 @@ const ArtifactBoxTemplate =
     </div>
 </div>`;
 
-import Vue from "../../public/js/vue.js";
+const { defineComponent, computed } = Vue;
 
-const EmptyBox = Vue.defineComponent( {
+const EmptyBox = defineComponent( {
 	name: "EmptyBox",
 	template: EmptyBoxTemplate,
 	props: {
 		pos: Number
 	},
 	setup( props ) {
-		const emptyIcon = Vue.computed( () => {
-			return `http://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/artifact/other/${ props.pos }.png`;
+		const emptyIcon = computed( () => {
+			return `https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/artifact/other/${ props.pos }.png`;
 		} );
 		
 		return {
@@ -45,14 +45,14 @@ const EmptyBox = Vue.defineComponent( {
 	}
 } );
 
-const ArtifactBox = Vue.defineComponent( {
+const ArtifactBox = defineComponent( {
 	name: "ArtifactBox",
 	template: ArtifactBoxTemplate,
 	props: {
 		info: Object
 	},
 	setup( props ) {
-		const stars = Vue.computed( () => {
+		const stars = computed( () => {
 			const star = "★";
 			return star.repeat( props.info.rarity );
 		} );
@@ -63,7 +63,7 @@ const ArtifactBox = Vue.defineComponent( {
 	}
 } );
 
-export default Vue.defineComponent( {
+export default defineComponent( {
 	name: "CharacterArtifact",
 	template,
 	components: {

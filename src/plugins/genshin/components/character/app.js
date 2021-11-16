@@ -17,13 +17,13 @@ const template =
     ></CharacterWeapon>
 </div>`;
 
-import Vue from "../../public/js/vue.js";
 import { parseURL, request } from "../../public/js/src.js";
 import CharacterBase from "./base.js";
 import CharacterArtifact from "./artifact.js";
 import CharacterWeapon from "./weapon.js";
+const { defineComponent } = Vue;
 
-export default Vue.defineComponent( {
+export default defineComponent( {
 	name: "CharacterApp",
 	template,
 	components: {

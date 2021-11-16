@@ -13,7 +13,6 @@ const template =
 	<p class="author">Created by Adachi-BOT</p>
 </div>`;
 
-import Vue from "../../public/js/vue.js";
 import { parseURL } from "../../public/js/src.js";
 import NoteInfo from "./info.js";
 import NoteExpedition from "./expedition.js";
@@ -23,8 +22,9 @@ function getTimeString( time ) {
 	const minute = Math.floor( time / 60 ) % 60;
 	return `${ hour }小时${ minute }分钟`;
 }
+const { defineComponent } = Vue;
 
-export default Vue.defineComponent( {
+export default defineComponent( {
 	name: "NoteApp",
 	template,
 	components: {

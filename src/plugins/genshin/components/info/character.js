@@ -48,10 +48,10 @@ const template =
     </div>
 </div>`;
 
-import Vue from "../../public/js/vue.js";
 import ItemList from "./item-list.js";
+const { defineComponent, computed } = Vue;
 
-export default Vue.defineComponent( {
+export default defineComponent( {
 	name: "InfoCharacter",
 	template,
 	props: {
@@ -73,7 +73,7 @@ export default Vue.defineComponent( {
 		ItemList
 	},
 	setup( props ) {
-		const starIcon = Vue.computed( () => {
+		const starIcon = computed( () => {
 			return `https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/info/other/BaseStar${ props.rarity }.png`;
 		} );
 		const numCN = [ "壹", "贰", "肆", "陆" ];

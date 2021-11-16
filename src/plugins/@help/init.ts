@@ -1,25 +1,28 @@
-import { addPlugin } from "../../modules/plugin";
-import { AuthLevel } from "../../modules/auth";
+import { PluginSetting } from "@modules/plugin";
+import { OrderConfig } from "@modules/command";
 
-async function init(): Promise<any> {
-	return addPlugin( "@help", {
-		commandType: "order",
-		key: "adachi.help",
-		docs: [ "帮助", "(-k)" ],
-		headers: [ "help" ],
-		regexps: [ "(-k)?" ],
-		authLimit: AuthLevel.Banned,
-		main: "help"
-	}, {
-		commandType: "order",
-		key: "adachi.detail",
-		docs: [ "详细", "[编号]" ],
-		headers: [ "detail" ],
-		regexps: [ "[0-9]+" ],
-		authLimit: AuthLevel.Banned,
-		main: "detail",
-		display: false
-	} );
+const help: OrderConfig = {
+	type: "order",
+	cmdKey: "adachi.help",
+	desc: [ "指令帮助", "(-k)" ],
+	headers: [ "help" ],
+	regexps: [ "(-k)?" ],
+	main: "help"
+};
+
+const detail: OrderConfig = {
+	type: "order",
+	cmdKey: "adachi.detail",
+	desc: [ "指令详细", "[编号]" ],
+	headers: [ "detail" ],
+	regexps: [ "\\d+" ],
+	main: "detail",
+	display: false
 }
 
-export { init }
+export async function init(): Promise<PluginSetting> {
+	return {
+		pluginName: "@help",
+		cfgList: [ help, detail ]
+	};
+}

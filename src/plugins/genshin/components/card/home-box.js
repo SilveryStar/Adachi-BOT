@@ -15,19 +15,19 @@ const template =
     </div>
 </div>`;
 
-import Vue from "../../public/js/vue.js";
+const { defineComponent, computed } = Vue;
 
-export default Vue.defineComponent( {
+export default defineComponent( {
 	name: "HomeBox",
 	template,
 	props: {
 		data: Object
 	},
 	setup( props ) {
-		const backgroundImage = Vue.computed( () => {
+		const backgroundImage = computed( () => {
 			return `http://adachi-bot.oss-cn-beijing.aliyuncs.com/item/${ props.data.name }.png`;
 		} );
-		const lockIcon = Vue.computed( () => {
+		const lockIcon = computed( () => {
 			return "http://adachi-bot.oss-cn-beijing.aliyuncs.com/item/lock.png";
 		} );
 		

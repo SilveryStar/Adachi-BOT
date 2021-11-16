@@ -1,12 +1,12 @@
-import { Redis } from "../../../bot";
+import bot from "ROOT";
 import { randomInt } from "../utils/random";
 import { getSlip } from "../utils/api";
 
-interface SlipDetail {
+export interface SlipDetail {
 	SlipInfo: string[];
 }
 
-class Slip {
+export class Slip {
 	private readonly dbKey: string;
 	private readonly SlipDetail: SlipDetail;
 	private readonly detailLength: number;
@@ -28,18 +28,18 @@ class Slip {
 	
 	public async get() {
 		const today: string = Slip.getDay();
-		const lastSlipData = ( await Redis.getString( this.dbKey ) )?.split( "|" );
+		const lastSlipData = ( await bot.redis.getString( this.dbKey ) )?.split( "|" );
 		if ( lastSlipData !== undefined && lastSlipData[0] === today ) {
 			return lastSlipData[1];
 		}
 		const slipContent = this.SlipDetail.SlipInfo[ randomInt( 0, this.detailLength ) ];
-		await Redis.setString( this.dbKey, `${ today }|${ slipContent }` );
+		await bot.redis.setString( this.dbKey, `${ today }|${ slipContent }` );
 		
 		return slipContent;
 	}
 }
 
-class SlipClass {
+export class SlipClass {
 	private SlipDetail: SlipDetail = { SlipInfo: [] };
 	
 	constructor() {
@@ -53,5 +53,3 @@ class SlipClass {
 		return await slip.get();
 	}
 }
-
-export { SlipClass, SlipDetail }
