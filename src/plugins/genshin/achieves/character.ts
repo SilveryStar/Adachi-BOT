@@ -6,25 +6,25 @@ import { render } from "../utils/render";
 export async function main(
 	{ sendMessage, messageData, redis, logger }: InputParameter
 ): Promise<void> {
-	const qqID: number = messageData.user_id;
+	const userID: number = messageData.user_id;
 	const name: string = messageData.raw_message;
 	
 	/* 若用户在一小时内存在查询操作，则使用上一次操作的数据缓存 */
-	let data: any = await redis.getHash( `silvery-star.card-data-${ qqID }` );
+	let data: any = await redis.getHash( `silvery-star.card-data-${ userID }` );
 	
 	/* 若无数据缓存，则尝试获取用户绑定的通行证，并通过其获取数据 */
 	if ( data === null ) {
-		const mysID: string | null = await redis.getString( `silvery-star.user-bind-id-${ qqID }` );
+		const mysID: string | null = await redis.getString( `silvery-star.user-bind-id-${ userID }` );
 		if ( mysID !== null ) {
 			try {
-				const baseInfo = <[ number, string ]>await baseInfoPromise( qqID, parseInt( mysID ), redis );
-				const detailInfo = <number[]>await detailInfoPromise( qqID, ...baseInfo, true, logger, redis );
-				await characterInfoPromise( qqID, ...baseInfo, detailInfo, redis );
+				const baseInfo = <[ number, string ]>await baseInfoPromise( userID, parseInt( mysID ), redis );
+				const detailInfo = <number[]>await detailInfoPromise( userID, ...baseInfo, true, logger, redis );
+				await characterInfoPromise( userID, ...baseInfo, detailInfo, redis );
 			} catch ( error ) {
 				await sendMessage( <string>error );
 				return;
 			}
-			data = await redis.getHash( `silvery-star.card-data-${ qqID }` );
+			data = await redis.getHash( `silvery-star.card-data-${ userID }` );
 		} else {
 			await sendMessage( "请先通过通行证或UID查询自己的游戏信息" );
 			return;
@@ -38,7 +38,7 @@ export async function main(
 	}
 	const image: string = await render(
 		"character",
-		{ qq: qqID, name: result.info }
+		{ qq: userID, name: result.info }
 	);
 	await sendMessage( image );
 }

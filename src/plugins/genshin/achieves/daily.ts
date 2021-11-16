@@ -4,7 +4,7 @@ import { dailyClass } from "../init";
 export async function main(
 	{ sendMessage, messageData, matchResult }: InputParameter
 ): Promise<void> {
-	const qqID: number = messageData.user_id;
+	const userID: number = messageData.user_id;
 	const match = <SwitchMatchResult>matchResult;
 	const [ name ] = match.match;
 	
@@ -12,6 +12,6 @@ export async function main(
 
 	const isGroupID: boolean = intReg.test( name ) && name.length >= 6;
 	await sendMessage( await dailyClass.modifySubscription(
-		qqID, match.isOn(), name, isGroupID
+		userID, match.isOn(), name, isGroupID
 	) );
 }

@@ -115,7 +115,7 @@ export class DailyClass {
 			/* 私发订阅信息 */
 			for ( let key of users ) {
 				const subList: string[] = await bot.redis.getList( key );
-				const qqID: number = parseInt( <string>key.split( "-" ).pop() );
+				const userID: number = parseInt( <string>key.split( "-" ).pop() );
 				if ( subList.length === 0 ) {
 					continue;
 				}
@@ -133,32 +133,32 @@ export class DailyClass {
 				}
 				
 				const privateData = new DailySet( privateSub );
-				this.userSubTmp[qqID] = privateData;
+				this.userSubTmp[userID] = privateData;
 				
 				const randomMinute: number = randomInt( 3, 59 );
 				date.setMinutes( randomMinute );
 				
 				scheduleJob( date, async () => {
 					const image: string = await render( "daily", privateData.get() );
-					await bot.client.sendPrivateMsg( qqID, image );
+					await bot.client.sendPrivateMsg( userID, image );
 				} );
 			}
 		} );
 	}
 	
-	public async getUserSubscription( qqID: number ): Promise<string> {
+	public async getUserSubscription( userID: number ): Promise<string> {
 		const date: Date = new Date();
 		if ( date.getDay() === 0 ) {
 			return "周日所有材料都可以刷取哦~";
 		}
 		
-		const data: DailySet | undefined = this.userSubTmp[qqID];
+		const data: DailySet | undefined = this.userSubTmp[userID];
 		return data === undefined
 			        ? "您还没有订阅过素材或 BOT 当日数据未更新，请先订阅素材并在早晨六点后再次尝试"
 					: await render( "daily", data.get() );
 	}
 	
-	public async modifySubscription( qqID: number, operation: boolean, name: string, isGroup: boolean ): Promise<string> {
+	public async modifySubscription( userID: number, operation: boolean, name: string, isGroup: boolean ): Promise<string> {
 		/* 添加/删除群聊订阅 */
 		if ( isGroup ) {
 			const dbKey: string = "silvery-star.daily-sub-group";
@@ -180,7 +180,7 @@ export class DailyClass {
 		
 		if ( result.definite ) {
 			const realName: string = <string>result.info;
-			const dbKey: string = `silvery-star.daily-sub-${ qqID }`;
+			const dbKey: string = `silvery-star.daily-sub-${ userID }`;
 			const exist: boolean = await bot.redis.existListElement( dbKey, realName );
 
 			if ( exist === operation ) {

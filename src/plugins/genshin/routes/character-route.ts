@@ -1,8 +1,8 @@
 import express from "express";
 import bot from "ROOT"
 
-async function charData( qqID: number, name: string ): Promise<any> {
-	const dbKey: string = `silvery-star.card-data-${ qqID }`
+async function charData( userID: number, name: string ): Promise<any> {
+	const dbKey: string = `silvery-star.card-data-${ userID }`
 	const data: any = await bot.redis.getHash( dbKey );
 	
 	const uid: string = data.uid;
@@ -11,8 +11,8 @@ async function charData( qqID: number, name: string ): Promise<any> {
 }
 
 export default express.Router().get( "/", async ( req, res ) => {
-	const qqID: number = parseInt( <string>req.query.qq );
+	const userID: number = parseInt( <string>req.query.qq );
 	const name: string = <string>req.query.name;
-	const data: any = await charData( qqID, name );
+	const data: any = await charData( userID, name );
 	res.send( data );
 } );

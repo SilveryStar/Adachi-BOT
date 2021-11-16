@@ -22,8 +22,8 @@ function similarity( first: string, second: string ): number {
 }
 
 export function fuzzyMatch( str: string, maxRetNum: number = 5 ): MatchResult[] {
-	let result: Array<MatchResult> = [];
-	const nameList: Array<string> = typeData.getNameList();
+	let result: MatchResult[] = [];
+	const nameList: string[] = typeData.getNameList();
 	
 	for ( let el of nameList ) {
 		const ratio = similarity( str, el );

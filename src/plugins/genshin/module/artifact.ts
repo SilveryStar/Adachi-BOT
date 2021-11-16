@@ -224,7 +224,7 @@ export class ArtClass {
 		return [ initArt, reinArt ];
 	}
 	
-	public async get( qqID: number, domain: number, redis: Database ): Promise<string> {
+	public async get( userID: number, domain: number, redis: Database ): Promise<string> {
 		let flag: string = "";
 		try {
 			const artifactID = <number>await this.getID( domain );
@@ -239,7 +239,7 @@ export class ArtClass {
 			);
 			
 			await redis.setString(
-				`silvery-star.artifact-${ qqID }`,
+				`silvery-star.artifact-${ userID }`,
 				JSON.stringify( { initProp, reinProp } )
 			);
 		} catch ( reason: any ) {

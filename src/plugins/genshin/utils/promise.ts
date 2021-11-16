@@ -13,7 +13,7 @@ export enum ErrorMsg {
 }
 
 export async function baseInfoPromise(
-	qqID: number,
+	userID: number,
 	mysID: number,
 	redis: Database
 ): Promise<string | [ number, string ]> {
@@ -40,20 +40,20 @@ export async function baseInfoPromise(
 		const { gameRoleId, nickname, region, level } = genshinInfo;
 		const uid: number = parseInt( gameRoleId );
 
-		await redis.setHash( `silvery-star.card-data-${ qqID }`, { nickname, uid, level } );
+		await redis.setHash( `silvery-star.card-data-${ userID }`, { nickname, uid, level } );
 		resolve( [ uid, region ] );
 	} );
 }
 
 export async function detailInfoPromise(
-	qqID: number,
+	userID: number,
 	uid: number,
 	server: string,
 	flag: boolean,
 	logger: Logger,
 	redis: Database
 ): Promise<string | number[]> {
-	const detail: any = await redis.getHash( `silvery-star.card-data-${ qqID }` );
+	const detail: any = await redis.getHash( `silvery-star.card-data-${ userID }` );
 
 	if ( flag && detail.stats !== undefined && uid === parseInt( detail.uid ) ) {
 		logger.info( `用户 ${ uid } 在一小时内进行过查询操作，将返回上次数据` );
@@ -72,12 +72,12 @@ export async function detailInfoPromise(
 			return;
 		}
 		
-		await redis.setHash( `silvery-star.card-data-${ qqID }`, {
+		await redis.setHash( `silvery-star.card-data-${ userID }`, {
 			explorations:   JSON.stringify( data.worldExplorations ),
 			stats:          JSON.stringify( data.stats ),
 			homes:          JSON.stringify( data.homes )
 		} );
-		await redis.setTimeout( `silvery-star.card-data-${ qqID }`, 3600 );
+		await redis.setTimeout( `silvery-star.card-data-${ userID }`, 3600 );
 		logger.info( `用户 ${ uid } 查询成功，数据已缓存` );
 		
 		const charIDs: number[] = data.avatars.map( el => el.id );
@@ -86,7 +86,7 @@ export async function detailInfoPromise(
 }
 
 export async function characterInfoPromise(
-	qqID: number,
+	userID: number,
 	uid: number,
 	server: string,
 	charIDs: number[],
@@ -120,7 +120,7 @@ export async function characterInfoPromise(
 			avatars.push( { ...base, weapon, artifacts } );
 		}
 		
-		await redis.setHash( `silvery-star.card-data-${ qqID }`, {
+		await redis.setHash( `silvery-star.card-data-${ userID }`, {
 			avatars: JSON.stringify( avatars )
 		} );
 		resolve();
@@ -128,14 +128,14 @@ export async function characterInfoPromise(
 }
 
 export async function abyssInfoPromise(
-	qqID: number,
+	userID: number,
 	uid: number,
 	server: string,
 	period: number,
 	logger: Logger,
 	redis: Database
 ): Promise<string | void> {
-	const dbKey: string = `silvery-star.abyss-data-${ qqID }`;
+	const dbKey: string = `silvery-star.abyss-data-${ userID }`;
 	const detail: string = await redis.getString( dbKey );
 	
 	if ( detail.length !== 0 ) {

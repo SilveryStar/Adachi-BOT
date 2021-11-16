@@ -1,8 +1,8 @@
 import express from "express";
 import bot from "ROOT";
 
-async function loadMysData( qqID: number ): Promise<any> {
-	let data: any = await bot.redis.getHash( `silvery-star.card-data-${ qqID }` );
+async function loadMysData( userID: number ): Promise<any> {
+	let data: any = await bot.redis.getHash( `silvery-star.card-data-${ userID }` );
 	data.homes = JSON.parse( data.homes );
 	data.stats = JSON.parse( data.stats );
 	data.explorations = JSON.parse( data.explorations );
@@ -12,7 +12,7 @@ async function loadMysData( qqID: number ): Promise<any> {
 }
 
 export default express.Router().get( "/", async ( req, res ) => {
-	const qqID: number = parseInt( <string>req.query.qq );
-	const data: any = await loadMysData( qqID );
+	const userID: number = parseInt( <string>req.query.qq );
+	const data: any = await loadMysData( userID );
 	res.send( data );
 } );

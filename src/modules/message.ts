@@ -28,17 +28,17 @@ export default class MsgManagement {
 		this.client = client;
 	}
 	
-	public getSendMessageFunc( qqID: number, type: MessageType, groupID: number = -1 ): SendFunc {
+	public getSendMessageFunc( userID: number, type: MessageType, groupID: number = -1 ): SendFunc {
 		const client = this.client;
 		const atUser = this.atUser;
 		if ( type === MessageType.Private ) {
 			return async function( content ): Promise<void> {
-				await client.sendPrivateMsg( qqID, content );
+				await client.sendPrivateMsg( userID, content );
 			}
 		} else {
 			return async function( content, allowAt ): Promise<void> {
 				if ( atUser && allowAt !== false ) {
-					content = sdk.cqcode.at( qqID ) + content;
+					content = sdk.cqcode.at( userID ) + content;
 				}
 				await client.sendGroupMsg( <number>groupID, content );
 			}

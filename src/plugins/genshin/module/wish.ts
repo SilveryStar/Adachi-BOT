@@ -195,7 +195,7 @@ export class WishClass {
 		} );
 	}
 	
-	public async get( qqID: number, choice: string ): Promise<WishResult[] | null> {
+	public async get( userID: number, choice: string ): Promise<WishResult[] | null> {
 		let fn: probFn;
 		let table: WishDetail;
 		let wishType: string;
@@ -217,7 +217,7 @@ export class WishClass {
 			return null;
 		}
 
-		const wish: Wish = new Wish( fn, table, wishType, qqID );
+		const wish: Wish = new Wish( fn, table, wishType, userID );
 		return await wish.tenTimes();
 	}
 }

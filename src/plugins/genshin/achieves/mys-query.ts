@@ -4,9 +4,9 @@ import { baseInfoPromise, characterInfoPromise, detailInfoPromise } from "../uti
 import { render } from "../utils/render";
 import { config } from "../init";
 
-async function getID( data: string, qqID: number, redis: Database ): Promise<number | string> {
+async function getID( data: string, userID: number, redis: Database ): Promise<number | string> {
 	if ( data === "" ) {
-		const mysID: string | null = await redis.getString( `silvery-star.user-bind-id-${ qqID }` );
+		const mysID: string | null = await redis.getString( `silvery-star.user-bind-id-${ userID }` );
 		return mysID === null ? "您还未绑定米游社通行证" : parseInt( mysID );
 	} else if ( data.includes( "CQ:at" ) ) {
 		const match = <string[]>data.match( /\d+/g );
@@ -21,8 +21,8 @@ async function getID( data: string, qqID: number, redis: Database ): Promise<num
 
 export async function main( { sendMessage, messageData, redis, logger }: InputParameter ): Promise<void> {
 	const data: string = messageData.raw_message;
-	const qqID: number = messageData.user_id;
-	const info: number | string = await getID( data, qqID, redis );
+	const userID: number = messageData.user_id;
+	const info: number | string = await getID( data, userID, redis );
 	
 	if ( typeof info === "string" ) {
 		await sendMessage( info );
@@ -30,9 +30,9 @@ export async function main( { sendMessage, messageData, redis, logger }: InputPa
 	}
 
 	try {
-		const baseInfo = <[ number, string ]>await baseInfoPromise( qqID, info, redis );
-		const detailInfo = <number[]>await detailInfoPromise( qqID, ...baseInfo, true, logger, redis );
-		await characterInfoPromise( qqID, ...baseInfo, detailInfo, redis );
+		const baseInfo = <[ number, string ]>await baseInfoPromise( userID, info, redis );
+		const detailInfo = <number[]>await detailInfoPromise( userID, ...baseInfo, true, logger, redis );
+		await characterInfoPromise( userID, ...baseInfo, detailInfo, redis );
 	} catch ( error ) {
 		if ( error !== "gotten" ) {
 			await sendMessage( <string>error );
@@ -41,7 +41,7 @@ export async function main( { sendMessage, messageData, redis, logger }: InputPa
 	}
 	const image: string = await render(
 		"card",
-		{ qq: qqID, style: config.cardWeaponStyle }
+		{ qq: userID, style: config.cardWeaponStyle }
 	);
 	await sendMessage( image );
 }

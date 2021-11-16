@@ -19,7 +19,7 @@ export async function main(
 	{ sendMessage, messageData, redis, logger }: InputParameter
 ): Promise<void> {
 	const data: string = messageData.raw_message;
-	const qqID: number = messageData.user_id;
+	const userID: number = messageData.user_id;
 	const info: [ number, string ] | string = getUserInfo( data );
 	
 	if ( typeof info === "string" ) {
@@ -28,13 +28,13 @@ export async function main(
 	}
 	
 	try {
-		await redis.setHash( `silvery-star.card-data-${ qqID }`, {
+		await redis.setHash( `silvery-star.card-data-${ userID }`, {
 			nickname: messageData.sender.nickname,
 			uid: info[0],
 			level: 0
 		} );
-		const detailInfo = <number[]>await detailInfoPromise( qqID, ...info, false, logger, redis );
-		await characterInfoPromise( qqID, ...info, detailInfo, redis );
+		const detailInfo = <number[]>await detailInfoPromise( userID, ...info, false, logger, redis );
+		await characterInfoPromise( userID, ...info, detailInfo, redis );
 	} catch ( error ) {
 		if ( error !== "gotten" ) {
 			await sendMessage( <string>error );
@@ -43,7 +43,7 @@ export async function main(
 	}
 	const image: string = await render(
 		"card",
-		{ qq: qqID, style: config.cardWeaponStyle }
+		{ qq: userID, style: config.cardWeaponStyle }
 	);
 	await sendMessage( image );
 }
