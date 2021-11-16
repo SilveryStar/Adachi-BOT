@@ -31,6 +31,9 @@ export class NoteService implements Service {
 		};
 		
 		this.refreshPushEvent().catch( this.feedbackCatch );
+		scheduleJob( "0 0 */1 * * *", () => {
+			this.refreshPushEvent().catch( this.feedbackCatch );
+		} );
 	}
 	
 	public getOptions(): any {
@@ -115,7 +118,6 @@ export class NoteService implements Service {
 
 			const job: Job = scheduleJob( time, async () => {
 				await this.parent.sendMessage( `树脂量已经到达 ${ t } 了哦~` );
-				this.refreshPushEvent().catch( this.feedbackCatch );
 			} );
 			this.events.push( { type: "resin", job } );
 		}
@@ -147,7 +149,6 @@ export class NoteService implements Service {
 			const time = new Date( now + parseInt( c.remainedTime ) * 1000 );
 			const job: Job = scheduleJob( time, async () => {
 				await this.parent.sendMessage( `已有 ${ c.num } 个探索派遣任务完成` );
-				this.refreshPushEvent().catch( this.feedbackCatch );
 			} );
 			this.events.push( { type: "expedition", job } );
 		}

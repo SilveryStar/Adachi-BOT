@@ -9,8 +9,8 @@ import { getRegion } from "../utils/region";
 
 export interface Service {
 	parent: Private;
-	getOptions: () => any;
-	initTest: () => Promise<string>;
+	getOptions(): any;
+	initTest(): Promise<string>;
 }
 
 export class UserInfo {
