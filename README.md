@@ -2,7 +2,9 @@
 
 ## Preface
 这是 `Adachi-BOT` v2.2.0 `Web Console` 更新的分支页面，你可以使用 `-b` 添加参数 `clone` 最新版本<br>
-目前处于测试阶段，暂时只支持 `Forever` 部署，默认情况下，`Web Console` 开放在 80 端口，你可以直接访问服务器 IP 或本地运行时访问 `localhost` 来进入页面，也可以修改 `consolePort` 来定制
+目前处于测试阶段，暂时只支持 `Linux` 环境下的 `Forever` 部署，`Windows` 环境无法使用 `Forever` 部署<br>
+默认情况下，`Web Console` 开放在 80 端口，你可以直接访问服务器 IP 或本地运行时访问 `localhost` 来进入页面，也可以修改 `consolePort` 来定制<br>
+在启用 `Web Console` 时，为节约计算资源，控制台日志输出已关闭，所以当你使用 `npm start` 启动后**控制台没有输出是正常情况**
 
 后续会使用 `VuePress` 重写项目文档，此 README 仅临时使用<br>
 欢迎懂 UI 设计的大佬帮忙设计页面布局，有意请邮件交流 `silverystar.top@gmail.com`
