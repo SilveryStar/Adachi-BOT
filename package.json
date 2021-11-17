@@ -1,13 +1,13 @@
 {
   "name": "adachi-bot",
-  "version": "2.2.0-Beta1",
+  "version": "2.2.0-Beta2",
   "description": "",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "login": "node ./src/login.js",
     "start": "ts-node -r tsconfig-paths/register app.ts --files",
-    "serve": "forever start --minUptime 1000 --spinSleepTime 1000 -v -c ts-node -r tsconfig-paths/register app.ts --files"
+    "serve": "forever start --minUptime 1000 --spinSleepTime 1000 -v -c \"npm run start\" ./"
   },
   "keywords": [],
   "author": "",
