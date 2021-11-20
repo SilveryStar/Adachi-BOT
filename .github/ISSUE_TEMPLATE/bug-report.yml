@@ -15,7 +15,7 @@ body:
   - type: input
     attributes:
       label: 应用版本
-      description: `package.json` 中的 `version`
+      description: "`package.json` 中的 `version`"
   - type: dropdown
     attributes:
       label: 启动方式
