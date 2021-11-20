@@ -1,4 +1,4 @@
-function randomString( length: number ): string {
+export function randomString( length: number ): string {
 	const characterSet: string = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 	const characterLen: number = characterSet.length;
 	let result: string = "";
@@ -11,12 +11,7 @@ function randomString( length: number ): string {
 	return result;
 }
 
-function randomInt( min: number, max: number ): number {
+export function randomInt( min: number, max: number ): number {
 	const range: number = max - min + 1;
 	return min + Math.floor( Math.random() * range );
-}
-
-export {
-	randomInt,
-	randomString
 }

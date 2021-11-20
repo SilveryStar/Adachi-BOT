@@ -1,16 +1,17 @@
-import { dailyNotePromise } from "../utils/promise";
-import { scheduleJob, Job } from "node-schedule";
-import { getHeader as h } from "../utils/header";
-import { getAuthLevel, AuthLevel } from "../../../modules/auth";
-import { Private, Service, UserInfo } from "./private";
+import bot from "ROOT";
+import { Order } from "@modules/command";
+import { AuthLevel } from "@modules/management/auth";
 import { Note, Expedition } from "../types";
+import { Private, Service, UserInfo } from "./private";
+import { scheduleJob, Job } from "node-schedule";
+import { dailyNotePromise } from "../utils/promise";
 
 interface PushEvent {
 	type: "resin" | "expedition";
 	job: Job;
 }
 
-class NoteService implements Service {
+export class NoteService implements Service {
 	public readonly parent: Private;
 	
 	private timePoint: number[];
@@ -26,10 +27,13 @@ class NoteService implements Service {
 		this.parent = p;
 		this.timePoint = options.timePoint || [ 120, 155 ];
 		this.feedbackCatch = async () => {
-			await this.parent.sendMessage( this.globalData as string );
+			await this.parent.sendMessage( <string>this.globalData );
 		};
 		
 		this.refreshPushEvent().catch( this.feedbackCatch );
+		scheduleJob( "0 0 */1 * * *", () => {
+			this.refreshPushEvent().catch( this.feedbackCatch );
+		} );
 	}
 	
 	public getOptions(): any {
@@ -43,10 +47,11 @@ class NoteService implements Service {
 				   this.globalData + "\n" +
 				   "可能是因为米游社数据未公开或米游社内未开启实时便笺";
 		} else {
-			const auth: AuthLevel = await getAuthLevel( this.parent.setting.userID );
+			const auth: AuthLevel = await bot.auth.get( this.parent.setting.userID );
+			const SET_TIME = <Order>bot.command.getSingle( "silvery-star.note-set-time", auth );
 			return "实时便笺功能已开启：\n" +
 				   "默认情况下，树脂数量达到 120 和 155 时会发送进行私聊推送\n" +
-				   `也可以通过「${ h( "silvery-star.note-set-time", auth )[0] }+账户编号+树脂量」来设置\n` +
+				   `也可以通过「${ SET_TIME.getHeaders()[0] }+账户编号+树脂量」来设置\n` +
 				   "当冒险探索结束时，BOT 也会进行提醒";
 		}
 	}
@@ -63,7 +68,7 @@ class NoteService implements Service {
 		await this.getData();
 		return Buffer.from(
 			JSON.stringify( {
-				...this.globalData as Note,
+				...<Note>this.globalData,
 				uid: this.parent.setting.uid
 			} )
 		).toString( "base64" );
@@ -72,13 +77,13 @@ class NoteService implements Service {
 	private async getData(): Promise<void> {
 		try {
 			const setting: UserInfo = this.parent.setting;
-			this.globalData = await dailyNotePromise(
+			this.globalData = <Note>await dailyNotePromise(
 				setting.uid,
 				setting.server,
 				setting.cookie
-			) as Note;
+			);
 		} catch ( error ) {
-			this.globalData = error as string;
+			this.globalData = <string>error;
 		}
 	}
 	
@@ -112,7 +117,6 @@ class NoteService implements Service {
 
 			const job: Job = scheduleJob( time, async () => {
 				await this.parent.sendMessage( `树脂量已经到达 ${ t } 了哦~` );
-				this.refreshPushEvent().catch( this.feedbackCatch );
 			} );
 			this.events.push( { type: "resin", job } );
 		}
@@ -144,11 +148,8 @@ class NoteService implements Service {
 			const time = new Date( now + parseInt( c.remainedTime ) * 1000 );
 			const job: Job = scheduleJob( time, async () => {
 				await this.parent.sendMessage( `已有 ${ c.num } 个探索派遣任务完成` );
-				this.refreshPushEvent().catch( this.feedbackCatch );
 			} );
 			this.events.push( { type: "expedition", job } );
 		}
 	}
 }
-
-export { NoteService }

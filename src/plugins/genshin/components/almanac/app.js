@@ -10,13 +10,13 @@ const template =
 	<AlmanacFooter :d="direction" />
 </div>`;
 
-import Vue from "../../public/js/vue.js";
 import { parseURL } from "../../public/js/src.js";
 import AlmanacHeader from "./header.js";
 import AlmanacFortune from "./fortune.js";
 import AlmanacFooter from "./footer.js";
+const { defineComponent } = Vue;
 
-export default Vue.defineComponent( {
+export default defineComponent( {
 	name: "AlmanacApp",
 	template,
 	components: {

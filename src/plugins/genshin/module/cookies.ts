@@ -1,12 +1,12 @@
-import { loadYAML } from "../../../utils/config";
+import bot from "ROOT";
 
-class Cookies {
+export class Cookies {
 	private index: number;
 	private readonly cookies: string[];
 	private readonly length: number;
 	
 	constructor() {
-		this.cookies = loadYAML( "cookies" ).cookies;
+		this.cookies = bot.file.loadYAML( "cookies" ).cookies;
 		this.index = 0;
 		this.length = this.cookies.length;
 	}
@@ -19,5 +19,3 @@ class Cookies {
 		return this.cookies[this.index];
 	}
 }
-
-export { Cookies }

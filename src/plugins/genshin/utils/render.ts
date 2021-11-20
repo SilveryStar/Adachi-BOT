@@ -4,13 +4,9 @@ import { config } from "../init";
 
 let browser: puppeteer.Browser;
 
-async function createBrowser(): Promise<void> {
+export async function createBrowser(): Promise<void> {
 	browser = await puppeteer.launch( {
 		headless: true,
-		defaultViewport: {
-			width: 1920,
-			height: 1080
-		},
 		args: [
 			"--no-sandbox",
 			"--disable-setuid-sandbox",
@@ -31,7 +27,7 @@ function getURL( target: string, params?: any ): string {
 	}
 }
 
-async function render(
+export async function render(
 	target: string,
 	params: any = {},
 	selector: string = "#app",
@@ -42,9 +38,9 @@ async function render(
 	const page: puppeteer.Page = await browser.newPage();
 	await page.goto( url );
 	const htmlElement = await page.$( selector );
-	const result = await htmlElement?.screenshot( {
+	const result = <string>await htmlElement?.screenshot( {
 		encoding: "base64"
-	} ) as string;
+	} );
 	const base64: string = "base64://" + result;
 	
 	await page.close();
@@ -52,9 +48,4 @@ async function render(
 		return `[CQ:image,file=${ base64 }]`;
 	}
 	return base64;
-}
-
-export {
-	createBrowser,
-	render
 }

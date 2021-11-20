@@ -22,10 +22,10 @@ const template =
 	</div>
 </div>`;
 
-import Vue from "../../public/js/vue.js";
 import CharacterList from "./character-list.js";
+const { defineComponent, computed } = Vue;
 
-export default Vue.defineComponent( {
+export default defineComponent( {
 	name: "AbyssRoom",
 	template,
 	components: {
@@ -36,7 +36,7 @@ export default Vue.defineComponent( {
 		floor: Number
 	},
 	setup( props ) {
-		const stamp2date = Vue.computed( () => {
+		const stamp2date = computed( () => {
 			const date = new Date( parseInt( props.roomData.battles[0].timestamp ) * 1000 );
 			return  date.toLocaleDateString().replace( /\//g, "-" ) + " " + date.toTimeString().split( " " )[0];
 		} );

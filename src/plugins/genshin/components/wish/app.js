@@ -9,19 +9,19 @@ const template =
     </div>
 </div>`;
 
-import Vue from "../../public/js/vue.js";
 import { parseURL, request } from "../../public/js/src.js";
 import WishBox from "./box.js";
+const { defineComponent, computed } = Vue;
 
-export default Vue.defineComponent( {
+export default defineComponent( {
 	name: "WishApp",
 	template,
 	components: {
 		WishBox
 	},
 	setup() {
-		const wishBackground = Vue.computed( () => {
-			return "/public/images/item/background.png";
+		const wishBackground = computed( () => {
+			return "../../public/images/item/background.png";
 		} );
 		
 		const urlParams = parseURL( location.search );

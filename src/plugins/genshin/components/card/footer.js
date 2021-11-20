@@ -3,13 +3,13 @@ const template =
     <img class="background" :src="footerBackground" alt="ERROR"/>
 </div>`;
 
-import Vue from "../../public/js/vue.js";
+const { defineComponent, computed } = Vue;
 
-export default Vue.defineComponent( {
+export default defineComponent( {
 	name: "CardFooter",
 	template,
 	setup() {
-		const footerBackground = Vue.computed( () => {
+		const footerBackground = computed( () => {
 			return "https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/module/card-bottom.png";
 		} )
 		

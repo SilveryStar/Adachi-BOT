@@ -1,9 +1,7 @@
+import { InputParameter } from "@modules/command";
 import { artClass } from "../init";
-import { sendType } from "../../../modules/message";
 
-async function main( sendMessage: sendType ): Promise<void> {
+export async function main( { sendMessage }: InputParameter ): Promise<void> {
 	const info: string = artClass.domainInfo();
 	await sendMessage( info );
 }
-
-export { main }

@@ -6,9 +6,9 @@ const template =
 	<span class="level">{{ str }}</span>
 </div>`;
 
-import Vue from "../../public/js/vue.js";
+const { defineComponent, computed } = Vue;
 
-export default Vue.defineComponent( {
+export default defineComponent( {
 	name: "CharacterItem",
 	template,
 	props: {
@@ -16,9 +16,9 @@ export default Vue.defineComponent( {
 		str: String
 	},
 	setup( props ) {
-		const starBackground = Vue.computed( () => {
+		const starBackground = computed( () => {
 			let star = props.char.rarity;
-			return `/public/images/rarity/${ star }-Star.png`;
+			return `../../public/images/rarity/${ star }-Star.png`;
 		} );
 		
 		return {

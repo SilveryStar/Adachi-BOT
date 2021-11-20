@@ -1,18 +1,17 @@
-import { CommonMessageEventData as Message } from "oicq";
-import { sendType } from "../../../modules/message";
+import { InputParameter } from "@modules/command";
+import Database from "@modules/database";
 import { baseInfoPromise, characterInfoPromise, detailInfoPromise } from "../utils/promise";
-import { Redis } from "../../../bot";
-import { config } from "../init";
 import { render } from "../utils/render";
+import { config } from "../init";
 
-async function getID( data: string, qqID: number ): Promise<number | string> {
+async function getID( data: string, userID: number, redis: Database ): Promise<number | string> {
 	if ( data === "" ) {
-		const mysID: string | null = await Redis.getString( `silvery-star.user-bind-id-${ qqID }` );
+		const mysID: string | null = await redis.getString( `silvery-star.user-bind-id-${ userID }` );
 		return mysID === null ? "您还未绑定米游社通行证" : parseInt( mysID );
 	} else if ( data.includes( "CQ:at" ) ) {
-		const match = data.match( /\d+/g ) as string[];
+		const match = <string[]>data.match( /\d+/g );
 		const atID: string = match[0];
-		const mysID: string | null = await Redis.getString( `silvery-star.user-bind-id-${ atID }` );
+		const mysID: string | null = await redis.getString( `silvery-star.user-bind-id-${ atID }` );
 		
 		return mysID === null ? `用户 ${ atID } 未绑定米游社通行证` : parseInt( mysID );
 	} else {
@@ -20,10 +19,10 @@ async function getID( data: string, qqID: number ): Promise<number | string> {
 	}
 }
 
-async function main( sendMessage: sendType, message: Message ): Promise<void> {
-	const data: string = message.raw_message;
-	const qqID: number = message.user_id;
-	const info: number | string = await getID( data, qqID );
+export async function main( { sendMessage, messageData, redis }: InputParameter ): Promise<void> {
+	const data: string = messageData.raw_message;
+	const userID: number = messageData.user_id;
+	const info: number | string = await getID( data, userID, redis );
 	
 	if ( typeof info === "string" ) {
 		await sendMessage( info );
@@ -31,17 +30,18 @@ async function main( sendMessage: sendType, message: Message ): Promise<void> {
 	}
 
 	try {
-		const baseInfo = await baseInfoPromise( qqID, info ) as [ number, string ];
-		const detailInfo = await detailInfoPromise( qqID, ...baseInfo, true ) as number[];
-		await characterInfoPromise( qqID, ...baseInfo, detailInfo );
+		const server = <string>await baseInfoPromise( userID, info );
+		const detailInfo = <number[]>await detailInfoPromise( userID, server );
+		await characterInfoPromise( userID, server, detailInfo );
 	} catch ( error ) {
 		if ( error !== "gotten" ) {
-			await sendMessage( error as string );
+			await sendMessage( <string>error );
 			return;
 		}
 	}
-	const image: string = await render( "card", { qq: qqID, style: config.cardWeaponStyle } )
+	const image: string = await render(
+		"card",
+		{ qq: userID, style: config.cardWeaponStyle }
+	);
 	await sendMessage( image );
 }
-
-export { main }

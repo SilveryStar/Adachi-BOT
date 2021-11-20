@@ -64,7 +64,7 @@ function getWishID( wishData: any, wishType: number ): number {
 	return tempWish === undefined ? -1 : tempWish.gacha_id;
 }
 
-async function updateWish(): Promise<WishDetailNull[]> {
+export async function updateWish(): Promise<WishDetailNull[]> {
 	return new Promise( async ( resolve ) => {
 		const wishData: any = ( await getWishList() ).data.list;
 
@@ -75,5 +75,3 @@ async function updateWish(): Promise<WishDetailNull[]> {
 		resolve( [ indefinite, character, weapon ] );
 	} );
 }
-
-export { updateWish }

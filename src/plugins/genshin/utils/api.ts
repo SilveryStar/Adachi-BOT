@@ -216,7 +216,7 @@ export async function getInfo( name: string ): Promise<InfoResponse | string> {
 				if ( result.status === 404 ) {
 					reject( "" );
 				} else {
-					resolve( result.json() as unknown as InfoResponse );
+					resolve( <InfoResponse><unknown>result.json() );
 				}
 			} );
 	} );

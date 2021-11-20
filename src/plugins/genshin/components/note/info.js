@@ -7,9 +7,9 @@ const template =
 	<p class="data">{{ data.numerator }}/{{ data.denominator }}</p>
 </div>`;
 
-import Vue from "../../public/js/vue.js";
+const { defineComponent } = Vue;
 
-export default Vue.defineComponent( {
+export default defineComponent( {
 	name: "NoteInfo",
 	template,
 	props: {

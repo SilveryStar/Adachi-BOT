@@ -1,18 +1,17 @@
-import { CommonMessageEventData as Message } from "oicq";
-import { sendType } from "../../../modules/message";
-import { Redis } from "../../../bot";
+import { InputParameter } from "@modules/command";
 import { render } from "../utils/render";
 
-async function main( sendMessage: sendType, message: Message ): Promise<void> {
-	const qqID: number = message.user_id;
-	const data: string | null = await Redis.getString( `silvery-star.artifact-${ qqID }` );
+export async function main( { sendMessage, messageData, redis }: InputParameter ): Promise<void> {
+	const userID: number = messageData.user_id;
+	const data: string | null = await redis.getString( `silvery-star.artifact-${ userID }` );
 	
 	if ( data === null ) {
 		await sendMessage( "请先抽取一个圣遗物" );
 		return;
 	}
-	const image: string = await render( "artifact", { qq: qqID, type: "rein" } );
+	const image: string = await render(
+		"artifact",
+		{ qq: userID, type: "rein" }
+	);
 	await sendMessage( image );
 }
-
-export { main }

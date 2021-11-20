@@ -1,6 +1,4 @@
-import { createFolder, createYAML, exists, loadYAML } from "../../../utils/config";
-import { resolve } from "path";
-import { ROOTPATH } from "../../../../app";
+import bot from "ROOT";
 import { getAlmanacText } from "../utils/api";
 
 export interface FortuneData {
@@ -20,18 +18,23 @@ export class AlmanacClass {
 	private inauspicious: FortuneData[] = [];
 	
 	constructor() {
-		const dataDir: string = "src/plugins/genshin/data";
-		const ymlPath: string = resolve( ROOTPATH, dataDir, "almanac.yml" );
-		createFolder( dataDir );
+		const ymlPath: string = bot.file.getFilePath(
+			"genshin/data/almanac.yml", "plugin"
+		);
+		bot.file.createDir( "genshin/data", "plugin" );
 		
-		if ( !exists( ymlPath ) ) {
+		if ( !bot.file.isExist( ymlPath ) ) {
 			getAlmanacText().then( res => {
 				this.auspicious = res.auspicious;
 				this.inauspicious = res.inauspicious;
-				createYAML( ymlPath, res, false );
+				bot.file.createYAML(
+					"genshin/data/almanac", res, "plugin"
+				);
 			} );
 		} else {
-			const res: Record<string, FortuneData[]> = loadYAML( ymlPath, false );
+			const res: Record<string, FortuneData[]> = bot.file.loadYAML(
+				"genshin/data/almanac", "plugin"
+			);
 			this.auspicious = res.auspicious;
 			this.inauspicious = res.inauspicious;
 		}

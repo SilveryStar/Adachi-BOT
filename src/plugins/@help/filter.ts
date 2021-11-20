@@ -1,11 +1,8 @@
-import {
-	GroupMessageEventData,
-	CommonMessageEventData as Message
-} from "oicq";
-import { Command } from "../../modules/command";
-import { AuthLevel, getAuthLevel } from "../../modules/auth";
-import { MessageType, isGroupMessage, isPrivateMessage } from "../../modules/message";
-import { groupCommands, privateCommands, Redis } from "../../bot";
+import { GroupMessageEventData } from "oicq";
+import { AuthLevel } from "@modules/management/auth";
+import { BasicConfig, InputParameter } from "@modules/command/main";
+import { isGroupMessage, isPrivateMessage, Message, MessageScope, MessageType } from "@modules/message";
+import Database from "@modules/database";
 
 function getMessageType( msg: Message ): MessageType {
 	if ( isGroupMessage( msg ) ) {
@@ -17,38 +14,31 @@ function getMessageType( msg: Message ): MessageType {
 	}
 }
 
-async function getCommandList( userID: number, type: MessageType ): Promise<Command[]> {
-	const auth: AuthLevel = await getAuthLevel( userID );
-
-	if ( type === MessageType.Group ) {
-		return groupCommands[auth].filter( el => el.display );
-	} else {
-		return privateCommands[auth].filter( el => el.display );
-	}
-}
-
-async function getLimited( id: number, type: string ): Promise<string[]> {
+async function getLimited( id: number, type: string, redis: Database ): Promise<string[]> {
 	const dbKey: string = `adachi.${ type }-command-limit-${ id }`;
-	return await Redis.getList( dbKey );
+	return await redis.getList( dbKey );
 }
 
-export async function filterUserUsableCommand( msg: Message ): Promise<Command[]> {
-	const qqID: number = msg.user_id;
-	const type: MessageType = getMessageType( msg );
+export async function filterUserUsableCommand( i: InputParameter ): Promise<BasicConfig[]> {
+	const userID: number = i.messageData.user_id;
+	const type: MessageType = getMessageType( i.messageData );
 	if ( type === MessageType.Unknown ) {
 		return [];
 	}
 	
-	let commands: Command[] = await getCommandList( qqID, type );
+	const auth: AuthLevel = await i.auth.get( userID );
+	let commands: BasicConfig[] = await i.command.get( auth,
+		type === MessageType.Group ? MessageScope.Group : MessageScope.Private
+	);
 
-	const userLimit: string[] = await getLimited( qqID, "user" );
-	commands = commands.filter( el => !userLimit.includes( el.key ) );
+	const userLimit: string[] = await getLimited( userID, "user", i.redis );
+	commands = commands.filter( el => !userLimit.includes( el.cmdKey ) );
 	if ( type === MessageType.Private ) {
 		return commands;
 	}
 	
-	const groupID: number = ( msg as GroupMessageEventData ).group_id;
-	const groupLimit: string[] = await getLimited( groupID, "group" );
-	commands = commands.filter( el => !groupLimit.includes( el.key ) );
+	const groupID: number = ( <GroupMessageEventData>i.messageData ).group_id;
+	const groupLimit: string[] = await getLimited( groupID, "group", i.redis );
+	commands = commands.filter( el => !groupLimit.includes( el.cmdKey ) );
 	return commands;
 }

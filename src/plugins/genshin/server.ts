@@ -1,12 +1,12 @@
-import { Adachi } from "../../bot";
-import { config } from "./init";
-import * as r from "./routes"
+import { Logger } from "log4js";
+import { Config } from "#genshin/types";
 import express from "express";
+import * as r from "./routes"
 
-function createServer(): void {
+export function createServer( config: Config, logger: Logger ): void {
 	const app = express();
-	
 	app.use( express.static( __dirname ) );
+	
 	app.use( "/api/card", r.CardRouter );
 	app.use( "/api/artifact", r.ArtifactRouter );
 	app.use( "/api/wish", r.WishRouter );
@@ -15,8 +15,6 @@ function createServer(): void {
 	app.use( "/api/info", r.InfoRouter );
 	
 	app.listen( config.serverPort, () => {
-		Adachi.logger.info( "Express 服务器已启动" )
+		logger.info( "Express 服务器已启动" );
 	} );
 }
-
-export { createServer }

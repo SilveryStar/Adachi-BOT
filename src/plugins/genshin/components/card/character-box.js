@@ -41,10 +41,10 @@ const template =
 	</div>
 </div>`;
 
-import Vue from "../../public/js/vue.js";
 import CharacterWeapon from "./character-weapon.js";
+const { defineComponent, computed } = Vue;
 
-export default Vue.defineComponent( {
+export default defineComponent( {
 	name: "CharacterBox",
 	template,
 	props: {
@@ -55,7 +55,7 @@ export default Vue.defineComponent( {
 		CharacterWeapon
 	},
 	setup() {
-		const elementBackground = Vue.computed( () => {
+		const elementBackground = computed( () => {
 			return "https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/module/element.png";
 		} );
 		return {

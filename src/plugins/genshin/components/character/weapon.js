@@ -14,16 +14,16 @@ const template =
     </div>
 </div>`;
 
-import Vue from "../../public/js/vue.js";
+const { defineComponent, computed } = Vue;
 
-export default Vue.defineComponent( {
+export default defineComponent( {
 	name: "CharacterWeapon",
 	template,
 	props: {
 		weapon: Object
 	},
 	setup( props ) {
-		const stars = Vue.computed( () => {
+		const stars = computed( () => {
 			const star = "★";
 			return star.repeat( props.weapon.rarity );
 		} );

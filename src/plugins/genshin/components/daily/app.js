@@ -14,7 +14,6 @@ const template =
 	<p class="author">Created by Adachi-BOT</p>
 </div>`;
 
-import Vue from "../../public/js/vue.js";
 import { parseURL } from "../../public/js/src.js";
 import DailyColumn from "./column.js";
 
@@ -30,8 +29,9 @@ function parse( str ) {
 	} );
 	return result;
 }
+const { defineComponent } = Vue;
 
-export default Vue.defineComponent( {
+export default defineComponent( {
 	name: "DailyApp",
 	template,
 	components: {

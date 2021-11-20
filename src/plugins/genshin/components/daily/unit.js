@@ -22,9 +22,9 @@ const template =
 	</div>
 </div>`;
 
-import Vue from "../../public/js/vue.js";
+const { defineComponent } = Vue;
 
-export default Vue.defineComponent( {
+export default defineComponent( {
 	name: "DailyUnit",
 	template,
 	props: {
@@ -51,7 +51,7 @@ export default Vue.defineComponent( {
 		}
 		const styles = function ( rarity ) {
 			return {
-				background: `url('/public/images/rarity/${ rarity }-Star.png')`,
+				background: `url('../../public/images/rarity/${ rarity }-Star.png')`,
 				"background-size": "100% 100%"
 			}
 		}

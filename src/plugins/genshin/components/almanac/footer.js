@@ -8,9 +8,9 @@ const template =
 	<p class="author">Created by Adachi-BOT</p>
 </div>`;
 
-import Vue from "../../public/js/vue.js";
+const { defineComponent } = Vue;
 
-export default Vue.defineComponent( {
+export default defineComponent( {
 	name: "AlmanacFooter",
 	template,
 	props: {

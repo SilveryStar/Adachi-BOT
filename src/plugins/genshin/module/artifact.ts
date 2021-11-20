@@ -1,6 +1,6 @@
-import { Redis } from "../../../bot";
 import { randomInt } from "../utils/random";
 import { getArtifact } from "../utils/api";
+import Database from "@modules/database";
 
 interface Domain {
 	name: string;
@@ -31,7 +31,7 @@ interface Artifact {
 	level: number;
 }
 
-class ArtClass {
+export class ArtClass {
 	private static propertyName: string[] = [
 		"生命值", "生命值", "防御力", "防御力",
 		"元素充能效率", "元素精通", "攻击力", "攻击力",
@@ -169,7 +169,10 @@ class ArtClass {
 		}
 	}
 	
-	private getResult( id: number, slot: number, started: number, main: number, sub: Property[], improves: any[] ): Artifact[] {
+	private getResult(
+		id: number, slot: number, started: number,
+		main: number, sub: Property[], improves: any[]
+	): Artifact[] {
 		const par: Artifact = {
 			image: `https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/artifact/${ id }/${ slot }.png`,
 			name: this.suitNames[id][slot],
@@ -215,27 +218,30 @@ class ArtClass {
 		for ( let i = 0; i < 4; i++ ) {
 			const id: number = parseInt( reinArt.subStats[i].name );
 			reinArt.subStats[i].name = ArtClass.propertyName[id];
-			reinArt.subStats[i].value = this.toString( reinArt.subStats[i].value as number );
+			reinArt.subStats[i].value = this.toString( <number>reinArt.subStats[i].value );
 		}
 		
 		return [ initArt, reinArt ];
 	}
 	
-	public async get( qqID: number, domain: number ): Promise<string> {
+	public async get( userID: number, domain: number, redis: Database ): Promise<string> {
 		let flag: string = "";
 		try {
-			const artifactID = await this.getID( domain ) as number;
+			const artifactID = <number>await this.getID( domain );
 			const slot: number = this.getSlot();
 			const mainStat: number = this.getMainStat( slot );
 			const subStats: Property[] = this.getSubStats( slot, mainStat );
 			const started: number = this.getStartNum();
 			const improves: any[] = this.getImproves();
 			
-			const [ initProp, reinProp ] = this.getResult( artifactID, slot, started, mainStat, subStats, improves );
+			const [ initProp, reinProp ] = this.getResult(
+				artifactID, slot, started, mainStat, subStats, improves
+			);
 			
-			await Redis.setString( `silvery-star.artifact-${ qqID }`, JSON.stringify( {
-				initProp, reinProp
-			} ) );
+			await redis.setString(
+				`silvery-star.artifact-${ userID }`,
+				JSON.stringify( { initProp, reinProp } )
+			);
 		} catch ( reason: any ) {
 			flag = reason;
 		}
@@ -255,5 +261,3 @@ class ArtClass {
 		return str;
 	}
 }
-
-export { ArtClass }

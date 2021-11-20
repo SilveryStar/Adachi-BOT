@@ -1,60 +1,68 @@
-import { CommonMessageEventData as Message, GroupMessageEventData, PrivateMessageEventData, Sendable } from "oicq";
-import { Adachi, botConfig } from "../bot";
-import removePrefix = require( "remove-prefix" );
+import * as sdk from "oicq";
+import BotConfig from "@modules/config";
 
-enum MessageScope {
+export enum MessageScope {
 	Neither,
 	Group = 1 << 0,
 	Private = 1 << 1,
 	Both = Group | Private
 }
 
-enum MessageType {
+export enum MessageType {
 	Group,
 	Private,
 	Unknown
 }
 
-type sendType = ( content: Sendable, allowAt?: boolean ) => Promise<void>;
+export type SendFunc = ( content: sdk.Sendable, allowAt?: boolean ) => Promise<void>;
+export type Message = sdk.PrivateMessageEventData | sdk.GroupMessageEventData;
 
-function getSendMessageFunc( qqID: number, type: MessageType, groupID?: number ): any {
-	if ( type === MessageType.Private ) {
-		return async function ( content: Sendable, allowAt?: boolean ): Promise<void> {
-			await Adachi.sendPrivateMsg( qqID, content );
-		}
-	} else if ( type === MessageType.Group ) {
-		return async function ( content: Sendable, allowAt?: boolean ): Promise<void> {
-			if ( botConfig.atUser && allowAt !== false ) {
-				content = `[CQ:at,qq=${ qqID }]\n${ content }`;
+interface MsgManagementMethod {
+	getSendMessageFunc( userID: number, type: MessageType, groupID?: number ): SendFunc;
+	sendMaster( content: string ): Promise<void>;
+}
+
+export default class MsgManagement implements MsgManagementMethod {
+	private readonly master: number;
+	private readonly atUser: boolean;
+	private readonly client: sdk.Client;
+	
+	constructor( config: BotConfig, client: sdk.Client ) {
+		this.master = config.master;
+		this.atUser = config.atUser;
+		this.client = client;
+	}
+	
+	public getSendMessageFunc( userID: number, type: MessageType, groupID: number = -1 ): SendFunc {
+		const client = this.client;
+		const atUser = this.atUser;
+		if ( type === MessageType.Private ) {
+			return async function( content ): Promise<void> {
+				await client.sendPrivateMsg( userID, content );
 			}
-			await Adachi.sendGroupMsg( groupID as number, content );
+		} else {
+			return async function( content, allowAt ): Promise<void> {
+				if ( atUser && allowAt !== false ) {
+					content = sdk.cqcode.at( userID ) + content;
+				}
+				await client.sendGroupMsg( <number>groupID, content );
+			}
 		}
+	}
+	
+	public async sendMaster( content: string ): Promise<void> {
+		await this.client.sendPrivateMsg( this.master, content );
 	}
 }
 
-async function sendMaster( content: string ): Promise<void> {
-	await Adachi.sendPrivateMsg( botConfig.master, content );
+export function removeStringPrefix( string: string, prefix: string ): string {
+	return string.replace( prefix, "" );
 }
 
-function removeStringPrefix( string: string, prefix: string ): string {
-	return removePrefix( string, prefix )[0];
+export function isPrivateMessage( data: Message ): data is sdk.PrivateMessageEventData {
+	return data.message_type === "private";
 }
 
-function isPrivateMessage( data: Message ): data is PrivateMessageEventData {
-	return ( <PrivateMessageEventData | GroupMessageEventData>data ).message_type === "private";
-}
-
-function isGroupMessage( data: Message ): data is GroupMessageEventData {
-	return ( <PrivateMessageEventData | GroupMessageEventData>data ).message_type === "group";
-}
-
-export {
-	MessageScope,
-	MessageType,
-	sendType,
-	getSendMessageFunc,
-	sendMaster,
-	removeStringPrefix,
-	isGroupMessage,
-	isPrivateMessage
+export function isGroupMessage( data: Message ): data is sdk.GroupMessageEventData {
+	return data.message_type === "group";
 }

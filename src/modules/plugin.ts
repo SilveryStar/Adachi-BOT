@@ -1,177 +1,86 @@
-import { Adachi, groupCommands, privateCommands } from "../bot";
-import { ROOTPATH } from "../../app";
-import { readdirSync } from "fs";
-import { loadYAML, writeYAML } from "../utils/config";
-import { resolve } from "path";
-import { Command, CommandType, isOrder, isQuestion, isSwitch } from "./command";
-import { MessageScope } from "./message";
-import { AuthLevel } from "./auth";
+import * as cmd from "./command";
+import { BasicConfig } from "./command";
+import { BOT } from "@modules/bot";
 
 declare function require( moduleName: string ): any;
 
-async function loadPlugins(): Promise<void> {
-	let folder: string[] = readdirSync( resolve( `${ ROOTPATH }/src/plugins` ) );
-	
-	for ( let i = AuthLevel.Banned; i <= AuthLevel.Master; i++ ) {
-		groupCommands[i] = [];
-		privateCommands[i] = [];
-	}
-	
-	/* 从 plugins 文件夹从导入 init.ts 进行插件初始化 */
-	for ( let pluginName of folder ) {
-		const pluginPath: string = resolve( `${ ROOTPATH }/src/plugins/${ pluginName }/init` );
-		
-		const { init } = require( pluginPath );
-		const { name, commands } = await init();
-		
-		for ( let command of commands ) {
-			for ( let auth = command.authLimit; auth <= AuthLevel.Master; auth++ ) {
-				if ( ( command.scope & MessageScope.Group ) !== 0 ) {
-					groupCommands[auth].push( command );
-				}
-				if ( ( command.scope & MessageScope.Private ) !== 0 ) {
-					privateCommands[auth].push( command );
-				}
-			}
-		}
-		
-		Adachi.logger.info( `插件 ${ name } 已成功加载` );
-	}
-	
-	for ( let i = AuthLevel.Banned; i <= AuthLevel.Master; i++ ) {
-		groupCommands[i].sort( ( A: Command, B: Command ) => {
-			return A.compare() - B.compare();
-		} );
-		privateCommands[i].sort( ( A: Command, B: Command ) => {
-			return A.compare() - B.compare();
-		} );
-	}
+export interface PluginSetting {
+	pluginName: string;
+	cfgList: cmd.ConfigType[];
 }
 
-function addPlugin( name: string, ...commandList: CommandType[] ): { name: string, commands: Command[] } {
-	let commands: Command[] = [];
-	const file: Record<string, any> = loadYAML( "commands" );
-	
-	const dAuth = AuthLevel.User;
-	const dScope = MessageScope.Both;
-	
-	for ( let comm of commandList ) {
-		comm.main = comm.main || "index";
-		const key: string = comm.key;
-		const data: any | undefined = file[key];
+export default class Plugin {
+	public static async load( bot: BOT ): Promise<BasicConfig[]> {
+		const registerCmd: BasicConfig[] = [];
+		const plugins: string[] = bot.file.getDirFiles( "", "plugin" );
 		
-		/*
-		* Order 可配置选项
-		* enable auth scope headers
-		* */
-		if ( isOrder( comm ) ) {
-			const dOrderConfig = {
-				type: "order",
-				auth: comm.authLimit || dAuth,
-				scope: comm.scope || dScope
-			};
-			
-			if ( !data ) {
-				file[key] = dOrderConfig;
-				file[key].enable = true;
-				file[key].headers = comm.headers;
-			} else if ( Array.isArray( data ) ) {
-				/* 兼容 v2.0 配置 */
-				const enable: boolean = data.length !== 0;
-				file[key] = dOrderConfig;
-				file[key].enable = enable;
-				file[key].headers = enable ? data : comm.headers;
-				if ( !enable ) {
-					continue;
-				}
-			} else {
-				const enable: boolean = data.enable;
-				if ( !enable ) {
-					continue;
-				}
-				comm.headers = data.headers;
-				comm.authLimit = data.auth;
-				comm.scope = data.scope;
+		/* 从 plugins 文件夹从导入 init.ts 进行插件初始化 */
+		for ( let plugin of plugins ) {
+			const path: string = bot.file.getFilePath( `${ plugin }/init`, "plugin" );
+			const { init } = require( path );
+			try {
+				const { pluginName, cfgList }: PluginSetting = await init( bot );
+				const commands = Plugin.parse( bot, cfgList, pluginName );
+				registerCmd.push( ...commands );
+				bot.logger.info( `插件 ${ pluginName } 加载完成` );
+			} catch ( error ) {
+				bot.logger.error( `插件加载异常: ${ error }` );
 			}
 		}
 		
-		/*
-		* Switch 可配置选项
-		* enable auth scope header onKeyword offKeyword
-		* */
-		if ( isSwitch( comm ) ) {
-			const dSwitchConfig = {
-				type: "switch",
-				auth: comm.authLimit || dAuth,
-				scope: comm.scope || dScope,
-				on: comm.onKeyword,
-				off: comm.offKeyword
-			};
-			
-			if ( !data ) {
-				file[key] = dSwitchConfig;
-				file[key].enable = true;
-				file[key].header = comm.header;
-				file[key].mode = comm.mode;
-			} else if ( Array.isArray( data ) ) {
-				/* 兼容 v2.0 配置 */
-				const enable: boolean = data.length !== 0;
-				file[key] = dSwitchConfig;
-				file[key].enable = enable;
-				file[key].mode = comm.mode;
-				/* 只保留一个指令头 */
-				file[key].header = enable ? data[0] : comm.header;
-				if ( !enable ) {
-					continue;
-				}
-			} else {
-				const enable: boolean = data.enable;
-				if ( !enable ) {
-					continue;
-				}
-				comm.mode = data.mode;
-				comm.header = data.header;
-				comm.authLimit = data.auth;
-				comm.scope = data.scope;
-				comm.onKeyword = data.on;
-				comm.offKeyword = data.off;
-			}
-		}
-		
-		/*
-		* Switch 可配置选项
-		* enable auth scope
-		* */
-		if ( isQuestion( comm ) ) {
-			if ( !data ) {
-				file[key] = {
-					type: "question",
-					enable: true,
-					auth: comm.authLimit || dAuth,
-					scope: comm.scope || dScope
-				};
-			} else {
-				const enable: boolean = data.enable;
-				if ( !enable ) {
-					continue;
-				}
-				comm.authLimit = data.auth;
-				comm.scope = data.scope;
-			}
-		}
-		
-		const mainPath: string = resolve( `${ ROOTPATH }/src/plugins/${ name }/${ comm.main }` );
-		const { main } = require( mainPath );
-		const command: Command = new Command( comm, main );
-		
-		commands.push( command );
+		return registerCmd;
 	}
 	
-	writeYAML( "commands", file );
-	return { name, commands };
-}
-
-export {
-	addPlugin,
-	loadPlugins
+	private static parse(
+		bot: BOT,
+		cfgList: cmd.ConfigType[],
+		pluginName: string
+	): cmd.BasicConfig[] {
+		const commands: cmd.BasicConfig[] = [];
+		const data: Record<string, any> = bot.file.loadYAML( "commands" );
+		
+		/* 此处删除所有向后兼容代码 */
+		cfgList.forEach( config => {
+			/* 允许 main 传入函数 */
+			if ( config.main instanceof Function ) {
+				config.run = config.main;
+			} else {
+				const main: string = config.main || "index";
+				const path: string = bot.file.getFilePath(
+					pluginName + "/" + main,
+					"plugin"
+				);
+				config.run = require( path ).main;
+			}
+			
+			const key: string = config.cmdKey;
+			const loaded = data[key];
+			if ( loaded && !loaded.enable ) {
+				return;
+			}
+			
+			/* 读取 commands.yml 配置，创建指令实例  */
+			try {
+				let command: cmd.BasicConfig;
+				switch ( config.type ) {
+					case "order":
+						if ( loaded ) cmd.Order.read( config, loaded );
+						command = new cmd.Order( config, bot.config ); break;
+					case "switch":
+						if ( loaded ) cmd.Switch.read( config, loaded );
+						command = new cmd.Switch( config, bot.config ); break;
+					case "enquire":
+						if ( loaded ) cmd.Enquire.read( config, loaded );
+						command = new cmd.Enquire( config, bot.config ); break;
+				}
+				data[key] = command.write();
+				commands.push( command );
+			} catch ( error ) {
+				bot.logger.error( <string>error );
+			}
+		} );
+		
+		bot.file.writeYAML( "commands", data );
+		return commands;
+	}
 }

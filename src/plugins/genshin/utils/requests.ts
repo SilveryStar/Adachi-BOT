@@ -1,6 +1,6 @@
 import request, { Response } from "request";
 
-async function requests( options: any ): Promise<any> {
+export default async function requests( options: any ): Promise<any> {
 	return new Promise( ( resolve, reject ) => {
 		request( options, ( error: any, response: Response, body: any ) => {
 			if ( error ) {
@@ -14,5 +14,3 @@ async function requests( options: any ): Promise<any> {
 			console.log( reason );
 		} );
 }
-
-export default requests;

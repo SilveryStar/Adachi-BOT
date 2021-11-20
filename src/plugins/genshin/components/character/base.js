@@ -27,9 +27,9 @@ const template =
     </div>
 </div>`;
 
-import Vue from "../../public/js/vue.js";
+const { defineComponent, computed } = Vue;
 
-export default Vue.defineComponent( {
+export default defineComponent( {
 	name: "CharacterBase",
 	template,
 	props: {
@@ -44,13 +44,13 @@ export default Vue.defineComponent( {
 	setup( props ) {
 		const traditional = [ "零", "壹", "贰", "叁", "肆", "伍", "陆", "柒", "捌", "玖", "拾" ];
 		
-		const constellationCN = Vue.computed( () => {
+		const constellationCN = computed( () => {
 			return traditional[props.constellation];
 		} );
-		const fetterCN = Vue.computed( () => {
+		const fetterCN = computed( () => {
 			return traditional[props.fetter];
 		} );
-		const charImage = Vue.computed( () => {
+		const charImage = computed( () => {
 			return `http://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/character/${ props.id }.png`;
 		} );
 		

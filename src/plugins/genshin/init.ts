@@ -1,14 +1,13 @@
-import { addPlugin } from "../../modules/plugin";
-import { createServer } from "./server";
-import { createBrowser } from "./utils/render";
-import { resolve } from "path";
-import { exists, createYAML, loadYAML, writeYAML } from "../../utils/config";
 import { Config } from "./types";
-import { ROOTPATH } from "../../../app";
-import commands from "./command";
+import { PluginSetting } from "@modules/plugin";
+import { BOT } from "@modules/bot";
+import pluginSetting from "./setting";
 import * as m from "./module";
+import { createBrowser } from "./utils/render";
+import { createServer } from "./server";
+import FileManagement from "@modules/file";
 
-let config: Config;
+export let config: Config;
 export const artClass = new m.ArtClass();
 export const cookies = new m.Cookies();
 export const typeData = new m.TypeData();
@@ -19,24 +18,15 @@ export const dailyClass = new m.DailyClass();
 export const slipClass = new m.SlipClass();
 export const privateClass = new m.PrivateClass();
 
-function loadConfig(): Config {
+function loadConfig( file: FileManagement ): Config {
 	const defaultConfig: Config = {
 		cardWeaponStyle: "normal",
 		serverPort: 58612
 	};
 	
 	function load(): Config {
-		const config: any = loadYAML( "genshin" );
-		
-		/* 针对旧版 genshin.yml 配置进行修改 */
-		if ( config["silvery-star.art"] !== undefined ) {
-			const c: any = {};
-			c.cardWeaponStyle = "normal";
-			c.serverPort = config.serverPort;
-			writeYAML( "genshin", c );
-			return c;
-		}
-		
+		const config: any = file.loadYAML( "genshin" );
+
 		/* 检查 defaultConfig 是否更新 */
 		const keysNum = o => Object.keys( o ).length;
 		if ( keysNum( config ) !== keysNum( defaultConfig ) ) {
@@ -45,28 +35,27 @@ function loadConfig(): Config {
 			for ( let k of keys ) {
 				c[k] = config[k] ? config[k] : defaultConfig[k];
 			}
-			writeYAML( "genshin", c );
+			file.writeYAML( "genshin", c );
 			return c;
 		}
 		
 		return config;
 	}
 	
-	const isExist: boolean = exists( resolve( ROOTPATH, "config/genshin.yml" ) );
+	const path: string = file.getFilePath( "genshin.yml" );
+	const isExist: boolean = file.isExist( path );
 	if ( !isExist ) {
-		createYAML( "genshin", defaultConfig );
+		file.createYAML( "genshin", defaultConfig );
 		return defaultConfig;
 	} else {
 		return load();
 	}
 }
 
-async function init(): Promise<any> {
-	config = loadConfig();
-	createServer();
+export async function init( { file, logger }: BOT ): Promise<PluginSetting> {
+	config = loadConfig( file );
+	createServer( config, logger );
 	await createBrowser();
 	
-	return addPlugin( "genshin", ...commands );
+	return pluginSetting;
 }
-
-export { init, config }

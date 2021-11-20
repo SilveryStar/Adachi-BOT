@@ -1,21 +1,18 @@
-import { Adachi, Redis } from "../../../bot";
-import { cookies } from "../init";
-import { getBaseInfo, getCharactersInfo, getDailyNoteInfo, getDetailInfo, getSpiralAbyssInfo } from "./api";
-import { omit } from "lodash";
 import * as ApiType from "../types";
+import * as api from "./api";
+import bot from "ROOT";
 import { Note } from "../types";
+import { omit } from "lodash";
+import { cookies } from "../init";
 
-enum ErrorMsg {
+export enum ErrorMsg {
 	NOT_FOUND = "未查询到角色数据，请检查米哈游通行证（非UID）是否有误或是否设置角色信息公开",
 	UNKNOWN = "发生未知错误",
 	FORM_MESSAGE = "米游社接口报错: "
 }
 
-async function baseInfoPromise(
-	qqID: number,
-	mysID: number
-): Promise<string | [ number, string ]> {
-	const { retcode, message, data } = await getBaseInfo( mysID, cookies.get() );
+export async function baseInfoPromise( userID: number, mysID: number ): Promise<string> {
+	const { retcode, message, data } = await api.getBaseInfo( mysID, cookies.get() );
 	if ( !ApiType.isBBS( data ) ) {
 		return Promise.reject( ErrorMsg.UNKNOWN );
 	}
@@ -38,25 +35,29 @@ async function baseInfoPromise(
 		const { gameRoleId, nickname, region, level } = genshinInfo;
 		const uid: number = parseInt( gameRoleId );
 
-		await Redis.setHash( `silvery-star.card-data-${ qqID }`, { nickname, uid, level } );
-		resolve( [ uid, region ] );
+		await bot.redis.setString( `silvery-star.user-querying-id-${ userID }`, uid );
+		await bot.redis.setHash( `silvery-star.card-data-${ uid }`, { nickname, uid, level } );
+		resolve( region );
 	} );
 }
 
-async function detailInfoPromise(
-	qqID: number,
-	uid: number,
-	server: string,
-	flag: boolean
+export async function detailInfoPromise(
+	userID: number, server: string
 ): Promise<string | number[]> {
-	const detail: any = await Redis.getHash( `silvery-star.card-data-${ qqID }` );
+	const UID: string = await bot.redis.getString( `silvery-star.user-querying-id-${ userID }` );
+	if ( UID.length === 0 ) {
+		return Promise.reject( ErrorMsg.UNKNOWN );
+	}
+	
+	const detail: any = await bot.redis.getHash( `silvery-star.card-data-${ UID }` );
+	const uid: number = parseInt( UID );
 
-	if ( flag && detail.stats !== undefined && uid === parseInt( detail.uid ) ) {
-		Adachi.logger.info( `用户 ${ uid } 在一小时内进行过查询操作，将返回上次数据` );
+	if ( detail.stats && uid === parseInt( detail.uid ) ) {
+		bot.logger.info( `用户 ${ uid } 在一小时内进行过查询操作，将返回上次数据` );
 		return Promise.reject( "gotten" );
 	}
 	
-	const { retcode, message, data } = await getDetailInfo( uid, server, cookies.get() );
+	const { retcode, message, data } = await api.getDetailInfo( uid, server, cookies.get() );
 	cookies.increaseIndex();
 	if ( !ApiType.isUserInfo( data ) ) {
 		return Promise.reject( ErrorMsg.UNKNOWN );
@@ -68,26 +69,27 @@ async function detailInfoPromise(
 			return;
 		}
 		
-		await Redis.setHash( `silvery-star.card-data-${ qqID }`, {
+		await bot.redis.setHash( `silvery-star.card-data-${ uid }`, {
 			explorations:   JSON.stringify( data.worldExplorations ),
 			stats:          JSON.stringify( data.stats ),
 			homes:          JSON.stringify( data.homes )
 		} );
-		await Redis.setTimeout( `silvery-star.card-data-${ qqID }`, 3600 );
-		Adachi.logger.info( `用户 ${ uid } 查询成功，数据已缓存` );
+		await bot.redis.setTimeout( `silvery-star.card-data-${ uid }`, 3600 );
+		bot.logger.info( `用户 ${ uid } 查询成功，数据已缓存` );
 		
 		const charIDs: number[] = data.avatars.map( el => el.id );
 		resolve( charIDs );
 	} );
 }
 
-async function characterInfoPromise(
-	qqID: number,
-	uid: number,
+export async function characterInfoPromise(
+	userID: number,
 	server: string,
 	charIDs: number[]
 ): Promise<string | void> {
-	const { retcode, message, data } = await getCharactersInfo( uid, server, charIDs, cookies.get() );
+	const uid: number = parseInt( await bot.redis.getString( `silvery-star.user-querying-id-${ userID }` ) );
+	
+	const { retcode, message, data } = await api.getCharactersInfo( uid, server, charIDs, cookies.get() );
 	cookies.increaseIndex();
 	if ( !ApiType.isCharacter( data ) ) {
 		return Promise.reject( ErrorMsg.UNKNOWN );
@@ -115,55 +117,57 @@ async function characterInfoPromise(
 			avatars.push( { ...base, weapon, artifacts } );
 		}
 		
-		await Redis.setHash( `silvery-star.card-data-${ qqID }`, {
+		await bot.redis.setHash( `silvery-star.card-data-${ uid }`, {
 			avatars: JSON.stringify( avatars )
 		} );
 		resolve();
 	} );
 }
 
-async function abyssInfoPromise(
-	qqID: number,
-	uid: number,
+export async function abyssInfoPromise(
+	userID: number,
 	server: string,
 	period: number
 ): Promise<string | void> {
-	const dbKey: string = `silvery-star.abyss-data-${ qqID }`;
-	const detail: string | null = await Redis.getString( dbKey );
+	const uid: number = parseInt(
+		await bot.redis.getString( `silvery-star.abyss-querying-${ userID }` )
+	);
+	const dbKey: string = `silvery-star.abyss-data-${ uid }`;
+	const detail: string = await bot.redis.getString( dbKey );
 	
-	if ( detail !== null ) {
+	if ( detail.length !== 0 ) {
 		const data: any = JSON.parse( detail );
 		if ( data.uid === uid && data.period === period ) {
-			Adachi.logger.info( `用户 ${ uid } 在一小时内进行过深渊查询操作，将返回上次数据` );
+			bot.logger.info( `用户 ${ uid } 在一小时内进行过深渊查询操作，将返回上次数据` );
 			return Promise.reject( "gotten" );
 		}
 	}
 	
-	const { retcode, message, data } = await getSpiralAbyssInfo( uid, server, period, cookies.get() );
+	const { retcode, message, data } = await api.getSpiralAbyssInfo( uid, server, period, cookies.get() );
 	cookies.increaseIndex();
 	if ( !ApiType.isAbyss( data ) ) {
 		return Promise.reject( ErrorMsg.UNKNOWN );
 	}
-	
+
 	return new Promise( async ( resolve, reject ) => {
 		if ( retcode !== 0 ) {
 			reject( ErrorMsg.FORM_MESSAGE+ message );
 			return;
 		}
 
-		await Redis.setString( dbKey, JSON.stringify( { ...data, uid, period } ) );
-		await Redis.setTimeout( dbKey, 3600 );
-		Adachi.logger.info( `用户 ${ uid } 的深渊数据查询成功，数据已缓存` );
+		await bot.redis.setString( dbKey, JSON.stringify( { ...data, uid, period } ) );
+		await bot.redis.setTimeout( dbKey, 3600 );
+		bot.logger.info( `用户 ${ uid } 的深渊数据查询成功，数据已缓存` );
 		resolve();
 	} );
 }
 
-async function dailyNotePromise(
+export async function dailyNotePromise(
 	uid: string,
 	server: string,
 	cookie: string
 ): Promise<Note | string> {
-	const { retcode, message, data } = await getDailyNoteInfo( parseInt( uid ), server, cookie );
+	const { retcode, message, data } = await api.getDailyNoteInfo( parseInt( uid ), server, cookie );
 	if ( !ApiType.isNote( data ) ) {
 		return Promise.reject( ErrorMsg.UNKNOWN );
 	}
@@ -174,16 +178,7 @@ async function dailyNotePromise(
 			return;
 		}
 		
-		Adachi.logger.info( `用户 ${ uid } 的实时便笺数据查询成功` );
+		bot.logger.info( `用户 ${ uid } 的实时便笺数据查询成功` );
 		resolve( data );
 	} );
-}
-
-export {
-	ErrorMsg,
-	baseInfoPromise,
-	detailInfoPromise,
-	characterInfoPromise,
-	abyssInfoPromise,
-	dailyNotePromise
 }

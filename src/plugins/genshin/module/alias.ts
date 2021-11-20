@@ -1,6 +1,6 @@
-import { scheduleJob } from "node-schedule";
+import bot from "ROOT";
 import { getAliasName } from "../utils/api";
-import { Redis } from "../../../bot";
+import { scheduleJob } from "node-schedule";
 
 interface AliasMap {
 	realName: string;
@@ -14,25 +14,25 @@ export class AliasClass {
 		this.list = new Map();
 		async function parseData(): Promise<Map<string, string>> {
 			const list = new Map();
-			const set: Array<AliasMap> = await getAliasName();
+			const set: AliasMap[] = await getAliasName();
 			for ( let el of set ) {
 				for ( let alias of el.aliasNames ) {
 					list.set( alias, el.realName );
 				}
 			}
 			
-			const added: string[] = await Redis.getKeysByPrefix( "silvery-star.alias-add-" );
+			const added: string[] = await bot.redis.getKeysByPrefix( "silvery-star.alias-add-" );
 			for ( let key of added ) {
-				const realName = key.split( "-" ).pop() as string;
-				const aliasList: string[] = await Redis.getList( key );
+				const realName = <string>key.split( "-" ).pop();
+				const aliasList: string[] = await bot.redis.getList( key );
 				for ( let alias of aliasList ) {
 					list.set( alias, realName );
 				}
 			}
 			
-			const removed: string[] = await Redis.getList( "silvery-star.alias-remove" );
+			const removed: string[] = await bot.redis.getList( "silvery-star.alias-remove" );
 			for ( let key of removed ) {
-				const aliasList: string[] = await Redis.getList( key );
+				const aliasList: string[] = await bot.redis.getList( key );
 				for ( let alias of aliasList ) {
 					list.delete( alias );
 				}

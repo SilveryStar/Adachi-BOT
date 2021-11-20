@@ -1,22 +1,22 @@
+import bot from "ROOT";
 import { scheduleJob } from "node-schedule";
 import { updateWish } from "../utils/update";
 import { randomInt } from "../utils/random";
-import { Redis } from "../../../bot";
 
-interface WishResult {
+export interface WishResult {
 	type: string;
 	name: string;
 	rank: number;
 	times?: number;
 }
 
-interface WishInfo {
+export interface WishInfo {
 	type: string;
 	name: string;
 	rank: number;
 }
 
-interface WishDetail {
+export interface WishDetail {
 	type: number;
 	upFourStar: WishInfo[];
 	upFiveStar: WishInfo[];
@@ -82,19 +82,19 @@ class Wish {
 	}
 	
 	private async SET( field: string, value: any ): Promise<void> {
-		await Redis.client.HSET( this.dbKey, field, value );
+		await bot.redis.client.HSET( this.dbKey, field, value );
 	}
 
 	private async GET( filed: string ): Promise<number> {
 		return new Promise( ( resolve ) => {
-			Redis.client.HGET( this.dbKey, filed, ( error: Error | null, res: string ) => {
+			bot.redis.client.HGET( this.dbKey, filed, ( error: Error | null, res: string ) => {
 				resolve( parseInt( res ) );
 			} );
 		} );
 	}
 	
 	private async INCREASE( field: string ): Promise<void> {
-		await Redis.client.HINCRBY( this.dbKey, field, 1 );
+		await bot.redis.client.HINCRBY( this.dbKey, field, 1 );
 	}
 	
 	private async updateCounter( rank: number, up: boolean ): Promise<void> {
@@ -178,7 +178,7 @@ class Wish {
 	}
 }
 
-class WishClass {
+export class WishClass {
 	private indefinite?: WishDetailNull;
 	private character?: WishDetailNull;
 	private weapon?: WishDetailNull;
@@ -195,31 +195,29 @@ class WishClass {
 		} );
 	}
 	
-	public async get( qqID: number, choice: string ): Promise<WishResult[] | null> {
+	public async get( userID: number, choice: string ): Promise<WishResult[] | null> {
 		let fn: probFn;
 		let table: WishDetail;
 		let wishType: string;
 		
 		if ( choice === "常驻" ) {
 			fn = Wish.indefiniteOrCharacter;
-			table = this.indefinite as WishDetail;
+			table = <WishDetail>this.indefinite;
 			wishType = "indefinite";
 		} else if ( choice === "角色" ) {
 			fn = Wish.indefiniteOrCharacter;
-			table = this.character as WishDetail;
+			table = <WishDetail>this.character;
 			wishType = "character";
 		} else {
 			fn = Wish.weapon;
-			table = this.weapon as WishDetail;
+			table = <WishDetail>this.weapon;
 			wishType = "weapon";
 		}
 		if ( table === null ) {
 			return null;
 		}
 
-		const wish: Wish = new Wish( fn, table, wishType, qqID );
+		const wish: Wish = new Wish( fn, table, wishType, userID );
 		return await wish.tenTimes();
 	}
 }
-
-export { WishClass, WishResult, WishDetail, WishInfo }

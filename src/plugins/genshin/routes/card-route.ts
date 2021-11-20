@@ -1,12 +1,19 @@
 import express from "express";
-import { loadMysData } from "../utils/load";
+import bot from "ROOT";
 
-const router = express.Router();
+async function loadMysData( userID: number ): Promise<any> {
+	const uid: string = await bot.redis.getString( `silvery-star.user-querying-id-${ userID }` );
+	const data: any = await bot.redis.getHash( `silvery-star.card-data-${ uid }` );
+	data.homes = JSON.parse( data.homes );
+	data.stats = JSON.parse( data.stats );
+	data.explorations = JSON.parse( data.explorations );
+	data.avatars = JSON.parse( data.avatars );
+	
+	return data;
+}
 
-router.get( "/", async ( req, res ) => {
-	const qqID: number = parseInt( <string>req.query.qq );
-	const data: any = await loadMysData( qqID );
+export default express.Router().get( "/", async ( req, res ) => {
+	const userID: number = parseInt( <string>req.query.qq );
+	const data: any = await loadMysData( userID );
 	res.send( data );
 } );
-
-export default router;
