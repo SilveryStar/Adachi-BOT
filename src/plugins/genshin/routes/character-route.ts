@@ -2,10 +2,10 @@ import express from "express";
 import bot from "ROOT"
 
 async function charData( userID: number, name: string ): Promise<any> {
-	const dbKey: string = `silvery-star.card-data-${ userID }`
+	const uid: string = await bot.redis.getString( `silvery-star.user-querying-id-${ userID }` );
+	const dbKey: string = `silvery-star.card-data-${ uid }`
 	const data: any = await bot.redis.getHash( dbKey );
 	
-	const uid: string = data.uid;
 	const char = JSON.parse( data.avatars ).find( el => el.name === name );
 	return { uid, ...char };
 }

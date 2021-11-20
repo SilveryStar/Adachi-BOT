@@ -140,6 +140,7 @@ const abyss: SwitchConfig = {
 	header: "",
 	regexp: [ "(\\d{9}|\\[CQ:at,qq=\\d+.*])?", "#{OPT}" ],
 	main: "achieves/abyss-query",
+	stop: false,
 	onKey: "caby",
 	offKey: "laby"
 };

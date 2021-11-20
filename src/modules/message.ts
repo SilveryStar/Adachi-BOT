@@ -17,7 +17,12 @@ export enum MessageType {
 export type SendFunc = ( content: sdk.Sendable, allowAt?: boolean ) => Promise<void>;
 export type Message = sdk.PrivateMessageEventData | sdk.GroupMessageEventData;
 
-export default class MsgManagement {
+interface MsgManagementMethod {
+	getSendMessageFunc( userID: number, type: MessageType, groupID?: number ): SendFunc;
+	sendMaster( content: string ): Promise<void>;
+}
+
+export default class MsgManagement implements MsgManagementMethod {
 	private readonly master: number;
 	private readonly atUser: boolean;
 	private readonly client: sdk.Client;

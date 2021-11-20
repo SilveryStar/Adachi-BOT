@@ -2,7 +2,7 @@ const template =
 `<div class="card-upper">
     <img class="background" :src="backgroundImage" alt="ERROR"/>
     <img class="profile" :src="profileImage" alt="ERROR"/>
-    <div class="base-info">
+    <div class="base-info" :class="{ 'without-nickname': level === '0' }">
         <p class="nickname">{{ nickname }}</p>
         <p class="user-uid">UID: {{ uid }}</p>
     </div>

@@ -6,36 +6,46 @@ import { abyssInfoPromise, baseInfoPromise } from "../utils/promise";
 import { getRegion } from "../utils/region";
 import { render } from "../utils/render";
 
-async function getBindData(
-	id: string | null, userID: number,
-	redis: Database
-): Promise<[ number, string ] | string> {
+async function getBindData( id: string | null, userID: number ): Promise<string> {
 	if ( id !== null ) {
 		try {
-			return <[ number, string ]>await baseInfoPromise( userID, parseInt( id ), redis );
+			const server: string = await baseInfoPromise( userID, parseInt( id ) );
+			return Promise.resolve( server );
 		} catch ( error ) {
-			return <string>error;
+			return Promise.reject( <string>error );
 		}
 	}
-	return `用户 ${ userID } 未绑定米游社通行证`;
+	return Promise.reject( `用户 ${ userID } 未绑定米游社通行证` );
 }
 
 async function getUserInfo( data: string, userID: number, redis: Database ): Promise<[ number, string ] | string> {
+	const queryingDB: string = `silvery-star.user-querying-id-${ userID }`;
+	
 	if ( data === undefined ) {
 		const mysID: string | null = await redis.getString( `silvery-star.user-bind-id-${ userID }` );
-		return await getBindData( mysID, userID, redis );
+		try {
+			const server: string = await getBindData( mysID, userID );
+			return [ parseInt( await redis.getString( queryingDB ) ), server ];
+		} catch ( error ) {
+			return error;
+		}
 	} else if ( data.includes( "CQ:at" ) ) {
 		const match = <string[]>data.match( /\d+/g );
 		const atID: string = match[0];
 		const mysID: string | null = await redis.getString( `silvery-star.user-bind-id-${ atID }` );
-		return await getBindData( mysID, parseInt( atID ), redis );
+		try {
+			const server: string = await getBindData( mysID, parseInt( atID ) );
+			return [ parseInt( await redis.getString( queryingDB ) ), server ];
+		} catch ( error ) {
+			return error;
+		}
 	} else {
 		return [ parseInt( data ), getRegion( data[0] ) ];
 	}
 }
 
 export async function main(
-	{ sendMessage, messageData, redis, client, config, logger, matchResult }: InputParameter
+	{ sendMessage, messageData, redis, client, config, matchResult }: InputParameter
 ): Promise<void> {
 	const match = <SwitchMatchResult>matchResult;
 	const [ data ] = match.match;
@@ -48,9 +58,11 @@ export async function main(
 		await sendMessage( info );
 		return;
 	}
+	const [ uid, server ]: [ number, string ] = info;
 
 	try {
-		await abyssInfoPromise( userID, ...info, period, logger, redis );
+		await redis.setString( `silvery-star.abyss-querying-${ userID }`, uid );
+		await abyssInfoPromise( userID, server, period );
 	} catch ( error ) {
 		if ( error !== "gotten" ) {
 			await sendMessage( <string>error );
@@ -58,10 +70,14 @@ export async function main(
 		}
 	}
 
-	const [ uid ]: [ number, string ] = info;
-	const abyss: Abyss = JSON.parse( <string>await redis.getString( `silvery-star.abyss-data-${ userID }` ));
+	const abyssData: string = await redis.getString( `silvery-star.abyss-data-${ uid }` );
+	if ( abyssData.length === 0 ) {
+		await sendMessage( "查询错误" );
+		return;
+	}
+	const abyss: Abyss = JSON.parse( abyssData );
 
-	const userInfo: string = `${ messageData.sender.nickname }|${ uid }`
+	const userInfo: string = `UID-${ uid }`;
 	let imageList: string[] = [];
 	
 	imageList[0] = await render( "abyss", {
@@ -107,5 +123,7 @@ export async function main(
 	const replyMessage = await client.makeForwardMsg( content );
 	if ( replyMessage.status === "ok" ) {
 		await sendMessage( replyMessage.data, false );
+	} else {
+		await sendMessage( "转发消息生成错误，请联系BOT主人进行错误反馈" );
 	}
 }

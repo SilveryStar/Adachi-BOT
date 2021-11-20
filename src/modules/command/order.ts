@@ -22,7 +22,7 @@ interface RegPair {
 }
 
 export class Order extends BasicConfig {
-	private readonly regPairs: RegPair[] = [];
+	public readonly regPairs: RegPair[] = [];
 	
 	constructor( config: OrderConfig, botCfg: BotConfig ) {
 		super( config );

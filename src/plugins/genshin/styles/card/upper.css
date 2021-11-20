@@ -17,6 +17,15 @@
 	width: 280px;
 }
 
+.card-upper .without-nickname .nickname {
+	display: none;
+}
+
+.card-upper .without-nickname .user-uid {
+	font-size: 25px !important;
+	margin-top: 20px;
+}
+
 .card-upper .base-info .nickname {
 	color: rgb(64, 64, 64);
 	font-size: 35px;

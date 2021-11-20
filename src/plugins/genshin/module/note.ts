@@ -1,10 +1,10 @@
 import bot from "ROOT";
+import { Order } from "@modules/command";
 import { AuthLevel } from "@modules/management/auth";
 import { Note, Expedition } from "../types";
 import { Private, Service, UserInfo } from "./private";
 import { scheduleJob, Job } from "node-schedule";
 import { dailyNotePromise } from "../utils/promise";
-import { Order } from "@modules/command";
 
 interface PushEvent {
 	type: "resin" | "expedition";
@@ -80,8 +80,7 @@ export class NoteService implements Service {
 			this.globalData = <Note>await dailyNotePromise(
 				setting.uid,
 				setting.server,
-				setting.cookie,
-				bot.logger
+				setting.cookie
 			);
 		} catch ( error ) {
 			this.globalData = <string>error;

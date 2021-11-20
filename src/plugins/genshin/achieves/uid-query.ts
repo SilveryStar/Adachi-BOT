@@ -16,7 +16,7 @@ function getUserInfo( data: string ): [ number, string ] | string {
 }
 
 export async function main(
-	{ sendMessage, messageData, redis, logger }: InputParameter
+	{ sendMessage, messageData, redis }: InputParameter
 ): Promise<void> {
 	const data: string = messageData.raw_message;
 	const userID: number = messageData.user_id;
@@ -28,13 +28,15 @@ export async function main(
 	}
 	
 	try {
-		await redis.setHash( `silvery-star.card-data-${ userID }`, {
+		const [ uid, server ]: [ number, string ] = info;
+		await redis.setHash( `silvery-star.card-data-${ uid }`, {
 			nickname: messageData.sender.nickname,
-			uid: info[0],
-			level: 0
+			level: 0, uid
 		} );
-		const detailInfo = <number[]>await detailInfoPromise( userID, ...info, false, logger, redis );
-		await characterInfoPromise( userID, ...info, detailInfo, redis );
+		await redis.setString( `silvery-star.user-querying-id-${ userID }`, uid );
+		
+		const detailInfo = <number[]>await detailInfoPromise( userID, server );
+		await characterInfoPromise( userID, server, detailInfo );
 	} catch ( error ) {
 		if ( error !== "gotten" ) {
 			await sendMessage( <string>error );

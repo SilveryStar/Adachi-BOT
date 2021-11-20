@@ -1,7 +1,6 @@
 import * as ApiType from "../types";
 import * as api from "./api";
-import Database from "@modules/database";
-import { Logger } from "log4js";
+import bot from "ROOT";
 import { Note } from "../types";
 import { omit } from "lodash";
 import { cookies } from "../init";
@@ -12,11 +11,7 @@ export enum ErrorMsg {
 	FORM_MESSAGE = "米游社接口报错: "
 }
 
-export async function baseInfoPromise(
-	userID: number,
-	mysID: number,
-	redis: Database
-): Promise<string | [ number, string ]> {
+export async function baseInfoPromise( userID: number, mysID: number ): Promise<string> {
 	const { retcode, message, data } = await api.getBaseInfo( mysID, cookies.get() );
 	if ( !ApiType.isBBS( data ) ) {
 		return Promise.reject( ErrorMsg.UNKNOWN );
@@ -40,23 +35,25 @@ export async function baseInfoPromise(
 		const { gameRoleId, nickname, region, level } = genshinInfo;
 		const uid: number = parseInt( gameRoleId );
 
-		await redis.setHash( `silvery-star.card-data-${ userID }`, { nickname, uid, level } );
-		resolve( [ uid, region ] );
+		await bot.redis.setString( `silvery-star.user-querying-id-${ userID }`, uid );
+		await bot.redis.setHash( `silvery-star.card-data-${ uid }`, { nickname, uid, level } );
+		resolve( region );
 	} );
 }
 
 export async function detailInfoPromise(
-	userID: number,
-	uid: number,
-	server: string,
-	flag: boolean,
-	logger: Logger,
-	redis: Database
+	userID: number, server: string
 ): Promise<string | number[]> {
-	const detail: any = await redis.getHash( `silvery-star.card-data-${ userID }` );
+	const UID: string = await bot.redis.getString( `silvery-star.user-querying-id-${ userID }` );
+	if ( UID.length === 0 ) {
+		return Promise.reject( ErrorMsg.UNKNOWN );
+	}
+	
+	const detail: any = await bot.redis.getHash( `silvery-star.card-data-${ UID }` );
+	const uid: number = parseInt( UID );
 
-	if ( flag && detail.stats !== undefined && uid === parseInt( detail.uid ) ) {
-		logger.info( `用户 ${ uid } 在一小时内进行过查询操作，将返回上次数据` );
+	if ( detail.stats && uid === parseInt( detail.uid ) ) {
+		bot.logger.info( `用户 ${ uid } 在一小时内进行过查询操作，将返回上次数据` );
 		return Promise.reject( "gotten" );
 	}
 	
@@ -72,13 +69,13 @@ export async function detailInfoPromise(
 			return;
 		}
 		
-		await redis.setHash( `silvery-star.card-data-${ userID }`, {
+		await bot.redis.setHash( `silvery-star.card-data-${ uid }`, {
 			explorations:   JSON.stringify( data.worldExplorations ),
 			stats:          JSON.stringify( data.stats ),
 			homes:          JSON.stringify( data.homes )
 		} );
-		await redis.setTimeout( `silvery-star.card-data-${ userID }`, 3600 );
-		logger.info( `用户 ${ uid } 查询成功，数据已缓存` );
+		await bot.redis.setTimeout( `silvery-star.card-data-${ uid }`, 3600 );
+		bot.logger.info( `用户 ${ uid } 查询成功，数据已缓存` );
 		
 		const charIDs: number[] = data.avatars.map( el => el.id );
 		resolve( charIDs );
@@ -87,11 +84,11 @@ export async function detailInfoPromise(
 
 export async function characterInfoPromise(
 	userID: number,
-	uid: number,
 	server: string,
-	charIDs: number[],
-	redis: Database
+	charIDs: number[]
 ): Promise<string | void> {
+	const uid: number = parseInt( await bot.redis.getString( `silvery-star.user-querying-id-${ userID }` ) );
+	
 	const { retcode, message, data } = await api.getCharactersInfo( uid, server, charIDs, cookies.get() );
 	cookies.increaseIndex();
 	if ( !ApiType.isCharacter( data ) ) {
@@ -120,7 +117,7 @@ export async function characterInfoPromise(
 			avatars.push( { ...base, weapon, artifacts } );
 		}
 		
-		await redis.setHash( `silvery-star.card-data-${ userID }`, {
+		await bot.redis.setHash( `silvery-star.card-data-${ uid }`, {
 			avatars: JSON.stringify( avatars )
 		} );
 		resolve();
@@ -129,19 +126,19 @@ export async function characterInfoPromise(
 
 export async function abyssInfoPromise(
 	userID: number,
-	uid: number,
 	server: string,
-	period: number,
-	logger: Logger,
-	redis: Database
+	period: number
 ): Promise<string | void> {
-	const dbKey: string = `silvery-star.abyss-data-${ userID }`;
-	const detail: string = await redis.getString( dbKey );
+	const uid: number = parseInt(
+		await bot.redis.getString( `silvery-star.abyss-querying-${ userID }` )
+	);
+	const dbKey: string = `silvery-star.abyss-data-${ uid }`;
+	const detail: string = await bot.redis.getString( dbKey );
 	
 	if ( detail.length !== 0 ) {
 		const data: any = JSON.parse( detail );
 		if ( data.uid === uid && data.period === period ) {
-			logger.info( `用户 ${ uid } 在一小时内进行过深渊查询操作，将返回上次数据` );
+			bot.logger.info( `用户 ${ uid } 在一小时内进行过深渊查询操作，将返回上次数据` );
 			return Promise.reject( "gotten" );
 		}
 	}
@@ -158,9 +155,9 @@ export async function abyssInfoPromise(
 			return;
 		}
 
-		await redis.setString( dbKey, JSON.stringify( { ...data, uid, period } ) );
-		await redis.setTimeout( dbKey, 3600 );
-		logger.info( `用户 ${ uid } 的深渊数据查询成功，数据已缓存` );
+		await bot.redis.setString( dbKey, JSON.stringify( { ...data, uid, period } ) );
+		await bot.redis.setTimeout( dbKey, 3600 );
+		bot.logger.info( `用户 ${ uid } 的深渊数据查询成功，数据已缓存` );
 		resolve();
 	} );
 }
@@ -168,8 +165,7 @@ export async function abyssInfoPromise(
 export async function dailyNotePromise(
 	uid: string,
 	server: string,
-	cookie: string,
-	logger: Logger
+	cookie: string
 ): Promise<Note | string> {
 	const { retcode, message, data } = await api.getDailyNoteInfo( parseInt( uid ), server, cookie );
 	if ( !ApiType.isNote( data ) ) {
@@ -182,7 +178,7 @@ export async function dailyNotePromise(
 			return;
 		}
 		
-		logger.info( `用户 ${ uid } 的实时便笺数据查询成功` );
+		bot.logger.info( `用户 ${ uid } 的实时便笺数据查询成功` );
 		resolve( data );
 	} );
 }

@@ -19,7 +19,7 @@ async function getID( data: string, userID: number, redis: Database ): Promise<n
 	}
 }
 
-export async function main( { sendMessage, messageData, redis, logger }: InputParameter ): Promise<void> {
+export async function main( { sendMessage, messageData, redis }: InputParameter ): Promise<void> {
 	const data: string = messageData.raw_message;
 	const userID: number = messageData.user_id;
 	const info: number | string = await getID( data, userID, redis );
@@ -30,9 +30,9 @@ export async function main( { sendMessage, messageData, redis, logger }: InputPa
 	}
 
 	try {
-		const baseInfo = <[ number, string ]>await baseInfoPromise( userID, info, redis );
-		const detailInfo = <number[]>await detailInfoPromise( userID, ...baseInfo, true, logger, redis );
-		await characterInfoPromise( userID, ...baseInfo, detailInfo, redis );
+		const server = <string>await baseInfoPromise( userID, info );
+		const detailInfo = <number[]>await detailInfoPromise( userID, server );
+		await characterInfoPromise( userID, server, detailInfo );
 	} catch ( error ) {
 		if ( error !== "gotten" ) {
 			await sendMessage( <string>error );
