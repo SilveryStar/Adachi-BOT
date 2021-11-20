@@ -1,0 +1,37 @@
+name: Bug Report
+description: 反馈应用运行时出现的错误
+body:
+  - type: markdown
+    attributes:
+      value: |
+        请按照要求提供以下的信息
+  - type: input
+    attributes:
+      label: 系统版本
+  - type: input
+    attributes:
+      label: Node.js 版本
+      description: 终端输入 `node -v` 的结果
+  - type: input
+    attributes:
+      label: 应用版本
+      description: `package.json` 中的 `version`
+  - type: dropdown
+    attributes:
+      label: 启动方式
+      options:
+        - Forever
+        - Docker
+  - type: textarea
+    attributes:
+      label: 复述操作
+      placeholder: 描述在程序出错前，你的所有操作，包括 qq 交互、终端指令、容器操作等
+  - type: textarea
+    attributes:
+      label: 配置文件
+      placeholder: 贴出所有你修改过的配置文件，注意隐私信息
+      render: YAML
+  - type: textarea
+    attributes:
+      label: 错误报告
+      render: Text
