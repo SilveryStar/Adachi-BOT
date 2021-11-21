@@ -55,8 +55,10 @@ export default class Adachi {
 			new WebConsole( config );
 		}
 		
-		const log_level = config.logLevel;
-		const client = sdk.createClient( config.number, { log_level } );
+		const client = sdk.createClient( config.number, {
+			log_level: config.logLevel,
+			platform: config.platform
+		} );
 		const logger = client.logger;
 		const redis = new Database( config.dbPort, logger, file );
 		const interval = new Interval( config, redis );
