@@ -180,7 +180,7 @@ export default class Adachi {
 			}
 			if ( res.type === "order" ) {
 				messageData.raw_message = trim(
-					msg.removeStringPrefix( content, res.header )
+					msg.removeStringPrefix( content.toLowerCase(), res.header )
 						.replace( / +/g, " " )
 				);
 			}
