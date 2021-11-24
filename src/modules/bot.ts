@@ -181,9 +181,11 @@ export default class Adachi {
 				continue;
 			}
 			if ( res.type === "order" ) {
+				const text: string = cmd.ignoreCase
+					? content.toLowerCase() : content;
 				messageData.raw_message = trim(
-					msg.removeStringPrefix( content.toLowerCase(), res.header )
-						.replace( / +/g, " " )
+					msg.removeStringPrefix( text, res.header )
+					   .replace( / +/g, " " )
 				);
 			}
 			cmd.run( {

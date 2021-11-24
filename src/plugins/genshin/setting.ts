@@ -207,6 +207,7 @@ const privateConfirm: OrderConfig = {
 	headers: [ "confirm" ],
 	regexps: [ ".+" ],
 	display: false,
+	ignoreCase: false,
 	main: "achieves/private/subscribe",
 	scope: MessageScope.Private
 };
