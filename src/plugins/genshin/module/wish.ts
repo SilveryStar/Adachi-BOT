@@ -182,36 +182,39 @@ export class WishClass {
 	private indefinite?: WishDetailNull;
 	private character?: WishDetailNull;
 	private weapon?: WishDetailNull;
+	private character2?: WishDetailNull;
 	
 	constructor() {
 		updateWish().then( ( data: WishDetailNull[] ) => {
-			[ this.indefinite, this.character, this.weapon ] = data;
+			[ this.indefinite, this.character, this.weapon, this.character2 ] = data;
 		} );
 		scheduleJob( "0 31 10 * * *", async () => {
-			[ this.indefinite, this.character, this.weapon ] = await updateWish();
+			[ this.indefinite, this.character, this.weapon, this.character2 ] = await updateWish();
 		} );
 		scheduleJob( "0 1 18 * * *", async () => {
-			[ this.indefinite, this.character, this.weapon ] = await updateWish();
+			[ this.indefinite, this.character, this.weapon, this.character2 ] = await updateWish();
 		} );
 	}
 	
 	public async get( userID: number, choice: string ): Promise<WishResult[] | null> {
-		let fn: probFn;
+		let fn: probFn = Wish.indefiniteOrCharacter;
 		let table: WishDetail;
 		let wishType: string;
 		
-		if ( choice === "常驻" ) {
-			fn = Wish.indefiniteOrCharacter;
-			table = <WishDetail>this.indefinite;
-			wishType = "indefinite";
-		} else if ( choice === "角色" ) {
-			fn = Wish.indefiniteOrCharacter;
-			table = <WishDetail>this.character;
-			wishType = "character";
-		} else {
-			fn = Wish.weapon;
-			table = <WishDetail>this.weapon;
-			wishType = "weapon";
+		switch ( choice ) {
+			case "常驻":
+				table = <WishDetail>this.indefinite;
+				wishType = "indefinite"; break;
+			case "角色":
+				table = <WishDetail>this.character;
+				wishType = "character"; break;
+			case "角色2":
+				table = <WishDetail>this.character2;
+				wishType = "character"; break;
+			default:
+				fn = Wish.weapon;
+				table = <WishDetail>this.weapon;
+				wishType = "weapon";
 		}
 		if ( table === null ) {
 			return null;

@@ -69,9 +69,10 @@ export async function updateWish(): Promise<WishDetailNull[]> {
 		const wishData: any = ( await getWishList() ).data.list;
 
 		const indefinite: WishDetailNull = await parser( wishData[0].gacha_id );
-		const character: WishDetailNull  = await parser( getWishID( wishData, 301 ) );
+		const character1: WishDetailNull = await parser( getWishID( wishData, 301 ) );
 		const weapon: WishDetailNull     = await parser( getWishID( wishData, 302 ) );
+		const character2: WishDetailNull = await parser( getWishID( wishData, 400 ) );
 
-		resolve( [ indefinite, character, weapon ] );
+		resolve( [ indefinite, character1, weapon, character2 ] );
 	} );
 }

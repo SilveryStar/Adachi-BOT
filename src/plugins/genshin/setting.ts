@@ -78,9 +78,9 @@ const wish: OrderConfig = {
 const choosePool: OrderConfig = {
 	type: "order",
 	cmdKey: "silvery-star.choose-pool",
-	desc: [ "切换卡池", "[角色|武器|常驻]" ],
+	desc: [ "切换卡池", "[角色|武器|常驻|角色2]" ],
 	headers: [ "choose", "t" ],
-	regexps: [ "(角色|武器|常驻)" ],
+	regexps: [ "(角色|武器|常驻|角色2)" ],
 	main: "achieves/choose"
 };
 
