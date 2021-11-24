@@ -17,7 +17,7 @@ export async function main(
 	let data: any = await redis.getHash( `silvery-star.card-data-${ uid }` );
 	
 	/* 若无数据缓存，则尝试获取用户绑定的通行证，并通过其获取数据 */
-	if ( data === null ) {
+	if ( Object.keys( data ).length === 0 ) {
 		const mysID: string | null = await redis.getString( `silvery-star.user-bind-id-${ userID }` );
 		if ( mysID !== null ) {
 			try {
@@ -34,7 +34,7 @@ export async function main(
 			return;
 		}
 	}
-	
+
 	if ( data.avatars.length === 0 ) {
 		await sendMessage( "数据查询出错" );
 		return;

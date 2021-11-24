@@ -125,6 +125,7 @@
 
 .log-container .content-line span {
 	user-select: inherit;
+	white-space: pre-wrap;
 }
 
 .log-scroll-container {

@@ -21,19 +21,16 @@ export class SlipClass {
 	}
 	
 	public async get( userID: number ): Promise<string> {
-		const dbKey: string = `by-ha.slip-${ userID }`;
+		const dbKey: string = `by-ha.slip-save-${ userID }`;
 		const today: string = moment().format( "yy-MM-DD" );
 		
-		const tmpSlipData: string = await bot.redis.getString( dbKey );
-		if ( tmpSlipData.length !== 0 ) {
-			const [ time, slip ] = tmpSlipData.split( "|" );
-			if ( time === today && slip.length !== 0 ) {
-				return slip;
-			}
+		const data: Record<string, string> = await bot.redis.getHash( dbKey );
+		if ( data.today && data.today === today ) {
+			return data.slip;
 		}
-		const slip: string = this.slip[ randomInt( 0, this.slipNum ) ];
-		await bot.redis.setString( dbKey, `${ today }|${ slip }` );
 		
+		const slip: string = this.slip[ randomInt( 0, this.slipNum - 1 ) ];
+		await bot.redis.setHash( dbKey, { today, slip } );
 		return slip;
 	}
 }

@@ -27,9 +27,9 @@ export async function filterUserUsableCommand( i: InputParameter ): Promise<Basi
 	}
 	
 	const auth: AuthLevel = await i.auth.get( userID );
-	let commands: BasicConfig[] = await i.command.get( auth,
-		type === MessageType.Group ? MessageScope.Group : MessageScope.Private
-	);
+	let commands: BasicConfig[] = await i.command
+		.get( auth, type === MessageType.Group ? MessageScope.Group : MessageScope.Private )
+		.filter( el => el.display );
 
 	const userLimit: string[] = await getLimited( userID, "user", i.redis );
 	commands = commands.filter( el => !userLimit.includes( el.cmdKey ) );

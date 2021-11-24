@@ -74,24 +74,24 @@ export default class Adachi {
 	}
 	
 	public run(): BOT {
-		try {
-			this.login();
-			Plugin.load( this.bot ).then( commands => {
-				this.bot.command.add( commands );
-				/* 事件监听 */
-				this.bot.client.on( "message.group", this.parseGroupMsg( this ) );
-				this.bot.client.on( "message.private", this.parsePrivateMsg( this ) );
-				this.bot.client.on( "request.group.invite", this.acceptInvite( this ) );
-				this.bot.client.on( "request.friend.add", this.acceptFriend( this ) );
-				this.bot.logger.info( "事件监听启动成功" );
-			} );
-			
-			scheduleJob( "0 59 */1 * * *", this.hourlyCheck( this ) );
-			scheduleJob( "0 0 4 ? * WED", this.clearImageCache );
-			scheduleJob( "0 0 4 * * *", this.postUserData );
-		} catch ( error ) {
-			this.bot.logger.error( error );
-		}
+		process.on( "unhandledRejection", reason => {
+			this.bot.logger.error( ( <Error>reason ).stack );
+		} );
+		
+		this.login();
+		Plugin.load( this.bot ).then( commands => {
+			this.bot.command.add( commands );
+			/* 事件监听 */
+			this.bot.client.on( "message.group", this.parseGroupMsg( this ) );
+			this.bot.client.on( "message.private", this.parsePrivateMsg( this ) );
+			this.bot.client.on( "request.group.invite", this.acceptInvite( this ) );
+			this.bot.client.on( "request.friend.add", this.acceptFriend( this ) );
+			this.bot.logger.info( "事件监听启动成功" );
+		} );
+		
+		scheduleJob( "0 59 */1 * * *", this.hourlyCheck( this ) );
+		scheduleJob( "0 0 4 ? * WED", this.clearImageCache( this ) );
+		scheduleJob( "0 0 4 * * *", this.postUserData );
 		
 		return this.bot;
 	}
@@ -201,15 +201,18 @@ export default class Adachi {
 	}
 	
 	/* 清除缓存图片 */
-	private clearImageCache() {
-		const files: string[] = this.bot.file.getDirFiles( "data/image", "root" );
-		files.forEach( f => {
-			const path: string = this.bot.file.getFilePath(
-				`data/image/${ f }`, "root"
-			);
-			unlinkSync( path );
-		} )
-		this.bot.logger.info( "图片缓存已清空" );
+	private clearImageCache( that: Adachi ) {
+		const bot = that.bot;
+		return function () {
+			const files: string[] = bot.file.getDirFiles( "data/image", "root" );
+			files.forEach( f => {
+				const path: string = bot.file.getFilePath(
+					`data/image/${ f }`, "root"
+				);
+				unlinkSync( path );
+			} );
+			bot.logger.info( "图片缓存已清空" );
+		}
 	}
 	
 	/* 处理私聊事件 */

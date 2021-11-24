@@ -11,7 +11,7 @@ services:
   bot:
     build:
       context: .
-    image: adachi-bot:2.2.0
+    image: adachi-bot:2.2.0-bugfix
     ports:
       - 80:80
     container_name: adachi-bot

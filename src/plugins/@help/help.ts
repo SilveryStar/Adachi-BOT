@@ -21,7 +21,6 @@ async function forwardStyle(
 	title: string, list: string[],
 	{ config, client, command }: InputParameter
 ): Promise<Sendable> {
-	
 	const content: FakeMessage[] = [];
 	
 	const DETAIL = <Order>command.getSingle( "adachi.detail" );

@@ -31,7 +31,7 @@ function subscribe( userID: number, send: SendFunc, a: AuthLevel, CONFIRM: Order
 			"如果要开启私人服务功能，必须提供你的米游社 cookie\n" +
 			"这可能会导致你的账号出现安全风险，请务必确保 BOT 持有者可信\n" +
 			`如果确定开启该功能，使用「${ CONFIRM.getHeaders()[0] }+cookie」来继续\n` +
-			"你可以在 https://ddl.ink/acookie 中查看获取 cookie 的方法\n" +
+			"你可以在 https://docs.adachi.top/faq 中查看获取 cookie 的方法\n" +
 			"这需要在 3 分钟内进行，此后将会自动取消本次申请";
 }
 
