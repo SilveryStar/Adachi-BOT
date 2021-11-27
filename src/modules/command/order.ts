@@ -22,6 +22,7 @@ interface RegPair {
 }
 
 export class Order extends BasicConfig {
+	public readonly type = "order";
 	public readonly regPairs: RegPair[] = [];
 	
 	constructor( config: OrderConfig, botCfg: BotConfig ) {
@@ -77,7 +78,7 @@ export class Order extends BasicConfig {
 				}
 			} ) );
 		} catch ( data ) {
-			return data;
+			return <OrderMatchResult | Unmatch>data;
 		}
 		return { type: "unmatch" };
 	}

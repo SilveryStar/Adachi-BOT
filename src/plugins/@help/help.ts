@@ -7,7 +7,7 @@ import { filterUserUsableCommand } from "./filter";
 function getVersion( file: FileManagement ): string {
 	const path: string = file.getFilePath( "package.json", "root" );
 	const { version } = require( path );
-	return version;
+	return version.split( "-" )[0];
 }
 
 function messageStyle( title: string, list: string[], command: Command ): Sendable {

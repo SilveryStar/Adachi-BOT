@@ -4,6 +4,7 @@ import { Message, MessageScope, SendFunc } from "../message";
 import { AuthLevel } from "../management/auth";
 import { BOT } from "../bot";
 import { trimStart, without } from "lodash";
+import { Enquire, Order, Switch } from "./index";
 
 type Optional<T> = {
 	-readonly [ key in keyof T ]?: T[key];
@@ -37,6 +38,7 @@ export type CommandInfo = Required<
 	Optional<BasicConfig>,
 	"cmdKey" | "desc"
 > & { main?: string | CommandFunc };
+export type CommandType = Order | Switch | Enquire;
 
 export abstract class BasicConfig {
 	readonly auth: AuthLevel;
@@ -45,7 +47,7 @@ export abstract class BasicConfig {
 	readonly detail: string;
 	readonly display: boolean;
 	readonly ignoreCase: boolean;
-	readonly raw: CommandInfo;
+	readonly raw: ConfigType;
 	readonly run: CommandFunc;
 	readonly desc: [ string, string ];
 	
@@ -91,7 +93,7 @@ export abstract class BasicConfig {
 		return `${ func } -- ${ this.cmdKey }`;
 	}
 	
-	protected constructor( config: CommandInfo ) {
+	protected constructor( config: ConfigType ) {
 		this.cmdKey = config.cmdKey;
 		this.desc = config.desc;
 		this.auth = config.auth || AuthLevel.User;
@@ -109,13 +111,22 @@ export default class Command {
 	public privates: CommandList;
 	public groups: CommandList;
 	public cmdKeys: string[];
+	public readonly pUnionReg: Record<AuthLevel, RegExp>;
+	public readonly gUnionReg: Record<AuthLevel, RegExp>;
 	
 	constructor( file: FileManagement ) {
-		this.privates = { [AuthLevel.Banned]: [], [AuthLevel.User]: [],
-						  [AuthLevel.Master]: [], [AuthLevel.Manager]: [] };
-		this.groups   = { [AuthLevel.Banned]: [], [AuthLevel.User]: [],
-						  [AuthLevel.Master]: [], [AuthLevel.Manager]: [] };
+		this.privates = Command.initAuthObject();
+		this.groups   = Command.initAuthObject();
+		this.pUnionReg = Command.initAuthObject();
+		this.gUnionReg = Command.initAuthObject();
 		this.cmdKeys = without( Object.keys( file.loadYAML( "commands" ) ), "tips" );
+	}
+	
+	private static initAuthObject(): Record<AuthLevel, any> {
+		return  {
+			[AuthLevel.Banned]: [], [AuthLevel.User]: [],
+			[AuthLevel.Master]: [], [AuthLevel.Manager]: []
+		};
 	}
 	
 	public add( commands: BasicConfig[] ): void {
@@ -129,6 +140,34 @@ export default class Command {
 				}
 			}
 		} );
+
+		for ( let auth = AuthLevel.Banned; auth <= AuthLevel.Master; auth++ ) {
+			this.pUnionReg[auth] = convertAllRegToUnion( <CommandType[]>this.privates[auth] );
+			this.gUnionReg[auth] = convertAllRegToUnion( <CommandType[]>this.groups[auth] );
+		}
+		function convertAllRegToUnion( cmdSet: CommandType[] ): RegExp {
+			const list: string[] = [];
+			cmdSet.forEach( cmd => {
+				if ( cmd.type === "order" ) {
+					cmd.regPairs.forEach( el => list.push(
+						...el.genRegExps.map( r => `(${ r.source })` )
+					) );
+				} else if ( cmd.type === "switch" ) {
+					list.push( ...cmd.regexps.map( r => `(${ r.source })` ) );
+				} else if ( cmd.type === "enquire" ) {
+					list.push( ...cmd.sentences.map( s => `(${ s.reg.source })` ) );
+				}
+  			} );
+			return new RegExp( `(${ list.join( "|" ) })`, "i" );
+		}
+	}
+	
+	public getUnion( auth: AuthLevel, scope: MessageScope ): RegExp {
+		if ( scope === MessageScope.Private ) {
+			return this.pUnionReg[auth];
+		} else {
+			return this.gUnionReg[auth];
+		}
 	}
 	
 	public get( auth: AuthLevel, scope: MessageScope ): BasicConfig[] {

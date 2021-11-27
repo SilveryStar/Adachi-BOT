@@ -112,6 +112,11 @@ export default defineComponent( {
 			}
 		}
 		
+		function scrollToBottom() {
+			state.curPage = state.list.length;
+			setTimeout( () => scrollbarRef.value.wrap.scrollTop = scrollbarRef.value.wrap.scrollHeight, 10 );
+		}
+		
 		function runWS() {
 			ws = new WebSocket( `ws://${ document.location.host }/ws/log` );
 			ws.addEventListener( "message", event => {
@@ -123,8 +128,7 @@ export default defineComponent( {
 				addMsgToList( msg );
 				nextTick( () => {
 					if ( state.autoBottom ) {
-						scrollbarRef.value.wrap.scrollTop = scrollbarRef.value.wrap.scrollHeight;
-						state.curPage = state.list.length;
+						scrollToBottom();
 					}
 				} );
 			} );
@@ -152,6 +156,7 @@ export default defineComponent( {
 					state.list.push( ...cutArray( msg, state.numPerPage ) );
 					if ( state.today ) {
 						runWS();
+						setTimeout( () => scrollToBottom(), 50 );
 					} else if ( ws ) {
 						ws.close();
 					}

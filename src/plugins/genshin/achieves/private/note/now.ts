@@ -1,6 +1,6 @@
+import { Private } from "#genshin/module/private/main";
+import { NoteService } from "#genshin/module/private/note";
 import { InputParameter } from "@modules/command";
-import { Private } from "#genshin/module/private";
-import { NoteService } from "#genshin/module/note";
 import { render } from "#genshin/utils/render";
 import { privateClass } from "#genshin/init";
 

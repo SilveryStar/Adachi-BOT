@@ -11,7 +11,6 @@ export function createServer( config: Config, logger: Logger ): void {
 	app.use( "/api/artifact", r.ArtifactRouter );
 	app.use( "/api/wish", r.WishRouter );
 	app.use( "/api/wish/config", r.TypeRouter );
-	app.use( "/api/character", r.CharRouter );
 	app.use( "/api/info", r.InfoRouter );
 	
 	app.listen( config.serverPort, () => {

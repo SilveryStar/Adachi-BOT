@@ -58,7 +58,8 @@ export class AlmanacClass {
 	
 	/* 计算方法来自 可莉特调 https://genshin.pub/ */
 	private getUnits( type: AlmanacType ): FortuneUnit[] {
-		const set: FortuneData[] = this[type];
+		const set: FortuneData[] = type === "auspicious"
+			? this.auspicious : this.inauspicious;
 		const length: number = set.length;
 		
 		let num: number = AlmanacClass.getDailyNumber();
@@ -66,12 +67,10 @@ export class AlmanacClass {
 		
 		const list: number[] = [];
 		while ( list.length < 3 && set[mod] ) {
-			if (
-				list.indexOf( mod ) === -1 &&
-				type === "auspicious" ||
+			if ( list.indexOf( mod ) === -1 ) {
+				type !== "auspicious" &&
 				this.getUnits( "auspicious" )
-					.findIndex( el => el.name === set[mod].name )
-			) {
+					.findIndex( el => el.name === set[mod].name ) !== -1 ||
 				list.push( mod );
 			}
 			num = Math.floor( num * 1.05 );

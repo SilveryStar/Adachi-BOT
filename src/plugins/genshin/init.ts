@@ -17,6 +17,7 @@ export const wishClass = new m.WishClass();
 export const dailyClass = new m.DailyClass();
 export const slipClass = new m.SlipClass();
 export const privateClass = new m.PrivateClass();
+export const characterID = new m.CharacterId();
 
 function loadConfig( file: FileManagement ): Config {
 	const defaultConfig: Config = {

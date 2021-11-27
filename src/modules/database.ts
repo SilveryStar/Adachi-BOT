@@ -38,26 +38,7 @@ export default class Database implements DatabaseMethod {
 		this.client = createClient( port, host );
 		this.client.on( "connect", async () => {
 			logger.info( "Redis 数据库已连接" );
-			await this.migrate( file );
 		} );
-	}
-	
-	private async migrate( file: FileManagement ): Promise<void> {
-		const mapPath: string = file.getFilePath( "map.json", "root" );
-		
-		if ( file.isExist( mapPath ) ) {
-			const content: string = file.readFile( "map.json", "root" );
-			const data: any = JSON.parse( content ).user;
-			
-			for ( let i in data ) {
-				if ( data.hasOwnProperty( i ) ) {
-					const dbKey: string = `silvery-star.user-bind-id-${ data[i].userID }`;
-					await this.setString( dbKey, data[i].mhyID );
-				}
-			}
-			const newPath: string = file.getFilePath( "used-data.json", "root" );
-			file.renameFile( mapPath, newPath );
-		}
 	}
 	
 	public async setTimeout( key: string, time: number ): Promise<void> {

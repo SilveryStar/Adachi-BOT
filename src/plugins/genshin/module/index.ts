@@ -6,4 +6,5 @@ export { DailyClass } from "./daily";
 export { SlipClass } from "./slip";
 export { TypeData } from "./type";
 export { WishClass } from "./wish";
-export { PrivateClass } from "./private";
+export { PrivateClass } from "./private/main";
+export { CharacterId } from "./character-id";

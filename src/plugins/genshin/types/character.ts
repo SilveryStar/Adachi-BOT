@@ -24,7 +24,7 @@ export interface Character {
  * @activedConstellationNum 激活命之座数量
  * @costumes 角色装扮
  * */
-interface Avatar {
+export interface Avatar {
 	id: number;
 	image: string;
 	icon: string;

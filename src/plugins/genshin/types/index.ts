@@ -5,6 +5,7 @@ export { ResponseDataType } from "./response";
 export { Config } from "./config";
 export { Note, Expedition } from "./note";
 export { WeaponInfo, CharacterInfo, InfoResponse } from "./info"
+export { Avatar } from "./character";
 
 export { isAbyss, isBBS, isUserInfo, isCharacter,
 		 isWeaponInfo, isCharacterInfo, isNote } from "./check";

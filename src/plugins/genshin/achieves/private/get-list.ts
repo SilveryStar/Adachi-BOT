@@ -1,5 +1,5 @@
+import { UserInfo } from "#genshin/module/private/main";
 import { InputParameter } from "@modules/command";
-import { UserInfo } from "#genshin/module/private";
 import { privateClass } from "#genshin/init";
 
 async function getPrivateList( userID: number ): Promise<string> {

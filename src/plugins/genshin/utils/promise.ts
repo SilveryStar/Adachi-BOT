@@ -42,7 +42,7 @@ export async function baseInfoPromise( userID: number, mysID: number ): Promise<
 }
 
 export async function detailInfoPromise(
-	userID: number, server: string
+	userID: number, server: string, cookie: string = ""
 ): Promise<string | number[]> {
 	const UID: string = await bot.redis.getString( `silvery-star.user-querying-id-${ userID }` );
 	if ( UID.length === 0 ) {
@@ -57,8 +57,11 @@ export async function detailInfoPromise(
 		return Promise.reject( "gotten" );
 	}
 	
-	const { retcode, message, data } = await api.getDetailInfo( uid, server, cookies.get() );
-	cookies.increaseIndex();
+	if ( cookie.length === 0 ) {
+		cookie = cookies.get();
+		cookies.increaseIndex();
+	}
+	const { retcode, message, data } = await api.getDetailInfo( uid, server, cookie );
 	if ( !ApiType.isUserInfo( data ) ) {
 		return Promise.reject( ErrorMsg.UNKNOWN );
 	}
@@ -66,6 +69,9 @@ export async function detailInfoPromise(
 	return new Promise( async ( resolve, reject ) => {
 		if ( retcode !== 0 ) {
 			reject( ErrorMsg.FORM_MESSAGE + message );
+			return;
+		} else if ( data.avatars.length === 0 ) {
+			reject( `玩家 UID${ uid } 的信息有误` );
 			return;
 		}
 		
@@ -85,12 +91,15 @@ export async function detailInfoPromise(
 export async function characterInfoPromise(
 	userID: number,
 	server: string,
-	charIDs: number[]
+	charIDs: number[],
+	cookie: string = ""
 ): Promise<string | void> {
 	const uid: number = parseInt( await bot.redis.getString( `silvery-star.user-querying-id-${ userID }` ) );
 	
-	const { retcode, message, data } = await api.getCharactersInfo( uid, server, charIDs, cookies.get() );
-	cookies.increaseIndex();
+	if ( cookie.length === 0 ) {
+		cookie = cookies.get();
+	}
+	const { retcode, message, data } = await api.getCharactersInfo( uid, server, charIDs, cookie );
 	if ( !ApiType.isCharacter( data ) ) {
 		return Promise.reject( ErrorMsg.UNKNOWN );
 	}
@@ -124,10 +133,33 @@ export async function characterInfoPromise(
 	} );
 }
 
+export async function singleCharacterInfoPromise(
+	uid: number,
+	server: string,
+	charID: number
+): Promise<ApiType.Avatar> {
+	const { retcode, message, data } = await api.getCharactersInfo( uid, server, [ charID ], cookies.get() );
+	if ( !ApiType.isCharacter( data ) ) {
+		return Promise.reject( ErrorMsg.UNKNOWN );
+	}
+
+	return new Promise( async ( resolve, reject ) => {
+		if ( retcode === -1 ) {
+			reject( `玩家 UID${ uid } 没有该角色` );
+			return;
+		} else if ( retcode !== 0 ) {
+			reject( ErrorMsg.FORM_MESSAGE + message );
+			return;
+		}
+		resolve( data.avatars[0] );
+	} );
+}
+
 export async function abyssInfoPromise(
 	userID: number,
 	server: string,
-	period: number
+	period: number,
+	cookie: string = ""
 ): Promise<string | void> {
 	const uid: number = parseInt(
 		await bot.redis.getString( `silvery-star.abyss-querying-${ userID }` )
@@ -143,8 +175,11 @@ export async function abyssInfoPromise(
 		}
 	}
 	
-	const { retcode, message, data } = await api.getSpiralAbyssInfo( uid, server, period, cookies.get() );
-	cookies.increaseIndex();
+	if ( cookie.length === 0 ) {
+		cookie = cookies.get();
+		cookies.increaseIndex();
+	}
+	const { retcode, message, data } = await api.getSpiralAbyssInfo( uid, server, period, cookie );
 	if ( !ApiType.isAbyss( data ) ) {
 		return Promise.reject( ErrorMsg.UNKNOWN );
 	}

@@ -6,37 +6,23 @@ import { PluginSetting } from "@modules/plugin";
 const bind: OrderConfig = {
 	type: "order",
 	cmdKey: "silvery-star.bind",
-	desc: [ "米游社绑定", "[通行证]" ],
+	desc: [ "米游社绑定", "[UID]" ],
 	headers: [ "bind" ],
-	regexps: [ "\\d+" ],
-	main: "achieves/bind",
-	detail: "在 米游社app->我的 中即可查看通行证ID\n" +
-			"或在浏览器上访问 user.mihoyo.com -> 账号信息查看"
-};
-
-const mysQuery: OrderConfig = {
-	type: "order",
-	cmdKey: "silvery-star.mys-query",
-	desc: [ "游戏查询", "(通行证|@)" ],
-	headers: [ "mys" ],
-	regexps: [
-		[ "(\\d+)?" ],
-		[ "\\[CQ:at,qq=[0-9]+.*]" ]
-	],
-	main: "achieves/mys-query",
-	detail: "此指令支持三种查询方式：\n" +
-			"  1. 不添加参数，查询自己的绑定账户的数据\n" +
-			"  2. 使用米游社通行证，查询对应用户的数据\n" +
-			"  3. @某人，查询对应用户绑定的账户的数据"
+	regexps: [ "\\d{9}" ],
+	main: "achieves/bind"
 };
 
 const uidQuery: OrderConfig = {
 	type: "order",
 	cmdKey: "silvery-star.uid-query",
-	desc: [ "游戏查询", "[UID]" ],
+	desc: [ "游戏查询", "(UID|@)" ],
 	headers: [ "uid" ],
-	regexps: [ "\\d{9}" ],
-	main: "achieves/uid-query"
+	regexps: [
+		[ "(\\d{9})?" ],
+		[ "\\[CQ:at,qq=\\d+.*]" ]
+	],
+	main: "achieves/uid-query",
+	stop: false
 };
 
 const getArtifact: OrderConfig = {
@@ -87,14 +73,13 @@ const choosePool: OrderConfig = {
 const character: OrderConfig = {
 	type: "order",
 	cmdKey: "silvery-star.character",
-	desc: [ "角色信息", "[角色名]" ],
+	desc: [ "角色信息", "(UID) [角色名]" ],
 	headers: [ "char" ],
-	regexps: [ "[\\w\\u4e00-\\u9fa5]+" ],
+	regexps: [ "(\\d{9})?", "[\\w\\u4e00-\\u9fa5]+" ],
 	main: "achieves/character",
 	detail: "查询某角色的游戏内装备信息\n" +
-			"查询对象为一小时内最近查询过的用户的信息\n" +
-			"若一小时内没有进行过任何 mys 或 uid 操作\n" +
-			"则将会查询自己绑定的米游社账号"
+			"填写 UID 时，将查询对应玩家的信息\n" +
+			"否则将会查询自己绑定的 UID 的信息"
 };
 
 const information: OrderConfig = {
@@ -130,19 +115,6 @@ const alias: SwitchConfig = {
 			"如当你为「枫原万叶」设置别名「天帝」后\n" +
 			"使用角色信息、信息查询等功能时\n" +
 			"「天帝」会被自动识别为「枫原万叶」"
-};
-
-const abyss: SwitchConfig = {
-	type: "switch",
-	mode: "divided",
-	cmdKey: "silvery-star.abyss",
-	desc: [ "深渊查询", "(UID|@) #{OPT}" ],
-	header: "",
-	regexp: [ "(\\d{9}|\\[CQ:at,qq=\\d+.*])?", "#{OPT}" ],
-	main: "achieves/abyss-query",
-	stop: false,
-	onKey: "caby",
-	offKey: "laby"
 };
 
 const daily: SwitchConfig = {
@@ -191,7 +163,7 @@ const almanac: OrderConfig = {
 const privateSubscribe: OrderConfig = {
 	type: "order",
 	cmdKey: "silvery-star.private-subscribe",
-	desc: [ "私人服务", "" ],
+	desc: [ "添加私人服务", "" ],
 	headers: [ "ps" ],
 	regexps: [],
 	main: "achieves/private/subscribe",
@@ -254,13 +226,36 @@ const privateNoteEvent: OrderConfig = {
 			"如: 60 90 120 160，数字间用空格隔开"
 };
 
+const privateMysQuery: OrderConfig = {
+	type: "order",
+	cmdKey: "silvery-star.private",
+	desc: [ "游戏查询", "(编号)" ],
+	headers: [ "mys" ],
+	regexps: [ "(\\d+)?" ],
+	main: "achieves/private/query/mys"
+};
+
+const privateAbyssQuery: SwitchConfig = {
+	type: "switch",
+	mode: "divided",
+	cmdKey: "silvery-star.abyss",
+	desc: [ "深渊查询", "(编号) #{OPT}" ],
+	header: "",
+	regexp: [ "(\\d+)?" ],
+	main: "achieves/private/query/abyss",
+	stop: false,
+	onKey: "caby",
+	offKey: "laby"
+};
+
 export default <PluginSetting>{
 	pluginName: "genshin",
 	cfgList: [
-		bind, today, abyss, mysQuery, getArtifact, character,
-		wish, daily, alias, uidQuery, impArtifact, choosePool,
-		slip, guide, domain, almanac, information,
+		bind, today, guide, getArtifact, character,
+		wish, daily, alias, impArtifact, choosePool,
+		slip, uidQuery, information, domain, almanac,
 		privateNowNote, privateNoteEvent, privateSubList,
-		privateConfirm, privateSubscribe, privateCancel
+		privateConfirm, privateSubscribe, privateCancel,
+		privateMysQuery, privateAbyssQuery
 	]
 };

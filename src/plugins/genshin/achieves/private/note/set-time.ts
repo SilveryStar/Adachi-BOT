@@ -1,6 +1,6 @@
+import { Private } from "#genshin/module/private/main";
 import { InputParameter } from "@modules/command";
-import { Private } from "#genshin/module/private";
-import { NoteService } from "#genshin/module/note";
+import { NoteService } from "#genshin/module/private/note";
 import { privateClass } from "#genshin/init";
 
 export async function main( { sendMessage, messageData }: InputParameter ): Promise<void> {

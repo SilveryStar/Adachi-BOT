@@ -33,7 +33,7 @@ export default defineComponent( {
 	},
 	setup() {
 		const urlParams = parseURL( location.search );
-		const data = request( `/api/character?qq=${ urlParams.qq }&name=${ urlParams.name }` );
+		const data = JSON.parse( decodeURIComponent( escape( atob( decodeURIComponent( urlParams.data ) ) ) ) );
 
 		function setStyle( colorList ) {
 			document.documentElement.style.setProperty("--baseInfoColor",    colorList[0]);
@@ -87,7 +87,7 @@ export default defineComponent( {
 
 		let artifacts = [];
 		for ( let i = 1; i <= 5; i++ ) {
-			const info = data.artifacts.find( el => el.pos === i );
+			const info = data.reliquaries.find( el => el.pos === i );
 			artifacts[i] = info ? info : "empty";
 		}
 

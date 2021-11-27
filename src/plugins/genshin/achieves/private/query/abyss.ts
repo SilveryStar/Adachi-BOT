@@ -1,82 +1,45 @@
 import { InputParameter, SwitchMatchResult } from "@modules/command";
+import { UserInfo } from "#genshin/module/private/main";
+import { Abyss } from "#genshin/types";
 import { FakeMessage } from "oicq";
-import { Abyss } from "../types";
-import Database from "@modules/database";
-import { abyssInfoPromise, baseInfoPromise } from "../utils/promise";
-import { getRegion } from "../utils/region";
-import { render } from "../utils/render";
-
-async function getBindData( id: string | null, userID: number ): Promise<string> {
-	if ( id !== null ) {
-		try {
-			const server: string = await baseInfoPromise( userID, parseInt( id ) );
-			return Promise.resolve( server );
-		} catch ( error ) {
-			return Promise.reject( <string>error );
-		}
-	}
-	return Promise.reject( `用户 ${ userID } 未绑定米游社通行证` );
-}
-
-async function getUserInfo( data: string, userID: number, redis: Database ): Promise<[ number, string ] | string> {
-	const queryingDB: string = `silvery-star.user-querying-id-${ userID }`;
-	
-	if ( data === undefined ) {
-		const mysID: string | null = await redis.getString( `silvery-star.user-bind-id-${ userID }` );
-		try {
-			const server: string = await getBindData( mysID, userID );
-			return [ parseInt( await redis.getString( queryingDB ) ), server ];
-		} catch ( error ) {
-			return error;
-		}
-	} else if ( data.includes( "CQ:at" ) ) {
-		const match = <string[]>data.match( /\d+/g );
-		const atID: string = match[0];
-		const mysID: string | null = await redis.getString( `silvery-star.user-bind-id-${ atID }` );
-		try {
-			const server: string = await getBindData( mysID, parseInt( atID ) );
-			return [ parseInt( await redis.getString( queryingDB ) ), server ];
-		} catch ( error ) {
-			return error;
-		}
-	} else {
-		return [ parseInt( data ), getRegion( data[0] ) ];
-	}
-}
+import { getPrivateSetting } from "#genshin/utils/private";
+import { getRegion } from "#genshin/utils/region";
+import { abyssInfoPromise } from "#genshin/utils/promise";
+import { render } from "#genshin/utils/render";
 
 export async function main(
-	{ sendMessage, messageData, redis, client, config, matchResult }: InputParameter
+	{ sendMessage, messageData, matchResult, auth, redis, config, client }: InputParameter
 ): Promise<void> {
 	const match = <SwitchMatchResult>matchResult;
-	const [ data ] = match.match;
-	
 	const userID: number = messageData.user_id;
-	const info: [ number, string ] | string = await getUserInfo( data, userID, redis );
-	const period: number = match.isOn() ? 1 : 2;
-
+	const data: string = !match.match[0] ? "" : match.match[0];
+	
+	const info: UserInfo | string = await getPrivateSetting( userID, data, auth );
 	if ( typeof info === "string" ) {
 		await sendMessage( info );
 		return;
 	}
-	const [ uid, server ]: [ number, string ] = info;
-
+	
+	const { uid, cookie } = info;
+	const server: string = getRegion( uid[0] );
+	const period: number = match.isOn() ? 1 : 2;
 	try {
 		await redis.setString( `silvery-star.abyss-querying-${ userID }`, uid );
-		await abyssInfoPromise( userID, server, period );
+		await abyssInfoPromise( userID, server, period, cookie );
 	} catch ( error ) {
 		if ( error !== "gotten" ) {
 			await sendMessage( <string>error );
 			return;
 		}
 	}
-
+	
 	const abyssData: string = await redis.getString( `silvery-star.abyss-data-${ uid }` );
 	if ( abyssData.length === 0 ) {
 		await sendMessage( "查询错误" );
 		return;
 	}
 	const abyss: Abyss = JSON.parse( abyssData );
-
+	
 	const userInfo: string = `UID-${ uid }`;
 	let imageList: string[] = [];
 	
@@ -98,7 +61,7 @@ export async function main(
 	
 	for ( let floorData of abyss.floors ) {
 		const base64: string = Buffer.from( JSON.stringify( floorData ) )
-									 .toString( "base64" );
+			.toString( "base64" );
 		const floor: number = floorData.index;
 		
 		imageList[floor] = await render( "abyss", {

@@ -3,9 +3,11 @@ import { MessageType, SendFunc } from "@modules/message";
 import { AuthLevel } from "@modules/management/auth";
 import { Order } from "@modules/command";
 import { NoteService } from "./note";
+import { MysQueryService } from "./mys";
+import { AbyQueryService } from "./abyss";
 import { Md5 } from "md5-typescript";
 import { pull } from "lodash";
-import { getRegion } from "../utils/region";
+import { getRegion } from "#genshin/utils/region";
 
 export interface Service {
 	parent: Private;
@@ -18,16 +20,18 @@ export class UserInfo {
 	public readonly cookie: string;
 	public readonly server: string;
 	public readonly userID: number;
+	public readonly mysID: number;
 	
-	constructor( uid: string, cookie: string, userID: number ) {
+	constructor( uid: string, cookie: string, userID: number, mysID: number ) {
 		this.uid = uid;
 		this.cookie = cookie;
 		this.userID = userID;
+		this.mysID = mysID;
 		this.server = getRegion( uid[0] );
 	}
 }
 
-const dbPrefix: string = "silvery-star.private-";
+const dbPrefix: string = "silvery-star.service-private-";
 
 /*
 * 依据 https://github.com/SilveryStar/Adachi-BOT/issues/70#issuecomment-946331850 重新设计
@@ -47,20 +51,23 @@ export class Private {
 			data.setting.uid,
 			data.setting.cookie,
 			data.setting.userID,
+			data.setting.mysID,
 			data.options
 		);
 	}
 	
-	constructor( uid: string, cookie: string, userID: number, options?: Record<string, any> ) {
+	constructor( uid: string, cookie: string, userID: number, mysID: number, options?: Record<string, any> ) {
 		this.options = options || {};
-		this.setting = new UserInfo( uid, cookie, userID );
+		this.setting = new UserInfo( uid, cookie, userID, mysID );
 		this.sendMessage = bot.message.getSendMessageFunc( userID, MessageType.Private );
 		
 		const md5: string = Md5.init( `${ userID }-${ uid }` );
 		this.dbKey = dbPrefix + md5;
 		
 		this.services = {
-			note: new NoteService( this )
+			note: new NoteService( this ),
+			mysQuery: new MysQueryService( this ),
+			abyQuery: new AbyQueryService( this )
 		};
 		this.options = this.globalOptions();
 	}
@@ -125,13 +132,13 @@ export class PrivateClass {
 		return this.getUserPrivateList( userID ).map( el => el.setting );
 	}
 	
-	public async addPrivate( uid: string, cookie: string, userID: number ): Promise<string> {
+	public async addPrivate( uid: string, cookie: string, userID: number, mysID: number ): Promise<string> {
 		const list: Private[] = this.getUserPrivateList( userID );
 		if ( list.some( el => el.setting.uid === uid ) ) {
 			return `UID${ uid } 的私人服务已经申请`;
 		}
 		
-		const newPrivate = new Private( uid, cookie, userID );
+		const newPrivate = new Private( uid, cookie, userID, mysID );
 		this.list.push( newPrivate );
 		await bot.redis.setString( newPrivate.dbKey, newPrivate.stringify() );
 

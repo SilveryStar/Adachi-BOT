@@ -31,7 +31,8 @@ export type EnquireConfig = CommandInfo & {
 };
 
 export class Enquire extends BasicConfig {
-	private readonly sentences: Sentence[] = [];
+	public readonly type = "enquire";
+	public readonly sentences: Sentence[] = [];
 	private readonly units: MatchKeyword[] = [];
 	private readonly rawSentences: string[];
 	

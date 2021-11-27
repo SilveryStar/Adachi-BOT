@@ -22,7 +22,8 @@ export type SwitchConfig = CommandInfo & {
 };
 
 export class Switch extends BasicConfig {
-	private readonly regexps: RegExp[] = [];
+	public readonly type = "switch";
+	public readonly regexps: RegExp[] = [];
 	private readonly keys: [ string, string ];
 	private readonly mode: "single" | "divided";
 	private readonly header: string;
@@ -46,7 +47,7 @@ export class Switch extends BasicConfig {
 		);
 		
 		this.mode = config.mode;
-		this.header = config.header;
+		this.header = "";
 		
 		if ( config.mode === "single" ) {
 			let reg: string = config.regexp instanceof Array
@@ -59,6 +60,7 @@ export class Switch extends BasicConfig {
 			);
 			this.regexps.push( Switch.regexp( addChar( h + r ), this.ignoreCase ) );
 			this.keys = [ config.onKey, config.offKey ];
+			this.header = h;
 		} else {
 			const r: string = config.regexp instanceof Array
 							? [ "", ...config.regexp.filter( el => el !== "#{OPT}" ) ].join( " *" )
@@ -119,8 +121,22 @@ export class Switch extends BasicConfig {
 								.split( " " )
 								.filter( el => el !== switchKey )
 								.map( el => trimStart( el ) );
-			if ( this.mode === "single" ) {
-				match.shift();
+			if ( match.length !== 0 ) {
+				if ( this.mode === "single" ) {
+					if ( match[0].includes( this.header ) ) {
+						match[0] = match[0].split( this.header ).join( "" );
+					}
+				} else if ( this.mode === "divided" ) {
+					if ( match[0].includes( onKey ) ) {
+						match[0] = match[0].split( onKey ).join( "" );
+					}
+					if ( match[0].includes( offKey ) ) {
+						match[0] = match[0].split( offKey ).join( "" );
+					}
+				}
+				if ( match[0].length === 0 ) {
+					match.shift();
+				}
 			}
 			
 			return {

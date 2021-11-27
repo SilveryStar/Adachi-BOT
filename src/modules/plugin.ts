@@ -24,7 +24,7 @@ export default class Plugin {
 				registerCmd.push( ...commands );
 				bot.logger.info( `插件 ${ pluginName } 加载完成` );
 			} catch ( error ) {
-				bot.logger.error( `插件加载异常: ${ error }` );
+				bot.logger.error( `插件加载异常: ${ <string>error }` );
 			}
 		}
 		

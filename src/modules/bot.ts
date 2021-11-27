@@ -170,11 +170,15 @@ export default class Adachi {
 		messageData: msg.Message,
 		sendMessage: msg.SendFunc,
 		cmdSet: BasicConfig[],
-		limits: string[]
+		limits: string[],
+		unionRegExp: RegExp
 	): Promise<void> {
 		const content: string = messageData.raw_message;
+		if ( !unionRegExp.test( content ) ) {
+			return;
+		}
+		
 		const usable: BasicConfig[] = cmdSet.filter( el => !limits.includes( el.cmdKey ) );
-
 		for ( let cmd of usable ) {
 			const res: MatchResult = cmd.match( content );
 			if ( res.type === "unmatch" ) {
@@ -199,6 +203,7 @@ export default class Adachi {
 			await this.bot.redis.addSetMember( `adachi.user-used-groups-${ userID }`, groupID );
 			await this.bot.redis.incHash( "adachi.hour-stat", userID.toString(), 1 );
 			await this.bot.redis.incHash( "adachi.command-stat", cmd.cmdKey, 1 );
+			return;
 		}
 	}
 	
@@ -232,7 +237,8 @@ export default class Adachi {
 				userID, msg.MessageType.Private
 			);
 			const cmdSet: BasicConfig[] = bot.command.get( auth, msg.MessageScope.Private );
-			await that.execute( messageData, sendMessage, cmdSet, limit );
+			const unionReg: RegExp = bot.command.getUnion( auth, msg.MessageScope.Private );
+			await that.execute( messageData, sendMessage, cmdSet, limit, unionReg );
 		}
 	}
 	
@@ -261,7 +267,8 @@ export default class Adachi {
 					userID, msg.MessageType.Group, groupID
 				);
 				const cmdSet: BasicConfig[] = bot.command.get( auth, msg.MessageScope.Group );
-				await that.execute( messageData, sendMessage, cmdSet, [ ...gLim, ...uLim ] );
+				const unionReg: RegExp = bot.command.getUnion( auth, msg.MessageScope.Group );
+				await that.execute( messageData, sendMessage, cmdSet, [ ...gLim, ...uLim ], unionReg );
 			}
 		}
 	}

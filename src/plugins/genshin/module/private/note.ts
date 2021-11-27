@@ -1,10 +1,10 @@
 import bot from "ROOT";
 import { Order } from "@modules/command";
 import { AuthLevel } from "@modules/management/auth";
-import { Note, Expedition } from "../types";
-import { Private, Service, UserInfo } from "./private";
+import { Note, Expedition } from "#genshin/types";
+import { Private, Service, UserInfo } from "./main";
 import { scheduleJob, Job } from "node-schedule";
-import { dailyNotePromise } from "../utils/promise";
+import { dailyNotePromise } from "#genshin/utils/promise";
 
 interface PushEvent {
 	type: "resin" | "expedition";
@@ -116,7 +116,7 @@ export class NoteService implements Service {
 			const time = new Date( now + remaining * 1000 );
 
 			const job: Job = scheduleJob( time, async () => {
-				await this.parent.sendMessage( `树脂量已经到达 ${ t } 了哦~` );
+				await this.parent.sendMessage( `[UID${ this.parent.setting.uid }] - 树脂量已经到达 ${ t } 了哦~` );
 			} );
 			this.events.push( { type: "resin", job } );
 		}
@@ -147,7 +147,7 @@ export class NoteService implements Service {
 		for ( let c of compressed ) {
 			const time = new Date( now + parseInt( c.remainedTime ) * 1000 );
 			const job: Job = scheduleJob( time, async () => {
-				await this.parent.sendMessage( `已有 ${ c.num } 个探索派遣任务完成` );
+				await this.parent.sendMessage( `[UID${ this.parent.setting.uid }] - 已有 ${ c.num } 个探索派遣任务完成` );
 			} );
 			this.events.push( { type: "expedition", job } );
 		}
