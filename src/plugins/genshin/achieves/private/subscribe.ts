@@ -68,7 +68,7 @@ async function confirm(
 	
 	const uid: string = genshinInfo.gameRoleId;
 	pull( tempSubscriptionList, userID );
-	return await privateClass.addPrivate( uid, cookie, userID, mysID );
+	return await privateClass.addPrivate( uid, cookie, userID );
 }
 
 export async function main(

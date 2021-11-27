@@ -31,7 +31,7 @@ export class UserInfo {
 	}
 }
 
-const dbPrefix: string = "silvery-star.service-private-";
+const dbPrefix: string = "silvery-star.private-";
 
 /*
 * 依据 https://github.com/SilveryStar/Adachi-BOT/issues/70#issuecomment-946331850 重新设计
@@ -47,11 +47,15 @@ export class Private {
 	
 	static parse( content: string ): any {
 		const data = JSON.parse( content );
+		if ( !data.setting.mysID ) {
+			const reg = new RegExp( /.*?ltuid=([0-9]+).*?/g );
+			const execRes = <RegExpExecArray>reg.exec( data.setting.cookie );
+			data.setting.mysID = parseInt( execRes[1] );
+		}
+		console.log( data.setting.mysID )
 		return new Private(
-			data.setting.uid,
-			data.setting.cookie,
-			data.setting.userID,
-			data.setting.mysID,
+			data.setting.uid,    data.setting.cookie,
+			data.setting.userID, data.setting.mysID,
 			data.options
 		);
 	}
@@ -132,11 +136,14 @@ export class PrivateClass {
 		return this.getUserPrivateList( userID ).map( el => el.setting );
 	}
 	
-	public async addPrivate( uid: string, cookie: string, userID: number, mysID: number ): Promise<string> {
+	public async addPrivate( uid: string, cookie: string, userID: number ): Promise<string> {
 		const list: Private[] = this.getUserPrivateList( userID );
 		if ( list.some( el => el.setting.uid === uid ) ) {
 			return `UID${ uid } 的私人服务已经申请`;
 		}
+		const reg = new RegExp( /.*?ltuid=([0-9]+).*?/g );
+		const execRes = <RegExpExecArray>reg.exec( cookie );
+		const mysID: number = parseInt( execRes[1] );
 		
 		const newPrivate = new Private( uid, cookie, userID, mysID );
 		this.list.push( newPrivate );
