@@ -52,7 +52,6 @@ export class Private {
 			const execRes = <RegExpExecArray>reg.exec( data.setting.cookie );
 			data.setting.mysID = parseInt( execRes[1] );
 		}
-		console.log( data.setting.mysID )
 		return new Private(
 			data.setting.uid,    data.setting.cookie,
 			data.setting.userID, data.setting.mysID,

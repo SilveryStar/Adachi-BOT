@@ -3,6 +3,7 @@ import { UserInfo } from "#genshin/module/private/main";
 import { baseInfoPromise, characterInfoPromise, detailInfoPromise } from "#genshin/utils/promise";
 import { render } from "#genshin/utils/render";
 import { getPrivateSetting } from "#genshin/utils/private";
+import { config } from "#genshin/init";
 
 export async function main( { sendMessage, messageData, auth }: InputParameter ): Promise<void> {
 	const { user_id: userID, raw_message: idMsg } = messageData;
@@ -24,6 +25,9 @@ export async function main( { sendMessage, messageData, auth }: InputParameter )
 		}
 	}
 	
-	const image: string = await render( "card", { qq: userID } );
+	const image: string = await render(
+		"card",
+		{ qq: userID, style: config.cardWeaponStyle }
+	);
 	await sendMessage( image );
 }
