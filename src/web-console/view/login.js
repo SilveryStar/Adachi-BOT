@@ -21,7 +21,7 @@ const template =
 import router from "../router/index.js";
 
 const { defineComponent, ref } = Vue;
-const { get } = axios;
+const { post } = axios;
 const { ElNotification } = ElementPlus;
 
 export default defineComponent( {
@@ -41,7 +41,12 @@ export default defineComponent( {
 				} );
 				return;
 			}
-			get( `/api/login?num=${ number.value }&pwd=${ password.value }` )
+			
+			const pwd = md5( password.value );
+			post( "/api/login/", {
+				num: number.value,
+				pwd: pwd
+			} )
 				.then( res => {
 					localStorage.setItem( "token", res.data.token );
 					router.push( { name: "Home" } )

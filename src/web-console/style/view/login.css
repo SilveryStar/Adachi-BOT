@@ -52,6 +52,7 @@
 	position: relative;
 	display: flex;
 	margin: 1.5rem auto 0 auto;
+	background-color: #409eff;
 }
 
 @media (max-width: 768px) {
