@@ -9,6 +9,15 @@
 	width: 190px;
 }
 
+.card-upper .user.profile {
+	width: 163px;
+	height: 163px;
+	border-radius: 50%;
+	border: 1px solid #999;
+	left: 97px;
+	top: 76px;
+}
+
 .card-upper .base-info {
 	position: absolute;
 	text-align: center;

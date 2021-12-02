@@ -2,10 +2,10 @@ import { Config } from "./types";
 import { PluginSetting } from "@modules/plugin";
 import { BOT } from "@modules/bot";
 import pluginSetting from "./setting";
+import FileManagement from "@modules/file";
 import * as m from "./module";
 import { createBrowser } from "./utils/render";
 import { createServer } from "./server";
-import FileManagement from "@modules/file";
 
 export let config: Config;
 export const artClass = new m.ArtClass();
@@ -22,6 +22,7 @@ export const characterID = new m.CharacterId();
 function loadConfig( file: FileManagement ): Config {
 	const defaultConfig: Config = {
 		cardWeaponStyle: "normal",
+		cardProfile: "random",
 		serverPort: 58612
 	};
 	

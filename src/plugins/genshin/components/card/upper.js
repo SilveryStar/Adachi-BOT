@@ -1,7 +1,11 @@
 const template =
 `<div class="card-upper">
     <img class="background" :src="backgroundImage" alt="ERROR"/>
-    <img class="profile" :src="profileImage" alt="ERROR"/>
+    <img
+    	class="profile"
+    	:class="{ user: mode === 'user' && appoint === 'empty' }"
+    	:src="profile" alt="ERROR"
+    />
     <div class="base-info" :class="{ 'without-nickname': level === '0' }">
         <p class="nickname">{{ nickname }}</p>
         <p class="user-uid">UID: {{ uid }}</p>
@@ -74,19 +78,18 @@ export default defineComponent( {
 	},
 	props: {
 		uid: String,
-		profile: Number,
+		profile: String,
 		level: String,
 		nickname: String,
 		exploration: Object,
 		stats: Object,
-		homes: Array
+		homes: Array,
+		mode: String,
+		appoint: String
 	},
 	setup( props ) {
 		const backgroundImage = computed( () => {
 			return `https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/module/${ parseInt( props.level ) === 0 ? "uid" : "mys" }-upper-v2-2.png`;
-		} );
-		const profileImage = computed( () => {
-			return `https://adachi-bot.oss-cn-beijing.aliyuncs.com/characters/profile/${ props.profile }.png`;
 		} );
 		const worldLevel = computed( () => {
 			if ( props.level < 20 ) {
@@ -127,7 +130,7 @@ export default defineComponent( {
 		const hall = homeData( "绘绮庭" );
 
 		return {
-			backgroundImage, profileImage,
+			backgroundImage,
 			worldLevel, packageTop,
 			percentage, expLevel, sakura,
 			homesLevel, maxComfort,

@@ -1,8 +1,8 @@
 import { InputParameter, SwitchMatchResult } from "@modules/command";
-import { UserInfo } from "#genshin/module/private/main";
+import { Private } from "#genshin/module/private/main";
 import { Abyss } from "#genshin/types";
 import { FakeMessage } from "oicq";
-import { getPrivateSetting } from "#genshin/utils/private";
+import { getPrivateAccount } from "#genshin/utils/private";
 import { getRegion } from "#genshin/utils/region";
 import { abyssInfoPromise } from "#genshin/utils/promise";
 import { render } from "#genshin/utils/render";
@@ -14,13 +14,13 @@ export async function main(
 	const userID: number = messageData.user_id;
 	const data: string = !match.match[0] ? "" : match.match[0];
 	
-	const info: UserInfo | string = await getPrivateSetting( userID, data, auth );
+	const info: Private | string = await getPrivateAccount( userID, data, auth );
 	if ( typeof info === "string" ) {
 		await sendMessage( info );
 		return;
 	}
 	
-	const { uid, cookie } = info;
+	const { uid, cookie } = info.setting;
 	const server: string = getRegion( uid[0] );
 	const period: number = match.isOn() ? 1 : 2;
 	try {

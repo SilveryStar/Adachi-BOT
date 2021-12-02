@@ -1,10 +1,10 @@
 import bot from "ROOT";
-import { Private, UserInfo } from "#genshin/module/private/main";
+import { Private } from "#genshin/module/private/main";
 import { Order } from "@modules/command";
 import Authorization, { AuthLevel } from "@modules/management/auth";
 import { privateClass } from "#genshin/init";
 
-export async function getPrivateSetting( userID: number, idMsg: string, auth: Authorization ): Promise<string | UserInfo> {
+export async function getPrivateAccount( userID: number, idMsg: string, auth: Authorization ): Promise<string | Private> {
 	const id: number = idMsg.length === 0 ? 0 : parseInt( idMsg ) - 1;
 	
 	const accounts: Private[] = privateClass.getUserPrivateList( userID );
@@ -16,5 +16,5 @@ export async function getPrivateSetting( userID: number, idMsg: string, auth: Au
 		return `无效的编号，请使用 ${ PRIVATE_LIST.getHeaders()[0] } 检查`;
 	}
 	
-	return accounts[id].setting;
+	return accounts[id];
 }

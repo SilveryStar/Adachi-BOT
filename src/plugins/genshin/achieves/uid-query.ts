@@ -3,7 +3,6 @@ import Database from "@modules/database";
 import { characterInfoPromise, detailInfoPromise } from "../utils/promise";
 import { render } from "../utils/render";
 import { getRegion } from "../utils/region";
-import { config } from "#genshin/init";
 
 async function getUID( data: string, userID: number, redis: Database ): Promise<number | string> {
 	if ( data === "" ) {
@@ -50,10 +49,7 @@ export async function main(
 			return;
 		}
 	}
-	// TODO: new card style
-	const image: string = await render(
-		"card",
-		{ qq: userID, style: config.cardWeaponStyle }
-	);
+	
+	const image: string = await render( "user-base", { qq: userID } );
 	await sendMessage( image );
 }

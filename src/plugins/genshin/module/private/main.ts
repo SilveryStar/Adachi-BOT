@@ -121,7 +121,7 @@ export class PrivateClass {
 	public async getSinglePrivate( userID: number, privateID: number ): Promise<Private | string> {
 		const list: Private[] = this.getUserPrivateList( userID );
 		const auth: AuthLevel = await bot.auth.get( userID );
-		if ( privateID > list.length ) {
+		if ( privateID > list.length || privateID === 0 ) {
 			const PRIVATE_LIST = <Order>bot.command.getSingle(
 				"silvery-star.private-list", auth
 			);

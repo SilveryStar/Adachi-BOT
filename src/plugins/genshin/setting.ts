@@ -73,13 +73,15 @@ const choosePool: OrderConfig = {
 const character: OrderConfig = {
 	type: "order",
 	cmdKey: "silvery-star.character",
-	desc: [ "角色信息", "(UID) [角色名]" ],
+	desc: [ "角色信息", "(UID|账户编号) [角色名]" ],
 	headers: [ "char" ],
-	regexps: [ "(\\d{9})?", "[\\w\\u4e00-\\u9fa5]+" ],
+	regexps: [ "(\\d{1,9})?", "[\\w\\u4e00-\\u9fa5]+" ],
 	main: "achieves/character",
 	detail: "查询某角色的游戏内装备信息\n" +
 			"填写 UID 时，将查询对应玩家的信息\n" +
-			"否则将会查询自己绑定的 UID 的信息"
+			"填写账户编号时，将查询用户对应的私人服务的账户\n" +
+			"没有填写任何数据时，优先查询 0 号私人服务\n" +
+			"未申请私人服务则会查询自己绑定的 UID 的信息"
 };
 
 const information: OrderConfig = {
@@ -226,10 +228,21 @@ const privateNoteEvent: OrderConfig = {
 			"如: 60 90 120 160，数字间用空格隔开"
 };
 
+const privateMysSetAppoint: OrderConfig = {
+	type: "order",
+	cmdKey: "silvery-star.private-set-appoint",
+	desc: [ "指定头像", "[账户编号] [角色名]" ],
+	headers: [ "appoint" ],
+	regexps: [ "\\d+", "[\\w\\u4e00-\\u9fa5]+" ],
+	main: "achieves/private/query/appoint",
+	scope: MessageScope.Private,
+	detail: "该指令用于指定查询卡片中的头像图片"
+};
+
 const privateMysQuery: OrderConfig = {
 	type: "order",
-	cmdKey: "silvery-star.private",
-	desc: [ "游戏查询", "(编号)" ],
+	cmdKey: "silvery-star.private-mys",
+	desc: [ "游戏查询", "(账户编号)" ],
 	headers: [ "mys" ],
 	regexps: [ "(\\d+)?" ],
 	main: "achieves/private/query/mys"
@@ -238,8 +251,8 @@ const privateMysQuery: OrderConfig = {
 const privateAbyssQuery: SwitchConfig = {
 	type: "switch",
 	mode: "divided",
-	cmdKey: "silvery-star.abyss",
-	desc: [ "深渊查询", "(编号) #{OPT}" ],
+	cmdKey: "silvery-star.private-abyss",
+	desc: [ "深渊查询", "(账户编号) #{OPT}" ],
 	header: "",
 	regexp: [ "(\\d+)?" ],
 	main: "achieves/private/query/abyss",
@@ -256,6 +269,7 @@ export default <PluginSetting>{
 		slip, uidQuery, information, domain, almanac,
 		privateNowNote, privateNoteEvent, privateSubList,
 		privateConfirm, privateSubscribe, privateCancel,
-		privateMysQuery, privateAbyssQuery
+		privateMysQuery, privateAbyssQuery,
+		privateMysSetAppoint
 	]
 };

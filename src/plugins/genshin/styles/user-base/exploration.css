@@ -1,0 +1,75 @@
+.exploration {
+	position: relative;
+	display: inline-flex;
+	flex-wrap: wrap;
+	width: auto;
+	height: auto;
+	margin-left: 16px;
+	margin-top: 4px;
+}
+
+.exploration .exp-bg {
+	position: relative;
+	width: 198px;
+	height: 66px;
+}
+
+.exploration .exp-area {
+	position: absolute;
+	left: 0;
+	top: 0;
+	width: 198px;
+	height: 66px;
+}
+
+.exp-area .logo {
+	--height: 74px;
+	display: inline-block;
+	vertical-align: middle;
+	height: var( --height );
+	margin-left: 12px;
+	margin-top: calc( ( 66px - ( var( --height ) ) ) / 2 );
+	margin-right: 5px;
+}
+
+.exp-area .prop {
+	display: inline-block;
+	vertical-align: middle;
+	height: 60px;
+	padding: 3px 0;
+	margin-top: -4px;
+	color: #495366;
+}
+
+.two .exp-area .prop {
+	height: 50px;
+	padding: 8px 0;
+	margin-top: -4px;
+}
+
+.prop-name, .prop-value {
+	display: inline-flex;
+	height: 100%;
+	flex-direction: column;
+	justify-content: center;
+}
+
+.prop-name .item,
+.prop-value .item {
+	display: table;
+	flex: 1;
+}
+
+.prop-name .item {
+	margin-right: 12px;
+	font-size: 13px;
+}
+
+.prop-value .item {
+	font-size: 9px;
+}
+
+.item > span {
+	display: table-cell;
+	vertical-align: middle;
+}

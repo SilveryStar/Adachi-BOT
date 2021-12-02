@@ -1,0 +1,145 @@
+.user-base-page {
+	position: absolute;
+	left: 0;
+	top: 0;
+}
+
+.user-base-page .top {
+	position: relative;
+	height: 208px;
+	width: 100%;
+}
+
+.user-base-page > .background {
+	position: absolute;
+	left: 0;
+	top: 0;
+	z-index: -10000;
+}
+
+.user-base-page .left {
+	position: absolute;
+	left: 28px;
+	top: 8px;
+	width: 424px;
+	height: 568px;
+	z-index: 1;
+}
+
+.left .uid {
+	position: absolute;
+	color: #ffffff;
+	font-size: 16px;
+	top: 18px;
+	z-index: 100;
+	width: 100%;
+	text-align: center;
+}
+
+.left .name-card {
+	position: absolute;
+	width: 424px;
+	top: 0;
+	left: 0;
+}
+
+.left .profile {
+	position: absolute;
+	margin: 66px 141px 0;
+	width: 142px;
+	height: 142px;
+	background-color: #f0ebe1;
+	border-radius: 50% 50%;
+	border: 2px solid #d5bf94;
+	box-sizing: border-box;
+	padding: 6px;
+}
+
+.left .profile .character {
+	position: relative;
+	background-color: #d19d78;
+	width: 126px;
+	border-radius: 50% 50%;
+}
+
+.left .middle {
+	position: relative;
+	padding: 6px 0;
+	width: 384px;
+	margin: 3.6% 1.09375rem 0;
+	border: 0.15625rem solid #e0d7c9;
+	border-radius: 6px;
+}
+
+.middle ._left,
+.middle ._right {
+	position: relative;
+	display: inline-block;
+	vertical-align: top;
+	width: 43%;
+	height: 100%;
+	font-size: 16px;
+	line-height: 21px;
+	margin-left: 7%;
+	color: #424f65;
+}
+
+.middle .data-name {
+	display: inline-block;
+	width: 45%;
+	margin-right: 8%;
+}
+
+.middle .data-value {
+	display: inline-block;
+	width: 47%;
+}
+
+.bottom-split {
+	margin-top: 4.2%;
+}
+
+.bottom-split .split-line {
+	width: 88% !important;
+	margin: 0 6% !important;
+}
+
+.bottom-split .title .icon {
+	margin-left: 6.5%;
+}
+
+.left .bottom {
+	position: relative;
+	width: 384px;
+	margin: 0 20px;
+}
+
+.user-base-page .right {
+	position: absolute;
+	top: 12px;
+	left: 500px;
+	height: 562px;
+	width: 444px;
+	z-index: 1;
+}
+
+.right .world {
+	position: relative;
+	height: auto;
+	width: 100%;
+	margin-top: 5%;
+}
+
+.right .character {
+	position: relative;
+	width: 100%;
+	height: auto;
+	top: 3.5%;
+}
+
+.character .box {
+	position: relative;
+	margin-top: 2%;
+	width: calc( 100% - 44px );
+	padding: 0 22px;
+}

@@ -8,6 +8,8 @@ const template =
         :profile="profile"
         :stats="data.stats"
         :homes="data.homes"
+        :mode="profileMode"
+        :appoint="appoint"
     ></CardUpper>
     <CardMiddle
         :characters="charData"
@@ -43,16 +45,24 @@ export default defineComponent( {
 		const urlParams = parseURL( location.search );
 		const data = request( `/api/card?qq=${ urlParams.qq }` );
 		const style = urlParams.style;
+		const profileMode = urlParams.profile;
+		const appoint = urlParams.appoint;
 		
 		const charList = data.avatars;
 		const charNum = charList.length;
-		const profile = charList[ Math.floor( Math.random() * charNum ) ].id;
+		
+		const getProImg = id => `https://adachi-bot.oss-cn-beijing.aliyuncs.com/characters/profile/${ id }.png`;
+		const profile = appoint === "empty"
+			? profileMode === "random"
+			? getProImg( charList[ Math.floor( Math.random() * charNum ) ].id )
+			: `https://q1.qlogo.cn/g?b=qq&s=640&nk=${ urlParams.qq }`
+			: getProImg( appoint );
 		
 		charList.sort( ( x, y ) => {
 			return x.level === y.level ? y.fetter - x.fetter : y.level - x.level;
 		} );
 		const charData = cutArray( charList, 7 );
 
-		return { data, profile, charData, style };
+		return { data, profile, charData, style, profileMode, appoint };
 	}
 } );

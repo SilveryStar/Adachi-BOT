@@ -1,0 +1,79 @@
+.home-box {
+	position: relative;
+	display: inline-flex;
+	flex-direction: row;
+	width: 90px;
+	height: 90px;
+	margin: 8px 0.1875rem;
+}
+
+.home-box .home-background {
+	position: absolute;
+	width: inherit;
+	border-radius: 14px;
+}
+
+.home-box .unlock,
+.home-box .locked {
+	position: absolute;
+	top: 0;
+}
+
+.home-box .box-block {
+	width: 90px;
+	height: 90px;
+	border-radius: 14px;
+}
+
+.home-box .locked-block {
+	background-color: rgba(0, 0, 0, 0.6);
+}
+
+.home-box .lock-icon {
+	position: absolute;
+	left: 0;
+	top: 0;
+	width: 44%;
+	margin: 20px 28%;
+}
+
+.home-box .unlock-block {
+	background-color: rgba(0, 0, 0, 0.22);
+}
+
+.home-box .unlock-content-block {
+	position: absolute;
+	left: 0;
+	top: 0;
+	background-color: rgba(0, 0, 0, 0.3);
+	height: 60%;
+	margin: 20% 0;
+	border-radius: 0;
+}
+
+.home-box .box-content {
+	position: relative;
+	width: 90px;
+	text-align: center;
+}
+
+.home-box .name {
+	position: relative;
+	color: rgb(242, 210, 134);
+	font-size: 13px;
+	height: 17px;
+	line-height: 17px;
+	margin-top: 11px;
+}
+
+.home-box .level {
+	display: none;
+	height: 0;
+}
+
+.home-box .comfort {
+	font-size: 11px;
+	height: 15px;
+	color: rgb(255, 255, 255);
+	font-weight: 300;
+}
