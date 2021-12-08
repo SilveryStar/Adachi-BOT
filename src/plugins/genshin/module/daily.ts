@@ -59,7 +59,7 @@ export class DailySet {
 
 export class DailyClass {
 	private detail: DailyMaterial;
-	private userSubTmp: Record<number, DailySet> = {};
+	private allData: InfoResponse[] = [];
 	
 	constructor() {
 		this.detail = { "Mon&Thu": [], "Tue&Fri": [], "Wed&Sat": [] };
@@ -71,35 +71,19 @@ export class DailyClass {
 		} );
 
 		scheduleJob( "0 0 6 * * *", async () => {
-			const users: string[] = await bot.redis.getKeysByPrefix( "silvery-star.daily-sub-" );
 			const date: Date = new Date();
 			
 			/* 获取当日副本对应的角色和武器 */
-			let todayInfoSet: string[] = [];
 			const week: number = date.getDay();
-			if ( week === 1 || week === 4 ) {
-				todayInfoSet = this.detail["Mon&Thu"];
-			} else if ( week === 2 || week === 5 ) {
-				todayInfoSet = this.detail["Tue&Fri"];
-			} else if ( week === 3 || week === 6 ) {
-				todayInfoSet = this.detail["Wed&Sat"];
-			}
+			const todayInfoSet: string[] = this.getDailySet( week );
 			
 			/* 获取所有角色和武器的信息 */
-			const allData: InfoResponse[] = [];
-
-			if ( week !== 0 ) {
-				for ( let targetName of todayInfoSet ) {
-					const data = await getInfo( targetName );
-					if ( typeof data !== "string" ) {
-						allData.push( data );
-					}
-				}
-			}
+			await this.getAllData( week, todayInfoSet );
 
 			/* 群发订阅信息 */
-			const groupData = new DailySet( allData );
 			const groupIDs: string[] = await bot.redis.getList( "silvery-star.daily-sub-group" );
+			
+			const groupData = new DailySet( this.allData );
 			const subMessage: string = week === 0
 									 ? "周日所有材料都可以刷取哦~"
 								     : await render( "daily", groupData.get() ); // 渲染全体图片
@@ -113,37 +97,76 @@ export class DailyClass {
 			}
 			
 			/* 私发订阅信息 */
+			const users: string[] = await bot.redis.getKeysByPrefix( "silvery-star.daily-sub-" );
+			
 			for ( let key of users ) {
-				const subList: string[] = await bot.redis.getList( key );
 				const userID: number = parseInt( <string>key.split( "-" ).pop() );
-				if ( subList.length === 0 ) {
+				const data: DailySet | undefined = await this.getUserSubList( userID );
+				if ( data === undefined ) {
 					continue;
 				}
-				
-				const privateSub: InfoResponse[] = [];
-				for ( let item of subList ) {
-					const find: InfoResponse | undefined = allData.find( el => el.name === item );
-					if ( find === undefined ) {
-						continue;
-					}
-					privateSub.push( find );
-				}
-				if ( privateSub.length === 0 ) {
-					continue;
-				}
-				
-				const privateData = new DailySet( privateSub );
-				this.userSubTmp[userID] = privateData;
 				
 				const randomMinute: number = randomInt( 3, 59 );
 				date.setMinutes( randomMinute );
 				
 				scheduleJob( date, async () => {
-					const image: string = await render( "daily", privateData.get() );
+					const image: string = await render( "daily", data.get() );
 					await bot.client.sendPrivateMsg( userID, image );
 				} );
 			}
 		} );
+	}
+	
+	private getDailySet( week: number ): string[] {
+		if ( week === 1 || week === 4 ) {
+			return this.detail["Mon&Thu"];
+		} else if ( week === 2 || week === 5 ) {
+			return this.detail["Tue&Fri"];
+		} else if ( week === 3 || week === 6 ) {
+			return this.detail["Wed&Sat"];
+		} else {
+			return [];
+		}
+	}
+	
+	private async getAllData( week: number, set: string[] ): Promise<void> {
+		this.allData = [];
+		if ( week === 0 ) {
+			return;
+		}
+		for ( let targetName of set ) {
+			const data = await getInfo( targetName );
+			if ( typeof data !== "string" ) {
+				this.allData.push( data );
+			}
+		}
+	}
+ 
+	private async getUserSubList( userID: number ): Promise<DailySet | undefined> {
+		const dbKey: string = `silvery-star.daily-sub-${ userID }`;
+		const subList: string[] = await bot.redis.getList( dbKey );
+		if ( subList.length === 0 ) {
+			return undefined;
+		}
+		if ( this.allData.length === 0 ) {
+			const week: number = new Date().getDay();
+			const set: string[] = this.getDailySet( week );
+			await this.getAllData( week, set );
+		}
+		
+		const privateSub: InfoResponse[] = [];
+		for ( let item of subList ) {
+			const find: InfoResponse | undefined = this.allData.find( el => el.name === item );
+			if ( find === undefined ) {
+				continue;
+			}
+			privateSub.push( find );
+		}
+		if ( privateSub.length === 0 ) {
+			return undefined;
+		}
+		
+		return new DailySet( privateSub );
 	}
 	
 	public async getUserSubscription( userID: number ): Promise<string> {
@@ -152,10 +175,9 @@ export class DailyClass {
 			return "周日所有材料都可以刷取哦~";
 		}
 		
-		const data: DailySet | undefined = this.userSubTmp[userID];
-		return data === undefined
-			        ? "您还没有订阅过素材或 BOT 当日数据未更新，请先订阅素材并在早晨六点后再次尝试"
-					: await render( "daily", data.get() );
+		const data: DailySet | undefined = await this.getUserSubList( userID );
+		const set = data === undefined ? new DailySet( this.allData ) : data;
+		return await render( "daily", set.get() );
 	}
 	
 	public async modifySubscription( userID: number, operation: boolean, name: string, isGroup: boolean ): Promise<string> {

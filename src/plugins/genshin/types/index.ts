@@ -6,6 +6,10 @@ export { Config } from "./config";
 export { Note, Expedition } from "./note";
 export { WeaponInfo, CharacterInfo, InfoResponse } from "./info"
 export { Avatar } from "./character";
+export { SignInResult, SignInInfo } from "./sign-in";
 
-export { isAbyss, isBBS, isUserInfo, isCharacter,
-		 isWeaponInfo, isCharacterInfo, isNote } from "./check";
+export {
+	isAbyss, isBBS, isUserInfo, isCharacter,
+	isWeaponInfo, isCharacterInfo, isNote,
+	isSignInInfo, isSignInResult
+} from "./check";

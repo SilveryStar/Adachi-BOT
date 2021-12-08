@@ -9,6 +9,8 @@ export interface PluginSetting {
 	cfgList: cmd.ConfigType[];
 }
 
+export const PluginRawConfigs: Record<string, cmd.ConfigType[]> = {};
+
 export default class Plugin {
 	public static async load( bot: BOT ): Promise<BasicConfig[]> {
 		const registerCmd: BasicConfig[] = [];
@@ -19,8 +21,9 @@ export default class Plugin {
 			const path: string = bot.file.getFilePath( `${ plugin }/init`, "plugin" );
 			const { init } = require( path );
 			try {
-				const { pluginName, cfgList }: PluginSetting = await init( bot );
+				const { pluginName, cfgList }: PluginSetting = await init( bot )
 				const commands = Plugin.parse( bot, cfgList, pluginName );
+				PluginRawConfigs[pluginName] = cfgList;
 				registerCmd.push( ...commands );
 				bot.logger.info( `插件 ${ pluginName } 加载完成` );
 			} catch ( error ) {
@@ -31,7 +34,7 @@ export default class Plugin {
 		return registerCmd;
 	}
 	
-	private static parse(
+	public static parse(
 		bot: BOT,
 		cfgList: cmd.ConfigType[],
 		pluginName: string

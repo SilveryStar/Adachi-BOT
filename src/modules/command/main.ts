@@ -1,10 +1,13 @@
 import * as cmd from "./index";
+import bot from "ROOT";
+import Plugin, { PluginRawConfigs } from "@modules/plugin";
 import FileManagement from "@modules/file";
+import { RefreshCatch } from "@modules/management/refresh";
 import { Message, MessageScope, SendFunc } from "../message";
+import { Enquire, Order, Switch } from "./index";
 import { AuthLevel } from "../management/auth";
 import { BOT } from "../bot";
 import { trimStart, without } from "lodash";
-import { Enquire, Order, Switch } from "./index";
 
 type Optional<T> = {
 	-readonly [ key in keyof T ]?: T[key];
@@ -110,15 +113,17 @@ export abstract class BasicConfig {
 export default class Command {
 	public privates: CommandList;
 	public groups: CommandList;
-	public cmdKeys: string[];
-	public readonly pUnionReg: Record<AuthLevel, RegExp>;
-	public readonly gUnionReg: Record<AuthLevel, RegExp>;
+	public pUnionReg: Record<AuthLevel, RegExp>;
+	public gUnionReg: Record<AuthLevel, RegExp>;
+	public raws: ConfigType[] = [];
+	public readonly cmdKeys: string[];
 	
 	constructor( file: FileManagement ) {
 		this.privates = Command.initAuthObject();
 		this.groups   = Command.initAuthObject();
 		this.pUnionReg = Command.initAuthObject();
 		this.gUnionReg = Command.initAuthObject();
+		
 		this.cmdKeys = without( Object.keys( file.loadYAML( "commands" ) ), "tips" );
 	}
 	
@@ -129,8 +134,33 @@ export default class Command {
 		};
 	}
 	
+	public async refresh(): Promise<string> {
+		try {
+			this.privates = Command.initAuthObject();
+			this.groups   = Command.initAuthObject();
+			this.pUnionReg = Command.initAuthObject();
+			this.gUnionReg = Command.initAuthObject();
+			
+			const commands: BasicConfig[] = [];
+			for ( let name of Object.keys( PluginRawConfigs ) ) {
+				const raws: ConfigType[] = PluginRawConfigs[name];
+				const cmd: BasicConfig[] = await Plugin.parse( bot, raws, name );
+				commands.push( ...cmd );
+			}
+			this.add( commands );
+			return "指令配置重新加载完毕";
+		} catch ( error ) {
+			throw <RefreshCatch>{
+				log: ( <Error>error ).stack,
+				msg: "指令配置重新加载失败，请前往控制台查看日志"
+			};
+		}
+	}
+	
 	public add( commands: BasicConfig[] ): void {
+		this.raws = [];
 		commands.forEach( cmd => {
+			this.raws.push( cmd.raw );
 			for ( let auth = cmd.auth; auth <= AuthLevel.Master; auth++ ) {
 				if ( cmd.scope & MessageScope.Group ) {
 					this.groups[auth].push( cmd );

@@ -59,9 +59,20 @@ const interval: OrderConfig = {
 			"1秒=1000毫秒，不支持设置小数"
 };
 
+const refresh: OrderConfig = {
+	type: "order",
+	cmdKey: "adachi.hot-update-config",
+	desc: [ "刷新配置", "" ],
+	headers: [ "refresh" ],
+	regexps: [],
+	auth: AuthLevel.Master,
+	main: "refresh",
+	detail: "该指令用于重新加载在 /config 目录中的部分配置文件（setting 不会重新加载）"
+}
+
 export async function init(): Promise<PluginSetting> {
 	return {
 		pluginName: "@management",
-		cfgList: [ manager, ban, limit, interval ]
+		cfgList: [ manager, ban, limit, interval, refresh ]
 	}
 }

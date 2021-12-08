@@ -1,7 +1,6 @@
 import * as ApiType from "../types";
 import * as api from "./api";
 import bot from "ROOT";
-import { Note } from "../types";
 import { omit } from "lodash";
 import { cookies } from "../init";
 
@@ -201,7 +200,7 @@ export async function dailyNotePromise(
 	uid: string,
 	server: string,
 	cookie: string
-): Promise<Note | string> {
+): Promise<ApiType.Note | string> {
 	const { retcode, message, data } = await api.getDailyNoteInfo( parseInt( uid ), server, cookie );
 	if ( !ApiType.isNote( data ) ) {
 		return Promise.reject( ErrorMsg.UNKNOWN );
@@ -209,11 +208,53 @@ export async function dailyNotePromise(
 	
 	return new Promise( ( resolve, reject ) => {
 		if ( retcode !== 0 ) {
-			reject( ErrorMsg.FORM_MESSAGE+ message );
+			reject( ErrorMsg.FORM_MESSAGE + message );
 			return;
 		}
 		
 		bot.logger.info( `用户 ${ uid } 的实时便笺数据查询成功` );
+		resolve( data );
+	} );
+}
+
+export async function signInInfoPromise(
+	uid: string,
+	server: string,
+	cookie: string
+): Promise<ApiType.SignInInfo | string> {
+	const { retcode, message, data } = await api.getSignInInfo( uid, server, cookie );
+	if ( !ApiType.isSignInInfo( data ) ) {
+		return Promise.reject( ErrorMsg.UNKNOWN );
+	}
+	
+	return new Promise( ( resolve, reject ) => {
+		if ( retcode !== 0 ) {
+			reject( ErrorMsg.FORM_MESSAGE + message );
+			return;
+		}
+		
+		bot.logger.info( `用户 ${ uid } 的米游社签到数据查询成功` );
+		resolve( data );
+	} );
+}
+
+export async function signInResultPromise(
+	uid: string,
+	server: string,
+	cookie: string
+): Promise<ApiType.SignInResult | string> {
+	const { retcode, message, data } = await api.mihoyoBBSSignIn( uid, server, cookie );
+	if ( !ApiType.isSignInResult( data ) ) {
+		return Promise.reject( ErrorMsg.UNKNOWN );
+	}
+	
+	return new Promise( ( resolve, reject ) => {
+		if ( retcode !== 0 ) {
+			reject( ErrorMsg.FORM_MESSAGE + message );
+			return;
+		}
+		
+		bot.logger.info( `用户 ${ uid } 今日米游社签到成功` );
 		resolve( data );
 	} );
 }

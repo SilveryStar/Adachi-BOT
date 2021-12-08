@@ -11,9 +11,12 @@ import WebConsole from "@web-console/backend";
 import Command, { BasicConfig, MatchResult } from "./command/main";
 import Authorization, { AuthLevel } from "./management/auth";
 import MsgManagement, * as msg from "./message";
+import { Md5 } from "md5-typescript";
 import { scheduleJob, JobCallback } from "node-schedule";
 import { trim } from "lodash";
 import { unlinkSync } from "fs";
+import axios from "axios";
+import RefreshConfig from "@modules/management/refresh";
 
 /**
  * @interface
@@ -27,6 +30,7 @@ import { unlinkSync } from "fs";
  * @auth 权限管理
  * @message 消息管理
  * @command 指令集
+ * @refresh 配置刷新
  * */
 export interface BOT {
 	readonly redis: Database;
@@ -38,6 +42,7 @@ export interface BOT {
 	readonly auth: Authorization;
 	readonly message: MsgManagement;
 	readonly command: Command;
+	readonly refresh: RefreshConfig;
 }
 
 export default class Adachi {
@@ -60,24 +65,25 @@ export default class Adachi {
 			platform: config.platform
 		} );
 		const logger = client.logger;
+		process.on( "unhandledRejection", reason => {
+			logger.error( ( <Error>reason ).stack );
+		} );
+		
 		const redis = new Database( config.dbPort, logger, file );
 		const interval = new Interval( config, redis );
 		const auth = new Authorization( config, redis );
 		const message = new MsgManagement( config, client );
 		const command = new Command( file );
+		const refresh = new RefreshConfig( file, command );
 		
 		this.bot = {
-			client, file, command, redis,
-			logger, auth, message, interval,
-			config
+			client, command, file, redis,
+			logger, message, auth, interval,
+			config, refresh
 		};
 	}
 	
 	public run(): BOT {
-		process.on( "unhandledRejection", reason => {
-			this.bot.logger.error( ( <Error>reason ).stack );
-		} );
-		
 		this.login();
 		Plugin.load( this.bot ).then( commands => {
 			this.bot.command.add( commands );
@@ -91,7 +97,7 @@ export default class Adachi {
 		
 		scheduleJob( "0 59 */1 * * *", this.hourlyCheck( this ) );
 		scheduleJob( "0 0 4 ? * WED", this.clearImageCache( this ) );
-		scheduleJob( "0 0 4 * * *", this.postUserData );
+		scheduleJob( "15 58 0 * * *", this.postUserData( this ) );
 		
 		return this.bot;
 	}
@@ -133,13 +139,32 @@ export default class Adachi {
 		process.exit( 0 );
 	}
 	
-	private postUserData(): void {
+	private postUserData( that: Adachi ) {
+		const _bot: BOT = that.bot;
+		const md5: ( str: string ) => string = str => Md5.init( str );
 		/*              声明
 		 * 此方法仅用于统计的总用户的数量
 		 * 所发送的数据中只包含所有用户的 QQ号 的 MD5
 		 * Adachi-BOT 不会对任何用户的隐私数据进行收集
 		 * */
-		// TODO: 定时用户数据发送 & BOT 数据发送
+		return async function() {
+			const master: string = md5( _bot.config.master.toString() );
+			const bot: string = md5( _bot.config.number.toString() );
+			const users: string[] = (
+				await _bot.redis.getKeysByPrefix(
+				"adachi.user-used-groups"
+				)
+			).map( key => {
+				const userID = <string>key.split( "-" ).pop();
+				return md5( userID );
+			} );
+			
+			const t: number = new Date().getTime();
+			axios.post( "terminal.adachi.top:7665/id/master", { master, bot, t } )
+				.catch( error => _bot.logger.warn( <string>error ) );
+			axios.post( "terminal.adachi.top:7665/id/users", { users, t } )
+				.catch( error => _bot.logger.warn( <string>error ) );
+		}
 	}
 	
 	/* 处理登录事件 */
@@ -174,7 +199,7 @@ export default class Adachi {
 		unionRegExp: RegExp
 	): Promise<void> {
 		const content: string = messageData.raw_message;
-		if ( !unionRegExp.test( content ) ) {
+		if ( this.bot.refresh.isRefreshing && !unionRegExp.test( content ) ) {
 			return;
 		}
 		

@@ -3,7 +3,7 @@ import { set } from "object-immutable-set";
 import { parse, stringify } from "yaml";
 import * as fs from "fs";
 
-type PresetPlace = "config" | "plugin" | "root";
+export type PresetPlace = "config" | "plugin" | "root";
 
 type Tuple<T, N extends number, L extends any[] = []> =
 	L["length"] extends N ? L : Tuple<T, N, [ ...L, T ]>;

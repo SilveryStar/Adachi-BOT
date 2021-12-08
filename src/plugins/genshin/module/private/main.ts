@@ -8,6 +8,7 @@ import { AbyQueryService } from "./abyss";
 import { Md5 } from "md5-typescript";
 import { pull } from "lodash";
 import { getRegion } from "#genshin/utils/region";
+import { SignInService } from "#genshin/module/private/sign";
 
 export interface Service {
 	parent: Private;
@@ -69,6 +70,7 @@ export class Private {
 		
 		this.services = {
 			note: new NoteService( this ),
+			sign: new SignInService( this ),
 			mysQuery: new MysQueryService( this ),
 			abyQuery: new AbyQueryService( this )
 		};

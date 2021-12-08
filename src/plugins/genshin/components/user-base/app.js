@@ -146,7 +146,6 @@ export default defineComponent( {
 			hall: homeData( "绘绮庭" )
 		};
 		
-		console.log( data );
 		return {
 			data, nameCard,
 			character,
