@@ -1,13 +1,14 @@
 import request from "./requests";
-import getDS from "./ds";
 import { parse } from "yaml";
 import { toCamelCase } from "./camel-case";
 import { set } from "lodash";
+import { guid } from "../utils/guid";
+import { getDS, getDS2 } from "./ds";
 import { ResponseBody } from "../types/response";
 import { SlipDetail } from "../module/slip";
 import { DailyMaterial } from "../module/daily";
-import { InfoResponse } from "../types";
 import { FortuneData } from "../module/almanac";
+import { InfoResponse } from "../types";
 import fetch from "node-fetch";
 
 const __API = {
@@ -25,7 +26,9 @@ const __API = {
 	FETCH_ALIAS_SET: "https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/alias/alias.yml",
 	FETCH_DAILY_MAP: "https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/daily/daily.yml",
 	FETCH_ALMANAC: "https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/almanac/almanac.yml",
-	FETCH_CHARACTER_ID: "https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/character/id.yml"
+	FETCH_CHARACTER_ID: "https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/character/id.yml",
+	FETCH_SIGN_IN: "https://api-takumi.mihoyo.com/event/bbs_sign_reward/sign",
+	FETCH_SIGN_INFO: "https://api-takumi.mihoyo.com/event/bbs_sign_reward/info"
 };
 
 const HEADERS = {
@@ -37,6 +40,7 @@ const HEADERS = {
 	"Cookie": ""
 };
 
+/* mihoyo BBS API */
 export async function getBaseInfo( mysID: number, cookie: string ): Promise<ResponseBody> {
 	const query = { uid: mysID };
 	return new Promise( ( resolve, reject ) => {
@@ -208,6 +212,7 @@ export async function getWishDetail( wishID: number ): Promise<any> {
 	} );
 }
 
+/* OSS API */
 export async function getInfo( name: string ): Promise<InfoResponse | string> {
 	const charLinkWithName: string = __API.FETCH_INFO.replace( "$", encodeURI( name ) );
 	
@@ -289,6 +294,78 @@ export async function getCharacterID(): Promise<Record<string, number>> {
 		fetch( __API.FETCH_CHARACTER_ID )
 			.then( async ( result: Response ) => {
 				resolve( parse( await result.text() ) );
+			} );
+	} );
+}
+
+/* 参考 https://github.com/DGP-Studio/DGP.Genshin.MiHoYoAPI/blob/main/Sign/SignInProvider.cs */
+const activityID: string = "e202009291139501";
+const SIGN_HEADERS = {
+	"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) miHoYoBBS/2.10.1",
+	"Referer": "https://webstatic.mihoyo.com/bbs/event/signin-ys/index.html" +
+		       `?bbs_auth_required=true&act_id=${ activityID }&utm_source=bbs&utm_medium=mys&utm_campaign=icon`,
+	"Accept": "application/json",
+	"Accept-Encoding": "gzip, deflate",
+	"X-Requested-With": "com.mihoyo.hyperion",
+	"x-rpc-app_version": "2.10.1",
+	"x-rpc-client_type": 5,
+	"x-rpc-device_id": guid()
+};
+
+/* Sign In API */
+export async function mihoyoBBSSignIn( uid: string, region: string, cookie: string ): Promise<ResponseBody> {
+	const body = {
+		act_id: activityID,
+		uid, region
+	};
+
+	return new Promise( ( resolve, reject ) => {
+		request( {
+			method: "POST",
+			url: __API.FETCH_SIGN_IN,
+			json: true,
+			body,
+			headers: {
+				...SIGN_HEADERS,
+				"content-type": "application/json",
+				"DS": getDS2(),
+				"Cookie": cookie
+			}
+		} )
+			.then( ( result ) => {
+				const resp = toCamelCase( result );
+				const data: ResponseBody = set( resp, "data.type", "sign-in-result" )
+				resolve( data );
+			} )
+			.catch( ( reason ) => {
+				reject( reason );
+			} );
+	} );
+}
+
+export async function getSignInInfo( uid: string, region: string, cookie: string ): Promise<ResponseBody> {
+	const query = {
+		act_id: activityID,
+		region, uid
+	};
+
+	return new Promise( ( resolve, reject ) => {
+		request( {
+			method: "GET",
+			url: __API.FETCH_SIGN_INFO,
+			qs: query,
+			headers: {
+				...SIGN_HEADERS,
+				"Cookie": cookie
+			}
+		} )
+			.then( ( result ) => {
+				const resp = toCamelCase( JSON.parse( result ) );
+				const data: ResponseBody = set( resp, "data.type", "sign-in-info" )
+				resolve( data );
+			} )
+			.catch( ( reason ) => {
+				reject( reason );
 			} );
 	} );
 }

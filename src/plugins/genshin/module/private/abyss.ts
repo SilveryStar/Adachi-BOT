@@ -1,7 +1,10 @@
-import { Private, Service } from "#genshin/module/private/main";
+import { Private, Service } from "./main";
 
 export class AbyQueryService implements Service {
 	public readonly parent: Private;
+	
+	public FixedField = <const>"abyQuery";
+	static FixedField = <const>"abyQuery";
 	
 	constructor( p: Private ) {
 		this.parent = p;

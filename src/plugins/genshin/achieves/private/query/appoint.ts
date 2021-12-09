@@ -17,7 +17,7 @@ export async function main( { sendMessage, messageData }: InputParameter ): Prom
 		const result: NameResult = getRealName( name );
 		if ( result.definite ) {
 			const realName: string = <string>result.info;
-			await ( <MysQueryService>single.services.mysQuery ).modifyAppointChar(
+			await ( <MysQueryService>single.services[ MysQueryService.FixedField ] ).modifyAppointChar(
 				characterID.map[realName].toString()
 			);
 			await sendMessage( "卡片头像指定成功" );

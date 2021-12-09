@@ -5,15 +5,39 @@ import { Order } from "@modules/command";
 import { NoteService } from "./note";
 import { MysQueryService } from "./mys";
 import { AbyQueryService } from "./abyss";
+import { SignInService } from "./sign";
 import { Md5 } from "md5-typescript";
 import { pull } from "lodash";
 import { getRegion } from "#genshin/utils/region";
 
 export interface Service {
 	parent: Private;
+	FixedField: string;
 	getOptions(): any;
 	initTest(): Promise<string>;
 }
+
+/* 获取元组第一位 */
+type TupleHead<T extends any[]> = T[0];
+/* 弹出元组第一位 */
+type TupleShift<T extends Service[]> = T extends [ infer L, ... infer R ] ? R : never;
+/* 合并交叉类型 */
+type Merge<T> = { [ P in keyof T ]: T[P] };
+/* 向接口中添加新字段 */
+type ObjectExpand<T, U extends Service> = Merge<
+	{ [ P in keyof T ]: T[P] } &
+	{ [ P in U["FixedField"] ]: U }
+>;
+/* 定义扩展私人服务的基本接口 */
+type BasicExpand = Record<string, Service>;
+/* 递归定义扩展私人服务类型 */
+type ExpandedService<T extends any[], E extends BasicExpand = {}> = T extends []
+	? E
+	: ExpandedService<TupleShift<T>, ObjectExpand<E, TupleHead<T>>>;
+/* 定义扩展私有服务 */
+type ServiceTuple = [ NoteService, SignInService, MysQueryService, AbyQueryService ];
+/* 获取扩展私人服务类型 */
+type Services = ExpandedService<ServiceTuple>;
 
 export class UserInfo {
 	public readonly uid: string;
@@ -39,13 +63,13 @@ const dbPrefix: string = "silvery-star.private-";
 * */
 export class Private {
 	public readonly setting: UserInfo;
-	public readonly services: Record<string, Service>;
+	public readonly services: Services;
 	public readonly sendMessage: SendFunc;
 	public readonly dbKey: string;
 	
 	public options: Record<string, any>;
 	
-	static parse( content: string ): any {
+	static parse( content: string ): Private {
 		const data = JSON.parse( content );
 		if ( !data.setting.mysID ) {
 			const reg = new RegExp( /.*?ltuid=([0-9]+).*?/g );
@@ -59,18 +83,22 @@ export class Private {
 		);
 	}
 	
-	constructor( uid: string, cookie: string, userID: number, mysID: number, options?: Record<string, any> ) {
+	constructor(
+		uid: string, cookie: string,
+		userID: number, mysID: number,
+		options?: Record<string, any>
+	) {
 		this.options = options || {};
 		this.setting = new UserInfo( uid, cookie, userID, mysID );
 		this.sendMessage = bot.message.getSendMessageFunc( userID, MessageType.Private );
 		
 		const md5: string = Md5.init( `${ userID }-${ uid }` );
 		this.dbKey = dbPrefix + md5;
-		
 		this.services = {
-			note: new NoteService( this ),
-			mysQuery: new MysQueryService( this ),
-			abyQuery: new AbyQueryService( this )
+			[ NoteService.FixedField ]:     new NoteService( this ),
+			[ SignInService.FixedField ]:   new SignInService( this ),
+			[ MysQueryService.FixedField ]: new MysQueryService( this ),
+			[ AbyQueryService.FixedField ]: new AbyQueryService( this )
 		};
 		this.options = this.globalOptions();
 	}
@@ -102,16 +130,16 @@ export class PrivateClass {
 	constructor() {
 		this.list = [];
 		
-		bot.redis.getKeysByPrefix( dbPrefix )
-			.then( async ( keys: string[] ) => {
-				for ( let k of keys ) {
-					const data = await bot.redis.getString( k );
-					if ( !data ) {
-						continue;
-					}
-					this.list.push( Private.parse( data ) );
+		bot.redis.getKeysByPrefix( dbPrefix ).then( async ( keys: string[] ) => {
+			for ( let k of keys ) {
+				const data = await bot.redis.getString( k );
+				if ( !data ) {
+					continue;
 				}
-			} );
+				const account = Private.parse( data );
+				this.list.push( account );
+			}
+		} );
 	}
 	
 	public getUserPrivateList( userID: number ): Private[] {

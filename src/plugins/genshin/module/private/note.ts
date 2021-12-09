@@ -19,10 +19,12 @@ export class NoteService implements Service {
 	private globalData: Note | string = "";
 	private readonly feedbackCatch: () => Promise<void>;
 	
-	static FixedField: string = "note";
+	public FixedField = <const>"note";
+	static FixedField = <const>"note";
 	
 	constructor( p: Private ) {
-		const options: Record<string, any> = p.options.note || {};
+		const options: Record<string, any> =
+			p.options[ NoteService.FixedField ] || {};
 		
 		this.parent = p;
 		this.timePoint = options.timePoint || [ 120, 155 ];

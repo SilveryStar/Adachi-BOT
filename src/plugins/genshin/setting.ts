@@ -261,6 +261,17 @@ const privateAbyssQuery: SwitchConfig = {
 	offKey: "laby"
 };
 
+const privateToggleSign: OrderConfig = {
+	type: "order",
+	cmdKey: "silvery-star.private-toggle-sign",
+	desc: [ "米游社签到", "[账户签到]" ],
+	headers: [ "signin" ],
+	regexps: [ "\\d+" ],
+	main: "achieves/private/sign-in/main",
+	scope: MessageScope.Private,
+	detail: "该指令用于切换米游社签到的开/关状态"
+}
+
 export default <PluginSetting>{
 	pluginName: "genshin",
 	cfgList: [
@@ -269,7 +280,7 @@ export default <PluginSetting>{
 		slip, uidQuery, information, domain, almanac,
 		privateNowNote, privateNoteEvent, privateSubList,
 		privateConfirm, privateSubscribe, privateCancel,
-		privateMysQuery, privateAbyssQuery,
-		privateMysSetAppoint
+		privateAbyssQuery, privateMysQuery,
+		privateToggleSign, privateMysSetAppoint,
 	]
 };

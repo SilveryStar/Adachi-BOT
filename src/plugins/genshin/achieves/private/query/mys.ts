@@ -4,6 +4,7 @@ import { baseInfoPromise, characterInfoPromise, detailInfoPromise } from "#gensh
 import { render } from "#genshin/utils/render";
 import { getPrivateAccount } from "#genshin/utils/private";
 import { config } from "#genshin/init";
+import { MysQueryService } from "#genshin/module/private/mys";
 
 export async function main( { sendMessage, messageData, auth }: InputParameter ): Promise<void> {
 	const { user_id: userID, raw_message: idMsg } = messageData;
@@ -29,7 +30,7 @@ export async function main( { sendMessage, messageData, auth }: InputParameter )
 		qq: userID,
 		style: config.cardWeaponStyle,
 		profile: config.cardProfile,
-		appoint: info.options.mysQuery.appoint
+		appoint: info.options[ MysQueryService.FixedField ].appoint
 	} );
 	await sendMessage( image );
 }

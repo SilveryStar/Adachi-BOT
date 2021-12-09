@@ -12,7 +12,7 @@ async function getNowNote( userID: number ): Promise<string[]> {
 	
 	const imageList: string[] = [];
 	for ( let a of accounts ) {
-		const data: string = await ( <NoteService>a.services.note ).toBase64();
+		const data: string = await ( <NoteService>a.services[ NoteService.FixedField ] ).toBase64();
 		const image: string = await render( "note", { data } );
 		imageList.push( image );
 	}

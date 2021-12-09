@@ -1,13 +1,15 @@
-import { Private, Service } from "#genshin/module/private/main";
+import { Private, Service } from "./main";
 
 export class MysQueryService implements Service {
 	public readonly parent: Private;
 	public appoint: string;
 	
-	static FixedField: string = "mysQuery";
+	public FixedField = <const>"mysQuery";
+	static FixedField = <const>"mysQuery";
 	
 	constructor( p: Private ) {
-		const options: Record<string, any> = p.options.mysQuery || {};
+		const options: Record<string, any> =
+			p.options[ MysQueryService.FixedField ] || {};
 		
 		this.parent = p;
 		this.appoint = options.appoint || "empty";

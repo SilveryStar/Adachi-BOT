@@ -7,4 +7,8 @@
         <a href="https://github.com/SilveryStar/Adachi-BOT/issues/70">功能征集</a>
     </div>
     <small>&gt; 原神Q群助手 &lt;</small>
+    <div>
+        <br/>
+        <a href="https://github.com/SilveryStar/Adachi-BOT/issues/137">~ QQ频道上线 ~</a>
+    </div>
 </div>

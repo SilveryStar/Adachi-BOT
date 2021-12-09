@@ -60,17 +60,25 @@ export default class BotConfig {
 		this.atUser = config.atUser;
 		this.platform = config.platform;
 		this.password = config.password;
-		this.inviteAuth = config.inviteAuth;
 		this.groupIntervalTime = config.groupIntervalTime;
 		this.privateIntervalTime = config.privateIntervalTime;
 		this.countThreshold = config.countThreshold;
-		this.helpMessageStyle = config.helpMessageStyle;
-		this.logLevel = config.logLevel;
 		this.webConsole = {
 			enable: config.webConsole.enable,
 			consolePort: config.webConsole.consolePort,
 			tcpLoggerPort: config.webConsole.tcpLoggerPort,
 			jwtSecret: config.webConsole.jwtSecret
 		}
+		
+		this.inviteAuth = config.inviteAuth === "manager"
+			? AuthLevel.Manager : AuthLevel.Master;
+		
+		const helpList: string[] = [ "message", "forward", "xml" ];
+		this.helpMessageStyle = helpList.includes( config.helpMessageStyle )
+			? config.helpMessageStyle : "message";
+		
+		const logLevelList: string[] = [ "trace", "debug", "info", "warn", "error", "fatal", "mark", "off" ];
+		this.logLevel = logLevelList.includes( config.logLevel )
+			? config.logLevel : "info";
 	}
 }
