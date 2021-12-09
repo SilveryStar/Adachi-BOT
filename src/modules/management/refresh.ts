@@ -30,8 +30,8 @@ export default class RefreshConfig {
 	
 	public registerRefreshableFile(
 		fileName: string,
-		place: PresetPlace,
-		target: RefreshTarget
+		target: RefreshTarget,
+		place: PresetPlace = "config"
 	): void {
 		const path: string = this.file.getFilePath( fileName, place );
 		this.include.push( { path, target } );

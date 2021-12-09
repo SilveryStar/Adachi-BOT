@@ -1,9 +1,9 @@
 import { Logger } from "log4js";
-import { Config } from "#genshin/types";
+import GenshinConfig from "./module/config";
 import express from "express";
 import * as r from "./routes"
 
-export function createServer( config: Config, logger: Logger ): void {
+export function createServer( config: GenshinConfig, logger: Logger ): void {
 	const app = express();
 	app.use( express.static( __dirname ) );
 	

@@ -41,7 +41,9 @@ export async function baseInfoPromise( userID: number, mysID: number ): Promise<
 }
 
 export async function detailInfoPromise(
-	userID: number, server: string, cookie: string = ""
+	userID: number,
+	server: string,
+	cookie: string = ""
 ): Promise<string | number[]> {
 	const UID: string = await bot.redis.getString( `silvery-star.user-querying-id-${ userID }` );
 	if ( UID.length === 0 ) {
@@ -52,8 +54,10 @@ export async function detailInfoPromise(
 	const uid: number = parseInt( UID );
 
 	if ( detail.stats && uid === parseInt( detail.uid ) ) {
-		bot.logger.info( `用户 ${ uid } 在一小时内进行过查询操作，将返回上次数据` );
-		return Promise.reject( "gotten" );
+		if ( !cookie || ( detail.avatars && detail.avatars.length > 8 ) ) {
+			bot.logger.info( `用户 ${ uid } 在一小时内进行过查询操作，将返回上次数据` );
+			return Promise.reject( "gotten" );
+		}
 	}
 	
 	if ( cookie.length === 0 ) {

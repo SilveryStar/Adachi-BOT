@@ -13,7 +13,7 @@ export async function main( { sendMessage, messageData }: InputParameter ): Prom
 	if ( typeof single === "string" ) {
 		await sendMessage( single );
 	} else {
-		await ( <NoteService>single.services.note ).modifyTimePoint( list );
+		await single.services[ NoteService.FixedField ].modifyTimePoint( list );
 		await sendMessage( "推送时间修改成功" );
 	}
 }

@@ -11,6 +11,6 @@ export async function main( { messageData, sendMessage }: InputParameter ): Prom
 	if ( typeof single === "string" ) {
 		await sendMessage( single );
 	} else {
-		await ( <SignInService> single.services.sign ).toggleEnableStatus();
+		await ( <SignInService> single.services[ SignInService.FixedField ] ).toggleEnableStatus();
 	}
 }

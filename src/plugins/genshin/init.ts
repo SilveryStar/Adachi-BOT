@@ -1,13 +1,14 @@
-import { Config } from "./types";
 import { PluginSetting } from "@modules/plugin";
 import { BOT } from "@modules/bot";
+import GenshinConfig from "#genshin/module/config";
 import pluginSetting from "./setting";
 import FileManagement from "@modules/file";
+import bot from "ROOT";
 import * as m from "./module";
 import { createBrowser } from "./utils/render";
 import { createServer } from "./server";
 
-export let config: Config;
+export let config: GenshinConfig;
 export const artClass = new m.ArtClass();
 export const cookies = new m.Cookies();
 export const typeData = new m.TypeData();
@@ -19,45 +20,39 @@ export const slipClass = new m.SlipClass();
 export const privateClass = new m.PrivateClass();
 export const characterID = new m.CharacterId();
 
-function loadConfig( file: FileManagement ): Config {
-	const defaultConfig: Config = {
-		cardWeaponStyle: "normal",
-		cardProfile: "random",
-		serverPort: 58612
-	};
-	
-	function load(): Config {
-		const config: any = file.loadYAML( "genshin" );
-
-		/* 检查 defaultConfig 是否更新 */
-		const keysNum = o => Object.keys( o ).length;
-		if ( keysNum( config ) !== keysNum( defaultConfig ) ) {
-			const c: any = {};
-			const keys: string[] = Object.keys( defaultConfig );
-			for ( let k of keys ) {
-				c[k] = config[k] ? config[k] : defaultConfig[k];
-			}
-			file.writeYAML( "genshin", c );
-			return c;
-		}
-		
-		return config;
-	}
+function loadConfig( file: FileManagement ): GenshinConfig {
+	const initCfg = GenshinConfig.init;
 	
 	const path: string = file.getFilePath( "genshin.yml" );
 	const isExist: boolean = file.isExist( path );
 	if ( !isExist ) {
-		file.createYAML( "genshin", defaultConfig );
-		return defaultConfig;
-	} else {
-		return load();
+		file.createYAML( "genshin", initCfg );
+		return new GenshinConfig( initCfg );
 	}
+	
+	const config: any = file.loadYAML( "genshin" );
+	const keysNum = o => Object.keys( o ).length;
+	
+	/* 检查 defaultConfig 是否更新 */
+	if ( keysNum( config ) !== keysNum( initCfg ) ) {
+		const c: any = {};
+		const keys: string[] = Object.keys( initCfg );
+		for ( let k of keys ) {
+			c[k] = config[k] ? config[k] : initCfg[k];
+		}
+		file.writeYAML( "genshin", c );
+		return c;
+	}
+	return config;
 }
 
 export async function init( { file, logger }: BOT ): Promise<PluginSetting> {
 	config = loadConfig( file );
 	createServer( config, logger );
 	await createBrowser();
+	
+	bot.refresh.registerRefreshableFile( "genshin", config );
+	bot.refresh.registerRefreshableFile( "cookies", cookies );
 	
 	return pluginSetting;
 }
