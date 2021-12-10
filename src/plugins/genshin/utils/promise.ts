@@ -10,8 +10,14 @@ export enum ErrorMsg {
 	FORM_MESSAGE = "米游社接口报错: "
 }
 
-export async function baseInfoPromise( userID: number, mysID: number ): Promise<string> {
-	const { retcode, message, data } = await api.getBaseInfo( mysID, cookies.get() );
+export async function baseInfoPromise(
+	userID: number,
+	mysID: number,
+	cookie: string = ""
+): Promise<string> {
+	const { retcode, message, data } = await api.getBaseInfo(
+		mysID, cookie ? cookie : cookies.get()
+	);
 	if ( !ApiType.isBBS( data ) ) {
 		return Promise.reject( ErrorMsg.UNKNOWN );
 	}

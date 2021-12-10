@@ -16,7 +16,7 @@ export async function main( { sendMessage, messageData, auth }: InputParameter )
 	
 	const { cookie, mysID } = info.setting;
 	try {
-		const server: string = await baseInfoPromise( userID, mysID );
+		const server: string = await baseInfoPromise( userID, mysID, cookie );
 		const charIDs = <number[]>await detailInfoPromise( userID, server, cookie );
 		await characterInfoPromise( userID, server, charIDs, cookie );
 	} catch ( error ) {
