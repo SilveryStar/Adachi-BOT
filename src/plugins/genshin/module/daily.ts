@@ -145,13 +145,13 @@ export class DailyClass {
 	private async getUserSubList( userID: number ): Promise<DailySet | undefined> {
 		const dbKey: string = `silvery-star.daily-sub-${ userID }`;
 		const subList: string[] = await bot.redis.getList( dbKey );
-		if ( subList.length === 0 ) {
-			return undefined;
-		}
 		if ( this.allData.length === 0 ) {
 			const week: number = new Date().getDay();
 			const set: string[] = this.getDailySet( week );
 			await this.getAllData( week, set );
+		}
+		if ( subList.length === 0 ) {
+			return undefined;
 		}
 		
 		const privateSub: InfoResponse[] = [];
