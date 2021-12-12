@@ -2,10 +2,12 @@ import bot from "ROOT";
 import { InputParameter, Order } from "@modules/command";
 import { Private } from "#genshin/module/private/main";
 import { AuthLevel } from "@modules/management/auth";
+import { Artifact } from "#genshin/types/character";
 import { NameResult, getRealName } from "../utils/name";
 import { singleCharacterInfoPromise } from "../utils/promise";
 import { render } from "../utils/render";
 import { getRegion } from "#genshin/utils/region";
+import { omit } from "lodash";
 import { characterID, privateClass } from "#genshin/init";
 
 interface QueryParam {
@@ -90,8 +92,13 @@ export async function main(
 	
 	try {
 		const data = await singleCharacterInfoPromise( parseInt( query.uid ), server, charID );
+		const artifacts: Artifact[] = data.reliquaries;
+		
 		const image: string = await render( "character", {
-			data: Buffer.from( JSON.stringify( data ) ).toString( "base64" )
+			data: Buffer.from( JSON.stringify( {
+				...data,
+				reliquaries: artifacts.map( el => omit( el, [ "set" ] ) )
+			} ) ).toString( "base64" )
 		} );
 		await sendMessage( image );
 	} catch ( error ) {

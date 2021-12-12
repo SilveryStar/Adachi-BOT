@@ -16,7 +16,11 @@ interface RefreshableSetting {
 	target: RefreshTarget;
 }
 
-export default class RefreshConfig {
+interface RefreshConfigMethod {
+	registerRefreshableFile( fileName: string, target: RefreshTarget, place?: PresetPlace ): void;
+}
+
+export default class RefreshConfig implements RefreshConfigMethod {
 	private readonly file: FileManagement;
 	private readonly include: RefreshableSetting[];
 	public isRefreshing: boolean;

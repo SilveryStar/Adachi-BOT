@@ -6,8 +6,9 @@ import Database from "./database";
 import Interval from "./management/interval";
 import FileManagement from "./file";
 import Plugin from "./plugin";
-import WebConfiguration from "@modules/logger";
+import WebConfiguration from "./logger";
 import WebConsole from "@web-console/backend";
+import RefreshConfig from "./management/refresh";
 import Command, { BasicConfig, MatchResult } from "./command/main";
 import Authorization, { AuthLevel } from "./management/auth";
 import MsgManagement, * as msg from "./message";
@@ -15,8 +16,7 @@ import { Md5 } from "md5-typescript";
 import { scheduleJob, JobCallback } from "node-schedule";
 import { trim } from "lodash";
 import { unlinkSync } from "fs";
-import axios from "axios";
-import RefreshConfig from "@modules/management/refresh";
+import axios, { AxiosError } from "axios";
 
 /**
  * @interface
@@ -142,6 +142,7 @@ export default class Adachi {
 	private postUserData( that: Adachi ) {
 		const _bot: BOT = that.bot;
 		const md5: ( str: string ) => string = str => Md5.init( str );
+		const getErrInfo = ( err: AxiosError ) => <string>err.response?.data;
 		/*              声明
 		 * 此方法仅用于统计的总用户的数量
 		 * 所发送的数据中只包含所有用户的 QQ号 的 MD5
@@ -160,10 +161,10 @@ export default class Adachi {
 			} );
 			
 			const t: number = new Date().getTime();
-			axios.post( "terminal.adachi.top:7665/id/master", { master, bot, t } )
-				.catch( error => _bot.logger.warn( <string>error ) );
-			axios.post( "terminal.adachi.top:7665/id/users", { users, t } )
-				.catch( error => _bot.logger.warn( <string>error ) );
+			axios.post( "http://terminal.adachi.top:7665/id/master", { master, bot, t } )
+				 .catch( error => _bot.logger.warn( getErrInfo( error ) ) );
+			axios.post( "http://terminal.adachi.top:7665/id/users", { users, t } )
+				 .catch( error => _bot.logger.warn( getErrInfo( error ) ) );
 		}
 	}
 	

@@ -79,14 +79,14 @@ interface Weapon {
  * @level 圣遗物等级
  * @affixes 套装效果
  * */
-interface Artifact {
+export interface Artifact {
 	id: number;
 	name: string;
 	icon: string;
 	pos: number;
 	rarity: number;
 	level: number;
-	affixes: ArtifactSet[];
+	set: ArtifactSet[];
 	posName: string;
 }
 
