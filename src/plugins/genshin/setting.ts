@@ -277,7 +277,7 @@ const privateAbyssQuery: SwitchConfig = {
 const privateToggleSign: OrderConfig = {
 	type: "order",
 	cmdKey: "silvery-star.private-toggle-sign",
-	desc: [ "米游社签到", "[账户签到]" ],
+	desc: [ "米游社签到", "[账户编号]" ],
 	headers: [ "signin" ],
 	regexps: [ "\\d+" ],
 	main: "achieves/private/sign-in/main",

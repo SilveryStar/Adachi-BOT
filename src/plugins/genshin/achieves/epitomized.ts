@@ -31,7 +31,7 @@ export async function main(
 		const msg: string[] = [ "无定轨", ...upWeapon ]
 			.map( ( el, i ) => {
 				return `\n ${ i === user ? "*" : "-" } ${ el }` +
-					      `${ i === user ? ` (${ epit }/2)` : "" }`
+					      `${ i === user && i > 0 ? ` (${ epit }/2)` : "" }`
 			} );
 		await sendMessage( "当前定轨:" + msg.join( "" ) );
 	} else {
