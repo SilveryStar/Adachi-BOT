@@ -97,7 +97,7 @@ export default class Adachi {
 		
 		scheduleJob( "0 59 */1 * * *", this.hourlyCheck( this ) );
 		scheduleJob( "0 0 4 ? * WED", this.clearImageCache( this ) );
-		scheduleJob( "15 58 0 * * *", this.postUserData( this ) );
+		scheduleJob( "15 58 23 * * *", this.postUserData( this ) );
 		
 		return this.bot;
 	}

@@ -25,7 +25,7 @@ export default defineComponent( {
 		} );
 		
 		const urlParams = parseURL( location.search );
-		const data = request( `/api/wish?qq=${ urlParams.qq }` );
+		const data = request( `/api/wish/result?qq=${ urlParams.qq }` );
 		const weapon = request( "/api/wish/config?type=weapon" );
 		const character = request( "/api/wish/config?type=character" );
 		

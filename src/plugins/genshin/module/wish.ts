@@ -1,13 +1,19 @@
 import bot from "ROOT";
+import { updateWish, WishData } from "../utils/update";
 import { scheduleJob } from "node-schedule";
-import { updateWish } from "../utils/update";
 import { randomInt } from "../utils/random";
+import { wishClass } from "#genshin/init";
 
 export interface WishResult {
 	type: string;
 	name: string;
 	rank: number;
 	times?: number;
+}
+
+export interface WishTotalSet {
+	result: WishResult[];
+	total: number;
 }
 
 export interface WishInfo {
@@ -25,8 +31,28 @@ export interface WishDetail {
 	threeStar: WishInfo[];
 }
 
+export interface DBEpitData {
+	id?: string;
+	set?: string;
+}
+
 export type WishDetailNull = WishDetail | null;
+export type checkFn = ( res: WishResult ) => boolean;
 type probFn = ( counter: number, rank: number ) => number;
+type wishMethod = [ probFn, WishDetail, string ];
+
+export class EpitomizedPath {
+	static async getUser( dbKey: string ): Promise<number> {
+		const nowWeaponID: string = wishClass.getWeaponID();
+		const epit: DBEpitData = await bot.redis.getHash( dbKey );
+		if ( epit.id === undefined || epit.id !== nowWeaponID ) {
+			epit.id = nowWeaponID;
+			epit.set = "0";
+		}
+		
+		return parseInt( <string>epit.set );
+	}
+}
 
 class Wish {
 	/* 数据参考: https://www.bilibili.com/read/cv10468091
@@ -73,12 +99,19 @@ class Wish {
 	private readonly table: WishDetail;
 	private readonly type: string;
 	private readonly dbKey: string;
+	private readonly epit: string;
 	
 	constructor( fn: probFn, table: WishDetail, type: string, id: number ) {
 		this.probFunc = fn;
 		this.table = table;
 		this.type = type;
 		this.dbKey = `silvery-star.wish-${ type }-${ id }`;
+		this.epit = `silvery-star.epitomized-path-${ id }`;
+		
+		bot.redis.getHash( this.dbKey )
+			.then( async ( { epit } ) => {
+				epit === undefined ? await bot.redis.setHash( this.dbKey, { epit: 0 } ) : 0;
+			} );
 	}
 	
 	private async SET( field: string, value: any ): Promise<void> {
@@ -106,7 +139,7 @@ class Wish {
 		}
 		await this.SET( "five", 1 );
 		await this.INCREASE( "four" );
-		if ( this.type === "character" ) {
+		if ( this.type !== "indefinite" ) {
 			await this.SET( "isUp", up ? 0 : 1 );
 		}
 	}
@@ -126,11 +159,16 @@ class Wish {
 		}
 	}
 	
+	private async getEpit(): Promise<number> {
+		return await this.GET( "epit" );
+	}
+	
 	private async getIsUp( rank: number ): Promise<boolean> {
 		if ( this.type === "indefinite" ) {
 			return false;
 		} else if ( this.type === "weapon" ) {
-			return Wish.getRandom() <= 7500;
+			const isUp: number = await this.GET( "isUp" );
+			return Wish.getRandom() <= 7500 || ( rank === 5 && isUp === 1 );
 		} else {
 			const isUp: number = await this.GET( "isUp" );
 			return Wish.getRandom() <= 5000 || ( rank === 5 && isUp === 1 );
@@ -146,9 +184,31 @@ class Wish {
 		let result: WishResult;
 		
 		if ( rank === 5 ) {
+			/* 判断武器定轨 */
+			if ( this.type === "weapon" ) {
+				const epit: number = await this.getEpit();
+				const user: number = await EpitomizedPath.getUser( this.epit );
+				if ( epit >= 2 && user !== 0 ) {
+					await this.SET( "epit", 0 );
+					const result = this.table.upFiveStar[user - 1];
+					return { ...result, times, rank: 105 };
+				}
+				await this.INCREASE( "epit" );
+			}
 			if ( up ) {
 				const idx: number = Wish.getRandom( this.table.upFiveStar.length ) - 1;
 				result = this.table.upFiveStar[idx];
+				/* 如果抽中定轨武器，则清空命定值 */
+				if ( this.type === "weapon" ) {
+					const user: number = await EpitomizedPath.getUser( this.epit );
+					if ( user !== 0 ) {
+						const chosen = this.table.upFiveStar[user - 1];
+						if ( result.name === chosen.name ) {
+							await this.SET( "epit", 0 );
+							return { ...result, times, rank: 105 };
+						}
+					}
+				}
 			} else {
 				const idx: number = Wish.getRandom( this.table.nonUpFiveStar.length ) - 1;
 				result = this.table.nonUpFiveStar[idx];
@@ -168,13 +228,26 @@ class Wish {
 		}
 	}
 	
-	public async tenTimes(): Promise<WishResult[]> {
-		let result: WishResult[] = [];
-		for ( let i = 0; i < 10; i++ ) {
+	public async getAnyTimes( t: number ): Promise<WishTotalSet> {
+		const result: WishResult[] = [];
+		for ( let i = 0; i < t; i++ ) {
 			result.push( await this.once() );
 		}
+		return { result, total: t };
+	}
+	
+	public async getUntil( chk: checkFn ): Promise<WishTotalSet> {
+		let res: WishResult;
+		let total: number = 0;
 		
-		return result;
+		const result: WishResult[] = [];
+		do {
+			total++;
+			res = await this.once();
+			result.push( res );
+		} while ( !chk( res ) );
+		
+		return { result, total };
 	}
 }
 
@@ -183,20 +256,26 @@ export class WishClass {
 	private character?: WishDetailNull;
 	private weapon?: WishDetailNull;
 	private character2?: WishDetailNull;
+	private weaponID?: string;
 	
 	constructor() {
-		updateWish().then( ( data: WishDetailNull[] ) => {
-			[ this.indefinite, this.character, this.weapon, this.character2 ] = data;
+		updateWish().then( ( data: WishData ) => {
+			[ this.indefinite, this.character, this.weapon, this.character2 ] = data.res;
+			this.weaponID = data.weaponID;
 		} );
 		scheduleJob( "0 31 10 * * *", async () => {
-			[ this.indefinite, this.character, this.weapon, this.character2 ] = await updateWish();
+			const data: WishData = await updateWish();
+			[ this.indefinite, this.character, this.weapon, this.character2 ] = data.res;
+			this.weaponID = data.weaponID;
 		} );
 		scheduleJob( "0 1 18 * * *", async () => {
-			[ this.indefinite, this.character, this.weapon, this.character2 ] = await updateWish();
+			const data: WishData = await updateWish();
+			[ this.indefinite, this.character, this.weapon, this.character2 ] = data.res;
+			this.weaponID = data.weaponID;
 		} );
 	}
 	
-	public async get( userID: number, choice: string ): Promise<WishResult[] | null> {
+	private getWishMethod( choice: string ): wishMethod | undefined {
 		let fn: probFn = Wish.indefiniteOrCharacter;
 		let table: WishDetail;
 		let wishType: string;
@@ -217,10 +296,51 @@ export class WishClass {
 				wishType = "weapon";
 		}
 		if ( table === null ) {
-			return null;
+			return undefined;
 		}
-
-		const wish: Wish = new Wish( fn, table, wishType, userID );
-		return await wish.tenTimes();
+		return [ fn, table, wishType ];
+	}
+	
+	private async getCheckFn( method: wishMethod, userID: number ): Promise<checkFn> {
+		if ( method[2] === "weapon" ) {
+			const epitKey: string = `silvery-star.epitomized-path-${ userID }`;
+			const user: number = await EpitomizedPath.getUser( epitKey );
+			if ( user === 0 ) {
+				return ( res: WishResult ) => res.rank === 5;
+			} else {
+				const up: WishInfo = method[1].upFiveStar[user - 1];
+				return ( res: WishResult ) => res.name === up.name;
+			}
+		} else if ( method[2] === "character" ) {
+			const up: WishInfo = method[1].upFiveStar[0];
+			return ( res: WishResult ) => res.name === up.name;
+		} else {
+			return ( res: WishResult ) => res.rank === 5;
+		}
+	}
+	
+	public async get( userID: number, choice: string, param: string ): Promise<WishTotalSet | null> {
+		const method = this.getWishMethod( choice );
+		if ( method ) {
+			const wish: Wish = new Wish( ...method, userID );
+			switch ( true ) {
+				case param.length === 0:
+					return await wish.getAnyTimes( 10 );
+				case /^\d+$/.test( param ):
+					return await wish.getAnyTimes( parseInt( param ) * 10 );
+				case param === "until":
+					const check = await this.getCheckFn( method, userID );
+					return await wish.getUntil( check );
+			}
+		}
+		return null;
+	}
+	
+	public getUpWeapon(): string[] | undefined {
+		return this.weapon?.upFiveStar.map( el => el.name );
+	}
+	
+	public getWeaponID(): string {
+		return <string>this.weaponID;
 	}
 }

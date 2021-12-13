@@ -195,8 +195,8 @@ export async function getWishList(): Promise<any> {
 	} );
 }
 
-export async function getWishDetail( wishID: number ): Promise<any> {
-	const wishLinkWithID: string = __API.FETCH_GACHA_DETAIL.replace( "$", wishID.toString() );
+export async function getWishDetail( wishID: string ): Promise<any> {
+	const wishLinkWithID: string = __API.FETCH_GACHA_DETAIL.replace( "$", wishID );
 	
 	return new Promise( ( resolve, reject ) => {
 		request( {

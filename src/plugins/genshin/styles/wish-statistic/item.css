@@ -1,0 +1,47 @@
+.statistic-item {
+	position: relative;
+	display: inline-flex;
+	flex-wrap: wrap;
+	width: 10.25%;
+	margin-left: 2%;
+	margin-bottom: 1.8%;
+	border-radius: 6px;
+	box-shadow: 0 0 5px #000000;
+}
+
+.background {
+	width: 100%;
+	border-radius: 6px 6px 0 0;
+}
+
+.main {
+	position: absolute;
+	display: inline-block;
+	border-radius: 6px 6px 0 0;
+	left: 0;
+	top: 0;
+	width: 100%;
+}
+
+.corner {
+	position: absolute;
+	width: 20%;
+	height: 16%;
+	bottom: 16%;
+	right: 0;
+	background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAMAAACdt4HsAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAATlBMVEUAAADv39/n49vq5t/p5d3q5d3k5N/n5Nzq5d3p5t3n59/q5tzp5dvo5t3p5dzp5drq5Nzf39/q5dzq5N3p5tzk5Nrp5dzn5Nrp5dz///+n0gbyAAAAGHRSTlMAEEBvr+8wYJ/fIL+AcM+gkBDPj98wr2B/7pr1AAAAAWJLR0QZ7G61iAAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB+UBDAEzHvJNhP0AAADqSURBVFjDpdFbDoIwFEVRLFT6AkVEz/xHqsREo0FK2f3f6962VcXOAfaVoUBNgYYCFvZHQaClQEMBCwEjCDgKeAg8b8AARwEPgfkGCHAQCIJASwEPgdcCAIgQOAoCDgJBEHAQeC+wF4gQaAUBD4EkBgRBIEKgEwOChYAXA5IY0IoBPw9QDAQvBvRiwEkMOIsBSQxYnF8AnISAoRcCFv6/CDBWCEgSAUIUAjorAmTG54Ah2Vy/ChifzdcAk91+FdiY/wM254vAUF825wuAGfMv/x8w6VpUfwNmLK4/wFTfyjb/AMN0H+POeD4P1uJnHYtJkLEAAAAldEVYdGRhdGU6Y3JlYXRlADIwMjEtMDEtMTJUMDE6NTE6MzArMDA6MDAB3HVQAAAAJXRFWHRkYXRlOm1vZGlmeQAyMDIxLTAxLTEyVDAxOjUxOjMwKzAwOjAwcIHN7AAAACB0RVh0c29mdHdhcmUAaHR0cHM6Ly9pbWFnZW1hZ2ljay5vcme8zx2dAAAAGHRFWHRUaHVtYjo6RG9jdW1lbnQ6OlBhZ2VzADGn/7svAAAAF3RFWHRUaHVtYjo6SW1hZ2U6OkhlaWdodAA2NLzgqYQAAAAWdEVYdFRodW1iOjpJbWFnZTo6V2lkdGgANjRET2kJAAAAGXRFWHRUaHVtYjo6TWltZXR5cGUAaW1hZ2UvcG5nP7JWTgAAABd0RVh0VGh1bWI6Ok1UaW1lADE2MTA0MTYyOTCfeSSgAAAAEHRFWHRUaHVtYjo6U2l6ZQA3NjVCTanUWAAAADV0RVh0VGh1bWI6OlVSSQBmaWxlOi8vL3RtcC90aHVtYmxyL2ltZzY4NDUzMTY2NjkzNTkyMzM1NDZD0TyOAAAAAElFTkSuQmCC");
+	background-size: 100% 100%;
+	background-repeat: no-repeat;
+}
+
+.count {
+	position: relative;
+	width: 100%;
+	display: inline-block;
+	border-radius: 0 0 6px 6px;
+	background-color: rgb(233, 229, 220);
+	padding: 1px 0;
+	text-align: center;
+	top: 100%;
+	font-size: 0.8em;
+}

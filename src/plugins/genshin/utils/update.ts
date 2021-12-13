@@ -1,6 +1,11 @@
 import { getWishDetail, getWishList } from "./api";
 import { WishDetail, WishInfo, WishDetailNull } from "../module/wish";
 
+export interface WishData {
+	res: WishDetailNull[];
+	weaponID: string;
+}
+
 function pack( data: any ): WishInfo {
 	return {
 		type: data.item_type,
@@ -9,8 +14,8 @@ function pack( data: any ): WishInfo {
 	};
 }
 
-async function parser( wishID: number ): Promise<WishDetailNull> {
-	if ( wishID === -1 ) {
+async function parser( wishID: string ): Promise<WishDetailNull> {
+	if ( wishID.length === 0 ) {
 		return null;
 	}
 
@@ -48,7 +53,7 @@ async function parser( wishID: number ): Promise<WishDetailNull> {
 	return info;
 }
 
-function getWishID( wishData: any, wishType: number ): number {
+function getWishID( wishData: any, wishType: number ): string {
 	const wish = wishData.filter( el => el.gacha_type === wishType );
 	let maxTime: number = 0;
 	let tempWish: any;
@@ -61,18 +66,23 @@ function getWishID( wishData: any, wishType: number ): number {
 		}
 	}
 
-	return tempWish === undefined ? -1 : tempWish.gacha_id;
+	return tempWish === undefined ? "" : tempWish.gacha_id;
 }
 
-export async function updateWish(): Promise<WishDetailNull[]> {
+export async function updateWish(): Promise<WishData> {
 	return new Promise( async ( resolve ) => {
 		const wishData: any = ( await getWishList() ).data.list;
 
 		const indefinite: WishDetailNull = await parser( wishData[0].gacha_id );
 		const character1: WishDetailNull = await parser( getWishID( wishData, 301 ) );
-		const weapon: WishDetailNull     = await parser( getWishID( wishData, 302 ) );
 		const character2: WishDetailNull = await parser( getWishID( wishData, 400 ) );
+		
+		const weaponID: string = getWishID( wishData, 302 );
+		const weapon: WishDetailNull = await parser( weaponID );
 
-		resolve( [ indefinite, character1, weapon, character2 ] );
+		resolve( {
+			res: [ indefinite, character1, weapon, character2 ],
+			weaponID
+		} );
 	} );
 }

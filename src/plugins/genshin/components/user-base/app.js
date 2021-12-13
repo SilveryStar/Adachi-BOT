@@ -69,6 +69,7 @@ const template =
 				<CharacterBox v-for="a in data.avatars" :data="a"/>
 			</div>
 		</div>
+		<p class="author">Created by Adachi-BOT</p>
 	</div>
 </div>`;
 

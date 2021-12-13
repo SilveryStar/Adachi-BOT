@@ -10,7 +10,6 @@ export function createServer( config: GenshinConfig, logger: Logger ): void {
 	app.use( "/api/card", r.CardRouter );
 	app.use( "/api/artifact", r.ArtifactRouter );
 	app.use( "/api/wish", r.WishRouter );
-	app.use( "/api/wish/config", r.TypeRouter );
 	app.use( "/api/info", r.InfoRouter );
 	
 	app.listen( config.serverPort, () => {

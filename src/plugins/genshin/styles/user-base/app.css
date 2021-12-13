@@ -143,3 +143,13 @@
 	width: calc( 100% - 44px );
 	padding: 0 22px;
 }
+
+.author {
+	position: absolute;
+	bottom: 0;
+	right: 0;
+	margin-bottom: 4px;
+	margin-right: 3px;
+	font-size: 13px;
+	color: rgb(36, 36, 36);
+}

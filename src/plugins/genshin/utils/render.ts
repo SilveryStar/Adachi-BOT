@@ -34,7 +34,7 @@ export async function render(
 	cqCode: boolean = true
 ): Promise<string> {
 	const url: string = getURL( target, params );
-	console.log( url.length )
+	
 	const page: puppeteer.Page = await browser.newPage();
 	await page.goto( url );
 	const htmlElement = await page.$( selector );

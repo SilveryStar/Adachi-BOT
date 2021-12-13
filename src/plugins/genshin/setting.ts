@@ -55,10 +55,23 @@ const domain: OrderConfig = {
 const wish: OrderConfig = {
 	type: "order",
 	cmdKey: "silvery-star.wish",
-	desc: [ "十连抽卡", "" ],
+	desc: [ "祈愿抽卡", "[十连次数|until]" ],
 	headers: [ "wish", "w" ],
-	regexps: [],
-	main: "achieves/wish"
+	regexps: [ "(\\d{1,2}|until)?" ],
+	main: "achieves/wish",
+	detail: "抽卡次数可以填写 1~99，表示十连抽的次数，默认为 1\n" +
+			"使用 until 的时候会一直抽到 UP 武器或角色"
+};
+
+const epitomizedPath: OrderConfig = {
+	type: "order",
+	cmdKey: "silvery-star.epitomized-path",
+	desc: [ "神器定轨", "(1|2)" ],
+	headers: [ "epit" ],
+	regexps: [ "(1|2)?" ],
+	main: "achieves/epitomized",
+	detail: "神器定轨，不添加参数查看当前 UP 的武器\n" +
+			"添加 1 或 2 定规武器"
 };
 
 const choosePool: OrderConfig = {
@@ -277,7 +290,8 @@ export default <PluginSetting>{
 	cfgList: [
 		bind, today, guide, getArtifact, character,
 		wish, daily, alias, impArtifact, choosePool,
-		slip, uidQuery, information, domain, almanac,
+		slip, uidQuery, epitomizedPath, information,
+		domain, almanac,
 		privateNowNote, privateNoteEvent, privateSubList,
 		privateConfirm, privateSubscribe, privateCancel,
 		privateAbyssQuery, privateMysQuery,

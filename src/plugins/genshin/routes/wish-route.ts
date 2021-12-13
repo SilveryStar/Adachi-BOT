@@ -1,9 +1,24 @@
-import express from "express";
 import bot from "ROOT";
-import { WishResult } from "../module/wish";
+import express from "express";
+import { typeData } from "#genshin/init";
 
-export default express.Router().get( "/", async ( req, res ) => {
-	const userID: number = parseInt( <string>req.query.qq );
-	const data: WishResult = JSON.parse( <string>await bot.redis.getString( `silvery-star.wish-result-${ userID }` ) );
-	res.send( data );
-} );
+export default express.Router()
+	.get( "/result", async ( req, res ) => {
+		const userID: number = parseInt( <string>req.query.qq );
+		const data = JSON.parse( <string>await bot.redis.getString( `silvery-star.wish-result-${ userID }` ) );
+		res.send( data );
+	} )
+	.get( "/statistic", async ( req, res ) => {
+		const userID: number = parseInt( <string>req.query.qq );
+		const data = await bot.redis.getHash( `silvery-star.wish-statistic-${ userID }` );
+		res.send( {
+			character: JSON.parse( data.character ),
+			weapon: JSON.parse( data.weapon ),
+			total: data.total
+		} );
+	} )
+	.get( "/config", async ( req, res ) => {
+		const type: string = <string>req.query.type;
+		const data: any = type === "character" ? typeData.character : typeData.weapon;
+		res.send( data );
+	} );
