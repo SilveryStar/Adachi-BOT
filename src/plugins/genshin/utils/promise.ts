@@ -60,7 +60,7 @@ export async function detailInfoPromise(
 	const uid: number = parseInt( UID );
 
 	if ( detail.stats && uid === parseInt( detail.uid ) ) {
-		if ( !cookie || ( detail.avatars && detail.avatars.length > 8 ) ) {
+		if ( !cookie || ( detail.avatars && JSON.parse( detail.avatars ).length > 8 ) ) {
 			bot.logger.info( `用户 ${ uid } 在一小时内进行过查询操作，将返回上次数据` );
 			return Promise.reject( "gotten" );
 		}
@@ -145,8 +145,9 @@ export async function characterInfoPromise(
 export async function singleCharacterInfoPromise(
 	uid: number,
 	server: string,
-	charID: number
-): Promise<ApiType.Avatar> {
+	charID: number,
+	throwError: boolean = true
+): Promise<ApiType.Avatar | null> {
 	const { retcode, message, data } = await api.getCharactersInfo( uid, server, [ charID ], cookies.get() );
 	if ( !ApiType.isCharacter( data ) ) {
 		return Promise.reject( ErrorMsg.UNKNOWN );
@@ -154,7 +155,9 @@ export async function singleCharacterInfoPromise(
 
 	return new Promise( async ( resolve, reject ) => {
 		if ( retcode === -1 ) {
-			reject( `玩家 UID${ uid } 没有该角色` );
+			throwError
+				? reject( `玩家 UID${ uid } 没有该角色` )
+				: resolve( null );
 			return;
 		} else if ( retcode !== 0 ) {
 			reject( ErrorMsg.FORM_MESSAGE + message );

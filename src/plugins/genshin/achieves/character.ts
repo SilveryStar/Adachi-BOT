@@ -2,6 +2,7 @@ import bot from "ROOT";
 import { InputParameter, Order } from "@modules/command";
 import { Private } from "#genshin/module/private/main";
 import { AuthLevel } from "@modules/management/auth";
+import { Avatar } from "#genshin/types/character";
 import { Artifact } from "#genshin/types/character";
 import { NameResult, getRealName } from "../utils/name";
 import { singleCharacterInfoPromise } from "../utils/promise";
@@ -91,7 +92,13 @@ export async function main(
 	const server: string = getRegion( query.uid[0] );
 	
 	try {
-		const data = await singleCharacterInfoPromise( parseInt( query.uid ), server, charID );
+		const uid: number = parseInt( query.uid );
+		const getData: ( id: number ) => Promise<Avatar | null> =
+			async id => await singleCharacterInfoPromise( uid, server, id, false );
+		
+		const data = charID === -1
+			? <Avatar>( await getData( 10000005 ) || await getData( 10000007 ) )
+			: <Avatar>await singleCharacterInfoPromise( uid, server, charID );
 		const artifacts: Artifact[] = data.reliquaries;
 		
 		const image: string = await render( "character", {
