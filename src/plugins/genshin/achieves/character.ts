@@ -97,7 +97,8 @@ export async function main(
 		const image: string = await render( "character", {
 			data: Buffer.from( JSON.stringify( {
 				...data,
-				reliquaries: artifacts.map( el => omit( el, [ "set" ] ) )
+				reliquaries: artifacts.map( el => omit( el, [ "set" ] ) ),
+				uid: query.uid
 			} ) ).toString( "base64" )
 		} );
 		await sendMessage( image );
