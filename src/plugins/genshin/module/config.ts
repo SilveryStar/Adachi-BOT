@@ -1,5 +1,4 @@
 import { RefreshCatch } from "@modules/management/refresh";
-import bot from "ROOT";
 
 export default class GenshinConfig {
 	public cardWeaponStyle: "normal" | "weaponA" | "weaponB";
@@ -18,9 +17,8 @@ export default class GenshinConfig {
 		this.serverPort = config.serverPort;
 	}
 	
-	public async refresh(): Promise<string> {
+	public async refresh( config ): Promise<string> {
 		try {
-			const config: any = bot.file.loadYAML( "genshin" );
 			this.cardWeaponStyle = config.cardWeaponStyle;
 			this.cardProfile = config.cardProfile;
 			return "genshin.yml 重新加载完毕";

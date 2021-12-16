@@ -2,7 +2,7 @@ import { FakeMessage, Sendable } from "oicq";
 import { InputParameter, Order } from "@modules/command";
 import Command from "@modules/command/main";
 import FileManagement from "@modules/file";
-import { filterUserUsableCommand } from "./filter";
+import { filterUserUsableCommand } from "../utils/filter";
 
 function getVersion( file: FileManagement ): string {
 	const path: string = file.getFilePath( "package.json", "root" );

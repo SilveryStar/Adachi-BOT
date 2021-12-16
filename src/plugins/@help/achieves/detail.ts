@@ -1,4 +1,4 @@
-import { filterUserUsableCommand } from "./filter";
+import { filterUserUsableCommand } from "../utils/filter";
 import { InputParameter } from "@modules/command/main";
 
 export async function main( i: InputParameter ): Promise<void> {

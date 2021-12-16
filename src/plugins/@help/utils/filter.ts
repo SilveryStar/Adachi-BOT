@@ -1,16 +1,16 @@
 import { GroupMessageEventData } from "oicq";
 import { AuthLevel } from "@modules/management/auth";
 import { BasicConfig, InputParameter } from "@modules/command/main";
-import { isGroupMessage, isPrivateMessage, Message, MessageScope, MessageType } from "@modules/message";
 import Database from "@modules/database";
+import * as m from "@modules/message";
 
-function getMessageType( msg: Message ): MessageType {
-	if ( isGroupMessage( msg ) ) {
-		return MessageType.Group;
-	} else if ( isPrivateMessage( msg ) ) {
-		return MessageType.Private;
+function getMessageType( msg: m.Message ): m.MessageType {
+	if ( m.isGroupMessage( msg ) ) {
+		return m.MessageType.Group;
+	} else if ( m.isPrivateMessage( msg ) ) {
+		return m.MessageType.Private;
 	} else {
-		return MessageType.Unknown;
+		return m.MessageType.Unknown;
 	}
 }
 
@@ -21,19 +21,20 @@ async function getLimited( id: number, type: string, redis: Database ): Promise<
 
 export async function filterUserUsableCommand( i: InputParameter ): Promise<BasicConfig[]> {
 	const userID: number = i.messageData.user_id;
-	const type: MessageType = getMessageType( i.messageData );
-	if ( type === MessageType.Unknown ) {
+	const type: m.MessageType = getMessageType( i.messageData );
+	if ( type === m.MessageType.Unknown ) {
 		return [];
 	}
 	
 	const auth: AuthLevel = await i.auth.get( userID );
 	let commands: BasicConfig[] = await i.command
-		.get( auth, type === MessageType.Group ? MessageScope.Group : MessageScope.Private )
+		.get( auth, type === m.MessageType.Group
+			? m.MessageScope.Group : m.MessageScope.Private )
 		.filter( el => el.display );
 
 	const userLimit: string[] = await getLimited( userID, "user", i.redis );
 	commands = commands.filter( el => !userLimit.includes( el.cmdKey ) );
-	if ( type === MessageType.Private ) {
+	if ( type === m.MessageType.Private ) {
 		return commands;
 	}
 	

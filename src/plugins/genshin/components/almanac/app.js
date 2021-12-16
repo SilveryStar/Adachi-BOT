@@ -10,7 +10,7 @@ const template =
 	<AlmanacFooter :d="direction" />
 </div>`;
 
-import { parseURL } from "../../public/js/src.js";
+import { request } from "../../public/js/src.js";
 import AlmanacHeader from "./header.js";
 import AlmanacFortune from "./fortune.js";
 import AlmanacFooter from "./footer.js";
@@ -25,11 +25,8 @@ export default defineComponent( {
 		AlmanacFooter
 	},
 	setup() {
-		const urlParams = parseURL( location.search );
-		const data = JSON.parse( decodeURIComponent( escape( atob( decodeURIComponent( urlParams.data ) ) ) ) );
+		const data = request( `/api/almanac` );
 		
-		const { auspicious, inauspicious, direction } = data;
-		
-		return { auspicious, inauspicious, direction };
+		return { ...data };
 	}
 } );

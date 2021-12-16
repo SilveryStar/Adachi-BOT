@@ -1,7 +1,10 @@
 import { InputParameter } from "@modules/command";
-import { render } from "../utils/render";
+import { RenderResult } from "@modules/renderer";
+import { renderer } from "../init";
 
-export async function main( { sendMessage, messageData, redis }: InputParameter ): Promise<void> {
+export async function main(
+	{ sendMessage, messageData, redis, logger }: InputParameter
+): Promise<void> {
 	const userID: number = messageData.user_id;
 	const data: string | null = await redis.getString( `silvery-star.artifact-${ userID }` );
 	
@@ -9,9 +12,14 @@ export async function main( { sendMessage, messageData, redis }: InputParameter 
 		await sendMessage( "请先抽取一个圣遗物" );
 		return;
 	}
-	const image: string = await render(
-		"artifact",
+	const res: RenderResult = await renderer.asCqCode(
+		"/artifact.html",
 		{ qq: userID, type: "rein" }
 	);
-	await sendMessage( image );
+	if ( res.code === "ok" ) {
+		await sendMessage( res.data );
+	} else {
+		logger.error( res.error );
+		await sendMessage( "图片渲染异常，请联系持有者进行反馈" );
+	}
 }

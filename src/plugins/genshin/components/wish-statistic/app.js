@@ -1,5 +1,6 @@
 const template =
 `<div class="statistic-box">
+	<p class="time">@{{ nickname }} at {{ fullDate }}</p>
     <span class="main-title">祈愿统计</span>
     <span class="total">总计： {{ total }} 抽</span>
     <div
@@ -23,7 +24,7 @@ const template =
     <p class="author">Created by Adachi-BOT</p>
 </div>`;
 
-import { parseURL, request } from "../../public/js/src.js";
+import { getFullDate, parseURL, request } from "../../public/js/src.js";
 import StatisticItem from "./item.js";
 const { defineComponent } = Vue;
 
@@ -36,14 +37,16 @@ export default defineComponent( {
 	setup() {
 		const urlParams = parseURL( location.search );
 		const data = request( `/api/wish/statistic?qq=${ urlParams.qq }` );
-		
+		console.log( data )
 		const weaponCount = data.weapon.reduce( ( pre, cur ) => pre + cur.count, 0 );
 		const charCount = data.character.reduce( ( pre, cur ) => pre + cur.count, 0 );
-		console.log( data, weaponCount, charCount );
+		const fullDate = getFullDate();
+		
 		return {
 			...data,
 			weaponCount,
-			charCount
+			charCount,
+			fullDate
 		}
 	}
 } );

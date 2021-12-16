@@ -9,7 +9,7 @@ const template =
     </div>
 </div>`;
 
-import { parseURL, request } from "../../public/js/src.js";
+import { getFullDate, parseURL, request } from "../../public/js/src.js";
 import WishBox from "./box.js";
 const { defineComponent, computed } = Vue;
 
@@ -51,14 +51,7 @@ export default defineComponent( {
 			}
 		} );
 
-		const date = new Date();
-		let hour = date.getHours();
-		let minute = date.getMinutes();
-		let second = date.getSeconds();
-		second = second < 10 ? "0" + second : second;
-		minute = minute < 10 ? "0" + minute : minute;
-		hour = hour < 10 ? "0" + hour : hour;
-		const fullDate = `${ date.getMonth() + 1 }月${ date.getDate() }日 ${ date.getHours() }:${ date.getMinutes() }:${ second }`
+		const fullDate = getFullDate();
 		
 		return {
 			wishBackground,

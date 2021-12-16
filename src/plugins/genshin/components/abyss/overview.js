@@ -1,7 +1,7 @@
 const template =
 `<div class="overview">
 	<img class="background" :src="abyssBackground" alt="ERROR"/>
-	<span class="title">{{ data.nickname }} 的深境螺旋概览</span>
+	<span class="title">{{ data.info }} 的深境螺旋概览</span>
 	<div class="info">
 		<span class="max-floor">最深抵达： {{ data.maxFloor }}</span>
 		<span class="battle-times">挑战次数： {{ data.totalBattleTimes }}</span>
@@ -32,15 +32,15 @@ export default defineComponent( {
 	props: {
 		data: Object
 	},
-	setup( props ) {
-		const arr = props.data.revealRank.map( el => {
+	setup( { data } ) {
+		const arr = data.revealRank.map( el => {
 			el.icon = el.avatarIcon;
 			return el;
 		} );
 		const reveal = [ arr.splice( 0,4 ), arr ];
 		
-		const dataList = [ props.data.damageRank, props.data.defeatRank, props.data.takeDamageRank,
-						   props.data.normalSkillRank, props.data.energySkillRank ];
+		const dataList = [ data.damageRank, data.defeatRank, data.takeDamageRank,
+						   data.normalSkillRank, data.energySkillRank ];
 		const titleList = [ "最强一击", "击破数", "承受伤害", "元素战技次数", "元素爆发次数" ]
 		
 		const abyssBackground = computed( () => {

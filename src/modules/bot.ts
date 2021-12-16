@@ -272,10 +272,10 @@ export default class Adachi {
 	private parseGroupMsg( that: Adachi ) {
 		const bot = that.bot;
 		return async function( messageData: sdk.GroupMessageEventData ) {
-			const {
-				user_id: userID,
-				group_id: groupID
-			} = messageData;
+			if ( bot.config.atBOT && !that.checkAtBOT( messageData ) ) {
+				return;
+			}
+			const { user_id: userID, group_id: groupID } = messageData;
 			if ( !bot.interval.check( userID, groupID ) ) {
 				return;
 			}
@@ -297,6 +297,20 @@ export default class Adachi {
 				await that.execute( messageData, sendMessage, cmdSet, [ ...gLim, ...uLim ], unionReg );
 			}
 		}
+	}
+	
+	private checkAtBOT( msg: sdk.GroupMessageEventData ): boolean {
+		const { number } = this.bot.config;
+		const atBOTReg: RegExp = new RegExp( `^ *\\[CQ:at,qq=${ number }.*]` );
+		const content: string = msg.raw_message;
+		
+		if ( atBOTReg.test( content ) ) {
+			msg.raw_message = content
+				.replace( atBOTReg, "" )
+				.trim();
+			return true;
+		}
+		return false;
 	}
 	
 	/* 自动接受入群邀请 */

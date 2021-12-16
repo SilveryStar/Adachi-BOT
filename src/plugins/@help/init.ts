@@ -7,7 +7,7 @@ const help: OrderConfig = {
 	desc: [ "指令帮助", "(-k)" ],
 	headers: [ "help" ],
 	regexps: [ "(-k)?" ],
-	main: "help"
+	main: "achieves/help"
 };
 
 const detail: OrderConfig = {
@@ -16,7 +16,7 @@ const detail: OrderConfig = {
 	desc: [ "指令详细", "[编号]" ],
 	headers: [ "detail" ],
 	regexps: [ "\\d+" ],
-	main: "detail",
+	main: "achieves/detail",
 	display: false
 }
 

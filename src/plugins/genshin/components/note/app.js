@@ -13,7 +13,7 @@ const template =
 	<p class="author">Created by Adachi-BOT</p>
 </div>`;
 
-import { parseURL } from "../../public/js/src.js";
+import { parseURL, request } from "../../public/js/src.js";
 import NoteInfo from "./info.js";
 import NoteExpedition from "./expedition.js";
 
@@ -33,7 +33,7 @@ export default defineComponent( {
 	},
 	setup() {
 		const urlParams = parseURL( location.search );
-		const data = JSON.parse( atob( decodeURIComponent( urlParams.data ) ) );
+		const data = request( `/api/note?uid=${ urlParams.uid }` );
 		
 		const resin = {
 			title: "原粹树脂",

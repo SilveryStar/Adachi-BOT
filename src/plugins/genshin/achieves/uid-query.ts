@@ -1,8 +1,9 @@
-import { InputParameter } from "@modules/command";
 import Database from "@modules/database";
+import { InputParameter } from "@modules/command";
+import { RenderResult } from "@modules/renderer";
 import { characterInfoPromise, detailInfoPromise } from "../utils/promise";
-import { render } from "../utils/render";
 import { getRegion } from "../utils/region";
+import { renderer } from "#genshin/init";
 
 async function getUID( data: string, userID: number, redis: Database ): Promise<number | string> {
 	if ( data === "" ) {
@@ -20,7 +21,7 @@ async function getUID( data: string, userID: number, redis: Database ): Promise<
 }
 
 export async function main(
-	{ sendMessage, messageData, redis }: InputParameter
+	{ sendMessage, messageData, redis, logger }: InputParameter
 ): Promise<void> {
 	const data: string = messageData.raw_message;
 	const userID: number = messageData.user_id;
@@ -50,6 +51,14 @@ export async function main(
 		}
 	}
 	
-	const image: string = await render( "user-base", { qq: userID } );
-	await sendMessage( image );
+	const res: RenderResult = await renderer.asCqCode(
+		"/user-base.html",
+		{ qq: userID }
+	);
+	if ( res.code === "ok" ) {
+		await sendMessage( res.data );
+	} else {
+		logger.error( res.error );
+		await sendMessage( "图片渲染异常，请联系持有者进行反馈" );
+	}
 }

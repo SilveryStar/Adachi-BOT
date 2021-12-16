@@ -1,14 +1,14 @@
 import { InputParameter } from "@modules/command";
 import { WishResult, WishTotalSet } from "../module/wish";
-import { wishClass } from "../init";
-import { render } from "../utils/render";
+import { RenderResult } from "@modules/renderer";
+import { wishClass, renderer } from "../init";
 
 type WishStatistic = WishResult & {
 	count: number;
 };
 
 export async function main(
-	{ sendMessage, messageData, redis }: InputParameter
+	{ sendMessage, messageData, redis, logger }: InputParameter
 ): Promise<void> {
 	const userID: number = messageData.user_id;
 	const nickname: string = messageData.sender.nickname;
@@ -36,7 +36,16 @@ export async function main(
 			data: data.result,
 			name: nickname
 		} ) );
-		await sendMessage( await render( "wish", { qq: userID } ) );
+		const res: RenderResult = await renderer.asCqCode(
+			"/wish.html",
+			{ qq: userID }
+		);
+		if ( res.code === "ok" ) {
+			await sendMessage( res.data );
+		} else {
+			logger.error( res.error );
+			await sendMessage( "图片渲染异常，请联系持有者进行反馈" );
+		}
 		return;
 	}
 	
@@ -66,8 +75,17 @@ export async function main(
 	await redis.setHash( `silvery-star.wish-statistic-${ userID }`, {
 		character: JSON.stringify( charSet ),
 		weapon: JSON.stringify( weaponSet ),
-		total: data.total
+		total: data.total,
+		nickname
 	} );
-	const image: string = await render( "wish-statistic", { qq: userID } );
-	await sendMessage( image );
+	const res: RenderResult = await renderer.asCqCode(
+		"/wish-statistic.html",
+		{ qq: userID }
+	);
+	if ( res.code === "ok" ) {
+		await sendMessage( res.data );
+	} else {
+		logger.error( res.error );
+		await sendMessage( "图片渲染异常，请联系持有者进行反馈" );
+	}
 }

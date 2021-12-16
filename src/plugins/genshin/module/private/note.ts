@@ -66,14 +66,12 @@ export class NoteService implements Service {
 		await this.parent.refreshDBContent( NoteService.FixedField );
 	}
 	
-	public async toBase64(): Promise<string> {
+	public async toJSON(): Promise<string> {
 		await this.getData();
-		return Buffer.from(
-			JSON.stringify( {
-				...<Note>this.globalData,
-				uid: this.parent.setting.uid
-			} )
-		).toString( "base64" );
+		return JSON.stringify( {
+			...<Note>this.globalData,
+			uid: this.parent.setting.uid
+		} );
 	}
 	
 	private async getData(): Promise<void> {

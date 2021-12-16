@@ -6,6 +6,14 @@ export class Cookies {
 	private cookies: string[];
 	private length: number;
 	
+	static checkExpired( cookie: string ): string {
+		const reg: RegExp = /.*?ltuid=([0-9]+).*?/;
+		const execRes: RegExpExecArray | null = reg.exec( cookie );
+		return execRes
+			? `米游社通行证 ID 为 ${ execRes[1] } 的 cookie 已失效，请及时更换`
+			: "cookie 格式不正确";
+	}
+	
 	constructor() {
 		this.cookies = bot.file.loadYAML( "cookies" ).cookies;
 		this.index = 0;
@@ -20,9 +28,9 @@ export class Cookies {
 		return this.cookies[this.index];
 	}
 	
-	public async refresh(): Promise<string> {
+	public async refresh( config ): Promise<string> {
 		try {
-			this.cookies = bot.file.loadYAML( "cookies" ).cookies;
+			this.cookies = config.cookies;
 			this.index = 0;
 			this.length = this.cookies.length;
 			return "cookies 重新加载完毕";

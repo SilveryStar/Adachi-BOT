@@ -1,3 +1,4 @@
+import { deepParse } from "#genshin/utils/deep-parse";
 import bot from "ROOT";
 import express from "express";
 import { typeData } from "#genshin/init";
@@ -11,11 +12,7 @@ export default express.Router()
 	.get( "/statistic", async ( req, res ) => {
 		const userID: number = parseInt( <string>req.query.qq );
 		const data = await bot.redis.getHash( `silvery-star.wish-statistic-${ userID }` );
-		res.send( {
-			character: JSON.parse( data.character ),
-			weapon: JSON.parse( data.weapon ),
-			total: data.total
-		} );
+		res.send( deepParse( data ) );
 	} )
 	.get( "/config", async ( req, res ) => {
 		const type: string = <string>req.query.type;

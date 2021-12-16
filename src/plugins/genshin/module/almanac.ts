@@ -92,6 +92,6 @@ export class AlmanacClass {
 			direction: AlmanacClass.getDirection()
 		};
 		
-		return Buffer.from( JSON.stringify( res ) ).toString( "base64" );
+		return JSON.stringify( res );
 	}
 }

@@ -1,6 +1,7 @@
 import * as ApiType from "../types";
 import * as api from "./api";
 import bot from "ROOT";
+import { Cookies } from "#genshin/module";
 import { omit } from "lodash";
 import { cookies } from "../init";
 
@@ -23,7 +24,10 @@ export async function baseInfoPromise(
 	}
 	
 	return new Promise( async ( resolve, reject ) => {
-		if ( retcode !== 0 ) {
+		if ( retcode === 10001 ) {
+			reject( Cookies.checkExpired( cookie ) );
+			return;
+		} else if ( retcode !== 0 ) {
 			reject( ErrorMsg.FORM_MESSAGE + message );
 			return;
 		} else if ( !data.list || data.list.length === 0 ) {
@@ -76,7 +80,10 @@ export async function detailInfoPromise(
 	}
 	
 	return new Promise( async ( resolve, reject ) => {
-		if ( retcode !== 0 ) {
+		if ( retcode === 10001 ) {
+			reject( Cookies.checkExpired( cookie ) );
+			return;
+		} else if ( retcode !== 0 ) {
 			reject( ErrorMsg.FORM_MESSAGE + message );
 			return;
 		} else if ( data.avatars.length === 0 ) {
@@ -197,7 +204,10 @@ export async function abyssInfoPromise(
 	}
 
 	return new Promise( async ( resolve, reject ) => {
-		if ( retcode !== 0 ) {
+		if ( retcode === 10001 ) {
+			reject( Cookies.checkExpired( cookie ) );
+			return;
+		} else if ( retcode !== 0 ) {
 			reject( ErrorMsg.FORM_MESSAGE+ message );
 			return;
 		}
@@ -220,7 +230,10 @@ export async function dailyNotePromise(
 	}
 	
 	return new Promise( ( resolve, reject ) => {
-		if ( retcode !== 0 ) {
+		if ( retcode === 10001 ) {
+			reject( Cookies.checkExpired( cookie ) );
+			return;
+		} else if ( retcode !== 0 ) {
 			reject( ErrorMsg.FORM_MESSAGE + message );
 			return;
 		}
@@ -241,7 +254,10 @@ export async function signInInfoPromise(
 	}
 	
 	return new Promise( ( resolve, reject ) => {
-		if ( retcode !== 0 ) {
+		if ( retcode === -100 ) {
+			reject( Cookies.checkExpired( cookie ) );
+			return;
+		} else if ( retcode !== 0 ) {
 			reject( ErrorMsg.FORM_MESSAGE + message );
 			return;
 		}
@@ -262,7 +278,10 @@ export async function signInResultPromise(
 	}
 	
 	return new Promise( ( resolve, reject ) => {
-		if ( retcode !== 0 ) {
+		if ( retcode === -100 ) {
+			reject( Cookies.checkExpired( cookie ) );
+			return;
+		} else if ( retcode !== 0 ) {
 			reject( ErrorMsg.FORM_MESSAGE + message );
 			return;
 		}

@@ -1,14 +1,15 @@
-import { PluginSetting } from "@modules/plugin";
-import { BOT } from "@modules/bot";
+import bot from "ROOT";
+import * as m from "./module";
 import GenshinConfig from "#genshin/module/config";
 import pluginSetting from "./setting";
 import FileManagement from "@modules/file";
-import bot from "ROOT";
-import * as m from "./module";
-import { createBrowser } from "./utils/render";
+import Renderer from "@modules/renderer";
+import { BOT } from "@modules/bot";
+import { PluginSetting } from "@modules/plugin";
 import { createServer } from "./server";
 
 export let config: GenshinConfig;
+export let renderer: Renderer;
 export const artClass = new m.ArtClass();
 export const cookies = new m.Cookies();
 export const typeData = new m.TypeData();
@@ -47,12 +48,19 @@ function loadConfig( file: FileManagement ): GenshinConfig {
 }
 
 export async function init( { file, logger }: BOT ): Promise<PluginSetting> {
+	/* 加载 genshin.yml 配置 */
 	config = loadConfig( file );
+	/* 实例化渲染器 */
+	renderer = new Renderer(
+		"genshin", "/views",
+		config.serverPort, "#app"
+	);
+	/* 启动 express 服务 */
 	createServer( config, logger );
-	await createBrowser();
 	
 	bot.refresh.registerRefreshableFile( "genshin", config );
 	bot.refresh.registerRefreshableFile( "cookies", cookies );
+	bot.refresh.registerRefreshableFunc( renderer );
 	
 	return pluginSetting;
 }

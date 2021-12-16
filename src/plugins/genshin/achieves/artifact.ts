@@ -1,8 +1,10 @@
 import { InputParameter } from "@modules/command";
-import { render } from "../utils/render";
-import { artClass } from "../init";
+import { RenderResult } from "@modules/renderer";
+import { artClass, renderer } from "../init";
 
-export async function main( { sendMessage, messageData, redis }: InputParameter ): Promise<void> {
+export async function main(
+	{ sendMessage, messageData, redis, logger }: InputParameter
+): Promise<void> {
 	const userID: number = messageData.user_id;
 	const domain: number = messageData.raw_message.length
 						 ? parseInt( messageData.raw_message ) - 1 : -1;
@@ -12,8 +14,14 @@ export async function main( { sendMessage, messageData, redis }: InputParameter 
 		await sendMessage( reason );
 		return;
 	}
-	const image: string = await render(
-		"artifact",
-		{ qq: userID, type: "init" } );
-	await sendMessage( image );
+	const res: RenderResult = await renderer.asCqCode(
+		"/artifact.html",
+		{ qq: userID, type: "init" }
+	);
+	if ( res.code === "ok" ) {
+		await sendMessage( res.data );
+	} else {
+		logger.error( res.error );
+		await sendMessage( "图片渲染异常，请联系持有者进行反馈" );
+	}
 }

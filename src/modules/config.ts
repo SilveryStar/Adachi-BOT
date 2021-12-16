@@ -9,6 +9,7 @@ export default class BotConfig {
 	public readonly header: string;
 	public readonly platform: 1 | 2 | 3 | 4 | 5;
 	public readonly atUser: boolean;
+	public readonly atBOT: boolean;
 	public readonly dbPort: number;
 	public readonly inviteAuth: AuthLevel;
 	public readonly countThreshold: number;
@@ -34,6 +35,7 @@ export default class BotConfig {
 		header: "#",
 		platform: 1,
 		atUser: false,
+		atBOT: false,
 		inviteAuth: "master",
 		countThreshold: 60,
 		groupIntervalTime: 1500,
@@ -51,7 +53,16 @@ export default class BotConfig {
 	
 	constructor( file: FileManagement ) {
 		const config: any = file.loadYAML( "setting" );
+		const checkFields: Array<keyof BotConfig> = [ "atBOT" ];
 		
+		for ( let key of checkFields ) {
+			if ( config[key] === undefined ) {
+				config[key] = BotConfig.initObject[key];
+			}
+		}
+		file.writeYAML( "setting", config );
+		
+		this.atBOT = config.atBOT;
 		this.qrcode = config.qrcode;
 		this.number = config.number;
 		this.master = config.master;
@@ -77,7 +88,10 @@ export default class BotConfig {
 		this.helpMessageStyle = helpList.includes( config.helpMessageStyle )
 			? config.helpMessageStyle : "message";
 		
-		const logLevelList: string[] = [ "trace", "debug", "info", "warn", "error", "fatal", "mark", "off" ];
+		const logLevelList: string[] = [
+			"trace", "debug", "info", "warn",
+			"error", "fatal", "mark", "off"
+		];
 		this.logLevel = logLevelList.includes( config.logLevel )
 			? config.logLevel : "info";
 	}

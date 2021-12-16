@@ -41,10 +41,10 @@ type Services = ExpandedService<ServiceTuple>;
 
 export class UserInfo {
 	public readonly uid: string;
-	public readonly cookie: string;
 	public readonly server: string;
 	public readonly userID: number;
 	public readonly mysID: number;
+	public cookie: string;
 	
 	constructor( uid: string, cookie: string, userID: number, mysID: number ) {
 		this.uid = uid;
@@ -59,7 +59,6 @@ const dbPrefix: string = "silvery-star.private-";
 
 /*
 * 依据 https://github.com/SilveryStar/Adachi-BOT/issues/70#issuecomment-946331850 重新设计
-* 期望在未来可以进行功能扩展
 * */
 export class Private {
 	public readonly setting: UserInfo;
@@ -121,6 +120,10 @@ export class Private {
 	public async refreshDBContent( field: string ): Promise<void> {
 		this.options[field] = this.services[field].getOptions();
 		await bot.redis.setString( this.dbKey, this.stringify() );
+	}
+	
+	public replaceCookie( cookie: string ): void {
+		this.setting.cookie = cookie;
 	}
 }
 

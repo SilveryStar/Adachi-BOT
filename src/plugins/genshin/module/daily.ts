@@ -4,8 +4,9 @@ import { scheduleJob } from "node-schedule";
 import { isCharacterInfo, isWeaponInfo, InfoResponse } from "../types";
 import { randomInt } from "../utils/random";
 import { getDailyMaterial, getInfo } from "../utils/api";
-import { render } from "../utils/render";
 import { take } from "lodash";
+import { RenderResult } from "@modules/renderer";
+import { renderer } from "#genshin/init";
 
 export interface DailyMaterial {
 	"Mon&Thu": string[];
@@ -49,12 +50,17 @@ export class DailySet {
 		}
 	}
 	
-	public get(): Record<string, string> {
-		return {
-			weapon: Buffer.from( JSON.stringify( this.weaponSet ) ).toString( "base64" ),
-			character: Buffer.from( JSON.stringify( this.characterSet ) ).toString( "base64" )
-		};
+	public async save( id: number ): Promise<void> {
+		await bot.redis.setHash(
+			`silvery-star.daily-temp-${ id }`, {
+				weapon: JSON.stringify( this.weaponSet ),
+				character: JSON.stringify( this.characterSet )
+			} );
 	}
+}
+
+async function getRenderResult( id: number ): Promise<RenderResult> {
+	return await renderer.asCqCode( "/daily.html", { id } );
 }
 
 export class DailyClass {
@@ -84,11 +90,23 @@ export class DailyClass {
 			const groupIDs: string[] = await bot.redis.getList( "silvery-star.daily-sub-group" );
 			
 			const groupData = new DailySet( this.allData );
-			const subMessage: string = week === 0
-									 ? "周日所有材料都可以刷取哦~"
-								     : await render( "daily", groupData.get() ); // 渲染全体图片
-			for ( let id of groupIDs ) {
-				await bot.client.sendGroupMsg( parseInt( id ), subMessage );
+			let subMessage: string = "";
+			if ( week === 0 ) {
+				subMessage = "周日所有材料都可以刷取哦~";
+			} else {
+				await groupData.save( 0 );
+				const res: RenderResult = await getRenderResult( 0 );
+				if ( res.code === "ok" ) {
+					subMessage = res.data;
+				} else {
+					bot.logger.error( res.error );
+					await bot.message.sendMaster( "每日素材订阅图片渲染异常，请查看日志进行检查" );
+				}
+			}
+			if ( subMessage.length !== 0 ) {
+				for ( let id of groupIDs ) {
+					await bot.client.sendGroupMsg( parseInt( id ), subMessage );
+				}
 			}
 
 			/* 周日不对订阅信息的用户进行私发 */
@@ -105,13 +123,17 @@ export class DailyClass {
 				if ( data === undefined ) {
 					continue;
 				}
-				
+				await data.save( userID );
+				const res: RenderResult = await getRenderResult( userID );
+				if ( res.code === "error" ) {
+					await bot.message.sendMaster( "每日素材订阅图片渲染异常，请查看日志进行检查" );
+					continue;
+				}
 				const randomMinute: number = randomInt( 3, 59 );
 				date.setMinutes( randomMinute );
 				
 				scheduleJob( date, async () => {
-					const image: string = await render( "daily", data.get() );
-					await bot.client.sendPrivateMsg( userID, image );
+					await bot.client.sendPrivateMsg( userID, res.data );
 				} );
 			}
 		} );
@@ -177,7 +199,15 @@ export class DailyClass {
 		
 		const data: DailySet | undefined = await this.getUserSubList( userID );
 		const set = data === undefined ? new DailySet( this.allData ) : data;
-		return await render( "daily", set.get() );
+		
+		await set.save( userID );
+		const res: RenderResult = await getRenderResult( userID );
+		if ( res.code === "ok" ) {
+			return res.data;
+		} else {
+			bot.logger.error( res.error );
+			return "图片渲染异常，请联系持有者进行反馈";
+		}
 	}
 	
 	public async modifySubscription( userID: number, operation: boolean, name: string, isGroup: boolean ): Promise<string> {

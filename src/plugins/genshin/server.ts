@@ -11,6 +11,11 @@ export function createServer( config: GenshinConfig, logger: Logger ): void {
 	app.use( "/api/artifact", r.ArtifactRouter );
 	app.use( "/api/wish", r.WishRouter );
 	app.use( "/api/info", r.InfoRouter );
+	app.use( "/api/note", r.NoteRouter );
+	app.use( "/api/char", r.CharacterRouter );
+	app.use( "/api/abyss", r.AbyssRouter );
+	app.use( "/api/daily", r.DailyRouter );
+	app.use( "/api/almanac", r.AlmanacRouter );
 	
 	app.listen( config.serverPort, () => {
 		logger.info( "Express 服务器已启动" );

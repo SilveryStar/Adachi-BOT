@@ -220,6 +220,18 @@ const privateCancel: OrderConfig = {
 	detail: "账户编号在私人服务列表中查看"
 };
 
+const privateReplace: OrderConfig = {
+	type: "order",
+	cmdKey: "silvery-star.private-replace",
+	desc: [ "更新私人服务", "[账户编号] [cookie]" ],
+	headers: [ "pr" ],
+	regexps: [ "\\d+", ".+" ],
+	main: "achieves/private/replace",
+	scope: MessageScope.Private,
+	detail: "账户编号在私人服务列表中查看\n" +
+			"该指令用于更换私人服务所绑定的 cookie"
+};
+
 const privateNowNote: OrderConfig = {
 	type: "order",
 	cmdKey: "silvery-star.now-note",
@@ -293,8 +305,8 @@ export default <PluginSetting>{
 		slip, uidQuery, epitomizedPath, information,
 		domain, almanac,
 		privateNowNote, privateNoteEvent, privateSubList,
-		privateConfirm, privateSubscribe, privateCancel,
-		privateAbyssQuery, privateMysQuery,
+		privateConfirm, privateSubscribe, privateReplace,
+		privateAbyssQuery, privateCancel, privateMysQuery,
 		privateToggleSign, privateMysSetAppoint,
 	]
 };

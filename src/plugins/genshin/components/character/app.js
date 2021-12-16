@@ -33,7 +33,7 @@ export default defineComponent( {
 	},
 	setup() {
 		const urlParams = parseURL( location.search );
-		const data = JSON.parse( decodeURIComponent( escape( atob( decodeURIComponent( urlParams.data ) ) ) ) );
+		const data = request( `/api/char?qq=${ urlParams.qq }` );
 
 		function setStyle( colorList ) {
 			document.documentElement.style.setProperty("--baseInfoColor",    colorList[0]);

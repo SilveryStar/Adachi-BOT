@@ -46,3 +46,12 @@
 	color: rgb(36, 36, 36);
 	text-align: right;
 }
+
+.time {
+	position: absolute;
+	left: 0;
+	top: 0;
+	color: #494338;
+	margin: 1.9% 2.8%;
+	font-size: 0.85rem;
+}

@@ -2,13 +2,14 @@ import { InputParameter, SwitchMatchResult } from "@modules/command";
 import { Private } from "#genshin/module/private/main";
 import { Abyss } from "#genshin/types";
 import { FakeMessage } from "oicq";
+import { RenderResult } from "@modules/renderer";
 import { getPrivateAccount } from "#genshin/utils/private";
 import { getRegion } from "#genshin/utils/region";
 import { abyssInfoPromise } from "#genshin/utils/promise";
-import { render } from "#genshin/utils/render";
+import { renderer } from "#genshin/init";
 
 export async function main(
-	{ sendMessage, messageData, matchResult, auth, redis, config, client }: InputParameter
+	{ sendMessage, messageData, matchResult, auth, redis, config, client, logger }: InputParameter
 ): Promise<void> {
 	const match = <SwitchMatchResult>matchResult;
 	const userID: number = messageData.user_id;
@@ -41,46 +42,55 @@ export async function main(
 	const abyss: Abyss = JSON.parse( abyssData );
 	
 	const userInfo: string = `UID-${ uid }`;
-	let imageList: string[] = [];
+	const floorList: number[] = [];
 	
-	imageList[0] = await render( "abyss", {
-		floor: -1,
-		info: userInfo,
-		data: Buffer.from( JSON.stringify( {
-			revealRank: abyss.revealRank.splice( 0, 8 ),
-			defeatRank: abyss.defeatRank.splice( 0, 3 ),
-			takeDamageRank: abyss.takeDamageRank.splice( 0, 3 ),
-			normalSkillRank: abyss.normalSkillRank.splice( 0, 3 ),
-			energySkillRank: abyss.energySkillRank.splice( 0, 3 ),
-			damageRank: abyss.damageRank,
-			maxFloor: abyss.maxFloor,
-			totalBattleTimes: abyss.totalBattleTimes,
-			totalStar: abyss.totalStar
-		} ) ).toString( "base64" )
-	}, "#app", false );
-	
-	for ( let floorData of abyss.floors ) {
-		const base64: string = Buffer.from( JSON.stringify( floorData ) )
-			.toString( "base64" );
-		const floor: number = floorData.index;
-		
-		imageList[floor] = await render( "abyss", {
-			floor,
-			info: userInfo,
-			data: base64
-		}, "#app", false );
+	function getDataPair( key: string, max: number ): Record<string, string> {
+		return { [key]: JSON.stringify( abyss[key].splice( 0, max ) ) };
 	}
 	
-	imageList = imageList.filter( el => el !== undefined );
+	floorList.push( 0 );
+	await redis.setHash( `silvery-star.abyss-temp-${ userID }-${ 0 }`, {
+		floor: 0,
+		info: userInfo,
+		...getDataPair( "revealRank", 8 ),
+		...getDataPair( "defeatRank", 3 ),
+		...getDataPair( "takeDamageRank", 3 ),
+		...getDataPair( "normalSkillRank", 3 ),
+		...getDataPair( "energySkillRank", 3 ),
+		damageRank: JSON.stringify( abyss.damageRank ),
+		maxFloor: abyss.maxFloor,
+		totalBattleTimes: abyss.totalBattleTimes,
+		totalStar: abyss.totalStar
+	} );
+	
+	for ( let floorData of abyss.floors ) {
+		const floor: number = floorData.index;
+		const dbKey: string = `silvery-star.abyss-temp-${ userID }-${ floor }`;
+		floorList.push( floor );
+		await redis.setHash( dbKey, {
+			floor,
+			info: userInfo,
+			data: JSON.stringify( floorData )
+		} );
+	}
+	
 	const content: FakeMessage[] = [];
-	for ( let image of imageList ) {
-		content.push( {
+	for ( let floor of floorList ) {
+		const res: RenderResult = await renderer.asBase64(
+			"/abyss.html", { qq: userID, floor }
+		);
+		if ( res.code === "error" ) {
+			logger.error( res.error );
+			continue;
+		}
+		const msgNode: FakeMessage = {
 			user_id: config.number,
 			message: {
 				type: "image",
-				data: { file: image }
+				data: { file: res.data }
 			}
-		} );
+		};
+		content.push( msgNode );
 	}
 	
 	const replyMessage = await client.makeForwardMsg( content );

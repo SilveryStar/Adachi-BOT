@@ -2,14 +2,13 @@ import bot from "ROOT";
 import { InputParameter, Order } from "@modules/command";
 import { Private } from "#genshin/module/private/main";
 import { AuthLevel } from "@modules/management/auth";
-import { Avatar } from "#genshin/types/character";
-import { Artifact } from "#genshin/types/character";
+import { Avatar, Artifact } from "#genshin/types/character";
+import { RenderResult } from "@modules/renderer";
 import { NameResult, getRealName } from "../utils/name";
 import { singleCharacterInfoPromise } from "../utils/promise";
-import { render } from "../utils/render";
 import { getRegion } from "#genshin/utils/region";
 import { omit } from "lodash";
-import { characterID, privateClass } from "#genshin/init";
+import { characterID, privateClass, renderer } from "#genshin/init";
 
 interface QueryParam {
 	uid: string;
@@ -18,7 +17,7 @@ interface QueryParam {
 }
 
 export async function main(
-	{ sendMessage, messageData, redis }: InputParameter
+	{ sendMessage, messageData, redis, logger }: InputParameter
 ): Promise<void> {
 	const userID: number = messageData.user_id;
 	const query: QueryParam = {
@@ -101,14 +100,22 @@ export async function main(
 			: <Avatar>await singleCharacterInfoPromise( uid, server, charID );
 		const artifacts: Artifact[] = data.reliquaries;
 		
-		const image: string = await render( "character", {
-			data: Buffer.from( JSON.stringify( {
-				...data,
-				reliquaries: artifacts.map( el => omit( el, [ "set" ] ) ),
-				uid: query.uid
-			} ) ).toString( "base64" )
-		} );
-		await sendMessage( image );
+		const dbKey: string = `silvery-star.character-temp-${ userID }`;
+		await redis.setString( dbKey, JSON.stringify( {
+			...data,
+			reliquaries: artifacts.map( el => omit( el, [ "set" ] ) ),
+			uid: query.uid
+		} ) );
+		const res: RenderResult = await renderer.asCqCode(
+			"/character.html",
+			{ qq: userID }
+		);
+		if ( res.code === "ok" ) {
+			await sendMessage( res.data );
+		} else {
+			logger.error( res.error );
+			await sendMessage( "图片渲染异常，请联系持有者进行反馈" );
+		}
 	} catch ( error ) {
 		await sendMessage( <string>error );
 	}
