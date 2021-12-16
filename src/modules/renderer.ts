@@ -72,7 +72,7 @@ export default class Renderer {
 	
 	private async restartBrowser(): Promise<void> {
 		await this.closeBrowser();
-		await this.launchBrowser();
+		this.browser = await this.launchBrowser();
 		this.screenshotCount = 0;
 	}
 	
