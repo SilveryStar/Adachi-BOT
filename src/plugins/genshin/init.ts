@@ -42,9 +42,9 @@ function loadConfig( file: FileManagement ): GenshinConfig {
 			c[k] = config[k] ? config[k] : initCfg[k];
 		}
 		file.writeYAML( "genshin", c );
-		return c;
+		return new GenshinConfig( c );
 	}
-	return config;
+	return new GenshinConfig( config );
 }
 
 export async function init( { file, logger }: BOT ): Promise<PluginSetting> {

@@ -61,17 +61,18 @@ export default class Refreshable implements RefreshableMethod {
 		const respList: string[] = [];
 		for ( let setting of this.include ) {
 			try {
-				let config: any = undefined;
+				let message: string = "";
 				if ( setting.type === "file" ) {
 					const { fileName, place } = setting;
-					config = bot.file.loadYAML( fileName, place );
+					const config = bot.file.loadYAML( fileName, place );
+					message = await setting.target.refresh( config );
+				} else {
+					message = await setting.target.refresh();
 				}
-				const msg: string = await setting.target.refresh( config );
-				respList.push( msg );
+				respList.push( message );
 			} catch ( error ) {
 				const err = <RefreshCatch>error;
 				respList.push( err.msg );
-				bot.logger.error( err.log );
 			}
 		}
 		this.isRefreshing = false;

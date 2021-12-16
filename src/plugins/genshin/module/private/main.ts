@@ -122,8 +122,9 @@ export class Private {
 		await bot.redis.setString( this.dbKey, this.stringify() );
 	}
 	
-	public replaceCookie( cookie: string ): void {
+	public async replaceCookie( cookie: string ): Promise<void> {
 		this.setting.cookie = cookie;
+		await bot.redis.setString( this.dbKey, this.stringify() );
 	}
 }
 

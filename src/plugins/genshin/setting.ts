@@ -226,6 +226,7 @@ const privateReplace: OrderConfig = {
 	desc: [ "更新私人服务", "[账户编号] [cookie]" ],
 	headers: [ "pr" ],
 	regexps: [ "\\d+", ".+" ],
+	ignoreCase: false,
 	main: "achieves/private/replace",
 	scope: MessageScope.Private,
 	detail: "账户编号在私人服务列表中查看\n" +
