@@ -134,7 +134,7 @@ export default class Renderer {
 			const base64: string = await this.render( route, params, selector );
 			return { code: "ok", data: base64 };
 		} catch ( error ) {
-			const err = <string>error.stack;
+			const err = <string>( <Error>error ).stack;
 			return { code: "error", error: err };
 		}
 	}
@@ -149,7 +149,7 @@ export default class Renderer {
 			const cqCode: string = `[CQ:image,file=${ base64 }]`;
 			return { code: "ok", data: cqCode };
 		} catch ( error ) {
-			const err = <string>error.stack;
+			const err = <string>( <Error>error ).stack;
 			return { code: "error", error: err };
 		}
 	}
