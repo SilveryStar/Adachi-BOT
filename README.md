@@ -4,7 +4,7 @@
     <div>
         <a href="https://docs.adachi.top" target="_blank">官方文档</a> &nbsp;|&nbsp;
         <a href="https://github.com/SilveryStar/Adachi-Plugin" target="_blank">插件库</a> &nbsp;|&nbsp;
-        <a href="https://github.com/SilveryStar/Adachi-BOT/issues/70">功能征集</a>
+        <a href="https://github.com/SilveryStar/Adachi-BOT/issues/146">关于频道</a>
     </div>
     <small>&gt; 原神Q群助手 &lt;</small>
     <div>
