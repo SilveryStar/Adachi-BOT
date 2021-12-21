@@ -100,6 +100,7 @@ class Wish {
 	private readonly type: string;
 	private readonly dbKey: string;
 	private readonly epit: string;
+	private tempData: Record<string, number> = {};
 	
 	constructor( fn: probFn, table: WishDetail, type: string, id: number ) {
 		this.probFunc = fn;
@@ -107,47 +108,55 @@ class Wish {
 		this.type = type;
 		this.dbKey = `silvery-star.wish-${ type }-${ id }`;
 		this.epit = `silvery-star.epitomized-path-${ id }`;
-		
-		bot.redis.getHash( this.dbKey )
-			.then( async ( { epit } ) => {
-				epit === undefined ? await bot.redis.setHash( this.dbKey, { epit: 0 } ) : 0;
-			} );
 	}
 	
-	private async SET( field: string, value: any ): Promise<void> {
-		await bot.redis.client.HSET( this.dbKey, field, value );
-	}
-
-	private async GET( filed: string ): Promise<number> {
-		return new Promise( ( resolve ) => {
-			bot.redis.client.HGET( this.dbKey, filed, ( error: Error | null, res: string ) => {
-				resolve( parseInt( res ) );
-			} );
-		} );
+	public async init(): Promise<Wish> {
+		const data: Record<string, string> = await bot.redis.getHash( this.dbKey );
+		if ( !data.epit ) {
+			await bot.redis.setHash( this.dbKey, { epit: 0 } );
+		}
+		this.tempData = Object.keys( data )
+			.reduce( ( pre, cur ) => {
+				pre[cur] = parseInt( data[cur] );
+				return pre;
+			}, {} );
+		return this;
 	}
 	
-	private async INCREASE( field: string ): Promise<void> {
-		await bot.redis.client.HINCRBY( this.dbKey, field, 1 );
+	private SET( field: string, value: any ): void {
+		this.tempData[field] = value;
+	}
+	
+	private GET( filed: string ): number {
+		return this.tempData[filed];
+	}
+	
+	private INCREASE( field: string ): void {
+		this.tempData[field]++;
+	}
+	
+	private async WRITE(): Promise<void> {
+		await bot.redis.setHash( this.dbKey, this.tempData );
 	}
 	
 	private async updateCounter( rank: number, up: boolean ): Promise<void> {
 		if ( rank !== 5 ) {
-			await this.INCREASE( "five" );
-			rank === 4 ? await this.SET( "four", 1 )
-					   : await this.INCREASE( "four" );
+			this.INCREASE( "five" );
+			rank === 4 ? this.SET( "four", 1 )
+				: this.INCREASE( "four" );
 			return;
 		}
-		await this.SET( "five", 1 );
-		await this.INCREASE( "four" );
+		this.SET( "five", 1 );
+		this.INCREASE( "four" );
 		if ( this.type !== "indefinite" ) {
-			await this.SET( "isUp", up ? 0 : 1 );
+			this.SET( "isUp", up ? 0 : 1 );
 		}
 	}
 	
 	private async getRank(): Promise<number> {
 		const value: number = Wish.getRandom();
-		const fiveProb: number = this.probFunc( await this.GET( "five" ), 5 );
-		const fourProb: number = this.probFunc( await this.GET( "four" ), 4 ) + fiveProb;
+		const fiveProb: number = this.probFunc( this.GET( "five" ), 5 );
+		const fourProb: number = this.probFunc( this.GET( "four" ), 4 ) + fiveProb;
 		
 		switch ( true ) {
 			case value <= fiveProb:
@@ -160,17 +169,17 @@ class Wish {
 	}
 	
 	private async getEpit(): Promise<number> {
-		return await this.GET( "epit" );
+		return this.GET( "epit" );
 	}
 	
 	private async getIsUp( rank: number ): Promise<boolean> {
 		if ( this.type === "indefinite" ) {
 			return false;
 		} else if ( this.type === "weapon" ) {
-			const isUp: number = await this.GET( "isUp" );
+			const isUp: number = this.GET( "isUp" );
 			return Wish.getRandom() <= 7500 || ( rank === 5 && isUp === 1 );
 		} else {
-			const isUp: number = await this.GET( "isUp" );
+			const isUp: number = this.GET( "isUp" );
 			return Wish.getRandom() <= 5000 || ( rank === 5 && isUp === 1 );
 		}
 	}
@@ -178,7 +187,7 @@ class Wish {
 	private async once(): Promise<WishResult> {
 		const rank: number = await this.getRank();
 		const up: boolean = await this.getIsUp( rank );
-		const times: number = await this.GET( "five" );
+		const times: number = this.GET( "five" );
 		await this.updateCounter( rank, up );
 		
 		let result: WishResult;
@@ -189,11 +198,11 @@ class Wish {
 				const epit: number = await this.getEpit();
 				const user: number = await EpitomizedPath.getUser( this.epit );
 				if ( epit >= 2 && user !== 0 ) {
-					await this.SET( "epit", 0 );
+					this.SET( "epit", 0 );
 					const result = this.table.upFiveStar[user - 1];
 					return { ...result, times, rank: 105 };
 				}
-				await this.INCREASE( "epit" );
+				this.INCREASE( "epit" );
 			}
 			if ( up ) {
 				const idx: number = Wish.getRandom( this.table.upFiveStar.length ) - 1;
@@ -204,7 +213,7 @@ class Wish {
 					if ( user !== 0 ) {
 						const chosen = this.table.upFiveStar[user - 1];
 						if ( result.name === chosen.name ) {
-							await this.SET( "epit", 0 );
+							this.SET( "epit", 0 );
 							return { ...result, times, rank: 105 };
 						}
 					}
@@ -233,6 +242,7 @@ class Wish {
 		for ( let i = 0; i < t; i++ ) {
 			result.push( await this.once() );
 		}
+		await this.WRITE();
 		return { result, total: t };
 	}
 	
@@ -246,6 +256,7 @@ class Wish {
 			res = await this.once();
 			result.push( res );
 		} while ( !chk( res ) );
+		await this.WRITE();
 		
 		return { result, total };
 	}
@@ -283,13 +294,16 @@ export class WishClass {
 		switch ( choice ) {
 			case "常驻":
 				table = <WishDetail>this.indefinite;
-				wishType = "indefinite"; break;
+				wishType = "indefinite";
+				break;
 			case "角色":
 				table = <WishDetail>this.character;
-				wishType = "character"; break;
+				wishType = "character";
+				break;
 			case "角色2":
 				table = <WishDetail>this.character2;
-				wishType = "character"; break;
+				wishType = "character";
+				break;
 			default:
 				fn = Wish.weapon;
 				table = <WishDetail>this.weapon;
@@ -322,7 +336,7 @@ export class WishClass {
 	public async get( userID: number, choice: string, param: string ): Promise<WishTotalSet | null> {
 		const method = this.getWishMethod( choice );
 		if ( method ) {
-			const wish: Wish = new Wish( ...method, userID );
+			const wish: Wish = await new Wish( ...method, userID ).init();
 			switch ( true ) {
 				case param.length === 0:
 					return await wish.getAnyTimes( 10 );

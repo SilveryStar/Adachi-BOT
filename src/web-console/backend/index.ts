@@ -17,6 +17,7 @@ import StatRouter from "./routes/stat";
 export default class WebConsole {
 	private readonly app: Express;
 	private readonly secret: string;
+	private isFirstListen: boolean = true;
 	
 	constructor( config: BotConfig ) {
 		const cfg = config.webConsole;
@@ -61,7 +62,10 @@ export default class WebConsole {
 				} );
 				ws.on( "close", () => job.cancel() && ws.close() );
 			} );
-			this.app.listen( port );
+			if ( this.isFirstListen ) {
+				this.isFirstListen = false;
+				this.app.listen( port );
+			}
 		} ).listen( tcp );
 	}
 	

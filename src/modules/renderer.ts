@@ -104,6 +104,7 @@ export default class Renderer {
 		const element = await page.$( selector );
 		const result = <string>await element?.screenshot( option );
 		const base64: string = `base64://${ result }`;
+		await page.close();
 		
 		this.screenshotCount++;
 		if ( this.screenshotCount >= Renderer.screenshotLimit ) {
