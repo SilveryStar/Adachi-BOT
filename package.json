@@ -1,6 +1,6 @@
 {
   "name": "adachi-bot",
-  "version": "2.2.5-bugfix3",
+  "version": "2.2.5-bugfix4",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -41,7 +41,7 @@
     "node-fetch": "^2.6.1",
     "node-schedule": "^2.0.0",
     "object-immutable-set": "^1.0.0",
-    "oicq": "^1.21.1",
+    "oicq": "^1.21.3",
     "puppeteer": "^10.0.0",
     "redis": "^3.1.2",
     "request": "^2.88.2",

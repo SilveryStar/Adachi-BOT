@@ -334,6 +334,10 @@ export async function mihoyoBBSSignIn( uid: string, region: string, cookie: stri
 		} )
 			.then( ( result ) => {
 				const resp = toCamelCase( result );
+				if ( !resp.data ) {
+					reject( resp.message || resp.msg );
+					return;
+				}
 				const data: ResponseBody = set( resp, "data.type", "sign-in-result" )
 				resolve( data );
 			} )
@@ -361,6 +365,10 @@ export async function getSignInInfo( uid: string, region: string, cookie: string
 		} )
 			.then( ( result ) => {
 				const resp = toCamelCase( JSON.parse( result ) );
+				if ( !resp.data ) {
+					reject( resp.message || resp.msg );
+					return;
+				}
 				const data: ResponseBody = set( resp, "data.type", "sign-in-info" )
 				resolve( data );
 			} )

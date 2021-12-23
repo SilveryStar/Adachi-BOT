@@ -15,7 +15,7 @@ export async function main(
 	const param: string = messageData.raw_message;
 	
 	let choice: string | null = await redis.getString( `silvery-star.wish-choice-${ userID }` );
-	if ( choice === null ) {
+	if ( choice.length === 0 ) {
 		choice = "角色"
 		await redis.setString( `silvery-star.wish-choice-${ userID }`, "角色" );
 		await redis.setHash( `silvery-star.wish-indefinite-${ userID }`, { five: 1, four: 1 } );
