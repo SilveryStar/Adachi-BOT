@@ -27,8 +27,8 @@ const __API = {
 	FETCH_DAILY_MAP: "https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/daily/daily.yml",
 	FETCH_ALMANAC: "https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/almanac/almanac.yml",
 	FETCH_CHARACTER_ID: "https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/character/id.yml",
-	FETCH_SIGN_IN: "https://api-takumi-record.mihoyo.com/event/bbs_sign_reward/sign",
-	FETCH_SIGN_INFO: "https://api-takumi-record.mihoyo.com/event/bbs_sign_reward/info"
+	FETCH_SIGN_IN: "https://api-takumi.mihoyo.com/event/bbs_sign_reward/sign",
+	FETCH_SIGN_INFO: "https://api-takumi.mihoyo.com/event/bbs_sign_reward/info"
 };
 
 const HEADERS = {
