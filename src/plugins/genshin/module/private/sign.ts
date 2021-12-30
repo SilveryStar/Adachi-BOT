@@ -1,3 +1,4 @@
+import { randomInt } from "#genshin/utils/random";
 import { signInInfoPromise, signInResultPromise } from "#genshin/utils/promise";
 import { scheduleJob, Job } from "node-schedule";
 import { Private, Service } from "./main";
@@ -20,9 +21,16 @@ export class SignInService implements Service {
 		this.parent = p;
 		this.enable = options.enable === undefined
 			? false : options.enable;
+	}
+	
+	public async loadedHook(): Promise<any> {
 		if ( this.enable ) {
-			this.sign( this, false )();
-			this.setScheduleJob();
+			const delay: number = randomInt( 0, 99 );
+			
+			setTimeout( async () => {
+				await this.sign( false );
+				this.setScheduleJob();
+			}, delay * 100 );
 		}
 	}
 	
@@ -39,7 +47,7 @@ export class SignInService implements Service {
 		this.enable = !this.enable;
 		if ( this.enable ) {
 			await this.parent.sendMessage( "米游社签到功能已开启" );
-			this.sign( this, false )();
+			await this.sign( false );
 			this.setScheduleJob();
 		} else {
 			await this.parent.sendMessage( "米游社签到功能已关闭" );
@@ -49,27 +57,31 @@ export class SignInService implements Service {
 		await this.parent.refreshDBContent( SignInService.FixedField );
 	}
 	
-	private sign( that: SignInService, reply: boolean = true ): any {
-		return async function() {
-			const { uid, server, cookie } = that.parent.setting;
-			try {
-				const info = <SignInInfo>( await signInInfoPromise( uid, server, cookie ) );
-				if ( info.isSign ) {
-					reply ? await that.parent.sendMessage( "您今天已在米游社签到" ) : "";
-					return;
-				}
-				await signInResultPromise( uid, server, cookie );
-				await that.parent.sendMessage(
-					`[UID${ uid }] - 今日签到完成，本月累计签到 ${ info.totalSignDay + 1 } 天`
-				);
-			} catch ( error ) {
-				await that.parent.sendMessage( <string>error );
+	private async sign( reply: boolean = true ): Promise<void> {
+		const { uid, server, cookie } = this.parent.setting;
+		try {
+			const info = <SignInInfo>( await signInInfoPromise( uid, server, cookie ) );
+			if ( info.isSign ) {
+				reply ? await this.parent.sendMessage( "您今天已在米游社签到" ) : "";
+				return;
 			}
+			await signInResultPromise( uid, server, cookie );
+			await this.parent.sendMessage(
+				`[UID${ uid }] - 今日签到完成，本月累计签到 ${ info.totalSignDay + 1 } 天`
+			);
+		} catch ( error ) {
+			await this.parent.sendMessage( <string>error );
 		}
 	}
 	
 	private setScheduleJob(): void {
-		this.job = scheduleJob( "0 0 8 * * *", this.sign( this ) );
+		const min: number = randomInt( 0, 59 );
+		const cron: string = `0 ${ min } 8 * * *`;
+		
+		this.job = scheduleJob( cron, async () => {
+			await this.sign();
+			this.setScheduleJob();
+		} );
 	}
 	
 	private cancelScheduleJob(): void {

@@ -54,7 +54,7 @@ export interface Avatar {
  * @affixLevel 精炼等级
  * @desc 武器描述
  * */
-interface Weapon {
+export interface Weapon {
 	id: number;
 	name: string;
 	icon: string;
@@ -97,7 +97,7 @@ export interface Artifact {
  * @name. 套装名
  * @affixes 套装效果
  * */
-interface ArtifactSet {
+export interface ArtifactSet {
 	id: number;
 	name: string;
 	affixes: {
@@ -116,7 +116,7 @@ interface ArtifactSet {
  * @isActived 是否激活
  * @pos 命之座层数
  * */
-interface Constellation {
+export interface Constellation {
 	id: number;
 	name: string;
 	icon: string;
@@ -132,7 +132,7 @@ interface Constellation {
  * @name. 装扮名
  * @icon 装扮图标
  * */
-interface Costume {
+export interface Costume {
 	id: number;
 	name: string;
 	icon: string;

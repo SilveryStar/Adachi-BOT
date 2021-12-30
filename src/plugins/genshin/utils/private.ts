@@ -5,7 +5,7 @@ import Authorization, { AuthLevel } from "@modules/management/auth";
 import { privateClass } from "#genshin/init";
 
 export async function getPrivateAccount( userID: number, idMsg: string, auth: Authorization ): Promise<string | Private> {
-	const id: number = idMsg.length === 0 ? 0 : parseInt( idMsg ) - 1;
+	const id: number = !idMsg ? 0 : parseInt( idMsg ) - 1;
 	
 	const accounts: Private[] = privateClass.getUserPrivateList( userID );
 	const a: AuthLevel = await auth.get( userID );

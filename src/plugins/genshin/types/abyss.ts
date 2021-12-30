@@ -47,7 +47,7 @@ export interface Abyss {
  * @levels 间挑战数据
  * @isUnlock 是否解锁
  * */
-interface AbyssFloor {
+export interface AbyssFloor {
 	index: number;
 	icon: string;
 	star: number;
@@ -65,7 +65,7 @@ interface AbyssFloor {
  * @maxStar 最大渊星数量
  * @battles 上/下间数据
  * */
-interface AbyssRoom {
+export interface AbyssRoom {
 	index: number;
 	star: number;
 	maxStar: number;
@@ -79,7 +79,7 @@ interface AbyssRoom {
  * @timestamp 时间戳(s)
  * @avatars 参战角色数据
  * */
-interface AbyssBattle {
+export interface AbyssBattle {
 	index: number;
 	timestamp: string;
 	avatars: {
@@ -98,7 +98,7 @@ interface AbyssBattle {
  * @value 数据值
  * @rarity 角色稀有度
  * */
-interface AbyssCharacter {
+export interface AbyssCharacter {
 	avatarId: number;
 	avatarIcon: string;
 	value: number;

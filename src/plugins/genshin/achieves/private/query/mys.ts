@@ -2,7 +2,7 @@ import { InputParameter } from "@modules/command";
 import { Private } from "#genshin/module/private/main";
 import { MysQueryService } from "#genshin/module/private/mys";
 import { RenderResult } from "@modules/renderer";
-import { baseInfoPromise, characterInfoPromise, detailInfoPromise } from "#genshin/utils/promise";
+import { mysInfoPromise } from "#genshin/utils/promise";
 import { getPrivateAccount } from "#genshin/utils/private";
 import { config, renderer } from "#genshin/init";
 
@@ -18,9 +18,7 @@ export async function main(
 	
 	const { cookie, mysID } = info.setting;
 	try {
-		const server: string = await baseInfoPromise( userID, mysID, cookie );
-		const charIDs = <number[]>await detailInfoPromise( userID, server, cookie );
-		await characterInfoPromise( userID, server, charIDs, cookie );
+		await mysInfoPromise( userID, mysID, cookie );
 	} catch ( error ) {
 		if ( error !== "gotten" ) {
 			await sendMessage( <string>error );

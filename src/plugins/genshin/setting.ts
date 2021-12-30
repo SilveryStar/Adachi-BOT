@@ -83,20 +83,6 @@ const choosePool: OrderConfig = {
 	main: "achieves/choose"
 };
 
-const character: OrderConfig = {
-	type: "order",
-	cmdKey: "silvery-star.character",
-	desc: [ "角色信息", "(UID|账户编号) [角色名]" ],
-	headers: [ "char" ],
-	regexps: [ "(\\d{1,9})?", "[\\w\\u4e00-\\u9fa5]+" ],
-	main: "achieves/character",
-	detail: "查询某角色的游戏内装备信息\n" +
-			"填写 UID 时，将查询对应玩家的信息\n" +
-			"填写账户编号时，将查询用户对应的私人服务的账户\n" +
-			"没有填写任何数据时，优先查询 0 号私人服务\n" +
-			"未申请私人服务则会查询自己绑定的 UID 的信息"
-};
-
 const information: OrderConfig = {
 	type: "order",
 	cmdKey: "silvery-star.information",
@@ -287,6 +273,17 @@ const privateAbyssQuery: SwitchConfig = {
 	offKey: "laby"
 };
 
+const privateCharQuery: OrderConfig = {
+	type: "order",
+	cmdKey: "silvery-star.private-character",
+	desc: [ "角色信息", "(账户编号) [角色名]" ],
+	headers: [ "char" ],
+	regexps: [ "(\\d+)?", "[\\w\\u4e00-\\u9fa5]+" ],
+	main: "achieves/private/query/character",
+	detail: "查询对应的私人服务的账户的游戏内角色信息\n" +
+			"默认查询查询 1 号私人服务账户"
+};
+
 const privateToggleSign: OrderConfig = {
 	type: "order",
 	cmdKey: "silvery-star.private-toggle-sign",
@@ -301,13 +298,13 @@ const privateToggleSign: OrderConfig = {
 export default <PluginSetting>{
 	pluginName: "genshin",
 	cfgList: [
-		bind, today, guide, getArtifact, character,
-		wish, daily, alias, impArtifact, choosePool,
+		bind, today, guide, getArtifact, almanac,
+		wish, daily, alias, impArtifact, domain, choosePool,
 		slip, uidQuery, epitomizedPath, information,
-		domain, almanac,
 		privateNowNote, privateNoteEvent, privateSubList,
 		privateConfirm, privateSubscribe, privateReplace,
 		privateAbyssQuery, privateCancel, privateMysQuery,
-		privateToggleSign, privateMysSetAppoint,
+		privateToggleSign, privateCharQuery,
+		privateMysSetAppoint
 	]
 };

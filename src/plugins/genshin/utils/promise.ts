@@ -149,29 +149,14 @@ export async function characterInfoPromise(
 	} );
 }
 
-export async function singleCharacterInfoPromise(
-	uid: number,
-	server: string,
-	charID: number,
-	throwError: boolean = true
-): Promise<ApiType.Avatar | null> {
-	const { retcode, message, data } = await api.getCharactersInfo( uid, server, [ charID ], cookies.get() );
-	if ( !ApiType.isCharacter( data ) ) {
-		return Promise.reject( ErrorMsg.UNKNOWN );
-	}
-
-	return new Promise( async ( resolve, reject ) => {
-		if ( retcode === -1 ) {
-			throwError
-				? reject( `玩家 UID${ uid } 没有该角色` )
-				: resolve( null );
-			return;
-		} else if ( retcode !== 0 ) {
-			reject( ErrorMsg.FORM_MESSAGE + message );
-			return;
-		}
-		resolve( data.avatars[0] );
-	} );
+export async function mysInfoPromise(
+	userID: number,
+	mysID: number,
+	cookie: string
+): Promise<void> {
+	const server: string = await baseInfoPromise( userID, mysID, cookie );
+	const charIDs = <number[]>await detailInfoPromise( userID, server, cookie );
+	await characterInfoPromise( userID, server, charIDs, cookie );
 }
 
 export async function abyssInfoPromise(

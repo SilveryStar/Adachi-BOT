@@ -11,7 +11,7 @@
 export interface UserInfo {
 	type: "user-info";
 	role: null;
-	avatars: Character[];
+	avatars: UserCharacter[];
 	stats: Stats;
 	cityExplorations: [] | any;
 	worldExplorations: Exploration[];
@@ -29,7 +29,7 @@ export interface UserInfo {
  * @rarity 角色稀有度
  * @activedConstellationNum 激活命之座
  * */
-interface Character {
+export interface UserCharacter {
 	id: number;
 	image: string;
 	name: string;
@@ -59,7 +59,7 @@ interface Character {
  * @magicChestNumber 奇馈宝箱
  * @electroculusNumber 雷神瞳数
  * */
-interface Stats {
+export interface Stats {
 	activeDayNumber: number;
 	achievementNumber: number;
 	winRate: number;
@@ -88,7 +88,7 @@ interface Stats {
  * @offerings 地区供奉
  * @id 地区 ID
  * */
-interface Exploration {
+export interface Exploration {
 	level: number;
 	explorationPercentage: number;
 	icon: string;
@@ -104,7 +104,7 @@ interface Exploration {
  * @name. 供奉名
  * @level 供奉等级
  * */
-interface Offering {
+export interface Offering {
 	name: string;
 	level: number;
 }
@@ -121,7 +121,7 @@ interface Offering {
  * @comfortLevelName 信任等级名
  * @comfortLevelIcon 信任等级图标
  * */
-interface Home {
+export interface Home {
 	level: number;
 	visitNum: number;
 	comfortNum: number;

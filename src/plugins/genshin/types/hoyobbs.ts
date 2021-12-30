@@ -39,13 +39,13 @@ export interface Game {
 	dataSwitches: DataSwitch[];
 }
 
-interface Data {
+export interface Data {
 	name: string;
 	type: number;
 	value: string;
 }
 
-interface DataSwitch {
+export interface DataSwitch {
 	switchId: number;
 	isPublic: boolean;
 	switchName: string;

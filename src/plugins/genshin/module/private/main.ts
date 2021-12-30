@@ -5,6 +5,7 @@ import { Order } from "@modules/command";
 import { NoteService } from "./note";
 import { MysQueryService } from "./mys";
 import { AbyQueryService } from "./abyss";
+import { CharQueryService } from "#genshin/module/private/char";
 import { SignInService } from "./sign";
 import { Md5 } from "md5-typescript";
 import { pull } from "lodash";
@@ -15,6 +16,7 @@ export interface Service {
 	FixedField: string;
 	getOptions(): any;
 	initTest(): Promise<string>;
+	loadedHook?(): Promise<any>;
 }
 
 /* 获取元组第一位 */
@@ -35,7 +37,10 @@ type ExpandedService<T extends any[], E extends BasicExpand = {}> = T extends []
 	? E
 	: ExpandedService<TupleShift<T>, ObjectExpand<E, TupleHead<T>>>;
 /* 定义扩展私有服务 */
-type ServiceTuple = [ NoteService, SignInService, MysQueryService, AbyQueryService ];
+type ServiceTuple = [
+	NoteService, SignInService, MysQueryService,
+	AbyQueryService, CharQueryService
+];
 /* 获取扩展私人服务类型 */
 type Services = ExpandedService<ServiceTuple>;
 
@@ -94,10 +99,11 @@ export class Private {
 		const md5: string = Md5.init( `${ userID }-${ uid }` );
 		this.dbKey = dbPrefix + md5;
 		this.services = {
-			[ NoteService.FixedField ]:     new NoteService( this ),
-			[ SignInService.FixedField ]:   new SignInService( this ),
-			[ MysQueryService.FixedField ]: new MysQueryService( this ),
-			[ AbyQueryService.FixedField ]: new AbyQueryService( this )
+			[ NoteService.FixedField ]:      new NoteService( this ),
+			[ SignInService.FixedField ]:    new SignInService( this ),
+			[ MysQueryService.FixedField ]:  new MysQueryService( this ),
+			[ AbyQueryService.FixedField ]:  new AbyQueryService( this ),
+			[ CharQueryService.FixedField ]: new CharQueryService( this )
 		};
 		this.options = this.globalOptions();
 	}
@@ -142,6 +148,12 @@ export class PrivateClass {
 				}
 				const account = Private.parse( data );
 				this.list.push( account );
+				
+				for ( let s of <Service[]>Object.values( account.services ) ) {
+					if ( s.loadedHook ) {
+						await s.loadedHook();
+					}
+				}
 			}
 		} );
 	}
