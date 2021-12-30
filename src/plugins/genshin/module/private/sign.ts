@@ -23,7 +23,7 @@ export class SignInService implements Service {
 			? false : options.enable;
 	}
 	
-	public async loadedHook(): Promise<any> {
+	public async loadedHook(): Promise<void> {
 		if ( this.enable ) {
 			const delay: number = randomInt( 0, 99 );
 			

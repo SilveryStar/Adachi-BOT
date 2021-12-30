@@ -37,7 +37,7 @@ export default defineComponent( {
 	setup() {
 		const urlParams = parseURL( location.search );
 		const data = request( `/api/wish/statistic?qq=${ urlParams.qq }` );
-		console.log( data )
+		
 		const weaponCount = data.weapon.reduce( ( pre, cur ) => pre + cur.count, 0 );
 		const charCount = data.character.reduce( ( pre, cur ) => pre + cur.count, 0 );
 		const fullDate = getFullDate();

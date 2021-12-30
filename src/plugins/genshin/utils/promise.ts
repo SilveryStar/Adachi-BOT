@@ -2,7 +2,7 @@ import * as ApiType from "../types";
 import * as api from "./api";
 import bot from "ROOT";
 import { Cookies } from "#genshin/module";
-import { omit } from "lodash";
+import { omit, parseInt } from "lodash";
 import { cookies } from "../init";
 
 export enum ErrorMsg {
@@ -208,23 +208,29 @@ export async function dailyNotePromise(
 	uid: string,
 	server: string,
 	cookie: string
-): Promise<ApiType.Note | string> {
-	const { retcode, message, data } = await api.getDailyNoteInfo( parseInt( uid ), server, cookie );
-	if ( !ApiType.isNote( data ) ) {
-		return Promise.reject( ErrorMsg.UNKNOWN );
-	}
-	
-	return new Promise( ( resolve, reject ) => {
-		if ( retcode === 10001 ) {
-			reject( Cookies.checkExpired( cookie ) );
-			return;
-		} else if ( retcode !== 0 ) {
-			reject( ErrorMsg.FORM_MESSAGE + message );
-			return;
+): Promise<ApiType.Note> {
+	return new Promise( async ( resolve, reject ) => {
+		try {
+			const { retcode, message, data } = await api.getDailyNoteInfo(
+				parseInt( uid ), server, cookie
+			);
+			if ( !ApiType.isNote( data ) ) {
+				return reject( ErrorMsg.UNKNOWN );
+			}
+			
+			if ( retcode === 10001 ) {
+				reject( Cookies.checkExpired( cookie ) );
+				return;
+			} else if ( retcode !== 0 ) {
+				reject( ErrorMsg.FORM_MESSAGE + message );
+				return;
+			}
+			
+			bot.logger.info( `用户 ${ uid } 的实时便笺数据查询成功` );
+			resolve( data );
+		} catch ( error ) {
+			reject( "便笺数据查询错误，可能服务器出现了网络波动或米游社API故障，请联系持有者进行反馈" );
 		}
-		
-		bot.logger.info( `用户 ${ uid } 的实时便笺数据查询成功` );
-		resolve( data );
 	} );
 }
 
