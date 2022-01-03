@@ -80,6 +80,7 @@ export class SignInService implements Service {
 		
 		this.job = scheduleJob( cron, async () => {
 			await this.sign();
+			this.cancelScheduleJob();
 			this.setScheduleJob();
 		} );
 	}
