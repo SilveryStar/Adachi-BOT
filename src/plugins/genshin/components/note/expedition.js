@@ -19,7 +19,7 @@ export default defineComponent( {
 	setup( props ) {
 		const time = computed( () => {
 			return props.data.status === "Ongoing"
-				 ? "剩余探索时间 " + props.data.remainedTime
+				 ? `预计将在 ${ props.data.remainedTime } 完成探索`
 				 : "探险完成";
 		} );
 		

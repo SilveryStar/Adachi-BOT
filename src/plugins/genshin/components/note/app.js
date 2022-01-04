@@ -17,10 +17,14 @@ import { parseURL, request } from "../../public/js/src.js";
 import NoteInfo from "./info.js";
 import NoteExpedition from "./expedition.js";
 
-function getTimeString( time ) {
-	const hour = Math.floor( time / 60 / 60 );
-	const minute = Math.floor( time / 60 ) % 60;
-	return `${ hour }小时${ minute }分钟`;
+function getTimePoint( time ) {
+	const date = new Date();
+	const sec = date.getSeconds();
+	date.setSeconds( sec + parseInt( time ) );
+	return moment()
+		.locale( "zh-cn" )
+		.add( parseInt( time ), "s" )
+		.calendar();
 }
 const { defineComponent } = Vue;
 
@@ -37,7 +41,7 @@ export default defineComponent( {
 		
 		const resin = {
 			title: "原粹树脂",
-			subtitle: `将于${ getTimeString( data.resinRecoveryTime ) }后全部恢复`,
+			subtitle: `预计将在 ${ getTimePoint( data.resinRecoveryTime ) } 全部恢复`,
 			numerator: data.currentResin,
 			denominator: data.maxResin
 		};
@@ -56,7 +60,7 @@ export default defineComponent( {
 		
 		const list = [ resin, commission, weekly ];
 		data.expeditions.forEach( el => {
-			el.remainedTime = getTimeString( el.remainedTime );
+			el.remainedTime = getTimePoint( el.remainedTime );
 		} );
 
 		return { data, list }
