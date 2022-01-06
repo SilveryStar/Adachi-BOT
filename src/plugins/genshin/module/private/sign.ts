@@ -75,13 +75,14 @@ export class SignInService implements Service {
 	}
 	
 	private setScheduleJob(): void {
-		const min: number = randomInt( 0, 59 );
-		const cron: string = `0 ${ min } 8 * * *`;
-		
-		this.job = scheduleJob( cron, async () => {
-			await this.sign();
-			this.cancelScheduleJob();
-			this.setScheduleJob();
+		this.job = scheduleJob( "0 0 8 * * *", () => {
+			const sec: number = randomInt( 0, 180 );
+			const time = new Date().setSeconds( sec * 10 );
+			
+			const job: Job = scheduleJob( time, async () => {
+				await this.sign();
+				job.cancel();
+			} );
 		} );
 	}
 	
