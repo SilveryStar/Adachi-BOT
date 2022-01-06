@@ -56,9 +56,16 @@ export default defineComponent( {
 			subtitle: "本周剩余消耗减半次数",
 			numerator: data.remainResinDiscountNum,
 			denominator: data.resinDiscountNumLimit
-		}
-		
-		const list = [ resin, commission, weekly ];
+		};
+		const homes = {
+			title: "洞天财瓮 - 洞天宝钱",
+			subtitle: `预计将在 ${ getTimePoint( data.homeCoinRecoveryTime ) } 达到上限`,
+			numerator: data.currentHomeCoin,
+			denominator: data.maxHomeCoin,
+			miniFontSize: true
+		};
+		console.log( data )
+		const list = [ resin, homes, commission, weekly ];
 		data.expeditions.forEach( el => {
 			el.remainedTime = getTimePoint( el.remainedTime );
 		} );

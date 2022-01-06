@@ -1,16 +1,30 @@
+.line-one .exploration:not(.line-one .exploration:first-child) {
+	margin-left: 6px;
+}
+
+.line-two .exploration {
+	margin-left: 16px;
+}
+
 .exploration {
 	position: relative;
 	display: inline-flex;
 	flex-wrap: wrap;
 	width: auto;
 	height: auto;
-	margin-left: 16px;
 	margin-top: 4px;
+}
+
+.line-one .exp-bg {
+	width: 144px;
+}
+
+.line-two .exp-area {
+	width: 198px;
 }
 
 .exploration .exp-bg {
 	position: relative;
-	width: 198px;
 	height: 66px;
 }
 
@@ -22,6 +36,11 @@
 	height: 66px;
 }
 
+.line-one .exp-area .logo {
+	margin-left: -2px;
+	--height: 70px;
+}
+
 .exp-area .logo {
 	--height: 74px;
 	display: inline-block;
@@ -30,6 +49,10 @@
 	margin-left: 12px;
 	margin-top: calc( ( 66px - ( var( --height ) ) ) / 2 );
 	margin-right: 5px;
+}
+
+.line-one .exp-area .prop {
+	margin-left: -6px;
 }
 
 .exp-area .prop {
@@ -60,7 +83,12 @@
 	flex: 1;
 }
 
-.prop-name .item {
+.line-one .prop-name .item {
+	margin-right: 6px;
+	font-size: 12px;
+}
+
+.line-two .prop-name .item {
 	margin-right: 12px;
 	font-size: 13px;
 }

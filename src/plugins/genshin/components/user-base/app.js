@@ -60,7 +60,16 @@ const template =
 		<div class="world">
 			<SectionTitle title="世界探索"/>
 			<div class="explorations">
-				<Exploration v-for="e in explorations" :data="e"/>
+				<div class="line-one">
+					<Exploration :data="explorations[0]"/>
+					<Exploration :data="explorations[3]"/>
+					<Exploration :data="explorations[4]"/>
+				</div>
+				<div class="line-two">
+					<Exploration :data="explorations[1]"/>
+					<Exploration :data="explorations[2]"/>
+				</div>
+				
 			</div>
 		</div>
 		<div class="character">
@@ -133,6 +142,11 @@ export default defineComponent( {
 			prop: {
 				"探索": percentage( findArea( 3 ).explorationPercentage ),
 				"供奉": level( findArea( 3 ).offerings.find( el => el.name === "忍冬之树" ).level )
+			}
+		}, {
+			name: "enkanomiya",
+			prop: {
+				"探索": percentage( findArea( 5 ).explorationPercentage )
 			}
 		} ];
 		

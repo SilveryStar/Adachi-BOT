@@ -36,19 +36,22 @@ const template =
         </div>
     </div>
     <div class="exploration">
-        <div class="mondstadt">
+        <div class="line-one mondstadt">
             <div class="exp">{{ percentage(1) }}</div>
             <div class="level">{{ expLevel(1) }}</div>
         </div>
-        <div class="dragonspine">
+        <div class="line-one dragonspine">
             <div class="exp">{{ percentage(3) }}</div>
             <div class="level">{{ expLevel(3) }}</div>
         </div>
-        <div class="liyue">
+        <div class="line-one enkanomiya">
+        	<div class="exp">{{ percentage(5) }}</div>
+		</div>
+        <div class="line-two liyue">
             <div class="exp">{{ percentage(2) }}</div>
             <div class="level">{{ expLevel(2) }}</div>
         </div>
-        <div class="inazuma">
+        <div class="line-two inazuma">
             <div class="exp">{{ percentage(4) }}</div>
             <div class="level">{{ expLevel(4) }}</div>
             <div class="sakura">{{ sakura() }}</div>
@@ -89,7 +92,7 @@ export default defineComponent( {
 	},
 	setup( props ) {
 		const backgroundImage = computed( () => {
-			return `https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/module/${ parseInt( props.level ) === 0 ? "uid" : "mys" }-upper-v2-2.png`;
+			return `https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/module/${ parseInt( props.level ) === 0 ? "uid" : "mys" }-upper-v2-4.png`;
 		} );
 		const worldLevel = computed( () => {
 			if ( props.level < 20 ) {

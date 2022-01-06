@@ -41,3 +41,7 @@
 	background-color: rgb(235, 227, 216);
 	color: rgb(99, 82, 65);
 }
+
+.mini.data {
+	font-size: 13px;
+}

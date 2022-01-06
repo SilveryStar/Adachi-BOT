@@ -81,18 +81,24 @@
 	color: rgb(255, 255, 255);
 	font-size: 25px;
 	width: 1030px;
-	top: 641px;
-	left: 400px;
+	top: 643px;
+	left: 295px;
 	display: flex;
 	flex-wrap: wrap;
 }
 
-.card-upper .mondstadt,
-.card-upper .liyue,
-.card-upper .dragonspine,
-.card-upper .inazuma {
+.line-one {
+	width: 193px;
+	padding-right: 139px;
+}
+
+.line-two {
 	width: 290px;
-	padding-right: 225px;
+	padding-left: 100px;
+	padding-right: 125px;
+}
+
+.exploration > div {
 	padding-bottom: 93px;
 }
 
@@ -105,13 +111,19 @@
 	margin-bottom: 20px;
 }
 
+.enkanomiya .exp {
+	margin-bottom: 0;
+	margin-top: 26px;
+	font-size: 23px
+}
+
 .card-upper .inazuma {
 	margin-top: -9px;
 }
 
 .card-upper .inazuma .exp,
 .card-upper .inazuma .level {
-	margin-bottom: 0.15cm;
+	margin-bottom: 6px;
 }
 
 .card-upper .homes {

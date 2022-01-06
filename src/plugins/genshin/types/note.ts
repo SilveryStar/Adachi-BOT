@@ -11,6 +11,9 @@
  * @resinDiscountNumLimit 周本树脂减免次数上限
  * @currentExpeditionNum 当前探索派遣数量
  * @maxExpeditionNum 最大探索派遣数量
+ * @homeCoinRecoveryTime 洞天宝钱回复时间
+ * @currentHomeCoin 当前洞天宝钱
+ * @maxHomeCoin 最大洞天宝钱
  * */
 export interface Note {
 	type: "note";
@@ -24,6 +27,9 @@ export interface Note {
 	resinDiscountNumLimit: number;
 	currentExpeditionNum: number;
 	maxExpeditionNum: number;
+	homeCoinRecoveryTime: string;
+	currentHomeCoin: number;
+	maxHomeCoin: number;
 	expeditions: Expedition[];
 }
 
