@@ -255,7 +255,7 @@ class Wish {
 			total++;
 			res = await this.once();
 			result.push( res );
-		} while ( !chk( res ) );
+		} while ( !chk( res ) || total >= 500 );
 		await this.WRITE();
 		
 		return { result, total };

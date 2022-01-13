@@ -28,6 +28,10 @@ export async function main(
 		await sendMessage( `${ choice }卡池暂未开放，请在游戏内卡池开放后再尝试` );
 		return;
 	}
+	if ( data.result.filter( el => el.rank >= 4 ).length === 0 ) {
+		await sendMessage( "卡池数据获取错误，请联系持有者重启BOT" );
+		return;
+	}
 	
 	/* 单次十连 */
 	if ( data.total === 10 ) {
