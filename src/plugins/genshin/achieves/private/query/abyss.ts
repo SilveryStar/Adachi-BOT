@@ -44,19 +44,15 @@ export async function main(
 	const userInfo: string = `UID-${ uid }`;
 	const floorList: number[] = [];
 	
-	function getDataPair( key: string, max: number ): Record<string, string> {
-		return { [key]: JSON.stringify( abyss[key].splice( 0, max ) ) };
-	}
-	
 	floorList.push( 0 );
 	await redis.setHash( `silvery-star.abyss-temp-${ userID }-${ 0 }`, {
 		floor: 0,
 		info: userInfo,
-		...getDataPair( "revealRank", 8 ),
-		...getDataPair( "defeatRank", 3 ),
-		...getDataPair( "takeDamageRank", 3 ),
-		...getDataPair( "normalSkillRank", 3 ),
-		...getDataPair( "energySkillRank", 3 ),
+		revealRank: abyss.revealRank.splice( 0, 4 ),
+		defeatRank: abyss.defeatRank.splice( 0, 3 ),
+		takeDamageRank: abyss.takeDamageRank.splice( 0, 3 ),
+		normalSkillRank: abyss.normalSkillRank.splice( 0, 3 ),
+		energySkillRank: abyss.energySkillRank.splice( 0, 3 ),
 		damageRank: JSON.stringify( abyss.damageRank ),
 		maxFloor: abyss.maxFloor,
 		totalBattleTimes: abyss.totalBattleTimes,
