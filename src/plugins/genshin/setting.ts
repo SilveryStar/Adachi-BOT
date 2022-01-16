@@ -293,7 +293,18 @@ const privateToggleSign: OrderConfig = {
 	main: "achieves/private/sign-in/main",
 	scope: MessageScope.Private,
 	detail: "该指令用于切换米游社签到的开/关状态"
-}
+};
+
+const privateToggleNote: OrderConfig = {
+	type: "order",
+	cmdKey: "silvery-star.private-toggle-note",
+	desc: [ "定时提醒", "[账户编号]" ],
+	headers: [ "tnote" ],
+	regexps: [ "\\d+" ],
+	main: "achieves/private/note/toggle",
+	scope: MessageScope.Private,
+	detail: "该指令用于切换树脂及冒险探索定时提示的开/关状态"
+};
 
 export default <PluginSetting>{
 	pluginName: "genshin",
@@ -304,7 +315,7 @@ export default <PluginSetting>{
 		privateNowNote, privateNoteEvent, privateSubList,
 		privateConfirm, privateSubscribe, privateReplace,
 		privateAbyssQuery, privateCancel, privateMysQuery,
-		privateToggleSign, privateCharQuery,
-		privateMysSetAppoint
+		privateToggleSign, privateMysSetAppoint,
+		privateToggleNote, privateCharQuery
 	]
 };

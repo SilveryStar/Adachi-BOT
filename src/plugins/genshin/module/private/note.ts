@@ -13,9 +13,11 @@ interface PushEvent {
 
 export class NoteService implements Service {
 	public readonly parent: Private;
+	public enable: boolean;
 	
 	private timePoint: number[];
 	private events: PushEvent[] = [];
+	private globalEvent?: Job;
 	private globalData: Note | string = "";
 	private readonly feedbackCatch: () => Promise<void>;
 	
@@ -28,14 +30,16 @@ export class NoteService implements Service {
 		
 		this.parent = p;
 		this.timePoint = options.timePoint || [ 120, 155 ];
+		this.enable = options.enable === undefined
+			? true : options.enable;
+		
 		this.feedbackCatch = async () => {
 			await this.parent.sendMessage( <string>this.globalData );
 		};
 		
-		this.refreshPushEvent().catch( this.feedbackCatch );
-		scheduleJob( "0 0 */1 * * *", () => {
-			this.refreshPushEvent().catch( this.feedbackCatch );
-		} );
+		if ( this.enable ) {
+			this.scheduleJobOn();
+		}
 	}
 	
 	public getOptions(): any {
@@ -51,10 +55,41 @@ export class NoteService implements Service {
 		} else {
 			const auth: AuthLevel = await bot.auth.get( this.parent.setting.userID );
 			const SET_TIME = <Order>bot.command.getSingle( "silvery-star.note-set-time", auth );
+			const TOGGLE_NOTE = <Order>bot.command.getSingle( "silvery-star.private-toggle-note", auth );
+			
 			return "实时便笺功能已开启：\n" +
 				   "默认情况下，树脂数量达到 120 和 155 时会发送进行私聊推送\n" +
 				   `也可以通过「${ SET_TIME.getHeaders()[0] }+账户编号+树脂量」来设置\n` +
-				   "当冒险探索结束时，BOT 也会进行提醒";
+				   "当冒险探索结束时，BOT 也会进行提醒\n" +
+				   `如果你希望关闭定时提醒功能，可以使用「${ TOGGLE_NOTE.getHeaders()[0] }+账户编号」`;
+		}
+	}
+	
+	public async toggleEnableStatus(): Promise<void> {
+		this.enable = !this.enable;
+		if ( this.enable ) {
+			await this.parent.sendMessage( "树脂及冒险探索定时提醒功能已开启" );
+			this.scheduleJobOn();
+		} else {
+			await this.parent.sendMessage( "树脂及冒险探索定时提醒功能已关闭" );
+			this.scheduleJobOff();
+			this.clearEvents();
+		}
+		/* 回传进行数据库更新 */
+		await this.parent.refreshDBContent( NoteService.FixedField );
+	}
+	
+	private scheduleJobOn(): void {
+		this.refreshPushEvent()
+			.catch( this.feedbackCatch );
+		this.globalEvent = scheduleJob( "0 0 */1 * * *", () => {
+			this.refreshPushEvent().catch( this.feedbackCatch );
+		} );
+	}
+	
+	private scheduleJobOff(): void {
+		if ( this.globalEvent !== undefined ) {
+			this.globalEvent.cancel();
 		}
 	}
 	
