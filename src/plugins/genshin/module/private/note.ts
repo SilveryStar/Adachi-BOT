@@ -43,7 +43,10 @@ export class NoteService implements Service {
 	}
 	
 	public getOptions(): any {
-		return { timePoint: this.timePoint };
+		return {
+			timePoint: this.timePoint,
+			enable: this.enable
+		};
 	}
 	
 	public async initTest(): Promise<string> {
