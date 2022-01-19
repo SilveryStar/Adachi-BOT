@@ -91,7 +91,10 @@ export default defineComponent( {
 		const data = request( `/api/card?qq=${ urlParams.qq }` );
 		
 		const parsed = cardDataParser( data );
+		
 		parsed.data.avatars.splice( 8 );
+		parsed.statsList.base = parsed.statsList.base
+			.filter( ( { label } ) => label !== "获得角色" );
 		
 		return {
 			...parsed,

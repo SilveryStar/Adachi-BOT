@@ -1,7 +1,12 @@
 const template = `
 <div class="character-box">
 	<div class="avatar-box" :style="{'background-image': getRarityBg(char.rarity)}">
-		<img class="element" :src="getElementIcon(char.element)" alt="ERROR" />
+		<img
+			class="element"
+			v-if="char.element !== 'None'"
+			:src="getElementIcon(char.element)"
+			alt="ERROR"
+		/>
 		<span class="constellation">{{ char.activedConstellationNum }}</span>
 		<div v-if="char.name !== '旅行者'" class="fetter-box">
 			<img src="https://adachi-bot.oss-cn-beijing.aliyuncs.com/images/common/Item_Companionship_EXP.png" alt="ERROR" />

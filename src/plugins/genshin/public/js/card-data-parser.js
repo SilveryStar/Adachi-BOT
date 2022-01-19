@@ -3,7 +3,7 @@ const areaList = [
 	{ name: "璃月", code: "liyue" },
 	{ name: "龙脊雪山", code: "dragonspine" },
 	{ name: "稻妻", code: "inazuma" },
-	{ name: "渊下宫", code: "enkanomiya" },
+	{ name: "渊下宫", code: "enkanomiya" }
 ];
 
 const homeList = [ "罗浮洞", "翠黛峰", "清琼岛", "绘绮庭" ];
@@ -19,53 +19,53 @@ export function cardDataParser( data ) {
 	const statsList = {
 		base: [ {
 			label: "活跃天数",
-			value: stats.activeDayNumber,
+			value: stats.activeDayNumber
 		}, {
 			label: "成就达成",
-			value: stats.achievementNumber,
+			value: stats.achievementNumber
 		}, {
 			label: "获得角色",
-			value: stats.avatarNumber,
+			value: stats.avatarNumber
 		}, {
 			label: "深境螺旋",
-			value: stats.spiralAbyss,
+			value: stats.spiralAbyss
 		}, {
 			label: "秘境解锁",
-			value: stats.domainNumber,
+			value: stats.domainNumber
 		} ],
 		chest: [ {
 			icon: "https://adachi-bot.oss-cn-beijing.aliyuncs.com/images/chest/treasure_chest_1.png",
 			label: "普通宝箱",
-			value: stats.commonChestNumber,
+			value: stats.commonChestNumber
 		}, {
 			icon: "https://adachi-bot.oss-cn-beijing.aliyuncs.com/images/chest/treasure_chest_2.png",
 			label: "精致宝箱",
-			value: stats.exquisiteChestNumber,
+			value: stats.exquisiteChestNumber
 		}, {
 			icon: "https://adachi-bot.oss-cn-beijing.aliyuncs.com/images/chest/treasure_chest_3.png",
 			label: "珍贵宝箱",
-			value: stats.preciousChestNumber,
+			value: stats.preciousChestNumber
 		}, {
 			icon: "https://adachi-bot.oss-cn-beijing.aliyuncs.com/images/chest/treasure_chest_4.png",
 			label: "华丽宝箱",
-			value: stats.luxuriousChestNumber,
+			value: stats.luxuriousChestNumber
 		}, {
 			icon: "https://adachi-bot.oss-cn-beijing.aliyuncs.com/images/chest/treasure_chest_5.png",
 			label: "奇馈宝箱",
-			value: stats.magicChestNumber,
+			value: stats.magicChestNumber
 		} ],
 		culus: [ {
 			icon: "https://adachi-bot.oss-cn-beijing.aliyuncs.com/images/culus/Anemoculus.png",
 			label: "风神瞳数",
-			value: stats.anemoculusNumber,
+			value: stats.anemoculusNumber
 		}, {
 			icon: "https://adachi-bot.oss-cn-beijing.aliyuncs.com/images/culus/Geoculus.png",
 			label: "岩神瞳数",
-			value: stats.geoculusNumber,
+			value: stats.geoculusNumber
 		}, {
 			icon: "https://adachi-bot.oss-cn-beijing.aliyuncs.com/images/culus/Electroculus.png",
 			label: "雷神瞳数",
-			value: stats.electroculusNumber,
+			value: stats.electroculusNumber
 		} ]
 	};
 	
