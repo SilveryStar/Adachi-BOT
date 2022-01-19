@@ -1,65 +1,63 @@
-const template =
-`<div class="character-box">
-    <img class="element-background" :src="elementBackground" alt="ERROR"/>
-    <img class="profile" :src="char.icon" alt="ERROR"/>
-    
-    <div class="info none-style" v-if="style === 'normal'">
-    	<p class="name">{{ char.name }}</p>
-        <div class="character-data">
-            <p class="constellation">命之座: {{ char.activedConstellationNum }}层</p>
-            <p class="level">Lv.{{ char.level }}</p>
-            <p class="fetter" v-if="char.name !== '旅行者'">
-                ❤{{ char.fetter }}
-            </p>
-        </div>
-	</div>
+const template = `
+<div class="character-box">
+  <div class="avatar-box" :style="{'background-image': getRarityBg(char.rarity)}">
+    <img class="element" :src="getElementIcon(char.element)" alt="ERROR" />
+    <span class="constellation">{{ char.activedConstellationNum }}</span>
+    <div v-if="char.name !== '旅行者'" class="fetter-box">
+      <img src="https://adachi-bot.oss-cn-beijing.aliyuncs.com/images/common/Item_Companionship_EXP.png" alt="ERROR" />
+      <span>{{ char.fetter }}</span>
+      <span>{{ char.fetter }}</span>
+    </div>
+    <img class="rarity" :src="getRarity(char.rarity)" alt="ERROR" />
+    <img class="profile" :src="char.icon" alt="ERROR" />
+  </div>
 
-	<div class="info planA-style" v-else-if="style === 'weaponA'">
-		<div class="base">
-			<p class="name">{{ char.name }}</p>
-			<p class="constellation">C{{ char.activedConstellationNum }}</p>
-		</div>
-        <div class="character-data">
-            <p class="level">Lv.{{ char.level }}</p>
-            <p class="fetter" v-if="char.name !== '旅行者'">
-                ❤{{ char.fetter }}
-            </p>
-        </div>
-        <CharacterWeapon :weapon="char.weapon"/>
-	</div>
+  <p class="detail">
+    <span class="name">{{ char.name }}</span>
+    <span class="level">Lv.{{ char.level }}</span>
+  </p>
 
-	<div class="info planB-style" v-else>
-		<p class="name">{{ char.name }}</p>
-        <div class="character-data">
-            <p class="level">Lv.{{ char.level }}</p>
-            <p class="fetter" v-if="char.name !== '旅行者'">
-                ❤{{ char.fetter }}
-            </p>
-        </div>
-		<p class="constellation">命之座: {{ char.activedConstellationNum }}层</p>
-		<p class="weapon">武器: {{ char.weapon.name }} Lv.{{ char.weapon.level }}</p>
-	</div>
+  <div class="info planA-style" v-if="type === 'weaponA'">
+    <CharacterWeapon :weapon="char.weapon" class="chara-weapon-box" :get-rarity-bg="getRarityBg" />
+  </div>
+  <div class="info planB-style" v-else-if="type === 'weaponB'">
+    <p>
+      <span class="weapon">武器: {{ char.weapon.name }}</span>
+      <span class="level">Lv.{{ char.weapon.level }}</span>
+    </p>
+  </div>
 </div>`;
 
 import CharacterWeapon from "./character-weapon.js";
-const { defineComponent, computed } = Vue;
+const { defineComponent } = Vue;
 
-export default defineComponent( {
+export default defineComponent({
 	name: "CharacterBox",
 	template,
 	props: {
 		char: Object,
-		style: String
+		type: {
+			type: String,
+			default: "normal",
+		},
 	},
 	components: {
-		CharacterWeapon
+		CharacterWeapon,
 	},
 	setup() {
-		const elementBackground = computed( () => {
-			return "https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/module/element.png";
-		} );
-		return {
-			elementBackground
-		}
-	}
-} );
+		// 针对埃洛伊处理
+		const getRarity = (rarity) => {
+			rarity = rarity === 105 ? "5" : rarity;
+			return `https://adachi-bot.oss-cn-beijing.aliyuncs.com/images/stars/Icon_${rarity}_Stars.png`;
+		};
+		const getRarityBg = (rarity) => {
+			rarity = rarity === 105 ? "5a" : rarity;
+			return `url(https://adachi-bot.oss-cn-beijing.aliyuncs.com/images/rarity_bg/Background_Item_${rarity}_Star.png)`;
+		};
+		// 获取属性图标
+		const getElementIcon = (element) => {
+			return `https://adachi-bot.oss-cn-beijing.aliyuncs.com/images/element/Element_${element}.png`;
+		};
+		return { getRarity, getRarityBg, getElementIcon };
+	},
+});

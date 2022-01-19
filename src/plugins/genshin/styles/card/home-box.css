@@ -1,28 +1,27 @@
 .home-box {
+	--home-width: 18.4em;
 	position: relative;
-	margin-top: -5px;
-	top: 16px;
+	display: flex;
+	min-width: var(--home-width);
+	height: var(--home-width);
+	margin-bottom: 1.5em;
+	border-radius: 1.8em;
+	font-size: 10px;
 }
 
 .home-box .home-background {
-	width: 184px;
-	margin-bottom: 15px;
-	margin-left: 56px;
-	border-radius: 32px;
-	z-index: 1;
-}
-
-.home-box .unlock,
-.home-box .locked {
-	position: absolute;
-	top: 0;
+	flex: 1;
+	object-fit: cover;
+	border-radius: inherit;
 }
 
 .home-box .box-block {
-	width: 184px;
-	height: 184px;
-	margin-left: 56px;
-	border-radius: 32px;
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	border-radius: inherit;
 }
 
 .home-box .locked-block {
@@ -31,10 +30,11 @@
 
 .home-box .lock-icon {
 	position: absolute;
-	height: 80px;
-	width: 66px;
-	top: 52px;
-	left: 115px;
+	height: 8em;
+	width: 6.6em;
+	left: 50%;
+	top: 50%;
+	transform: translate(-50%, -50%);
 }
 
 .home-box .unlock-block {
@@ -42,35 +42,37 @@
 }
 
 .home-box .unlock-content-block {
-	position: relative;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	position: absolute;
+	top: 50%;
+	transform: translateY(-50%);
 	background-color: rgba(0, 0, 0, 0.3);
-	height: 122px;
-	top: -153px;
-	border-radius: 0;
+	height: 12.2em;
+	border-radius: inherit;
 }
 
 .home-box .box-content {
 	position: relative;
-	width: 184px;
 	text-align: center;
 }
 
 .home-box .name {
 	position: relative;
+	margin-bottom: 0.48em;
 	color: rgb(242, 210, 134);
-	padding-top: 14px;
-	font-size: 25px;
-	padding-bottom: 12px;
+	font-size: 2.5em;
 }
 
 .home-box .level {
-	font-size: 22px;
+	font-size: 2.2em;
 	color: rgb(227, 221, 194);
 }
 
 .home-box .comfort {
-	font-size: 20px;
+	font-size: 2em;
 	color: rgb(255, 255, 255);
-	margin-top: 2px;
-	-webkit-text-stroke: 0.012cm rgb(92, 82, 4);
+	margin-top: 0.1em;
+	-webkit-text-stroke: 0.03em rgb(92, 82, 4);
 }

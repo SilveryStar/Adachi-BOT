@@ -3,7 +3,7 @@ import { InputParameter } from "@modules/command";
 import { RenderResult } from "@modules/renderer";
 import { characterInfoPromise, detailInfoPromise } from "../utils/promise";
 import { getRegion } from "../utils/region";
-import { renderer } from "#genshin/init";
+import { config, renderer } from "#genshin/init";
 
 async function getUID( data: string, userID: number, redis: Database ): Promise<number | string> {
 	if ( data === "" ) {
@@ -53,7 +53,11 @@ export async function main(
 	
 	const res: RenderResult = await renderer.asCqCode(
 		"/user-base.html",
-		{ qq: userID }
+		{
+			qq: userID,
+			style: config.cardWeaponStyle,
+			profile: config.cardProfile
+		}
 	);
 	if ( res.code === "ok" ) {
 		await sendMessage( res.data );

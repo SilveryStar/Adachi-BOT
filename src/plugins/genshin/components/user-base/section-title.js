@@ -1,18 +1,19 @@
-const template =
-`<div class="section-title">
-	<div class="title">
-		<img class="icon" src="https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/module/user-base-title-icon.png" alt="ERROR"/>
-		<span class="content">{{ title }}</span>
-	</div>
-	<img class="split-line" src="https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/module/user-base-split-line.png" alt="ERROR"/>
+const template = `
+<div class="section-title" :class="{hasSub: showSubTitle}">
+  <span class="main-title">
+    <slot>标题</slot>
+  </span>
+  <span v-if="showSubTitle" class="sub-title">
+    <slot name="sub">副标题</slot>
+  </span>
 </div>`;
 
 const { defineComponent } = Vue;
 
-export default defineComponent( {
+export default defineComponent({
 	name: "SectionTitle",
 	template,
 	props: {
-		title: String
-	}
-} );
+		showSubTitle: Boolean,
+	},
+});

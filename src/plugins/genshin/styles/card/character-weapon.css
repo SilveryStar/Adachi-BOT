@@ -1,47 +1,66 @@
 .character-weapon {
-	position: relative;
-	display: table;
-	margin: -3px auto 0 auto;
-	height: 40px;
+	display: flex;
+	align-items: center;
+	font-size: 10px;
 }
 
-.character-weapon .icon {
+.character-weapon .weapon-avatar-box {
 	position: relative;
-	display: inline-block;
+	width: 4.2em;
+	margin-left: 0.4em;
+	border-radius: 0.4em;
+	background-repeat: no-repeat;
+	background-size: cover;
+}
+
+.character-weapon .weapon-avatar-box .icon {
+	width: 100%;
+}
+
+.character-weapon .weapon-detail {
+	margin: 0.43em 0;
+	flex: 1;
+	font-size: 1.4em;
+	line-height: 1.29em;
+	text-align: center;
+}
+
+.character-weapon .weapon-detail .w-info {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+.character-weapon .weapon-detail .level {
 	vertical-align: middle;
-	width: 36px;
-	margin: 2px;
+	font-size: 0.86em;
 }
 
-.character-weapon .detail {
-	position: relative;
-	display: inline-block;
+.character-weapon .weapon-detail .refine {
+	margin-left: 0.29em;
 	vertical-align: middle;
-	width: 80px;
-	height: 40px;
-	line-height: 16px;
 }
 
-.character-weapon .detail .w-name {
-	position: relative;
-	height: 16px;
-	font-size: 13px;
-	margin-top: 4px;
+.affix_1 {
+	color: #a4a4a4;
 }
 
-.character-weapon .detail .level {
-	position: relative;
-	display: inline-block;
-	height: 16px;
-	margin-bottom: 4px;
-	margin-right: 6px;
-	font-size: 12px;
+.affix_2 {
+	color: #5d8c81;
 }
 
-.character-weapon .detail .refine {
-	position: relative;
-	display: inline-block;
-	height: 16px;
-	margin-bottom: 4px;
-	font-size: 12px;
+.affix_3 {
+	color: #6faaca;
+}
+
+.affix_4 {
+	color: #917ab1;
+}
+
+.affix_5 {
+	color: #de9552;
+}
+
+.affix_5a {
+	color: #af5155;
 }
