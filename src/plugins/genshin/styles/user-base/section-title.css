@@ -1,34 +1,35 @@
 .section-title {
 	position: relative;
-	width: 100%;
-	z-index: 100;
+	margin: 28px 0;
+	display: flex;
+	font-size: 26px;
+	color: #575654;
 }
-
-.section-title .title {
-	width: 100%;
+.section-title.hasSub {
+	margin: 28px 0 42px;
 }
-
-.section-title .icon {
-	position: relative;
-	display: inline-block;
-	width: 30px;
-	height: 30px;
-	padding: 1px;
-	margin: 0 2% 0 3%;
-	vertical-align: middle;
+.section-title::before,
+.section-title::after {
+	content: "";
+	flex: 1;
+	margin: 10px 0;
+	background: url("https://adachi-bot.oss-cn-beijing.aliyuncs.com/images/card/card_title_line.png") no-repeat;
+	transform: rotateY(180deg);
+	overflow: hidden;
 }
-
-.section-title .content {
-	display: inline-block;
-	font-size: 19px;
-	height: 32px;
-	line-height: 33px;
-	color: #84603d;
-	vertical-align: middle;
+.section-title::before {
+	background-position: left;
 }
-
-.section-title .split-line {
-	position: relative;
-	width: 94%;
-	margin: 0 3%;
+.section-title::after {
+	background-position: right;
+}
+.section-title .main-title {
+	margin: 0 20px;
+}
+.section-title .sub-title {
+	position: absolute;
+	left: 50%;
+	bottom: 0;
+	transform: translate(-50%, 100%);
+	font-size: 14px;
 }
