@@ -7,9 +7,11 @@
 	border-radius: 12px;
 	overflow: hidden;
 }
+
 .medium {
 	min-width: 200px !important;
 }
+
 .large {
 	min-width: 320px !important;
 }
@@ -20,16 +22,19 @@
 	display: flex;
 	flex-direction: column;
 }
+
 .card-base > main {
 	padding-top: 54px;
 	border-style: solid;
 	border-width: 0 50px 50px 50px;
 	border-image: url("https://adachi-bot.oss-cn-beijing.aliyuncs.com/images/card/card-base-bg.png") 70 fill;
 }
+
 /* 用户信息页 */
 .card-base .card-user .card-user-info {
 	overflow: hidden;
 }
+
 .card-base .card-user .card-user-info .card-status-box {
 	display: grid;
 	grid-template-columns: repeat(3, auto);
@@ -44,34 +49,41 @@
 	font-size: 30px;
 	line-height: 56px;
 }
+
 .card-base .card-user .card-user-info .card-status-box .card-status-item {
 	font-size: 7.639px;
 }
+
 /* 区域探索 */
 .card-base .card-user .card-exploration {
 	margin-top: 24px;
 }
+
 .card-base .card-user .card-exploration .card-exploration-box {
 	display: flex;
 	justify-content: space-between;
 	flex-wrap: wrap;
 	margin: 0 -6px;
 }
+
 .card-base .card-user .card-exploration .card-exploration-box .card-exploration-item {
 	flex: 1;
 	margin: 0 6px 10px;
 	min-width: 288px;
 	font-size: 8px;
 }
+
 /* 家园 */
 .card-base .card-home {
 	margin-bottom: 20px;
 }
+
 .card-base .card-home .card-home-box {
 	display: flex;
 	flex-wrap: wrap;
 	margin: 0 -6px;
 }
+
 .card-base .card-home .card-home-box .card-home-item {
 	flex: 1;
 	margin: 0 6px 10px;
@@ -79,6 +91,7 @@
 	border-radius: 4px;
 	font-size: 9px;
 }
+
 .card-base .card-home .card-home-box .card-home-item .box-block {
 	height: 100%;
 }
@@ -92,6 +105,7 @@
 	text-align: center;
 	color: #666;
 }
+
 .card-base .card-character .character-line {
 	padding: 0 20px;
 	display: grid;

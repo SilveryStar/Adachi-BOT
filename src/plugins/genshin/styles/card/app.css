@@ -6,6 +6,7 @@
 	background-color: #f8f5f1;
 	border-radius: 24px;
 }
+
 .card-title {
 	display: flex;
 	margin: 16px 0;
@@ -13,15 +14,18 @@
 	font-size: 26px;
 	line-height: 28px;
 }
+
 .card-title::before {
 	content: "";
 	width: 8px;
 	margin-right: 10px;
 	background-color: #cbc0a9;
 }
+
 .medium {
 	min-width: 260px;
 }
+
 .large {
 	min-width: 340px;
 }
@@ -32,16 +36,19 @@
 	display: flex;
 	flex-direction: column;
 }
+
 .card-base > main {
 	padding: 40px 16px 0;
 	border-style: solid;
 	border-width: 0 70px 70px 70px;
 	border-image: url("https://adachi-bot.oss-cn-beijing.aliyuncs.com/images/card/card-base-bg.png") 70 fill;
 }
+
 /* 用户信息页 */
 .card-base .card-user .card-user-info {
 	overflow: hidden;
 }
+
 .card-base .card-user .card-user-info .card-status-box {
 	display: grid;
 	grid-template-columns: repeat(4, 288px);
@@ -57,24 +64,29 @@
 	font-size: 30px;
 	line-height: 56px;
 }
+
 /* 区域探索 */
 .card-base .card-user .card-exploration {
 	margin-top: 24px;
 }
+
 .card-base .card-user .card-exploration .card-exploration-box {
 	display: flex;
 	justify-content: space-between;
 	flex-wrap: wrap;
 	margin: 0 -10px;
 }
+
 .card-base .card-user .card-exploration .card-exploration-box .card-exploration-item {
 	flex: 1;
 	margin: 0 10px 20px;
 }
+
 /* 家园 */
 .card-base .card-home {
 	margin-bottom: 20px;
 }
+
 .card-base .card-home .card-home-box .card-home-info {
 	display: inline-block;
 	padding: 0 12px;
@@ -85,17 +97,20 @@
 	font-size: 20px;
 	line-height: 40px;
 }
+
 .card-base .card-home .card-home-box .card-home-list {
 	display: flex;
 	flex-wrap: wrap;
 	margin: 0 -10px;
 }
+
 .card-base .card-home .card-home-box .card-home-list .card-home-item {
 	flex: 1;
 	margin: 0 10px 20px;
 	height: 140px;
 	border-radius: 6px;
 }
+
 .card-base .card-home .card-home-box .card-home-list .card-home-item .box-block {
 	height: 100%;
 }
@@ -109,6 +124,7 @@
 	text-align: center;
 	color: #666;
 }
+
 .card-base .card-character .character-line {
 	display: grid;
 	grid-template-columns: repeat(7, auto);
@@ -116,6 +132,7 @@
 	justify-content: space-between;
 	justify-items: center;
 }
+
 .card-base .sign {
 	margin: 20px -14px -34px 0;
 	font-size: 24px;

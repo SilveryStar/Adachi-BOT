@@ -109,12 +109,14 @@
 	margin-top: 0.4em;
 	text-align: center;
 }
+
 .character-box .detail .name {
 	font-size: 2em;
 	margin-right: 0.2em;
 	line-height: 1.4em;
 	vertical-align: middle;
 }
+
 .character-box .detail .level {
 	font-size: 1.6em;
 	margin-bottom: 0.25em;

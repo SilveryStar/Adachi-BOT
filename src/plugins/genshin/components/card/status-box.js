@@ -9,19 +9,17 @@ const template = `
 
 const { defineComponent } = Vue;
 
-export default defineComponent({
+export default defineComponent( {
 	name: "status-box",
 	template,
 	props: {
 		data: {
 			type: Object,
-			default() {
-				return {
-					icon: "",
-					label: "",
-					value: "",
-				};
-			},
-		},
-	},
-});
+			default: () => ( {
+				icon: "",
+				label: "",
+				value: ""
+			} )
+		}
+	}
+} );

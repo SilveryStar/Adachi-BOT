@@ -7,22 +7,27 @@
 	background-size: contain;
 	font-size: 10px;
 }
+
 .status-base img {
 	margin-left: 3em;
 	width: 4.4em;
 }
+
 .status-base .status-base-detail {
 	flex: 1;
 	margin-left: 3.2em;
 	margin-right: 1.8em;
 	text-align: center;
 }
+
 .status-base .status-base-detail span {
 	vertical-align: top;
 }
+
 .status-base .status-base-detail span:nth-of-type(1) {
 	font-size: 2.2em;
 }
+
 .status-base .status-base-detail span:nth-of-type(2) {
 	margin-left: 0.278em;
 	font-size: 1.8em;

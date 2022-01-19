@@ -5,9 +5,11 @@
 	font-size: 26px;
 	color: #575654;
 }
+
 .section-title.hasSub {
 	margin: 28px 0 42px;
 }
+
 .section-title::before,
 .section-title::after {
 	content: "";
@@ -17,15 +19,19 @@
 	transform: rotateY(180deg);
 	overflow: hidden;
 }
+
 .section-title::before {
 	background-position: left;
 }
+
 .section-title::after {
 	background-position: right;
 }
+
 .section-title .main-title {
 	margin: 0 20px;
 }
+
 .section-title .sub-title {
 	position: absolute;
 	left: 50%;

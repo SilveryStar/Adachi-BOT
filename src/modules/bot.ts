@@ -90,7 +90,7 @@ export default class Adachi {
 			/* 事件监听 */
 			this.bot.client.on( "message.group", this.parseGroupMsg( this ) );
 			this.bot.client.on( "message.private", this.parsePrivateMsg( this ) );
-			this.bot.client.on( "request.group.invite", this.acceptInvite( this ) );
+			this.bot.client.on( "request.group", this.acceptInvite( this ) );
 			this.bot.client.on( "request.friend.add", this.acceptFriend( this ) );
 			this.bot.logger.info( "事件监听启动成功" );
 		} );
@@ -315,14 +315,18 @@ export default class Adachi {
 	
 	/* 自动接受入群邀请 */
 	private acceptInvite( that: Adachi ) {
-		return async function( inviteData: sdk.GroupInviteEventData ) {
-			const inviterID: number = inviteData.user_id;
-			if ( await that.bot.auth.check( inviterID, that.bot.config.inviteAuth ) ) {
-				await that.bot.client.setGroupAddRequest( inviteData.flag );
+		const bot = that.bot;
+		return async function( data: sdk.GroupInviteEventData | sdk.GroupAddEventData ) {
+			if ( data.sub_type === "add" ) {
+				return;
+			}
+			const inviterID: number = data.user_id;
+			if ( await bot.auth.check( inviterID, bot.config.inviteAuth ) ) {
+				await bot.client.setGroupAddRequest( data.flag );
 			} else {
-				const groupID: number = inviteData.group_id;
-				await that.bot.client.sendPrivateMsg( inviterID, "你没有邀请 BOT 入群的权限" );
-				that.bot.logger.info( `用户 ${ inviterID } 尝试邀请 BOT 进入群聊 ${ groupID }` );
+				const groupID: number = data.group_id;
+				await bot.client.sendPrivateMsg( inviterID, "你没有邀请 BOT 入群的权限" );
+				bot.logger.info( `用户 ${ inviterID } 尝试邀请 BOT 进入群聊 ${ groupID }` );
 			}
 		}
 	}

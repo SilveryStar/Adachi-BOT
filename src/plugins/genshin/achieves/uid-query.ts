@@ -52,8 +52,7 @@ export async function main(
 	}
 	
 	const res: RenderResult = await renderer.asCqCode(
-		"/user-base.html",
-		{
+		"/user-base.html", {
 			qq: userID,
 			style: config.cardWeaponStyle,
 			profile: config.cardProfile
