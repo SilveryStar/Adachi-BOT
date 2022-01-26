@@ -100,7 +100,7 @@ export default class Renderer {
 		const page: puppeteer.Page = await this.browser.newPage();
 		await page.goto( url );
 		
-		const option = { encoding: "base64" };
+		const option: puppeteer.ScreenshotOptions = { encoding: "base64" };
 		const element = await page.$( selector );
 		const result = <string>await element?.screenshot( option );
 		const base64: string = `base64://${ result }`;
