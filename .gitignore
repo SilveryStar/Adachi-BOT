@@ -4,4 +4,6 @@
 /node_modules/
 /.idea/
 /.vscode/
+/.history/
 /logs/
+/src/plugins/genshin/data/
