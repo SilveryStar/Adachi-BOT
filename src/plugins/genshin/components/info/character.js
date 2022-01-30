@@ -1,43 +1,27 @@
-const template =
-`<div class="character">
-	<div class="base-info">
-		<div class="birthday">
-		    <p class="title">生日: </p>
-		    <p class="content">{{ birthday }}</p>
-	    </div>
-	    <div class="element">
-		    <p class="title">神之眼: </p>
-		    <p class="content">{{ element }}</p>
-	    </div>
-	    <div class="cv">
-		    <p class="title">声优:</p>
-		    <p class="content">{{ cv }}</p>
-	    </div>
-	    <div class="constellation-name">
-		    <p class="title">命之座: </p>
-		    <p class="content">{{ constellationName }}</p>
-	    </div>
-	</div>
+const template = `<div class="info-character">
+	<ul class="base-info">
+		<li v-for="key of Object.keys(baseInfo)" :key="index">
+		    <span class="title">{{ key }}:</span>
+		    <span class="content">{{ baseInfo[key] }}</span>
+	    </li>
+	</ul>
 	<div class="data-block">
 	    <img class="star-icon" :src="starIcon" alt="ERROR"/>
-	    <p class="value atk">{{ baseATK }}</p>
-	    <p class="title atk">基础攻击力</p>
-	    <p class="value main">{{ mainValue }}</p>
-	    <p class="title main">{{ mainStat }}</p>
+		<ul class="data-block-info">
+			<li v-for="key of Object.keys(dataBlockInfo)" :key="key">
+			    <span class="title" :class="{'special-title': key.length > 5}">{{ key }}:</span>
+			    <span class="value">{{ dataBlockInfo[key] }}</span>
+	    	</li>
+		</ul>
     </div>
-    <p class="time">{{ time }}</p>
     <div class="materials">
+		<p class="time">{{ time }}</p>
         <ItemList
-            title="升级材料:"
-            :arr="levelUp"
-        ></ItemList>
-        <ItemList
-            title="天赋材料:"
-            :arr="talent"
-        ></ItemList>
-        <ItemList
-            title="突破材料:"
-            :arr="ascension"
+			v-for="key of Object.keys(materialsInfo)"
+			:key="key"
+            :title="key"
+			label-width="65px"
+            :arr="materialsInfo[key]"
         ></ItemList>
     </div>
     <div class="constellation">
@@ -49,37 +33,70 @@ const template =
 </div>`;
 
 import ItemList from "./item-list.js";
-const { defineComponent, computed } = Vue;
+
+const { defineComponent, computed, toRefs } = Vue;
 
 export default defineComponent( {
 	name: "InfoCharacter",
 	template,
 	props: {
-		birthday: String,
-		element: String,
-		cv: String,
-		constellationName: String,
-		rarity: Number,
-		mainStat: String,
-		mainValue: String,
-		baseATK: Number,
-		ascension: Array,
-		levelUp: Array,
-		talent: Array,
-		constellations: Array,
-		time: String
+		data: {
+			type: Object,
+			default: () => ( {
+				birthday: "",
+				element: "",
+				cv: "",
+				constellationName: "",
+				rarity: null,
+				mainStat: "",
+				mainValue: "",
+				baseHP: null,
+				baseATK: null,
+				baseDEF: null,
+				ascensionMaterials: [],
+				levelUpMaterials: [],
+				talentMaterials: [],
+				constellations: [],
+				time: ""
+			} )
+		}
 	},
 	components: {
-		ItemList
+		ItemList,
 	},
 	setup( props ) {
+		const data = props.data;
 		const starIcon = computed( () => {
-			return `https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/info/other/BaseStar${ props.rarity }.png`;
+			return `https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/info/icon/BaseStar${ data.rarity }.png`;
 		} );
 		const numCN = [ "壹", "贰", "肆", "陆" ];
 		
+		const baseInfo = {
+			生日: data.birthday,
+			神之眼: data.element,
+			声优: data.cv,
+			命之座: data.constellationName
+		};
+		
+		const dataBlockInfo = {
+			基础生命值: data.baseHP,
+			基础攻击力: data.baseATK,
+			基础防御力: data.baseDEF,
+			[data.mainStat]: data.mainValue
+		};
+		
+		const materialsInfo = {
+			升级材料: data.levelUpMaterials,
+			天赋材料: data.talentMaterials,
+			突破材料: data.ascensionMaterials
+		};
+		
 		return {
+			...toRefs( data ),
 			starIcon,
+			baseInfo,
+			dataBlockInfo,
+			materialsInfo,
 			numCN
 		}
 	}
