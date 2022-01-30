@@ -1,59 +1,96 @@
-.weapon {
-	position: absolute;
-	left: 512px;
-	width: 450px;
-	top: 112px;
-}
-
-.weapon .access {
+.info-weapon {
 	position: relative;
-	width: 100%;
 }
 
-.weapon .access .title,
-.weapon .access .content {
+.info-weapon .access {
+	margin-top: 6px;
+}
+
+.info-weapon .access .title,
+.info-weapon .access .content {
 	position: relative;
 	display: inline-block;
 	font-size: 10.38pt;
 }
 
-.weapon .access .title {
+.info-weapon .access .title {
 	margin-right: 9px;
 	color: rgb(81, 92, 113);
 }
 
-.weapon .access .content {
+.info-weapon .access .content {
 	color: rgb(116, 129, 156);
 }
 
-.weapon .data-block {
-	position: relative;
+/* 基本属性 */
+.info-weapon .data-block {
+    width: 474px;
+	margin-top: 5px;
+	padding: 0 24px 0 5px;
+    display: flex;
+	justify-content: space-between;
+	align-items: center;
+	border-radius: 2px;;
+    background-color: var( --backgroundColor );
+	box-sizing: border-box;
+}
+
+.info-weapon .data-block .star-icon {
+    height: 19px;
+}
+
+.info-weapon .data-block .data-block-info {
+	list-style: none;
+	display: grid;
+	grid-template-columns: repeat(2, auto);	
+	grid-column-gap: 24px;
+	align-items: center;
+}
+
+.info-weapon .data-block .data-block-info span {
+	vertical-align: middle;
+}
+
+.info-weapon .data-block .title {
+	display: inline-block;
+	margin-right: 12px;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.75);
+}
+
+.info-weapon .data-block .value {
+    font-size: 20px;
+    color: rgb(255, 255, 255);
+}
+
+/* 素材 */
+.info-weapon .materials {
+    position: relative;
+    left: 12px;
+	margin-top: 8px;
+}
+
+.info-weapon .materials .time {
+    position: absolute;
+    font-size: 11.15pt;
 	top: 6px;
+    left: 300px;
+    color: rgb(93, 105, 131);
 }
 
-.weapon .materials {
-	position: relative;
-	top: 14px;
+.info-weapon .skill {
+	margin-top: 10px;
+	margin-left: 10px;
 }
 
-.weapon .time {
-	top: 62px;
-}
-
-.weapon .skill {
-	position: relative;
-	top: 26px;
-	left: 9px;
-}
-
-.weapon .skill .name {
+.info-weapon .skill .name {
 	position: relative;
 	font-size: 18.46pt;
 	font-family: HuaWen, GenshinUsedFont, monospace;
 	color: rgb(85, 97, 120);
 }
 
-.weapon .skill .content {
+.info-weapon .skill .content {
 	position: relative;
 	width: auto;
 	word-break:break-all;

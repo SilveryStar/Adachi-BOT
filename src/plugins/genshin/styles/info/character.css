@@ -1,102 +1,107 @@
-.character {
-    position: absolute;
-    left: 512px;
-    top: 14px;
+.info-character {
+	position: relative;
 }
 
-.character .base-info {
+/* 基本信息 */
+.info-character .base-info {
     position: relative;
-    width: 474px;
-    top: 96px;
+	list-style: none;
+	padding: 6px 0;
+	display: grid;
+	grid-template-columns: repeat(2, 237px);
+	grid-row-gap: 8px;
+	font-size: 10.38pt;
 }
 
-.base-info .birthday,
-.base-info .element,
-.base-info .cv,
-.base-info .constellation-name {
-    display: inline-block;
-    width: 237px;
-    margin-bottom: 5px;
-}
-
-.base-info .title,
-.base-info .content {
-    position: relative;
-    display: inline-block;
-    font-size: 10.38pt;
-}
-
-.base-info .title {
+.info-character .base-info .title {
     margin-right: 9px;
     color: rgb(81, 92, 113);
 }
 
-.base-info .content {
+.info-character .base-info .content {
     color: rgb(116, 129, 156);
 }
 
-.data-block {
-    position: relative;
+/* 基本属性 */
+.info-character .data-block {
     width: 474px;
-    top: 95px;
-    height: 22px;
+	padding: 0 24px 0 5px;
+    display: flex;
+	justify-content: space-between;
+	align-items: center;
+	border-radius: 2px;;
     background-color: var( --backgroundColor );
+	box-sizing: border-box;
 }
 
-.data-block .star-icon {
-    position: absolute;
+.info-character .data-block .star-icon {
     height: 19px;
-    top: 1px;
-    left: 4px;
-    display: inline-block;
-    margin-right: 50px;
 }
 
-.data-block .title,
-.data-block .value {
-    position: relative;
-    display: inline-block;
-    float: right;
+.info-character .data-block .data-block-info {
+	list-style: none;
+	display: grid;
+	grid-template-columns: repeat(2, auto);	
+	grid-column-gap: 24px;
+	align-items: center;
 }
 
-.data-block .title {
+.info-character .data-block .data-block-info span {
+	vertical-align: middle;
+}
+
+.info-character .data-block .title {
+	display: inline-block;
+	width: 80px;
+	height: 17px;
+	margin-right: 12px;
     font-size: 14px;
-    text-align: center;
-    top: 4px;
+    text-align: justify;
     color: rgba(255, 255, 255, 0.75);
 }
 
-.data-block .value {
+.info-character .data-block .title.special-title {
+	font-size: 12px;
+}
+
+.info-character .data-block .title::after {
+	content: '';
+	display: inline-block;
+	width: 100%;
+	height: 0;
+}
+
+.info-character .data-block .value {
     font-size: 20px;
-    margin: 0 24px 0 12px;
     color: rgb(255, 255, 255);
 }
 
-.materials {
+/* 素材 */
+.info-character .materials {
     position: relative;
-    top: 103px;
     left: 12px;
+	margin-top: 8px;
 }
 
-.time {
+.info-character .materials .time {
     position: absolute;
     font-size: 11.15pt;
-    top: 216px;
+	top: 50%;
     left: 310px;
+	transform: translateY(-50%);
     color: rgb(93, 105, 131);
 }
 
-.character .constellation {
-    position: relative;
+/* 天赋信息 */
+.info-character .constellation {
     color: rgb(93, 105, 131);
-    top: 107px;
 }
 
-.character .constellation .box {
+.info-character .constellation .box {
     display: table;
 }
 
-.character .constellation .level {
+.info-character .constellation .level {
     position: relative;
     display: table-cell;
     font-size: 23pt;
@@ -106,14 +111,13 @@
     font-family: HuaWen, monospace;
 }
 
-.character .constellation .content {
+.info-character .constellation .content {
     position: relative;
     display: table-cell;
     vertical-align: middle;
     height: 45px;
     padding-left: 5px;
-    font-size: 10.46pt;
-    width: 416px;
+    font-size: 12px;
 }
 
 @font-face {
