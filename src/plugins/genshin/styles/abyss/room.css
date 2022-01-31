@@ -1,105 +1,65 @@
-.split-line {
-	position: relative;
-	height: 2px;
-	width: 90%;
-	margin: 1px 5% 0 5%;
-	background-color: rgba(128, 128, 128, 0.85);
-}
-
-.unlocked {
-	color: rgb(210, 210, 210);
-	width: 100%;
-	text-align: center;
-	font-size: 19px;
-}
-
-.floor.long .unlocked {
-	height: 231px;
-	line-height: 231px;
-}
-
-.floor.short .unlocked {
-	height: 132px;
-	line-height: 132px;
-}
-
-.battle {
+.room-base {
 	position: relative;
 }
 
-.battle .room-name,
-.battle .time {
-	position: relative;
-	display: inline-block;
-	font-family: ZhongSong, monospace;
-	padding: 6px 0;
-	height: 21px;
-	line-height: 21px;
-	left: 27px;
+/* 标题 */
+.room-base .sub-title {
+	display: flex;
 }
 
-.battle .room-name {
-	color: rgb(255, 255, 255);
-	font-size: 14px;
-	margin-right: 6px;
+.room-base .sub-title img {
+	width: 28px;
+	filter: brightness(200%);
 }
 
-.battle .time {
-	color: rgb(220, 220, 220);
-	font-size: 13px;
+.room-base .sub-title img.star-crush {
+	opacity: 0.4;
 }
 
-.battle .up,
-.battle .down {
+/* 时间 */
+.room-base .time {
 	position: absolute;
-	display: inline-block;
-	color: rgb(255, 255, 255);
-	font-family: ZhongSong, monospace;
-	left: 365px;
-	font-size: 14px;
+	right: 102px;
+	top: 34px;
+	font-size: 16px;
+	color: #fff;
 }
 
-.battle .up {
-	top: 35px;
+/* 队伍详细 */
+.room-base .room-info {
+	width: 800px;
+	margin: 0 auto;
+	margin-top: -10px;
 }
 
-.battle .down {
-	bottom: 13px;
+.room-base .room-info .room-info-half {
+	margin-bottom: 18px;
 }
 
-.battle .star {
-	position: absolute;
-	right: 90px;
-	height: 35px;
-	z-index: 1;
+.room-base .room-info .room-info-half:last-child {
+	margin-bottom: 0;
 }
 
-.floor.long .battle .star {
-	top: 109px;
+.room-base .room-info .room-info-half h3 {
+	margin-bottom: 14px;
+	padding: 0 4px;
+	border-left: 5px solid #fff;
+	color: #fff;
+	font-size: 18px;
+	line-height: 18px;
+	font-weight: normal;
 }
 
-.floor.short .battle .star {
-	top: 60px;
+.room-base .room-info .room-info-half .character-list {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
 }
 
-.battle .star-img {
-	position: relative;
-	display: inline-block;
-	width: 35px;
-	height: 35px;
+.room-base .room-info .room-info-half .character-list > img:last-child {
+	display: none;
 }
 
-.battle .star-num {
-	position: absolute;
-	display: inline-block;
-	height: 100%;
-	line-height: 35px;
-	margin-left: 15px;
-	top: 0;
-	color: rgb(255, 255, 255);
-}
-
-@font-face {
-	font-family: ZhongSong;
-	src: url( "../../public/fonts/HWZhongSong.ttf" );
+.room-base .room-info .room-info-half .character-list .character-item {
+	font-size: 10.566px;
 }

@@ -1,12 +1,13 @@
-const template =
-`<div class="abyss">
+const template = `<Base :data="data">
 	<AbyssOverview v-if="data.floor === '0'" :data="data"/>
 	<AbyssFloor v-else :data="data"/>
-</div>`;
+</Base>`;
 
 import { parseURL, request } from "../../public/js/src.js";
+import Base from "./base.js";
 import AbyssFloor from "./floor.js";
 import AbyssOverview from "./overview.js";
+
 const { defineComponent } = Vue;
 
 export default defineComponent( {
@@ -14,11 +15,12 @@ export default defineComponent( {
 	template,
 	components: {
 		AbyssFloor,
-		AbyssOverview
+		AbyssOverview,
+		Base
 	},
 	setup() {
 		const urlParams = parseURL( location.search );
 		const data = request( `/api/abyss?qq=${ urlParams.qq }&floor=${ urlParams.floor }` );
-		return { data };
+		return { data }
 	}
 } );

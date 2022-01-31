@@ -1,63 +1,101 @@
-.overview .title {
-	top: 2px;
-	padding-bottom: 0;
-}
-
-.overview .character-list {
-	position: relative;
-	left: 0;
-	display: -webkit-box;
-	-webkit-box-pack: center;
-	-webkit-box-align: center;
-}
-
-.overview .character-item {
-	margin-right: 24px;
-	margin-bottom: 16px;
-	height: 95px;
-	width: 76px;
-}
-
-.overview .character-item .background,
-.overview .character-item .main {
-	width: 76px;
-	height: 76px;
-}
-
-.overview .character-item .level {
-	height: 19px;
-	line-height: 19px;
+.overview {
+	padding-top: 118px;
 }
 
 .overview .info {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	margin: 0 auto;
+	list-style: none;
+	font-size: 20px;
+	color: #fff;
+}
+
+.overview .info li {
+	display: flex;
+	align-items: center;
+	margin: 0 13px;
+}
+
+.overview .info li img {
+	width: 28px;
+	margin-right: 6px;
+	filter: brightness(200%);
+}
+
+/* 出战次数 */
+.overview .reveal {
+	margin-top: 50px;
+}
+
+.overview .reveal .character-list {
+	width: 678px;
+	margin: 0 auto;
+	display: flex;
+	justify-content: space-between;
+	margin-top: 38px;
+}
+
+.overview .reveal .character-list .character-item {
+	font-size: 9.0566px;
+}
+
+/* 战斗数据 */
+.overview .battle-data {
+	margin-top: 36px;
+}
+
+.overview .battle-data .data-list {
+	margin-top: 34px;
+	list-style: none;
+	display: flex;
+	flex-wrap: wrap;
+}
+
+.overview .battle-data .data-list li {
+	display: flex;
+	flex: 1;
+	align-items: center;
+	min-width: 50%;
+	font-size: 20px;
+	color: #fff;
+	box-sizing: border-box;
+}
+
+.overview .battle-data .data-list li:nth-of-type(4n + 1),
+.overview .battle-data .data-list li:nth-of-type(4n + 2) {
+	background-color: #1f1f48;
+}
+
+.overview .battle-data .data-list li:nth-of-type(2n + 1) {
+	justify-content: flex-start;
+	padding-left: 160px;
+}
+
+.overview .battle-data .data-list li:nth-of-type(2n) {
+	justify-content: flex-end;
+	padding-right: 150px;
+}
+
+.overview .battle-data .data-list span {
+	display: inline-box;
+	width: 220px;
+}
+
+.overview .battle-data .data-list img {
 	position: relative;
-	display: -webkit-box;
-	height: 28px;
-	width: 100%;
-	font-size: 12px;
-	color: rgb(255, 255, 255);
-	background-color: rgba(54, 71, 88, 0.64);
-	margin-bottom: 14px;
-	-webkit-box-pack: center;
-	-webkit-box-align: center;
+	top: -8px;
+	width: 44px;
 }
 
-.overview .max-floor,
-.overview .battle-times {
-	margin-right: 28px;
-}
-
-.overview .star-img {
-	height: 22px;
-	width: 22px;
-	margin-right: 4px;
-}
-
-.overview .subtitle {
-	position: relative;
-	display: block;
-	color: rgb(238, 206, 136);
-	left: 14px;
-	font-size: 15px;
-	padding-bottom: 6px;
+/* 空数据 */
+.no-data {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	padding-top: 120px;
+	height: 200px;
+	font-size: 42px;
+	color: #fff;
 }
