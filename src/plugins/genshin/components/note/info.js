@@ -1,5 +1,5 @@
-const template =
-`<div class="info box">
+const template = `<div class="info box">
+	<img :src="data.icon" alt="ERROR" />
 	<div class="text">
 		<p class="info-title">{{ data.title }}</p>
 		<p class="info-subtitle">{{ data.subtitle }}</p>
