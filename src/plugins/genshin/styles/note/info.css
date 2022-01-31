@@ -1,43 +1,44 @@
 .info {
 	position: relative;
+	display: flex;
+	justify-content: space-between;
 	height: 60px;
-	width: auto;
 	margin-bottom: 12px;
 }
 
+.info > img {
+	position: absolute;
+	height: 22px;
+	left: 10px;
+	top: 9px;
+}
+
 .text {
+	flex: 1;
 	position: relative;
 	display: inline-block;
 	margin: 10px 0;
-	width: 80%;
+	margin-left: 36px;
 }
 
 .info-title {
-	position: relative;
-	height: 22px;
 	line-height: 22px;
 	color: rgb(90, 90, 90);
 	font-size: 16px;
-	left: 24px;
 }
 
 .info-subtitle {
-	position: relative;
-	height: 18px;
 	line-height: 18px;
 	color: rgb(192, 184, 173);
 	font-size: 14px;
-	left: 40px;
 }
 
 .data {
-	position: absolute;
 	display: inline-block;
-	height: 60px;
 	line-height: 60px;
 	text-align: center;
 	font-size: 15px;
-	width: 20%;
+	width: 25%;
 	background-color: rgb(235, 227, 216);
 	color: rgb(99, 82, 65);
 }
