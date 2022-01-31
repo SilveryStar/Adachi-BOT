@@ -1,5 +1,4 @@
-const template = `
-<div class="card-base">
+const template = `<div class="card-base">
 	<CardHeader
 		:data="data"
 		:url-params="urlParams"
@@ -90,7 +89,7 @@ export default defineComponent( {
 		return {
 			...parsed,
 			urlParams,
-			sizeClass
+			sizeClass: sizeClass( 4 ),
 		};
 	},
 } );

@@ -81,9 +81,9 @@ export function cardDataParser( data ) {
 		} )
 		/* 按id排序防乱序 */
 		.sort( ( x, y ) => x.id - y.id );
-		
+	
 	let homesLevel = 0;
-	let	maxComfort = 0;
+	let maxComfort = 0;
 	if ( homes.length !== 0 ) {
 		homesLevel = homes[0].level;
 		maxComfort = homes[0].comfortNum;
@@ -104,12 +104,28 @@ export function cardDataParser( data ) {
 	};
 }
 
-export function sizeClass( dataList, index ) {
-	index++;
-	if ( dataList.length % 4 !== 0 ) {
-		if ( index > ( Math.floor( ( dataList.length + 1 ) / 4 ) - 1 ) * 4 ) {
+const sizeClassFnObj = {
+	3: ( dataList, index ) => {
+		index++;
+		if (
+			( dataList.length % 3 === 1 && index > dataList.length - 4 ) ||
+			( dataList.length % 3 === 2 && index > dataList.length - 2 )
+		) {
 			return "large";
 		}
-	}
-	return "medium";
+		return "medium";
+	},
+	4: ( dataList, index ) => {
+		index++;
+		if ( dataList.length % 4 !== 0 ) {
+			if ( index > ( Math.floor( ( dataList.length + 1 ) / 4 ) - 1 ) * 4 ) {
+				return "large";
+			}
+		}
+		return "medium";
+	},
+};
+
+export function sizeClass( rowLength ) {
+	return sizeClassFnObj[rowLength];
 }
