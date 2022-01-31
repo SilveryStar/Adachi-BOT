@@ -75,7 +75,7 @@ import { sizeClass, cardDataParser } from "../../public/js/card-data-parser.js";
 
 const { defineComponent } = Vue;
 
-export default defineComponent( {
+export default defineComponent({
 	name: "CardApp",
 	template,
 	components: {
@@ -87,19 +87,18 @@ export default defineComponent( {
 		StatusBox,
 	},
 	setup() {
-		const urlParams = parseURL( location.search );
-		const data = request( `/api/card?qq=${ urlParams.qq }` );
-		
-		const parsed = cardDataParser( data );
-		
-		parsed.data.avatars.splice( 8 );
-		parsed.statsList.base = parsed.statsList.base
-			.filter( ( { label } ) => label !== "获得角色" );
-		
+		const urlParams = parseURL(location.search);
+		const data = request(`/api/card?qq=${urlParams.qq}`);
+
+		const parsed = cardDataParser(data);
+
+		parsed.data.avatars.splice(8);
+		parsed.statsList.base = parsed.statsList.base.filter(({ label }) => label !== "获得角色");
+
 		return {
 			...parsed,
 			urlParams,
-			sizeClass
+			sizeClass: sizeClass(3),
 		};
 	},
-} );
+});

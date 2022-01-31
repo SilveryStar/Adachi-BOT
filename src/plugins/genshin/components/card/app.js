@@ -1,5 +1,4 @@
-const template = `
-<div class="card-base">
+const template = `<div class="card-base">
 	<CardHeader
 		:data="data"
 		:url-params="urlParams"
@@ -71,7 +70,7 @@ import { sizeClass, cardDataParser } from "../../public/js/card-data-parser.js";
 
 const { defineComponent } = Vue;
 
-export default defineComponent( {
+export default defineComponent({
 	name: "CardApp",
 	template,
 	components: {
@@ -82,15 +81,15 @@ export default defineComponent( {
 		StatusBox,
 	},
 	setup() {
-		const urlParams = parseURL( location.search );
-		const data = request( `/api/card?qq=${ urlParams.qq }` );
-		
-		const parsed = cardDataParser( data );
-		
+		const urlParams = parseURL(location.search);
+		const data = request(`/api/card?qq=${urlParams.qq}`);
+
+		const parsed = cardDataParser(data);
+
 		return {
 			...parsed,
 			urlParams,
-			sizeClass
+			sizeClass: sizeClass(4),
 		};
 	},
-} );
+});
