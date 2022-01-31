@@ -1,48 +1,48 @@
-const template =
-`<div class="room">
-	<div class="split-line"></div>
-	<p class="unlocked" v-if="roomData === undefined">
-		该间暂无挑战记录
-	</p>
-	<div class="battle" v-else>
-		<span class="room-name">第{{ roomData.index }}间</span>
-		<span class="time">{{ stamp2date }}</span>
-		<div class="long" v-if="floor >= 5">
-			<CharacterList v-for="b in roomData.battles" :chars="b.avatars" type="level"/>
-			<span class="up">上间</span>
-			<span class="down">下间</span>
-		</div>
-		<div class="short" v-else>
-			<CharacterList :chars="roomData.battles[0].avatars" type="level"/>
-		</div>
-		<div class="star">
-			<img class="star-img" src="../../public/images/abyss/star.png" alt="ERROR"/>
-			<span class="star-num">{{ roomData.star }}/{{ roomData.maxStar }}</span>
+const template = `<div class="room-base">
+	<SectionTitle showSubTitle>
+		<template #default>第{{ ["一", "二", "三"][roomData.index - 1] }}间</template>
+		<template #sub>
+			<img v-for="item of roomData.maxStar" :key="item" :class="{'star-crush': item > roomData.star}" src="https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/abyss/star.png" alt="ERROR" />
+		</template>
+	</SectionTitle>
+	<span class="time">{{ stamp2date }}</span>
+	<div class="room-info">
+		<div v-for="(harf, harfIndex) of roomData.battles" ::key="harfIndex" class="room-info-half">
+			<h3>{{["上半", "下半"][harfIndex]}}</h3>
+			<div class="character-list">
+				<template v-for="(char, index) in harf.avatars" :key="index">
+					<CharacterItem class="character-item" :char="char" type="level"/>
+					<img src="https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/abyss/diamond.png" alt="ERROR"/>
+				</template>
+			</div>
 		</div>
 	</div>
 </div>`;
 
-import CharacterList from "./character-list.js";
+import SectionTitle from "./section-title.js";
+import CharacterItem from "./character-item.js";
 const { defineComponent, computed } = Vue;
 
-export default defineComponent( {
+export default defineComponent({
 	name: "AbyssRoom",
 	template,
 	components: {
-		CharacterList
+		SectionTitle,
+		CharacterItem,
 	},
 	props: {
 		roomData: Object,
-		floor: Number
 	},
-	setup( props ) {
-		const stamp2date = computed( () => {
-			const date = new Date( parseInt( props.roomData.battles[0].timestamp ) * 1000 );
-			return  date.toLocaleDateString().replace( /\//g, "-" ) + " " + date.toTimeString().split( " " )[0];
-		} );
-		
+	setup(props) {
+		const stamp2date = computed(() => {
+			const date = new Date(parseInt(props.roomData.battles[0].timestamp) * 1000);
+			return date.toLocaleDateString().replace(/\//g, "-") + " " + date.toTimeString().split(" ")[0];
+		});
+
+		console.log(props.roomData && props.roomData.battles);
+
 		return {
-			stamp2date
-		}
-	}
-} );
+			stamp2date,
+		};
+	},
+});

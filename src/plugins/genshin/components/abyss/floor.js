@@ -1,32 +1,29 @@
-const template =
-`<div class="floor" :class="{ long: floor >= 5, short: floor < 5 }">
-	<img class="background" :src="floorLongBackground" alt="ERROR"/>
-	<span class="title">{{ data.info }} 的深境螺旋战绩</span>
-	<span class="floor-number">{{ floor }}</span>
-	<AbyssRoom v-for="r in 3" :roomData="data.data.levels[r - 1]" :floor="floor"/>
+const template = `<div class="floor">
+	<p class="floor-number">{{ floor }}</p>
+	<main>
+		<template v-for="r in 3" :key="r">
+			<AbyssRoom v-if="data.data.levels[r - 1]" class="room-item" :roomData="data.data.levels[r - 1]" :floor="floor"/>
+		</template>
+	</main>
 </div>`;
 
 import AbyssRoom from "./room.js";
-const { defineComponent, computed } = Vue;
+const { defineComponent } = Vue;
 
-export default defineComponent( {
+export default defineComponent({
 	name: "AbyssFloor",
 	template,
 	components: {
-		AbyssRoom
+		AbyssRoom,
 	},
 	props: {
-		data: Object
+		data: Object,
 	},
-	setup( { data } ) {
-		const floorLongBackground = computed( () => {
-			return `../../public/images/abyss/Floor${ data.floor >= 5 ? "Long" : "Short" }Background.png`;
-		} );
-		const floor = parseInt( data.floor );
-		
+	setup({ data }) {
+		const floor = parseInt(data.floor);
+
 		return {
-			floorLongBackground,
-			floor
+			floor,
 		};
-	}
-} );
+	},
+});

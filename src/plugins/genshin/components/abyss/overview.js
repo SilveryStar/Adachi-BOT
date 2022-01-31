@@ -1,57 +1,61 @@
-const template =
-`<div class="overview">
-	<img class="background" :src="abyssBackground" alt="ERROR"/>
-	<span class="title">{{ data.info }} 的深境螺旋概览</span>
-	<div class="info">
-		<span class="max-floor">最深抵达： {{ data.maxFloor }}</span>
-		<span class="battle-times">挑战次数： {{ data.totalBattleTimes }}</span>
-		<img class="star-img" src="../../public/images/abyss/star.png" alt="ERROR"/>
-		<span class="star-num">{{ data.totalStar }}</span>
-	</div>
+const template = `<div class="overview">
+	<ul class="info">
+		<li>最深抵达： {{ data.maxFloor }}</li>
+		<li>挑战次数： {{ data.totalBattleTimes }}</li>
+		<li>
+			<img class="star-img" src="https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/abyss/star.png" alt="ERROR"/>
+			<span class="star-num">{{ data.totalStar }}</span>
+		</li>
+	</ul>
 	<div class="reveal">
-		<span class="subtitle">出战次数</span>
-		<CharacterList v-for="chars in reveal" :chars="chars" type="reveal"/>
+		<SectionTitle>出战次数</SectionTitle>
+		<div class="character-list">
+			<CharacterItem v-for="(char, index) in reveal" :key="index" class="character-item" :char="char" type="reveal"/>
+		</div>
 	</div>
-	<span class="subtitle">战斗数据榜</span>
-	<div class="data-list">
-		<DataRow v-for="i in 5" :title="titleList[i - 1]" :data="dataList[i - 1]" :line="i"/>
+	<div class="battle-data">
+		<SectionTitle>战斗数据</SectionTitle>
+		<ul class="data-list">
+			<li v-for="key of Object.keys(dataList)" :key="key">
+				<span>{{key}}: {{dataList[key][0].value}}</span>
+				<img :src="dataList[key][0].avatarIcon" alt="ERROR" />
+			</li>
+		</ul>
 	</div>
 </div>`;
 
-import CharacterList from "./character-list.js";
-import DataRow from "./data-row.js";
-const { defineComponent, computed } = Vue;
+import SectionTitle from "./section-title.js";
+import CharacterItem from "./character-item.js";
+const { defineComponent } = Vue;
 
-export default defineComponent( {
+export default defineComponent({
 	name: "AbyssOverview",
 	template,
 	components: {
-		CharacterList,
-		DataRow
+		SectionTitle,
+		CharacterItem,
 	},
 	props: {
-		data: Object
+		data: Object,
 	},
-	setup( { data } ) {
-		const arr = data.revealRank.map( el => {
+	setup({ data }) {
+		const arr = data.revealRank.map((el) => {
 			el.icon = el.avatarIcon;
 			return el;
-		} );
-		const reveal = [ arr.splice( 0,4 ), arr ];
-		
-		const dataList = [ data.damageRank, data.defeatRank, data.takeDamageRank,
-						   data.normalSkillRank, data.energySkillRank ];
-		const titleList = [ "最强一击", "击破数", "承受伤害", "元素战技次数", "元素爆发次数" ]
-		
-		const abyssBackground = computed( () => {
-			return "../../public/images/abyss/OverviewBackground.png";
-		} );
+		});
+		const reveal = [...arr.splice(0, 4)];
+
+		const dataList = {
+			最强一击: data.damageRank,
+			击破数: data.defeatRank,
+			承受伤害: data.takeDamageRank,
+			元素战技次数: data.normalSkillRank,
+			元素爆发次数: data.energySkillRank,
+		};
 
 		return {
-			abyssBackground,
 			reveal,
 			dataList,
-			titleList
-		}
-	}
-} );
+		};
+	},
+});
