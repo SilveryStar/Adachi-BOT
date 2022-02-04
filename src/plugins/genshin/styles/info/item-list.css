@@ -1,27 +1,23 @@
 .item-list {
-    position: relative;
-    height: 32px;
-    padding-bottom: 3px;
+	display: flex;
+	align-items: center;
+	height: 32px;
+	padding-bottom: 3px;
 }
 
 .item-list .title {
-    position: absolute;
-    display: inline-block;
-    font-size: 11.15pt;
-    top: 7px;
-    color: rgb(93, 105, 131);
+	font-size: 11.15pt;
+	color: rgb(93, 105, 131);
 }
 
 .item-list .list {
-    position: relative;
-    display: inline-block;
-    height: 32px;
-    left: 83px;
+	height: 32px;
+	margin-left: 18px;
 }
 
 .item-list .item {
-    display: inline-block;
-    height: 31px;
-    margin-right: 3px;
-    border-radius: 5px;
+	display: inline-block;
+	height: 31px;
+	margin-right: 3px;
+	border-radius: 5px;
 }

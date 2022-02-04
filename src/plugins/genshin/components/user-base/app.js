@@ -93,13 +93,12 @@ export default defineComponent( {
 		const parsed = cardDataParser( data );
 		
 		parsed.data.avatars.splice( 8 );
-		parsed.statsList.base = parsed.statsList.base
-			.filter( ( { label } ) => label !== "获得角色" );
+		parsed.statsList.base = parsed.statsList.base.filter( ( { label } ) => label !== "获得角色" );
 		
 		return {
 			...parsed,
 			urlParams,
-			sizeClass
+			sizeClass: sizeClass( 3 ),
 		};
 	},
 } );
