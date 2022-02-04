@@ -50,11 +50,11 @@ export class ArtClass {
 			case 0:  return type === 0 ? 717 : 4780;     // 固定生命值
 			case 1:  return type === 0 ? 0.070 : 0.466;  // 生命值百分比
 			case 3:  return type === 0 ? 0.087 : 0.583;  // 防御力百分比
-			case 4:  return type === 0 ? 0.087 : 0.518;  // 元素充能效率
+			case 4:  return type === 0 ? 0.078 : 0.518;  // 元素充能效率
 			case 5:  return type === 0 ? 28 : 187;       // 元素精通
 			case 6:  return type === 0 ? 47 : 311;       // 固定攻击力
 			case 7:  return type === 0 ? 0.070 : 0.466;  // 攻击力百分比
-			case 8:  return type === 0 ? 0.094 : 0.622;  // 暴击伤害
+			case 8:  return type === 0 ? 0.093 : 0.622;  // 暴击伤害
 			case 9:  return type === 0 ? 0.047 : 0.311;  // 暴击率
 			case 10: return type === 0 ? 0.054 : 0.359;  // 治疗加成
 			case 11: return type === 0 ? 0.087 : 0.583;  // 物理伤害加成

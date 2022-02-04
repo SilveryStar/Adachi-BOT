@@ -117,9 +117,11 @@ class Wish {
 		}
 		this.tempData = Object.keys( data )
 			.reduce( ( pre, cur ) => {
-				pre[cur] = parseInt( data[cur] );
+				const num: string = data[cur];
+				pre[cur] = num === "NaN" ? 0 : parseInt( num );
 				return pre;
 			}, {} );
+		console.log( data );
 		return this;
 	}
 	
