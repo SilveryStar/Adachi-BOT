@@ -64,15 +64,23 @@
 	filter: drop-shadow(0 2px 4px #999);
 }
 
-.header-base .card-avatar-box.user {
+.header-base .card-avatar-box.user.not-stranger {
 	bottom: -46px;
 }
 
+.header-base .card-avatar-box.user {
+	bottom: -66px;
+}
+
 .header-base .card-avatar-box.user p {
+	margin-bottom: -2px;
+}
+
+.header-base .card-avatar-box.user.not-stranger p {
 	margin-bottom: 18px;
 }
 
-.header-base .card-avatar-box.user img {
+.header-base .card-avatar-box.user.not-stranger img {
 	width: 156px;
 	height: 156px;
 	border: 1px solid #999;

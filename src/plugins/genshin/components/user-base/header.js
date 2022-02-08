@@ -2,16 +2,22 @@ const template = `
 <div class="header-base">
 	<div
 		class="card-avatar-box"
-		:class="{ 'without-nickname': data.level === '0', user: urlParams.profile === 'user' }"
+		:class="{
+			'without-nickname': data.level === '0',
+			'user': urlParams.profile === 'user',
+			'not-stranger': urlParams.stranger !== 'true'
+		}"
 	>
-		<p>{{ data.nickname }}</p>
+		<p>{{ nicknameSpace }}</p>
 		<img
 			:class="{ user: urlParams.profile === 'user' && urlParams.appoint === 'empty' }"
 			:src="defaultAvatar"
 			alt="ERROR"
 		/>
 	</div>
-	<div class="card-base-uid">UID: {{ data.uid }}</div>
+	<div class="card-base-uid" v-show="urlParams.stranger === 'false'">
+		UID: {{ data.uid }}
+	</div>
 	<div class="card-base-stats">
 		<p v-for="(base, index) in infoList" :key="index">
 			<label>{{ base.label }}</label>
@@ -48,8 +54,13 @@ export default defineComponent( {
 		
 		const avatars = props.data.avatars;
 		const level = props.data.level;
-		
 		const charNum = avatars.length;
+		
+		for ( let info of props.infoList ) {
+			if ( info.value === "-" ) {
+				info.value = "0-0";
+			}
+		}
 		
 		/* 获取头像 */
 		function getProImg( id ) {
@@ -57,7 +68,7 @@ export default defineComponent( {
 		}
 
 		const defaultAvatar =
-			profile === "random"
+			profile === "random" || props.urlParams.stranger === "true"
 				? getProImg( avatars[Math.floor( Math.random() * charNum )].id )
 				: `https://q1.qlogo.cn/g?b=qq&s=640&nk=${ props.urlParams.qq }`;
 		
@@ -69,9 +80,16 @@ export default defineComponent( {
 			return Math.floor( ( parseInt( level ) - 15 ) / 5 );
 		} );
 		
+		const nicknameSpace = computed( () => {
+			return props.urlParams.stranger === "true"
+				? `UID ${ props.data.uid }`
+				: props.data.nickname
+		} )
+		
 		return {
 			defaultAvatar,
-			worldLevel
+			worldLevel,
+			nicknameSpace
 		};
 	}
 } );

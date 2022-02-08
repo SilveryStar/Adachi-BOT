@@ -121,7 +121,6 @@ class Wish {
 				pre[cur] = num === "NaN" ? 0 : parseInt( num );
 				return pre;
 			}, {} );
-		console.log( data );
 		return this;
 	}
 	
