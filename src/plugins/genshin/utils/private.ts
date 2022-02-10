@@ -4,8 +4,27 @@ import { Order } from "@modules/command";
 import Authorization, { AuthLevel } from "@modules/management/auth";
 import { privateClass } from "#genshin/init";
 
+function parseID( msg: string ): number {
+	if ( msg.length === 0 ) {
+		return 0;
+	}
+	const id: number = parseInt( msg );
+	if ( !Number.isNaN( id ) ) {
+		return id - 1;
+	}
+	bot.logger.warn( `消息段解析出现异常: ${ msg }` );
+	
+	const res: string[] | null = msg.match( /(\d+)/g );
+	if ( res ) {
+		const list: string[] = res.sort( ( x, y ) => x.length - y.length );
+		return parseInt( list[0] ) - 1;
+	} else {
+		return 0;
+	}
+}
+
 export async function getPrivateAccount( userID: number, idMsg: string, auth: Authorization ): Promise<string | Private> {
-	const id: number = !idMsg ? 0 : parseInt( idMsg ) - 1;
+	const id: number = parseID( idMsg );
 	
 	const accounts: Private[] = privateClass.getUserPrivateList( userID );
 	const a: AuthLevel = await auth.get( userID );

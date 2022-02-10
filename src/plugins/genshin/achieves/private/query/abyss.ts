@@ -13,7 +13,7 @@ export async function main(
 ): Promise<void> {
 	const match = <SwitchMatchResult>matchResult;
 	const userID: number = messageData.user_id;
-	const data: string = !match.match[0] ? "" : match.match[0];
+	const data: string = match.match[0] ?? "";
 	
 	const info: Private | string = await getPrivateAccount( userID, data, auth );
 	if ( typeof info === "string" ) {
