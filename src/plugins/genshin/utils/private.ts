@@ -5,7 +5,8 @@ import Authorization, { AuthLevel } from "@modules/management/auth";
 import { privateClass } from "#genshin/init";
 
 function parseID( msg: string ): number {
-	if ( msg.length === 0 ) {
+	if ( !msg ) {
+		bot.logger.debug( `消息段解析调试: ${ msg }` );
 		return 0;
 	}
 	const id: number = parseInt( msg );
