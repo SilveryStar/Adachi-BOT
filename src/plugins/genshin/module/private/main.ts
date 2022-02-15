@@ -202,6 +202,11 @@ export class PrivateClass {
 		if ( typeof single === "string" ) {
 			return single;
 		} else {
+			Object.values( single.services ).forEach( ( service ) => {
+				if ( 'toggleEnableStatus' in service ) {
+					service.toggleEnableStatus( false, false )
+				}
+			} )
 			pull( this.list, single );
 			await bot.redis.deleteKey( single.dbKey );
 			return "私人服务取消成功";
