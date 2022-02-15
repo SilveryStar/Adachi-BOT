@@ -43,19 +43,19 @@ export class SignInService implements Service {
 		return `米游社签到功能已放行，请使用「${ TOGGLE_SIGN.getHeaders()[0] }+账户编号」开启本功能`;
 	}
 	
-	public async toggleEnableStatus(): Promise<void> {
-		this.enable = !this.enable;
+	public async toggleEnableStatus( status?: boolean, message: boolean = true ): Promise<void> {
+		this.enable = status === undefined ? !this.enable : status;
 		if ( this.enable ) {
-			await this.parent.sendMessage( "米游社签到功能已开启" );
 			await this.sign( false );
 			this.setScheduleJob();
 		} else {
-			await this.parent.sendMessage( "米游社签到功能已关闭" );
 			this.cancelScheduleJob();
 		}
+		message && await this.parent.sendMessage( `米游社签到功能已${ this.enable ? "开启" : "关闭" }` );
 		/* 回传进行数据库更新 */
 		await this.parent.refreshDBContent( SignInService.FixedField );
 	}
+	
 	
 	private async sign( reply: boolean = true ): Promise<void> {
 		const { uid, server, cookie } = this.parent.setting;

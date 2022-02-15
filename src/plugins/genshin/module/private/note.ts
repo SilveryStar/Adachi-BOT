@@ -53,31 +53,30 @@ export class NoteService implements Service {
 		await this.getData();
 		if ( typeof this.globalData === "string" ) {
 			return "实时便笺功能开启失败：\n" +
-				   this.globalData + "\n" +
-				   "可能是因为米游社数据未公开或米游社内未开启实时便笺";
+				this.globalData + "\n" +
+				"可能是因为米游社数据未公开或米游社内未开启实时便笺";
 		} else {
 			const auth: AuthLevel = await bot.auth.get( this.parent.setting.userID );
 			const SET_TIME = <Order>bot.command.getSingle( "silvery-star.note-set-time", auth );
 			const TOGGLE_NOTE = <Order>bot.command.getSingle( "silvery-star.private-toggle-note", auth );
 			
 			return "实时便笺功能已开启：\n" +
-				   "默认情况下，树脂数量达到 120 和 155 时会发送进行私聊推送\n" +
-				   `也可以通过「${ SET_TIME.getHeaders()[0] }+账户编号+树脂量」来设置\n` +
-				   "当冒险探索结束时，BOT 也会进行提醒\n" +
-				   `如果你希望关闭定时提醒功能，可以使用「${ TOGGLE_NOTE.getHeaders()[0] }+账户编号」`;
+				"默认情况下，树脂数量达到 120 和 155 时会发送进行私聊推送\n" +
+				`也可以通过「${ SET_TIME.getHeaders()[0] }+账户编号+树脂量」来设置\n` +
+				"当冒险探索结束时，BOT 也会进行提醒\n" +
+				`如果你希望关闭定时提醒功能，可以使用「${ TOGGLE_NOTE.getHeaders()[0] }+账户编号」`;
 		}
 	}
 	
-	public async toggleEnableStatus(): Promise<void> {
-		this.enable = !this.enable;
+	public async toggleEnableStatus( status?: boolean, message: boolean = true ): Promise<void> {
+		this.enable = status === undefined ? !this.enable : status;
 		if ( this.enable ) {
-			await this.parent.sendMessage( "树脂及冒险探索定时提醒功能已开启" );
 			this.scheduleJobOn();
 		} else {
-			await this.parent.sendMessage( "树脂及冒险探索定时提醒功能已关闭" );
 			this.scheduleJobOff();
 			this.clearEvents();
 		}
+		message && await this.parent.sendMessage( `树脂及冒险探索定时提醒功能已${ this.enable ? "开启" : "关闭" }` );
 		/* 回传进行数据库更新 */
 		await this.parent.refreshDBContent( NoteService.FixedField );
 	}
