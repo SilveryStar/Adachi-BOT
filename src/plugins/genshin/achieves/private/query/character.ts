@@ -13,14 +13,14 @@ export async function main(
 ): Promise<void> {
 	const { user_id: userID, raw_message: msg } = messageData;
 	
-	const parser = /(\d+)?([\w\u4e00-\u9fa5]+)/i;
-	const execRes = parser.exec( msg )?.slice( 1 );
+	const parser = /(\d+)?\s*([\w\u4e00-\u9fa5]+)/i;
+	const execRes = parser.exec( msg );
 	if ( !execRes ) {
 		await sendMessage( "指令格式有误" );
 		return;
 	}
 	
-	const [ idMsg, name ] = execRes;
+	const [ ,idMsg, name ] = execRes;
 	
 	const info: Private | string = await getPrivateAccount( userID, idMsg, auth );
 	if ( typeof info === "string" ) {
