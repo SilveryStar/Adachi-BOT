@@ -28,11 +28,11 @@ export async function main(
 	/* 解封 */
 	else {
 		if ( msgType === MessageType.Group ) {
-			await redis.setString( `adachi.auth-level-${ targetID }`, AuthLevel.User );
-			await sendMessage( `用户 ${ targetID } 已被解封` );
-		} else {
 			await redis.delListElement( `adachi.banned-group`, targetID );
 			await sendMessage( `群 ${ targetID } 屏蔽已解除` );
+		} else {
+			await redis.setString( `adachi.auth-level-${ targetID }`, AuthLevel.User );
+			await sendMessage( `用户 ${ targetID } 已被解封` );
 		}
 	}
 }
