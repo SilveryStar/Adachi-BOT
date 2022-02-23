@@ -2,7 +2,7 @@ import * as ApiType from "../types";
 import * as api from "./api";
 import bot from "ROOT";
 import { Cookies } from "#genshin/module";
-import { omit, parseInt } from "lodash";
+import { omit, pick } from "lodash";
 import { cookies } from "../init";
 
 export enum ErrorMsg {
@@ -126,20 +126,43 @@ export async function characterInfoPromise(
 			return;
 		}
 		
-		let avatars: any[] = [];
-		const charList: any[] = data.avatars;
+		const avatars: any[] = [];
+		const charList: ApiType.Avatar[] = data.avatars;
 		for ( let char of charList ) {
-			const base: any = omit( char, [ "image", "weapon", "reliquaries", "constellations" ] );
-			const weapon: any = omit( char.weapon, [ "id", "type", "promoteLevel", "typeName" ] );
+			const base = omit( char, [ "image", "weapon", "reliquaries", "constellations" ] );
+			const weapon = {
+				...omit( char.weapon, [ "id", "type", "promoteLevel", "typeName" ] ),
+				image: `https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/weapon/${ encodeURI( char.weapon.name ) }.png`
+			};
 			
-			let artifacts: any[] = [];
-
-			for ( let pos of char.reliquaries ) {
-				const posInfo: any = omit( pos, [ "id", "set", "posName" ] );
+			const artifacts: any[] = [];
+			const tmpBucket: Record<string, number> = {};
+			const suitEffect: Record<string, ApiType.ArtifactAffixes[]> = {};
+			for ( const pos of char.reliquaries ) {
+				const posInfo = omit( pos, [ "id", "set", "posName" ] );
 				artifacts.push( posInfo );
+				
+				const id: string = pos.set.name;
+				tmpBucket[id] = tmpBucket[id] ? tmpBucket[id] + 1 : 1;
+				suitEffect[id] = suitEffect[id] ?? pos.set.affixes;
 			}
 			
-			avatars.push( { ...base, weapon, artifacts } );
+			const effects: any[] = [];
+			Object.keys( tmpBucket ).forEach( key => {
+				const affixes: ApiType.ArtifactAffixes[] = suitEffect[key];
+				affixes.forEach( el => {
+					if ( tmpBucket[key] >= el.activationNumber ) {
+						effects.push( {
+							name: `${ key } ${ el.activationNumber } 件套`,
+							effect: el.effect
+						} );
+					}
+				} );
+			} );
+			
+			const constellations = char.constellations.map( el => pick( el, [ "name", "icon", "isActived" ] ) );
+			
+			avatars.push( { ...base, weapon, artifacts, effects, constellations } );
 		}
 		
 		await bot.redis.setHash( `silvery-star.card-data-${ uid }`, {

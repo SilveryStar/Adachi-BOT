@@ -86,7 +86,7 @@ export interface Artifact {
 	pos: number;
 	rarity: number;
 	level: number;
-	set: ArtifactSet[];
+	set: ArtifactSet;
 	posName: string;
 }
 
@@ -100,10 +100,18 @@ export interface Artifact {
 export interface ArtifactSet {
 	id: number;
 	name: string;
-	affixes: {
-		activationNumber: number;
-		effect: string;
-	}[];
+	affixes: ArtifactAffixes[];
+}
+
+/**
+ * @interface
+ * 圣遗物套装效果
+ * @activationNumber 触发效果所需圣遗物件数
+ * @effect 圣遗物套装效果
+ * */
+export interface ArtifactAffixes {
+	activationNumber: number;
+	effect: string;
 }
 
 /**
