@@ -64,6 +64,9 @@ export default defineComponent( {
 			if ( parseInt( level ) < 20 ) {
 				return 0;
 			}
+			if ( parseInt( level ) === 60 ) {
+				return 8;
+			}
 			return Math.floor( ( parseInt( level ) - 15 ) / 5 );
 		} );
 		
