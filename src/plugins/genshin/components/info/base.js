@@ -2,7 +2,9 @@ const template = `<div class="info-base" :class="infoBackgroundClass">
 	<img :class="type === '角色' ? 'character' : 'weapon'" :src="mainImage" alt="ERROR"/>
 	<div class="base-content">
 		<nav class="base-info-title">
-        	<p class="title-and-name">「{{ title }}·{{ name }}」</p>
+        	<p class="title-and-name">
+        		「<span v-if="title">{{ title }}·</span><span>{{ name }}</span>」
+        	</p>
         	<p class="introduce">{{ introduce }}</p>
 		</nav>
 		<main class="base-info-content">
