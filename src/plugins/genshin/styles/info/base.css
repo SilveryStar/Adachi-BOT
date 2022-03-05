@@ -36,6 +36,13 @@
 	left: 89px;
 }
 
+.info-base .artifact {
+	position: absolute;
+	width: 288px;
+	top: 120px;
+	left: 162px;
+}
+
 .info-base .base-content {
 	width: 496px;
 	padding-right: 22px;

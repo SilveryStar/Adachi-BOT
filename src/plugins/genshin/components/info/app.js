@@ -1,7 +1,8 @@
 const template = `<div class="info">
 	<InfoBase :data="data">
 		<InfoWeapon v-if="data.type === '武器'" :data="data"></InfoWeapon>
-		<InfoCharacter v-else :data="data"></InfoCharacter>
+		<InfoCharacter v-else-if="data.type === '角色'" :data="data"></InfoCharacter>
+		<InfoArtifact v-else :data="data"></InfoArtifact>
 	</InfoBase>
 </div>`;
 
@@ -9,6 +10,7 @@ import { parseURL, request } from "../../public/js/src.js";
 import InfoBase from "./base.js";
 import InfoWeapon from "./weapon.js";
 import InfoCharacter from "./character.js";
+import InfoArtifact from "./artifact.js";
 
 const { defineComponent } = Vue;
 
@@ -19,6 +21,7 @@ export default defineComponent( {
 		InfoBase,
 		InfoWeapon,
 		InfoCharacter,
+		InfoArtifact
 	},
 	setup() {
 		const urlParams = parseURL( location.search );
