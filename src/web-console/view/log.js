@@ -118,7 +118,8 @@ export default defineComponent( {
 		}
 		
 		function runWS() {
-			ws = new WebSocket( `ws://${ document.location.host }/ws/log` );
+			let protocol = document.location.protocol === "https:" ? "wss:" : "ws:";
+			ws = new WebSocket( `${ protocol }//${ document.location.host }/ws/log` );
 			ws.addEventListener( "message", event => {
 				const msg = parser( event.data );
 				if ( msg.length === 0 ) {
