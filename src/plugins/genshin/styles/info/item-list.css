@@ -1,18 +1,14 @@
 .item-list {
-	display: flex;
-	align-items: center;
-	height: 32px;
-	padding-bottom: 3px;
+	display: grid;
+	grid-template-columns: 70px auto;
+	grid-column-gap: 5px;
+	min-height: 32px;
 }
 
 .item-list .title {
+	padding-top: 8px;
 	font-size: 11.15pt;
 	color: rgb(93, 105, 131);
-}
-
-.item-list .list {
-	height: 32px;
-	margin-left: 18px;
 }
 
 .item-list .item {
