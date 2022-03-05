@@ -138,6 +138,7 @@ export async function characterInfoPromise(
 			const artifacts: any[] = [];
 			const tmpBucket: Record<string, number> = {};
 			const suitEffect: Record<string, ApiType.ArtifactAffixes[]> = {};
+			const suitIcon: Record<string, string> = {}
 			for ( const pos of char.reliquaries ) {
 				const posInfo = omit( pos, [ "id", "set", "posName" ] );
 				artifacts.push( posInfo );
@@ -145,6 +146,7 @@ export async function characterInfoPromise(
 				const id: string = pos.set.name;
 				tmpBucket[id] = tmpBucket[id] ? tmpBucket[id] + 1 : 1;
 				suitEffect[id] = suitEffect[id] ?? pos.set.affixes;
+				suitIcon[id] = suitIcon[id] ?? pos.icon.replace( /\d\.png/, '3.png' )
 			}
 			
 			const effects: any[] = [];
@@ -153,6 +155,7 @@ export async function characterInfoPromise(
 				affixes.forEach( el => {
 					if ( tmpBucket[key] >= el.activationNumber ) {
 						effects.push( {
+							icon: suitIcon[key],
 							name: `${ key } ${ el.activationNumber } 件套`,
 							effect: el.effect
 						} );
