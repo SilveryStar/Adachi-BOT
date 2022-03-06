@@ -1,15 +1,21 @@
 .character-base {
 	position: relative;
-	padding: 70px 0;
 	display: flex;
 	flex-direction: column;
 	background-color: var(--backgroundColor);
-	overflow: hidden;
-	box-sizing: border-box;
 	color: #333;
 }
 
-.character-base::before {
+.character-base > main {
+	position: relative;
+	padding: 70px 0;
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+	box-sizing: border-box;
+}
+
+.character-base > main::before {
 	content: "";
 	position: absolute;
 	top: 0;
@@ -24,7 +30,7 @@
 	opacity: 0.25;
 }
 
-.character-base > .chara-image {
+.character-base > main > .chara-image {
 	position: absolute;
 	left: 50%;
 	top: 134px;
@@ -35,7 +41,7 @@
 }
 
 /* 角色名称部分（标题） */
-.character-base > .chara-name {
+.character-base > main > .chara-name {
 	position: absolute;
 	left: 50%;
 	top: 72px;
@@ -50,19 +56,19 @@
 	color: #fff;
 }
 
-.character-base > .chara-name > img {
+.character-base > main > .chara-name > img {
 	width: 48px;
 	height: 48px;
 }
 
-.character-base > .chara-name > h3 {
+.character-base > main > .chara-name > h3 {
 	margin-left: 8px;
 	white-space: nowrap;
 	font-size: 30px;
 	font-weight: 300;
 }
 
-.character-base > .chara-name > span {
+.character-base > main > .chara-name > span {
 	margin-left: 8px;
 	margin-top: 8px;
 	white-space: nowrap;
@@ -70,30 +76,30 @@
 }
 
 /* 圣遗物列表 */
-.character-base > .artifact-list {
+.character-base > main > .artifact-list {
 	margin: 398px auto 16px auto;
 	display: flex;
 	align-items: center;
 }
 
-.character-base > .artifact-list > .equipment-box {
+.character-base > main > .artifact-list > .equipment-box {
 	margin: 0 10px;
 }
 
 /* 套装属性卡片 */
-.character-base .suit-list {
+.character-base > main .suit-list {
 	display: flex;
 	align-items: center;
 	padding: 0 18px;
 }
 
-.character-base .suit-list > .suit-item {
+.character-base > main .suit-list > .suit-item {
 	flex: 1;
 	display: flex;
 	align-items: center;
 }
 
-.character-base .suit-list > .suit-item > .suit-info {
+.character-base > main .suit-list > .suit-item > .suit-info {
 	height: 44px;
 	display: flex;
 	flex-direction: column;
@@ -101,27 +107,27 @@
 	margin-left: 12px;
 }
 
-.character-base .suit-list > .suit-item > .suit-info > span {
+.character-base > main .suit-list > .suit-item > .suit-info > span {
 	display: block;
 	font-size: 14px;
 	line-height: 14px;
 }
 
 /* 命座卡片 */
-.character-base .constellations-list {
+.character-base > main .constellations-list {
 	display: flex;
 	justify-content: center;
 	align-items: center;
 }
 
-.character-base .constellations-list > .constellations-item {
+.character-base > main .constellations-list > .constellations-item {
 	width: 58px;
 	height: 58px;
 	margin: 0 9px;
 	position: relative;
 }
 
-.character-base .constellations-list > .constellations-item::before {
+.character-base > main .constellations-list > .constellations-item::before {
 	content: '';
 	width: inherit;
 	height: inherit;
@@ -136,68 +142,68 @@
 	opacity: 0.7;
 }
 
-.character-base .constellations-list > .constellations-item.locked::before {
+.character-base > main .constellations-list > .constellations-item.locked::before {
 	opacity: 0.45;
 }
 
-.character-base .constellations-list > .constellations-item > .center {
+.character-base > main .constellations-list > .constellations-item > .center {
 	position: absolute;
 	top: 50%;
 	left: 50%;
 	transform: translate(-50%, -50%);
 }
 
-.character-base .constellations-list > .constellations-item > img {
+.character-base > main .constellations-list > .constellations-item > img {
 	width: 58px;
 	height: 58px;
 }
 
-.character-base .constellations-list > .constellations-item.locked > img {
+.character-base > main .constellations-list > .constellations-item.locked > img {
 	opacity: 0.5;
 }
 
-.character-base .constellations-list > .constellations-item > i {
+.character-base > main .constellations-list > .constellations-item > i {
 	display: none;
 	font-size: 24px;
 	line-height: 26px;
 	color: #fff;
 }
 
-.character-base .constellations-list > .constellations-item.locked > i {
+.character-base > main .constellations-list > .constellations-item.locked > i {
 	display: block;
 }
 
 /* 武器 */
-.character-base .weapon-card {
+.character-base > main .weapon-card {
 	padding: 20px 22px;
 	box-sizing: border-box;
 }
 
-.character-base .weapon-card > .weapon-info-box {
+.character-base > main .weapon-card > .weapon-info-box {
 	display: flex;
 	align-items: center;
 }
 
-.character-base .weapon-card > .weapon-info-box .equipment-icon {
+.character-base > main .weapon-card > .weapon-info-box .equipment-icon {
 	width: 56px;
 	height: 56px;
 }
 
-.character-base .weapon-card > .weapon-info-box > .weapon-info-content {
+.character-base > main .weapon-card > .weapon-info-box > .weapon-info-content {
 	margin-left: 14px;
 }
 
-.character-base .weapon-card > .weapon-info-box > .weapon-info-content > .weapon-info {
+.character-base > main .weapon-card > .weapon-info-box > .weapon-info-content > .weapon-info {
 	display: flex;
 	align-items: center;
 }
 
-.character-base .weapon-card > .weapon-info-box > .weapon-info-content > .weapon-info > h3 {
+.character-base > main .weapon-card > .weapon-info-box > .weapon-info-content > .weapon-info > h3 {
 	font-size: 18px;
 	font-weight: 300;
 }
 
-.character-base .weapon-card > .weapon-info-box > .weapon-info-content > .weapon-info > .weapon-level {
+.character-base > main .weapon-card > .weapon-info-box > .weapon-info-content > .weapon-info > .weapon-level {
 	height: 20px;
 	margin-left: 10px;
 	padding: 0 5px;
@@ -208,31 +214,39 @@
 	color: #fff;
 }
 
-.character-base .weapon-card > .weapon-info-box > .weapon-info-content > .weapon-info > .weapon-affixLevel {
+.character-base > main .weapon-card > .weapon-info-box > .weapon-info-content > .weapon-info > .weapon-affixLevel {
 	margin-left: 5px;
 	font-size: 16px;
 	color: var(--baseInfoColor);
 }
 
-.character-base .weapon-card > .weapon-info-box > .weapon-info-content > .star-box {
+.character-base > main .weapon-card > .weapon-info-box > .weapon-info-content > .star-box {
 	margin-top: 2px;
 }
 
-.character-base .weapon-card > .weapon-info-box > .weapon-info-content > .star-box > img {
+.character-base > main .weapon-card > .weapon-info-box > .weapon-info-content > .star-box > img {
 	display: inline-block;
 	width: 24px;
 	height: 24px;
 }
 
-.character-base .weapon-card > .weapon-desc {
+.character-base > main .weapon-card > .weapon-desc {
 	margin-top: 14px;
 	font-size: 16px;
 }
 
-.character-base > .sign {
-	position: absolute;
-	bottom: 40px;
-	right: 40px;
+.character-base > main .info-card {
+	margin-bottom: 22px;
+}
+
+.character-base > main .info-card:last-of-type {
+	margin-bottom: 0;
+}
+
+.character-base > footer {
+	margin-top: -10px;
+	padding-bottom: 10px;
 	font-size: 16px;
 	color: #636363;
+	text-align: center;
 }

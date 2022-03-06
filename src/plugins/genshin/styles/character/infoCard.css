@@ -1,7 +1,7 @@
 .info-card {
 	width: 492px;
 	min-height: 135px;
-	margin: 0 auto 22px auto;
+	margin: 0 auto;
 	position: relative;
 	display: flex;
 	flex-direction: column;
