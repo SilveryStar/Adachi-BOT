@@ -60,8 +60,10 @@ const template = `
 				/>
 			</div>
 		</section>
-		<p class="sign">Created by Adachi-BOT</p>
 	</main>
+	<footer>
+		<p class="sign">Created by Adachi-BOT</p>
+	</footer>
 </div>`;
 
 import Header from "./header.js";

@@ -1,50 +1,54 @@
 const template = `
 <div class="character-base">
-	<img class="chara-image" :src="charImage" alt="ERROR">
-	<div class="chara-name">
-		<img :src="elementIconSrc" alt="ERROR">
-		<h3>{{ data.name }}</h3>
-		<span>lv{{ data.level }}</span>
-		<span>好感度： {{ data.fetter }}</span>
-	</div>
-	<div class="artifact-list">
-		<CharacterEquipment v-for="(a, aKey) of artifacts" :key="index" :src="a.icon" :rarity="a.rarity" :level="a.level" :emptyIcon="artifactsFontIcon[aKey]"></CharacterEquipment>
-	</div>
-	<InfoCard title="套装效果" class="suit-list">
-		<template v-if="effectList.length">
-			<div v-for="(e, eKey) of effectList" :key="eKey" class="suit-item">
-			<CharacterEquipment :src="e.icon"></CharacterEquipment>
-			<p class="suit-info">
-				<span class="title">{{ e.name }}</span>
-				<span class="suit-type">{{ e.num }}件套</span>
-			</p>
+	<main>
+		<img class="chara-image" :src="charImage" alt="ERROR">
+		<div class="chara-name">
+			<img :src="elementIconSrc" alt="ERROR">
+			<h3>{{ data.name }}</h3>
+			<span>lv{{ data.level }}</span>
+			<span>好感度： {{ data.fetter }}</span>
 		</div>
-		</template>
-		<p v-else>当前没有圣遗物套装效果</p>
-	</InfoCard>
-	<InfoCard :title="'命之座('+ data.activedConstellationNum +'/6)'" class="constellations-list">
-		<div v-for="(c, cKey) of data.constellations" :key="cKey" class="constellations-item" :class="{ locked: cKey >= data.activedConstellationNum }">
-			<img class="center" :src="c.icon" alt="ERROR">
-			<i class="icon-lock center"></i>
+		<div class="artifact-list">
+			<CharacterEquipment v-for="(a, aKey) of artifacts" :key="index" :src="a.icon" :rarity="a.rarity" :level="a.level" :emptyIcon="artifactsFontIcon[aKey]"></CharacterEquipment>
 		</div>
-	</InfoCard>
-	<InfoCard v-if="data.weapon" class="weapon-card">
-		<div class="weapon-info-box">
-			<CharacterEquipment :src="data.weapon.icon" emptyIcon="icon-weapon"></CharacterEquipment>
-			<div class="weapon-info-content">
-				<p class="weapon-info">
-					<h3>{{ data.weapon.name }}</h3>
-					<span class="weapon-level">Lv{{ data.weapon.level }}</span>
-					<span class="weapon-affixLevel">精炼{{ data.weapon.affixLevel }}阶</span>
+		<InfoCard title="套装效果" class="suit-list">
+			<template v-if="effectList.length">
+				<div v-for="(e, eKey) of effectList" :key="eKey" class="suit-item">
+				<CharacterEquipment :src="e.icon"></CharacterEquipment>
+				<p class="suit-info">
+					<span class="title">{{ e.name }}</span>
+					<span class="suit-type">{{ e.num }}件套</span>
 				</p>
-				<div class="star-box">
-					<img v-for="(s, sKey) of data.weapon.rarity" :key="sKey" src="https://adachi-bot.oss-cn-beijing.aliyuncs.com/images/stars/Icon_1_Stars.png" alt="ERROR">
+			</div>
+			</template>
+			<p v-else>当前没有圣遗物套装效果</p>
+		</InfoCard>
+		<InfoCard :title="'命之座('+ data.activedConstellationNum +'/6)'" class="constellations-list">
+			<div v-for="(c, cKey) of data.constellations" :key="cKey" class="constellations-item" :class="{ locked: cKey >= data.activedConstellationNum }">
+				<img class="center" :src="c.icon" alt="ERROR">
+				<i class="icon-lock center"></i>
+			</div>
+		</InfoCard>
+		<InfoCard v-if="data.weapon" class="weapon-card">
+			<div class="weapon-info-box">
+				<CharacterEquipment :src="data.weapon.icon" emptyIcon="icon-weapon"></CharacterEquipment>
+				<div class="weapon-info-content">
+					<p class="weapon-info">
+						<h3>{{ data.weapon.name }}</h3>
+						<span class="weapon-level">Lv{{ data.weapon.level }}</span>
+						<span class="weapon-affixLevel">精炼{{ data.weapon.affixLevel }}阶</span>
+					</p>
+					<div class="star-box">
+						<img v-for="(s, sKey) of data.weapon.rarity" :key="sKey" src="https://adachi-bot.oss-cn-beijing.aliyuncs.com/images/stars/Icon_1_Stars.png" alt="ERROR">
+					</div>
 				</div>
 			</div>
-		</div>
-		<p class="weapon-desc">{{ data.weapon.desc }}</p>
-	</InfoCard>
-	<p class="sign">Created by Adachi-BOT</p>
+			<p class="weapon-desc">{{ data.weapon.desc }}</p>
+		</InfoCard>
+	</main>
+	<footer>
+		<p class="sign">Created by Adachi-BOT</p>
+	</footer>
 </div>
 `
 
@@ -64,8 +68,6 @@ export default defineComponent( {
 	setup() {
 		const urlParams = parseURL( location.search );
 		const data = request( `/api/char?qq=${ urlParams.qq }` );
-		
-		console.log( data )
 		
 		function setStyle( colorList ) {
 			document.documentElement.style.setProperty( "--baseInfoColor", colorList[0] );
