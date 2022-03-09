@@ -16,11 +16,22 @@ import { parseURL, request } from "../../public/js/src.js";
 import NoteInfo from "./info.js";
 import NoteExpedition from "./expedition.js";
 
+function getTrueDay( day ) {
+	return day === 0 ? 7 : day
+}
+
 function getTimePoint( time ) {
 	const date = new Date();
 	const sec = date.getSeconds();
 	date.setSeconds( sec + parseInt( time ) );
-	return moment().locale( "zh-cn" ).add( parseInt( time ), "s" ).calendar();
+	return moment().locale( "zh-cn" ).add( parseInt( time ), "s" ).calendar( null, {
+		nextWeek: function ( now ) {
+			return getTrueDay( this._d.getDay() ) > getTrueDay( now._d.getDay() ) ? 'ddddhh:mm' : '[下]ddddhh:mm';
+		},
+		lastWeek: function ( now ) {
+			return getTrueDay( this._d.getDay() ) < getTrueDay( now._d.getDay() ) ? 'ddddhh:mm' : '[上个]ddddhh:mm';
+		}
+	} )
 }
 
 const { defineComponent } = Vue;
