@@ -185,7 +185,7 @@ class Wish {
 		}
 	}
 	
-	private async once(): Promise<WishResult> {
+	private async once( mark: boolean = true ): Promise<WishResult> {
 		const rank: number = await this.getRank();
 		const up: boolean = await this.getIsUp( rank );
 		const times: number = this.GET( "five" );
@@ -198,7 +198,7 @@ class Wish {
 			if ( this.type === "weapon" ) {
 				const epit: number = await this.getEpit();
 				const user: number = await EpitomizedPath.getUser( this.epit );
-				if ( epit >= 2 && user !== 0 ) {
+				if ( mark && epit >= 2 && user !== 0 ) {
 					this.SET( "epit", 0 );
 					const result = this.table.upFiveStar[user - 1];
 					return { ...result, times, rank: 105 };
@@ -211,7 +211,7 @@ class Wish {
 				/* 如果抽中定轨武器，则清空命定值 */
 				if ( this.type === "weapon" ) {
 					const user: number = await EpitomizedPath.getUser( this.epit );
-					if ( user !== 0 ) {
+					if ( mark && user !== 0 ) {
 						const chosen = this.table.upFiveStar[user - 1];
 						if ( result.name === chosen.name ) {
 							this.SET( "epit", 0 );
@@ -240,8 +240,10 @@ class Wish {
 	
 	public async getAnyTimes( t: number ): Promise<WishTotalSet> {
 		const result: WishResult[] = [];
+		const mark: boolean = t !== 10;
+		
 		for ( let i = 0; i < t; i++ ) {
-			result.push( await this.once() );
+			result.push( await this.once( mark ) );
 		}
 		await this.WRITE();
 		return { result, total: t };
