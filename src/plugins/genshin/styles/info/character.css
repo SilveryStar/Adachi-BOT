@@ -8,9 +8,14 @@
 	list-style: none;
 	padding: 6px 0;
 	display: grid;
-	grid-template-columns: repeat(2, 237px);
+	grid-template-columns: auto 1fr;
 	grid-row-gap: 8px;
+	grid-column-gap: 8px;
 	font-size: 10.38pt;
+}
+
+.info-character .base-info > li:nth-child(2n + 1) {
+	min-width: 50%;
 }
 
 .info-character .base-info .title {
@@ -83,11 +88,19 @@
 	margin-top: 8px;
 }
 
+.info-character .materials .item-list {
+	margin-bottom: 3px;
+}
+
+.info-character .materials .item-list:last-child {
+	margin: 0;
+}
+
 .info-character .materials .time {
 	position: absolute;
 	font-size: 11.15pt;
-	top: 50%;
-	left: 310px;
+	top: 16px;
+	right: 10px;
 	transform: translateY(-50%);
 	color: rgb(93, 105, 131);
 }

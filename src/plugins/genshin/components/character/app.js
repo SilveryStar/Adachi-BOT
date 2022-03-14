@@ -1,99 +1,142 @@
-const template =
-`<div class="character">
-    <CharacterBase
-        :uid="data.uid"
-        :name="data.name"
-        :element="data.element"
-        :level="data.level"
-        :fetter="data.fetter"
-        :constellation="data.activedConstellationNum"
-        :id="data.id"
-    ></CharacterBase>
-    <CharacterArtifact
-        :artifactList="artifacts"
-    ></CharacterArtifact>
-    <CharacterWeapon
-        :weapon="data.weapon"
-    ></CharacterWeapon>
-</div>`;
+const template = `
+<div class="character-base">
+	<main>
+		<img class="chara-image" :src="charImage" alt="ERROR">
+		<div class="chara-name">
+			<img :src="elementIconSrc" alt="ERROR">
+			<h3>{{ data.name }}</h3>
+			<span>lv{{ data.level }}</span>
+			<span>好感度： {{ data.fetter }}</span>
+		</div>
+		<div class="artifact-list">
+			<CharacterEquipment v-for="(a, aKey) of artifacts" :key="index" :src="a.icon" :rarity="a.rarity" :level="a.level" :emptyIcon="artifactsFontIcon[aKey]"></CharacterEquipment>
+		</div>
+		<InfoCard title="套装效果" class="suit-list">
+			<template v-if="effectList.length">
+				<div v-for="(e, eKey) of effectList" :key="eKey" class="suit-item">
+				<CharacterEquipment :src="e.icon"></CharacterEquipment>
+				<p class="suit-info">
+					<span class="title">{{ e.name }}</span>
+					<span class="suit-type">{{ e.num }}件套</span>
+				</p>
+			</div>
+			</template>
+			<p v-else>当前没有圣遗物套装效果</p>
+		</InfoCard>
+		<InfoCard :title="'命之座('+ data.activedConstellationNum +'/6)'" class="constellations-list">
+			<div v-for="(c, cKey) of data.constellations" :key="cKey" class="constellations-item" :class="{ locked: cKey >= data.activedConstellationNum }">
+				<img class="center" :src="c.icon" alt="ERROR">
+				<i class="icon-lock center"></i>
+			</div>
+		</InfoCard>
+		<InfoCard v-if="data.weapon" class="weapon-card">
+			<div class="weapon-info-box">
+				<CharacterEquipment :src="data.weapon.icon" emptyIcon="icon-weapon"></CharacterEquipment>
+				<div class="weapon-info-content">
+					<p class="weapon-info">
+						<h3>{{ data.weapon.name }}</h3>
+						<span class="weapon-level">Lv{{ data.weapon.level }}</span>
+						<span class="weapon-affixLevel">精炼{{ data.weapon.affixLevel }}阶</span>
+					</p>
+					<div class="star-box">
+						<img v-for="(s, sKey) of data.weapon.rarity" :key="sKey" src="https://adachi-bot.oss-cn-beijing.aliyuncs.com/images/stars/Icon_1_Stars.png" alt="ERROR">
+					</div>
+				</div>
+			</div>
+			<p class="weapon-desc">{{ data.weapon.desc }}</p>
+		</InfoCard>
+	</main>
+	<footer>
+		<p class="sign">Created by Adachi-BOT</p>
+	</footer>
+</div>
+`
 
 import { parseURL, request } from "../../public/js/src.js";
-import CharacterBase from "./base.js";
-import CharacterArtifact from "./artifact.js";
-import CharacterWeapon from "./weapon.js";
-const { defineComponent } = Vue;
+import CharacterEquipment from "./equipment.js"
+import InfoCard from './infoCard.js'
+
+const { defineComponent, computed } = Vue;
 
 export default defineComponent( {
 	name: "CharacterApp",
 	template,
 	components: {
-		CharacterBase,
-		CharacterArtifact,
-		CharacterWeapon
+		CharacterEquipment,
+		InfoCard
 	},
 	setup() {
 		const urlParams = parseURL( location.search );
 		const data = request( `/api/char?qq=${ urlParams.qq }` );
-
+		
 		function setStyle( colorList ) {
-			document.documentElement.style.setProperty("--baseInfoColor",    colorList[0]);
-			document.documentElement.style.setProperty("--contentColor",     colorList[1]);
-			document.documentElement.style.setProperty("--backgroundColor",  colorList[2]);
-			document.documentElement.style.setProperty("--elementColor",     colorList[3]);
-			document.documentElement.style.setProperty("--titleColor",       colorList[4]);
-			document.documentElement.style.setProperty("--splitLineColor",   colorList[5]);
+			document.documentElement.style.setProperty( "--baseInfoColor", colorList[0] );
+			document.documentElement.style.setProperty( "--backgroundColor", colorList[1] );
 		}
-
+		
+		const elementIconSrc = `https://adachi-bot.oss-cn-beijing.aliyuncs.com/images/element/Element_${ data.element }.png`
+		
+		const charImage = computed( () => {
+			return `http://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/character/${ data.id }.png`;
+		} );
+		
+		// 圣遗物默认图标
+		const artifactsFontIcon = [ "icon-flower", "icon-plume", "icon-sands", "icon-goblet", "icon-circle" ]
+		
+		/* 整理圣遗物数组 */
+		const artifacts = computed( () => {
+			if ( data.artifacts.length >= 5 ) return data.artifacts
+			const list = new Array( 5 )
+			list.fill( {} )
+			for ( const a of data.artifacts ) {
+				list.splice( a.pos - 1, 1, a )
+			}
+			return list
+		} )
+		
+		const effectList = computed( () => {
+			return data.effects.map( effect => {
+				const [ key, num ] = effect.name.split( ' ' )
+				return { name: key, num, icon: effect.icon }
+			} )
+		} )
+		
 		switch ( data.element ) {
-			case "Anemo":   setStyle([
-				"rgb( 28,  91,  72)", "rgb( 44, 128, 100)",
-				"rgb( 44, 128, 100)", "rgb( 44, 128, 100)",
-				"rgb( 45, 148, 116)", "rgb( 59, 167, 132)"
-			]); break;
-			case "Cryo":    setStyle([
-				"rgb( 50, 105, 133)", "rgb(  5, 162, 195)",
-				"rgb( 16, 168, 212)", "rgb(  5, 162, 195)",
-				"rgb(  6, 188, 240)", "rgb(  5, 165, 199)"
-			]); break;
-			case "Dendro":  setStyle([
-				// 暂无
-			]); break;
-			case "Electro": setStyle([
-				"rgb( 46,  34,  84)", "rgb( 81,  56, 151)",
-				"rgb( 83,  66, 146)", "rgb( 81,  56, 151)",
-				"rgb(117,  93, 195)", "rgb( 80,  55, 161)"
-			]); break;
-			case "Geo":     setStyle([
-				"rgb( 92,  76,  21)", "rgb(176, 141,  46)",
-				"rgb(201, 144,  20)", "rgb(176, 141,  46)",
-				"rgb(206, 171,  66)", "rgb(210, 155,  21)"
-			]); break;
-			case "Hydro":   setStyle([
-				"rgb( 23,  64,  91)", "rgb( 43, 127, 175)",
-				"rgb( 37, 106, 153)", "rgb( 43, 127, 175)",
-				"rgb( 77, 162, 211)", "rgb( 42, 123, 174)"
-			]); break;
-			case "Pyro":    setStyle([
-				"rgb(119,  31,  19)", "rgb(176,  45,  28)",
-				"rgb(189,  46,  29)", "rgb(176,  45,  28)",
-				"rgb(218,  52,  34)", "rgb(191,  61,  27)"
-			]); break;
-			case "None":    setStyle([
-				"rgb( 72,  72,  72)", "rgb(111, 117, 113)",
-				"rgb(111, 111, 111)", "rgb(111, 117, 113)",
-				"rgb(136, 136, 136)", "rgb(123, 123, 123)"
-			]); break;
+			case "Anemo":
+				setStyle( [ "#1ddea7", "#f0f7f5" ] );
+				break;
+			case "Cryo":
+				setStyle( [ "#1daade", "#f0f5f7" ] );
+				break;
+			case "Dendro":
+				setStyle( [
+					// 暂无
+				] );
+				break;
+			case "Electro":
+				setStyle( [ "#871dde", "#f4f0f7" ] );
+				break;
+			case "Geo":
+				setStyle( [ "#de8d1d", "#f7f4f0" ] );
+				break;
+			case "Hydro":
+				setStyle( [ "#1d8dde", "#f0f4f7" ] );
+				break;
+			case "Pyro":
+				setStyle( [ "#de3a1d", "#f7f1f0" ] );
+				break;
+			case "None":
+				setStyle( [ "#757575", "#f7f7f7" ] );
+				break;
 		}
-
-		let artifacts = [];
-		for ( let i = 1; i <= 5; i++ ) {
-			const info = data.reliquaries.find( el => el.pos === i );
-			artifacts[i] = info ? info : "empty";
-		}
-
+		
 		return {
 			urlParams,
 			data,
+			charImage,
+			effectList,
+			elementIconSrc,
+			artifactsFontIcon,
 			artifacts
 		}
 	}
