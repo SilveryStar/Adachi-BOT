@@ -16,6 +16,7 @@ export function createServer( config: GenshinConfig, logger: Logger ): void {
 	app.use( "/api/abyss", r.AbyssRouter );
 	app.use( "/api/daily", r.DailyRouter );
 	app.use( "/api/almanac", r.AlmanacRouter );
+	app.use( "/api/ledger", r.LedgerRouter );
 	
 	app.listen( config.serverPort, () => {
 		logger.info( "Express 服务器已启动" );
