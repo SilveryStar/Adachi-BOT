@@ -43,7 +43,7 @@ const template = `
 					</div>
 				</div>
 			</div>
-			<p class="weapon-desc">{{ data.weapon.desc }}</p>
+			<p class="weapon-desc">{{ weaponDesc }}</p>
 		</InfoCard>
 	</main>
 	<footer>
@@ -79,6 +79,11 @@ export default defineComponent( {
 		const charImage = computed( () => {
 			return `http://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/character/${ data.id }.png`;
 		} );
+		
+		/* 武器描述处理 */
+		const weaponDesc = computed( () => {
+			return data?.weapon?.desc?.replace( /[\\r\\n]/g, "" );
+		} )
 		
 		// 圣遗物默认图标
 		const artifactsFontIcon = [ "icon-flower", "icon-plume", "icon-sands", "icon-goblet", "icon-circle" ]
@@ -137,7 +142,8 @@ export default defineComponent( {
 			effectList,
 			elementIconSrc,
 			artifactsFontIcon,
-			artifacts
+			artifacts,
+			weaponDesc
 		}
 	}
 } );
