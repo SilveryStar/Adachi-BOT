@@ -27,7 +27,8 @@ const __API = {
 	FETCH_ALMANAC: "https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/almanac/almanac.yml",
 	FETCH_CHARACTER_ID: "https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/character/id.yml",
 	FETCH_SIGN_IN: "https://api-takumi.mihoyo.com/event/bbs_sign_reward/sign",
-	FETCH_SIGN_INFO: "https://api-takumi.mihoyo.com/event/bbs_sign_reward/info"
+	FETCH_SIGN_INFO: "https://api-takumi.mihoyo.com/event/bbs_sign_reward/info",
+	FETCH_LEDGER: "https://hk4e-api.mihoyo.com/event/ys_ledger/monthInfo"
 };
 
 const HEADERS = {
@@ -171,6 +172,34 @@ export async function getSpiralAbyssInfo( roleID: number, server: string, period
 			.then( ( result ) => {
 				const resp = toCamelCase( JSON.parse( result ) );
 				const data: ResponseBody = set( resp, "data.type", "abyss" )
+				resolve( data );
+			} )
+			.catch( ( reason ) => {
+				reject( reason );
+			} );
+	} );
+}
+
+export async function getLedger( uid: string, server: string, mon: number, cookie: string ): Promise<any> {
+	const query = {
+		bind_uid: uid,
+		bind_region: server,
+		month: mon
+	};
+	
+	return new Promise( ( resolve, reject ) => {
+		request( {
+			method: "GET",
+			url: __API.FETCH_LEDGER,
+			qs: query,
+			headers: {
+				...HEADERS,
+				"Cookie": cookie
+			}
+		} )
+			.then( ( result ) => {
+				const resp = toCamelCase( JSON.parse( result ) );
+				const data: ResponseBody = set( resp, "data.type", "ledger" )
 				resolve( data );
 			} )
 			.catch( ( reason ) => {

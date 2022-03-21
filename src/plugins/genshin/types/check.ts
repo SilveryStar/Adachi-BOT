@@ -6,6 +6,7 @@ import { UserInfo } from "./user-info";
 import { CharacterInfo, InfoResponse, WeaponInfo } from "./info";
 import { Note } from "./note";
 import { SignInInfo, SignInResult } from "./sign-in";
+import { Ledger } from "#genshin/types/ledger";
 
 /* 对于米游社 API 返回数据的类型检查 */
 export function isAbyss( obj: ResponseDataType ): obj is Abyss {
@@ -34,6 +35,10 @@ export function isSignInInfo( obj: ResponseDataType ): obj is SignInInfo {
 
 export function isSignInResult( obj: ResponseDataType ): obj is SignInResult {
 	return obj.type === "sign-in-result";
+}
+
+export function isLedger( obj: ResponseDataType ): obj is Ledger {
+	return obj.type === "ledger";
 }
 
 /* 对于 OSS 返回数据的类型检查 */

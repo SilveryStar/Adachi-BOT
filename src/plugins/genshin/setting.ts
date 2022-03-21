@@ -306,6 +306,17 @@ const privateToggleNote: OrderConfig = {
 	detail: "该指令用于切换树脂及冒险探索定时提示的开/关状态"
 };
 
+const privateLedger: OrderConfig = {
+	type: "order",
+	cmdKey: "silvery-star.private-ledger",
+	desc: [ "旅行札记", "(账户编号) (月份)" ],
+	headers: [ "led" ],
+	regexps: [ "(\\d+)?", "(\\d+)?" ],
+	main: "achieves/private/query/ledger",
+	detail: "查看旅行者札记数据\n" +
+			"只填写一个参数时将被视为月份"
+};
+
 export default <PluginSetting>{
 	pluginName: "genshin",
 	cfgList: [
@@ -315,7 +326,7 @@ export default <PluginSetting>{
 		privateNowNote, privateNoteEvent, privateSubList,
 		privateConfirm, privateSubscribe, privateReplace,
 		privateAbyssQuery, privateCancel, privateMysQuery,
-		privateToggleSign, privateMysSetAppoint,
-		privateToggleNote, privateCharQuery
+		privateToggleSign, privateLedger, privateCharQuery,
+		privateToggleNote, privateMysSetAppoint
 	]
 };
