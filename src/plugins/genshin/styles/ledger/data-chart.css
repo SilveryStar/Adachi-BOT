@@ -1,0 +1,10 @@
+.data-chart {
+	--chart-border: 1px solid rgba(255, 255, 255, .15);
+	width: 100%;
+	border-radius: 10px;
+	border: var(--chart-border);
+}
+
+.chart {
+	height: 240px;
+}
