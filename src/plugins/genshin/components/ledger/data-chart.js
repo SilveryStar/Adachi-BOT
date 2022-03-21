@@ -1,8 +1,8 @@
 const template = `<div class="data-chart">
-	<v-chart class="chart" :option="chartOption"></v-chart>
+	<v-chart class="chart" :option="chartOption" :key="chartKey"></v-chart>
 </div>`
 
-const { defineComponent, ref } = Vue;
+const { defineComponent, ref, onMounted } = Vue;
 
 export default defineComponent( {
 	name: "DataChart",
@@ -14,9 +14,11 @@ export default defineComponent( {
 		}
 	},
 	setup( props ) {
-		const data = props.data
+		const data = props.data;
+		const chartKey = ref( 0 );
 		
 		const chartOption = ref( {
+			animation: false,
 			legend: {
 				orient: "vertical",
 				left: 380,
@@ -47,13 +49,26 @@ export default defineComponent( {
 					radius: [ "60%", "75%" ],
 					label: {
 						show: false
-					},
-					animationDuration: 80
+					}
 				}
 			]
 		} )
 		
+		/* 字体加载完毕后刷新e-chart */
+		const timer = ref( null );
+		
+		onMounted( () => {
+			timer.value = setInterval( () => {
+				if ( document.readyState === "complete" ) {
+					chartKey.value++;
+					window.clearInterval( timer.value );
+					timer.value = null;
+				}
+			}, 20 )
+		} );
+		
 		return {
+			chartKey,
 			chartOption
 		}
 	}
