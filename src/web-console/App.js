@@ -1,6 +1,6 @@
 import router from "./router/index.js";
 
-const { defineComponent } = Vue;
+const { defineComponent, ref, onBeforeMount, onUnmounted } = Vue;
 
 axios.interceptors.request.use( config => {
 	const token = localStorage.getItem( "token" );
@@ -22,5 +22,25 @@ axios.interceptors.response.use( resp => {
 
 export default defineComponent( {
 	name: "App",
-	template: "<router-view />"
+	template: "<router-view :isMobile='isMobile' />",
+	setup() {
+		const isMobile = ref( false );
+		
+		function onLayoutResize() {
+			/* 移动端地址栏问题 */
+			document.documentElement.style.setProperty( "--app-height", `${ window.innerHeight }px` );
+			isMobile.value = window.innerWidth <= 768;
+		}
+		
+		onBeforeMount( () => {
+			window.addEventListener( "resize", onLayoutResize );
+			onLayoutResize();
+		} )
+		
+		onUnmounted( () => {
+			window.removeEventListener( "resize", onLayoutResize );
+		} );
+		
+		return { isMobile };
+	}
 } );
