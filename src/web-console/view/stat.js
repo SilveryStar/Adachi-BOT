@@ -26,8 +26,9 @@ const template =
 	</div>
 </div>`;
 
+import $http from "../api/index.js"
+
 const { defineComponent, onMounted, reactive, toRefs, nextTick } = Vue;
-const { get } = axios;
 
 export default defineComponent( {
 	name: "Stat",
@@ -143,7 +144,9 @@ export default defineComponent( {
 			const d = new Date( date.setDate(
 				state.curWeek.getDate() - state.curWeek.getDay()
 			) );
-			const resp = await get( `/api/stat?start=${ d.toJSON() }` );
+			const resp = await $http.BOT_STAT( {
+				start: d.toJSON()
+			}, "GET" );
 			state.dataset = [];
 			state.total = [];
 			for ( let u of resp.data ) {

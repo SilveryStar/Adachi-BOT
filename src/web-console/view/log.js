@@ -1,5 +1,5 @@
 const template =
-`<div class="logger">
+	`<div class="logger">
 	<div class="picker">
 		<el-date-picker
 			v-model="date"
@@ -50,10 +50,11 @@ const template =
 	</div>
 </div>`;
 
+import $http from "../api/index.js";
+
 const { defineComponent, reactive, toRefs, watch, ref, nextTick } = Vue;
 const { useRoute } = VueRouter;
 const { ElMessage } = ElementPlus;
-const { get } = axios;
 
 export default defineComponent( {
 	name: "Log",
@@ -76,8 +77,8 @@ export default defineComponent( {
 		function isToday( date ) {
 			const d = new Date();
 			return d.getDate() === date.getDate() &&
-				   d.getFullYear() === date.getFullYear() &&
-				   d.getMonth() === date.getMonth();
+				d.getFullYear() === date.getFullYear() &&
+				d.getMonth() === date.getMonth();
 		}
 		
 		function getDateString( date ) {
@@ -87,19 +88,19 @@ export default defineComponent( {
 		
 		function disabledDate( time ) {
 			return time.getTime() > Date.now() ||
-				   time.getTime() < new Date( "2021-11-2" ).getTime();
+				time.getTime() < new Date( "2021-11-2" ).getTime();
 		}
 		
 		function parser( data ) {
 			return data.split( "__ADACHI__" )
-					   .filter( el => el.length !== 0 )
-					   .map( el => JSON.parse( el ) );
+				.filter( el => el.length !== 0 )
+				.map( el => JSON.parse( el ) );
 		}
 		
 		function splitArray( arr, num ) {
 			return [ arr.splice( -1 * num ), arr ].reverse();
 		}
-
+		
 		function addMsgToList( msg ) {
 			const num = state.list.length;
 			const diff = state.list[num - 1].length + msg.length - state.numPerPage;
@@ -148,21 +149,22 @@ export default defineComponent( {
 			state.list = [];
 			state.curPage = 1;
 			state.today = isToday( date );
-			
-			get( `/api/log?date=${ getDateString( date ) }` )
-				.then( resp => {
-					state.error = false;
-					const msg = parser( resp.data );
-					state.totalLog = msg.length;
-					state.list.push( ...cutArray( msg, state.numPerPage ) );
-					if ( state.today ) {
-						runWS();
-						setTimeout( () => scrollToBottom(), 50 );
-					} else if ( ws ) {
-						ws.close();
-					}
-				} )
-				.catch( err => { state.error = true } );
+			$http.LOG_INFO( {
+				date: getDateString( date )
+			}, "GET" ).then( resp => {
+				state.error = false;
+				const msg = parser( resp.data );
+				state.totalLog = msg.length;
+				state.list.push( ...cutArray( msg, state.numPerPage ) );
+				if ( state.today ) {
+					runWS();
+					setTimeout( () => scrollToBottom(), 50 );
+				} else if ( ws ) {
+					ws.close();
+				}
+			} ).catch( err => {
+				state.error = true
+			} );
 		}
 		
 		function copyAsReportFormat() {
@@ -171,12 +173,12 @@ export default defineComponent( {
 				.split( "\n\n" )
 				.map( el => {
 					el = el.replace( /\[(Android|aPad|Watch|iMac|iPad):\d+]/, "[$1:*****]" )
-						   .replace( / - recv from: \[Private: \d+\((friend|group)\)] (.*)/, " [Recv] [Pri-$1] $2" )
-						   .replace( / - recv from: \[Group: .*] (.*)/, " [Recv] [Group] $1" )
-						   .replace( / - send to: \[(Group|Private): .*]/ , " [Send] [$1] ---" )
-						   .replace( /(\[[A-Z]+]) - (.*)/, "$1 [Event] $2" )
-						   .replace( /&#93;/g, "]" )
-						   .replace( /&#91;/g, "[" );
+						.replace( / - recv from: \[Private: \d+\((friend|group)\)] (.*)/, " [Recv] [Pri-$1] $2" )
+						.replace( / - recv from: \[Group: .*] (.*)/, " [Recv] [Group] $1" )
+						.replace( / - send to: \[(Group|Private): .*]/, " [Send] [$1] ---" )
+						.replace( /(\[[A-Z]+]) - (.*)/, "$1 [Event] $2" )
+						.replace( /&#93;/g, "]" )
+						.replace( /&#91;/g, "[" );
 					return el;
 				} )
 				.join( "\n" );

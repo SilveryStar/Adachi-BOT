@@ -1,5 +1,5 @@
 const template =
-`<div class="user-page">
+	`<div class="user-page">
 	<div class="search-container">
 		<el-input
 			class="input-box"
@@ -107,8 +107,9 @@ const template =
 	</div>
 </div>`;
 
+import $http from "../api/index.js"
+
 const { defineComponent, reactive, toRefs, watch, computed } = Vue;
-const { get, post } = axios;
 const { ElMessage } = ElementPlus;
 
 export default defineComponent( {
@@ -134,18 +135,17 @@ export default defineComponent( {
 		
 		const authLevel = [ "Banned", "User", "Manager", "Master" ];
 		const auth = computed( () => {
-			return authLevel[ state.chooseUserData.botAuth ];
+			return authLevel[state.chooseUserData.botAuth];
 		} );
 		const avatar = computed( () => {
 			return `https://q1.qlogo.cn/g?b=qq&s=640&nk=${ state.chooseUserID }`;
 		} );
 		
-		get( "/api/user/list" )
-			.then( resp => {
-				state.userIDs.push( ...resp.data.userIDs );
-				state.cmdKeys.push( ...resp.data.cmdKeys );
-				state.showUser.push( ...state.userIDs );
-			} );
+		$http.USER_LIST( {}, "GET" ).then( resp => {
+			state.userIDs.push( ...resp.data.userIDs );
+			state.cmdKeys.push( ...resp.data.cmdKeys );
+			state.showUser.push( ...state.userIDs );
+		} );
 		
 		function role( str ) {
 			const map = {
@@ -180,8 +180,8 @@ export default defineComponent( {
 		
 		async function chooseUser( userID ) {
 			state.chooseUserID = userID;
-			state.chooseUserData = ( await get( `/api/user/info?id=${ userID }` ) ).data;
-			state.management.auth = authLevel[ state.chooseUserData.botAuth ];
+			state.chooseUserData = ( await $http.USER_INFO( { id: userID }, "GET" ) ).data;
+			state.management.auth = authLevel[state.chooseUserData.botAuth];
 			state.management.int = state.chooseUserData.interval;
 			state.management.limits = [];
 			state.management.limits.push( ...state.chooseUserData.limits );
@@ -199,26 +199,24 @@ export default defineComponent( {
 		
 		function postChange() {
 			changeKey( state.tmpKey );
-			post( "/api/user/set", {
+			$http.USER_SET( {
 				target: state.chooseUserID,
 				auth: authLevel.findIndex( el => el === state.management.auth ),
 				int: state.management.int,
 				limits: JSON.stringify( state.management.limits )
-			} )
-				.then( res => {
-					ElMessage( {
-						message: "设置保存成功",
-						type: "success",
-						duration: 1500
-					} );
-				} )
-				.catch( err => {
-					ElMessage( {
-						message: "设置保存失败",
-						duration: 1500,
-						type: "warning"
-					} );
+			} ).then( res => {
+				ElMessage( {
+					message: "设置保存成功",
+					type: "success",
+					duration: 1500
 				} );
+			} ).catch( err => {
+				ElMessage( {
+					message: "设置保存失败",
+					duration: 1500,
+					type: "warning"
+				} );
+			} );
 		}
 		
 		watch( () => state.searchID, () => {

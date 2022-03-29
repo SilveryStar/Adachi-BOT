@@ -16,31 +16,21 @@
 	<script src="https://unpkg.com/echarts@5.1.2/dist/echarts.min.js"></script>
 	<script src="https://unpkg.com/vue-echarts@6.0.0/dist/index.umd.min.js"></script>
 	<script src="https://unpkg.com/blueimp-md5@2.18.0/js/md5.min.js"></script>
-
+	<script src="main.js" type="module"></script>
+	
     <link rel="stylesheet" href="https://unpkg.com/element-plus@1.2.0-beta.3/dist/index.css"/>
-    <link rel="stylesheet" href="./style/reset.css"/>
-    <link rel="stylesheet" href="./style/layout.css"/>
-    <link rel="stylesheet" href="./style/transition.css"/>
-    <link rel="stylesheet" href="./style/view/home.css"/>
-    <link rel="stylesheet" href="./style/view/login.css"/>
-    <link rel="stylesheet" href="./style/view/log.css"/>
-    <link rel="stylesheet" href="./style/view/user.css"/>
-    <link rel="stylesheet" href="./style/view/stat.css"/>
+	<link rel="stylesheet" href="assets/styles/reset.css"/>
+	<link rel="stylesheet" href="assets/styles/layout.css"/>
+	<link rel="stylesheet" href="assets/styles/transition.css"/>
+	<link rel="stylesheet" href="assets/styles/view/home.css"/>
+	<link rel="stylesheet" href="assets/styles/view/login.css"/>
+	<link rel="stylesheet" href="assets/styles/view/log.css"/>
+	<link rel="stylesheet" href="assets/styles/view/user.css"/>
+	<link rel="stylesheet" href="assets/styles/view/stat.css"/>
 </head>
 <body>
 
 <div id="app"></div>
-
-<script type="module">
-	import App from "./App.js"
-    import router from "./router/index.js";
-
-    const app = Vue.createApp( App );
-    app.use( ElementPlus )
-	   .use( router )
-	   .component( "v-chart", VueECharts )
-       .mount( "#app" );
-</script>
 
 </body>
 </html>

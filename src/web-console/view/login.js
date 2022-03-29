@@ -27,9 +27,9 @@ const template =
 </div>`;
 
 import router from "../router/index.js";
+import $http from "../api/index.js"
 
 const { defineComponent, ref } = Vue;
-const { post } = axios;
 const { ElNotification } = ElementPlus;
 
 export default defineComponent( {
@@ -52,7 +52,7 @@ export default defineComponent( {
 			}
 			
 			const pwd = md5( password.value );
-			post( "/api/login/", {
+			$http.USER_LOGIN( {
 				num: number.value,
 				pwd: pwd
 			} )
