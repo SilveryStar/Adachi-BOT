@@ -75,6 +75,8 @@ export async function detailInfoPromise(
 		cookies.increaseIndex();
 	}
 	const { retcode, message, data } = await api.getDetailInfo( uid, server, cookie );
+	const allHomes = await api.getUidHome();
+	
 	if ( !ApiType.isUserInfo( data ) ) {
 		return Promise.reject( ErrorMsg.UNKNOWN );
 	}
@@ -94,7 +96,8 @@ export async function detailInfoPromise(
 		await bot.redis.setHash( `silvery-star.card-data-${ uid }`, {
 			explorations:   JSON.stringify( data.worldExplorations ),
 			stats:          JSON.stringify( data.stats ),
-			homes:          JSON.stringify( data.homes )
+			homes:          JSON.stringify( data.homes ),
+			allHomes:       JSON.stringify( allHomes )
 		} );
 		await bot.redis.setTimeout( `silvery-star.card-data-${ uid }`, 3600 );
 		bot.logger.info( `用户 ${ uid } 查询成功，数据已缓存` );
@@ -219,13 +222,55 @@ export async function abyssInfoPromise(
 			reject( Cookies.checkExpired( cookie ) );
 			return;
 		} else if ( retcode !== 0 ) {
-			reject( ErrorMsg.FORM_MESSAGE+ message );
+			reject( ErrorMsg.FORM_MESSAGE + message );
 			return;
 		}
 
 		await bot.redis.setString( dbKey, JSON.stringify( { ...data, uid, period } ) );
 		await bot.redis.setTimeout( dbKey, 3600 );
 		bot.logger.info( `用户 ${ uid } 的深渊数据查询成功，数据已缓存` );
+		resolve();
+	} );
+}
+
+export async function ledgerPromise(
+	uid: string,
+	server: string,
+	month: number,
+	cookie: string = ""
+): Promise<string | void> {
+	const dbKey: string = `silvery-star.ledger-data-${ uid }`;
+	const detail: string = await bot.redis.getString( dbKey );
+	
+	if ( detail.length !== 0 ) {
+		const data: any = JSON.parse( detail );
+		if ( uid === data.uid.toString() && month === data.dataMonth ) {
+			bot.logger.info( `用户 ${ uid } 在六小时内进行过札记查询操作，将返回上次数据` );
+			return Promise.reject( "gotten" );
+		}
+	}
+	
+	if ( cookie.length === 0 ) {
+		cookie = cookies.get();
+		cookies.increaseIndex();
+	}
+	const { retcode, message, data } = await api.getLedger( uid, server, month, cookie );
+	if ( !ApiType.isLedger( data ) ) {
+		return Promise.reject( ErrorMsg.UNKNOWN );
+	}
+	
+	return new Promise( async ( resolve, reject ) => {
+		if ( retcode === 10001 ) {
+			reject( Cookies.checkExpired( cookie ) );
+			return;
+		} else if ( retcode !== 0 ) {
+			reject( ErrorMsg.FORM_MESSAGE + message );
+			return;
+		}
+
+		await bot.redis.setString( dbKey, JSON.stringify( data ) );
+		await bot.redis.setTimeout( dbKey, 21600 );
+		bot.logger.info( `用户 ${ uid } 的札记数据查询成功，数据已缓存` );
 		resolve();
 	} );
 }

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>ledger</title>
+	<script src="https://unpkg.com/vue@3.1.1/dist/vue.global.prod.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/echarts@5.1.2"></script>
+	<script src="https://cdn.jsdelivr.net/npm/vue-echarts@6.0.0"></script>
+	<link rel="stylesheet" href="../styles/reset.css">
+	<link rel="stylesheet" href="../styles/ledger/app.css">
+	<link rel="stylesheet" href="../styles/abyss/section-title.css">
+	<link rel="stylesheet" href="../styles/ledger/data-piece.css">
+	<link rel="stylesheet" href="../styles/ledger/data-chart.css">
+</head>
+<div id="app"></div>
+
+<script type="module">
+	import App from "../components/ledger/app.js";
+
+	const app = Vue.createApp(App);
+	app.component("v-chart", VueECharts)
+		.mount("#app");
+</script>
+
+</body>
+</html>
+
+<style>
+	#app {
+		width: 700px;
+	}
+</style>

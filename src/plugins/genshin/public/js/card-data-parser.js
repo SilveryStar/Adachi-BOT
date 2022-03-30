@@ -1,15 +1,5 @@
-const areaList = [
-	{ name: "蒙德", code: "mondstadt" },
-	{ name: "璃月", code: "liyue" },
-	{ name: "龙脊雪山", code: "dragonspine" },
-	{ name: "稻妻", code: "inazuma" },
-	{ name: "渊下宫", code: "enkanomiya" }
-];
-
-const homeList = [ "罗浮洞", "翠黛峰", "清琼岛", "绘绮庭" ];
-
 export function cardDataParser( data ) {
-	const { avatars, stats, explorations, homes } = data;
+	const { avatars, stats, explorations, homes, allHomes } = data;
 	
 	/* 角色根据等级好感度排序 */
 	avatars.sort( ( x, y ) => {
@@ -71,12 +61,9 @@ export function cardDataParser( data ) {
 	
 	const explorationsList = explorations
 		.map( el => {
-			if ( areaList[el.id - 1] ) {
-				return {
-					...el,
-					area: areaList[el.id - 1],
-					explorationPercentage: `${ el.explorationPercentage / 10 }%`
-				}
+			return {
+				...el,
+				explorationPercentage: `${ el.explorationPercentage / 10 }%`
 			}
 		} )
 		/* 按id排序防乱序 */
@@ -89,9 +76,9 @@ export function cardDataParser( data ) {
 		maxComfort = homes[0].comfortNum;
 	}
 	
-	const formatHomes = homeList.map( ( name ) => {
-		const homeData = homes.find( ( el ) => el.name === name );
-		return homeData ? homeData : { name, level: -1 };
+	const formatHomes = allHomes.map( ( h ) => {
+		const homeData = homes.find( ( el ) => el.name === h.name );
+		return homeData ? homeData : { name: h.name, level: -1 };
 	} );
 	
 	return {
