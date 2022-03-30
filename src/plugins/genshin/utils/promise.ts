@@ -75,6 +75,8 @@ export async function detailInfoPromise(
 		cookies.increaseIndex();
 	}
 	const { retcode, message, data } = await api.getDetailInfo( uid, server, cookie );
+	const allHomes = await api.getUidHome();
+	
 	if ( !ApiType.isUserInfo( data ) ) {
 		return Promise.reject( ErrorMsg.UNKNOWN );
 	}
@@ -94,7 +96,8 @@ export async function detailInfoPromise(
 		await bot.redis.setHash( `silvery-star.card-data-${ uid }`, {
 			explorations:   JSON.stringify( data.worldExplorations ),
 			stats:          JSON.stringify( data.stats ),
-			homes:          JSON.stringify( data.homes )
+			homes:          JSON.stringify( data.homes ),
+			allHomes:       JSON.stringify( allHomes )
 		} );
 		await bot.redis.setTimeout( `silvery-star.card-data-${ uid }`, 3600 );
 		bot.logger.info( `用户 ${ uid } 查询成功，数据已缓存` );
