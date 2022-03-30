@@ -1,7 +1,7 @@
 const template = `
 <div class="exploration-base">
 	<p>
-		<span>{{ data.area.name }}&nbsp;</span>
+		<span>{{ data.name }}&nbsp;</span>
 		<span>{{ data.explorationPercentage }}</span>
 	</p>
 	<div class="card-exploration-info">
@@ -14,8 +14,8 @@ const template = `
 		</template>
 	</div>
 	<img
-		:src="areaIcon( data.area.code )"
-		:alt="data.area"
+		:src="data.icon"
+		alt="ERROR"
 	/>
 </div>`;
 
@@ -28,16 +28,8 @@ export default defineComponent( {
 		data: {
 			type: Object,
 			default: () => ( {
-				area: {},
 				offerings: []
 			} )
 		}
-	},
-	setup() {
-		function areaIcon( code ) {
-			return `https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/area/${ code }.png`;
-		}
-		
-		return { areaIcon };
 	}
 } );

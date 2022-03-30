@@ -8,6 +8,7 @@ async function loadMysData( userID: number ): Promise<any> {
 	data.stats = JSON.parse( data.stats );
 	data.explorations = JSON.parse( data.explorations );
 	data.avatars = JSON.parse( data.avatars );
+	data.allHomes = data.allHomes ? JSON.parse( data.allHomes ) : [];
 	
 	return data;
 }
