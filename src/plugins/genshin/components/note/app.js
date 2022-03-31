@@ -58,7 +58,8 @@ export default defineComponent( {
 		const getTransformerSubtitle = computed( () => {
 			const { recoveryTime, obtained } = data.transformer;
 			if ( !obtained ) return "先去璃月完成「天遒宝迹」任务吧";
-			let { day, hour, minute, second } = recoveryTime;
+			let { day, hour, minute, second, reached } = recoveryTime;
+			if ( reached ) return "已准备完成";
 			day = day ? day + "天" : "";
 			hour = hour ? hour + "小时" : "";
 			minute = minute ? minute + "分" : "";
