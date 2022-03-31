@@ -7,3 +7,9 @@
 /.history/
 /logs/
 /src/plugins/genshin/data/
+
+/src/plugins/
+!/src/plugins/@help/
+!/src/plugins/@management/
+!/src/plugins/genshin/
+!/src/plugins/tools/
