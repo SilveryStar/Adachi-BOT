@@ -6,5 +6,6 @@ export default express.Router().get( "/", async ( req, res ) => {
 	const userID: number = parseInt( <string>req.query.qq );
 	const dbKey: string = `silvery-star.character-temp-${ userID }`;
 	const data: string = await bot.redis.getString( dbKey );
+	console.log( deepParse( data ) )
 	res.send( deepParse( data ) )
 } );

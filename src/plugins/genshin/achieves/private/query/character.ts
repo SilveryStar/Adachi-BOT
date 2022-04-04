@@ -1,11 +1,10 @@
 import { InputParameter } from "@modules/command";
 import { Private } from "#genshin/module/private/main";
 import { RenderResult } from "@modules/renderer";
-import { Avatar, Artifact } from "#genshin/types";
+import { CharacterInformation, Skills } from "#genshin/types";
 import { getRealName, NameResult } from "#genshin/utils/name";
-import { mysInfoPromise } from "#genshin/utils/promise";
+import { mysAvatarDetailInfoPromise, mysInfoPromise } from "#genshin/utils/promise";
 import { getPrivateAccount } from "#genshin/utils/private";
-import { omit } from "lodash";
 import { characterID, renderer } from "#genshin/init";
 
 export async function main(
@@ -28,7 +27,7 @@ export async function main(
 		return;
 	}
 	
-	const { cookie, mysID, uid } = info.setting;
+	const { cookie, mysID, uid, server } = info.setting;
 	const result: NameResult = getRealName( name );
 	
 	if ( !result.definite ) {
@@ -51,7 +50,8 @@ export async function main(
 	}
 	
 	const { avatars } = await redis.getHash( `silvery-star.card-data-${ uid }` );
-	const charInfo = ( <Avatar[]>JSON.parse( avatars ) ).find( ( { id } ) => {
+	const data: CharacterInformation[] = JSON.parse( avatars );
+	const charInfo = data.find( ( { id } ) => {
 		return charID === -1 ? id === 10000005 || id === 10000007 : id === charID;
 	} );
 	
@@ -59,15 +59,19 @@ export async function main(
 		await sendMessage( `[UID-${ uid }] 未拥有角色 ${ realName }` );
 		return;
 	}
-	// @ts-ignore
-	const artifacts: Artifact[] = charInfo.artifacts;
-	
-	const dbKey: string = `silvery-star.character-temp-${ userID }`;
-	await redis.setString( dbKey, JSON.stringify( {
-		...charInfo,
-		reliquaries: artifacts.map( el => omit( el, [ "set" ] ) ),
-		uid
-	} ) );
+	try {
+		const dbKey: string = `silvery-star.character-temp-${ userID }`;
+		const skills: Skills = await mysAvatarDetailInfoPromise( uid, charID, server, cookie );
+
+		await redis.setString( dbKey, JSON.stringify( {
+			...charInfo,
+			skills,
+			uid
+		} ) );
+	} catch ( error ) {
+		await sendMessage( <string>error );
+		return;
+	}
 	
 	const res: RenderResult = await renderer.asCqCode(
 		"/character.html",

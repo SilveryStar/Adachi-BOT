@@ -75,7 +75,7 @@ export default defineComponent( {
 		}
 		
 		const elementIconSrc = `https://adachi-bot.oss-cn-beijing.aliyuncs.com/images/element/Element_${ data.element }.png`
-		
+		console.log( data )
 		const charImage = computed( () => {
 			return `http://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/character/${ data.id }.png`;
 		} );

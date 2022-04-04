@@ -16,6 +16,7 @@ const __API = {
 	FETCH_ROLE_CHARACTERS: "https://api-takumi.mihoyo.com/game_record/app/genshin/api/character",
 	FETCH_ROLE_SPIRAL_ABYSS: "https://api-takumi.mihoyo.com/game_record/app/genshin/api/spiralAbyss",
 	FETCH_ROLE_DAILY_NOTE: "https://api-takumi.mihoyo.com/game_record/app/genshin/api/dailyNote",
+	FETCH_ROLE_AVATAR_DETAIL: "https://api-takumi.mihoyo.com/event/e20200928calculate/v1/sync/avatar/detail",
 	FETCH_GACHA_LIST: "https://webstatic.mihoyo.com/hk4e/gacha_info/cn_gf01/gacha/list.json",
 	FETCH_GACHA_DETAIL: "https://webstatic.mihoyo.com/hk4e/gacha_info/cn_gf01/$/zh-cn.json",
 	FETCH_ARTIFACT: "https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/artifact/artifact.yml",
@@ -141,7 +142,35 @@ export async function getDailyNoteInfo( uid: number, server: string, cookie: str
 		} )
 			.then( ( result ) => {
 				const resp = toCamelCase( JSON.parse( result ) );
-				const data: ResponseBody = set( resp, "data.type", "note" )
+				const data: ResponseBody = set( resp, "data.type", "note" );
+				resolve( data );
+			} )
+			.catch( ( reason ) => {
+				reject( reason );
+			} );
+	} );
+}
+
+export async function getAvatarDetailInfo( uid: string, avatarID: number, server: string, cookie: string ): Promise<ResponseBody> {
+	const query = {
+		avatar_id: avatarID,
+		region: server,
+		uid
+	};
+	return new Promise( ( resolve, reject ) => {
+		request( {
+			method: "GET",
+			url: __API.FETCH_ROLE_AVATAR_DETAIL,
+			qs: query,
+			headers: {
+				...HEADERS,
+				"DS": getDS( query ),
+				"Cookie": cookie
+			}
+		} )
+			.then( ( result ) => {
+				const resp = toCamelCase( JSON.parse( result ) );
+				const data: ResponseBody = set( resp, "data.type", "avatar" );
 				resolve( data );
 			} )
 			.catch( ( reason ) => {

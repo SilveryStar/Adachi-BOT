@@ -145,3 +145,25 @@ export interface Costume {
 	name: string;
 	icon: string;
 }
+
+export type CharacterBase = Omit<Avatar, "image" | "weapon" | "reliquaries" | "constellations">;
+export type CharacterWeapon = Omit<Weapon, "id" | "type" | "promoteLevel" | "typeName"> & { image: string };
+export type CharacterCon = Array<Pick<Constellation, "name" | "icon" | "isActived">>;
+export type CharacterArt = Array<Pick<Artifact, "pos" | "rarity" | "icon" | "level">>;
+export type CharacterEffect = Array<{
+	icon: string;
+	name: string;
+}>;
+
+export type CharacterInformation = {
+	weapon: CharacterWeapon;
+	constellations: CharacterCon;
+	artifacts: CharacterArt;
+	effects: CharacterEffect;
+} & CharacterBase;
+
+export type ArtifactSetStat = {
+	count: number;
+	effect: ArtifactAffixes[];
+	icon: string;
+};
