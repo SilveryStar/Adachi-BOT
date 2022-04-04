@@ -7,6 +7,10 @@ import { mysAvatarDetailInfoPromise, mysInfoPromise } from "#genshin/utils/promi
 import { getPrivateAccount } from "#genshin/utils/private";
 import { characterID, renderer } from "#genshin/init";
 
+function evaluate( obj: { rarity: number; level: number }, max: number = 5 ): number {
+	return ( obj.rarity / max ) * obj.level;
+}
+
 export async function main(
 	{ sendMessage, messageData, auth, redis, logger }: InputParameter
 ): Promise<void> {
@@ -62,10 +66,16 @@ export async function main(
 	try {
 		const dbKey: string = `silvery-star.character-temp-${ userID }`;
 		const skills: Skills = await mysAvatarDetailInfoPromise( uid, charID, server, cookie );
+		const score: number =
+			charInfo.artifacts.reduce( ( pre, cur ) => pre + evaluate( cur ), 0 ) / 100 * 20 +
+			evaluate( charInfo.weapon ) / 90 * 15 +
+			charInfo.level / 90 * 30 +
+			Math.min( skills.reduce( ( pre, cur ) => pre + cur.levelCurrent, 0 ), 24 ) / 24 * 35;
 
 		await redis.setString( dbKey, JSON.stringify( {
 			...charInfo,
 			skills,
+			score,
 			uid
 		} ) );
 	} catch ( error ) {
