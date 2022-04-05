@@ -7,6 +7,16 @@ import { mysAvatarDetailInfoPromise, mysInfoPromise } from "#genshin/utils/promi
 import { getPrivateAccount } from "#genshin/utils/private";
 import { characterID, config, renderer } from "#genshin/init";
 
+interface ScoreItem {
+	label: string;
+	percentage: number;
+}
+
+interface EvaluateScore {
+	list: ScoreItem[];
+	total: number;
+};
+
 function evaluate( obj: { rarity: number; level: number }, max: number = 5 ): number {
 	return ( obj.rarity / max ) * obj.level;
 }
@@ -66,12 +76,31 @@ export async function main(
 	try {
 		const dbKey: string = `silvery-star.character-temp-${ userID }`;
 		const skills: Skills = await mysAvatarDetailInfoPromise( uid, charID, server, cookie );
-		const score: number[] = [
-			charInfo.artifacts.reduce( ( pre, cur ) => pre + evaluate( cur ), 0 ) / 100,
-			evaluate( charInfo.weapon ) / 90,
-			charInfo.level / 90,
-			Math.min( skills.reduce( ( pre, cur ) => pre + cur.levelCurrent, 0 ), 24 ) / 24
-		];
+		
+		const coefficients: number[] = [ 20, 15, 30, 35 ];
+		const list: ScoreItem[] = [ {
+			label: "圣遗物",
+			percentage: charInfo.artifacts.reduce( ( pre, cur ) => pre + evaluate( cur ), 0 ) / 100
+		}, {
+			label: "武器等级",
+			percentage: evaluate( charInfo.weapon ) / 90
+		}, {
+			label: "角色等级",
+			percentage: charInfo.level / 90
+		}, {
+			label: "天赋升级",
+			percentage: Math.min(
+				skills.reduce(
+					( pre, cur ) => pre + cur.levelCurrent, 0 ), 24
+			) / 24
+		} ];
+		
+		const score: EvaluateScore = {
+			list,
+			total: list.reduce( ( pre, cur, i ) => {
+				return pre + cur.percentage * coefficients[i]
+			}, 0 )
+		};
 
 		await redis.setString( dbKey, JSON.stringify( {
 			...charInfo,
@@ -84,15 +113,10 @@ export async function main(
 		return;
 	}
 	
-	const showScore: boolean = typeof config.showCharScore === "boolean"
-		? config.showCharScore : true;
-	const coefficient: number[] = Array.isArray( config.showCharScore )
-		? config.showCharScore : [ 20, 15, 30, 35 ];
 	const res: RenderResult = await renderer.asCqCode(
 		"/character.html", {
 			qq: userID,
-			showScore,
-			coefficient: JSON.stringify( coefficient )
+			showScore: config.showCharScore
 		} );
 	if ( res.code === "ok" ) {
 		await sendMessage( res.data );
