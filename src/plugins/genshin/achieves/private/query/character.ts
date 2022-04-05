@@ -5,7 +5,7 @@ import { CharacterInformation, Skills } from "#genshin/types";
 import { getRealName, NameResult } from "#genshin/utils/name";
 import { mysAvatarDetailInfoPromise, mysInfoPromise } from "#genshin/utils/promise";
 import { getPrivateAccount } from "#genshin/utils/private";
-import { characterID, renderer } from "#genshin/init";
+import { characterID, config, renderer } from "#genshin/init";
 
 function evaluate( obj: { rarity: number; level: number }, max: number = 5 ): number {
 	return ( obj.rarity / max ) * obj.level;
@@ -66,11 +66,12 @@ export async function main(
 	try {
 		const dbKey: string = `silvery-star.character-temp-${ userID }`;
 		const skills: Skills = await mysAvatarDetailInfoPromise( uid, charID, server, cookie );
-		const score: number =
-			charInfo.artifacts.reduce( ( pre, cur ) => pre + evaluate( cur ), 0 ) / 100 * 20 +
-			evaluate( charInfo.weapon ) / 90 * 15 +
-			charInfo.level / 90 * 30 +
-			Math.min( skills.reduce( ( pre, cur ) => pre + cur.levelCurrent, 0 ), 24 ) / 24 * 35;
+		const score: number[] = [
+			charInfo.artifacts.reduce( ( pre, cur ) => pre + evaluate( cur ), 0 ) / 100,
+			evaluate( charInfo.weapon ) / 90,
+			charInfo.level / 90,
+			Math.min( skills.reduce( ( pre, cur ) => pre + cur.levelCurrent, 0 ), 24 ) / 24
+		];
 
 		await redis.setString( dbKey, JSON.stringify( {
 			...charInfo,
@@ -83,10 +84,16 @@ export async function main(
 		return;
 	}
 	
+	const showScore: boolean = typeof config.showCharScore === "boolean"
+		? config.showCharScore : true;
+	const coefficient: number[] = Array.isArray( config.showCharScore )
+		? config.showCharScore : [ 20, 15, 30, 35 ];
 	const res: RenderResult = await renderer.asCqCode(
-		"/character.html",
-		{ qq: userID }
-	);
+		"/character.html", {
+			qq: userID,
+			showScore,
+			coefficient
+		} );
 	if ( res.code === "ok" ) {
 		await sendMessage( res.data );
 	} else {
