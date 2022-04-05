@@ -1,7 +1,10 @@
 const template = `
 <div class="character-base">
 	<main>
-		<img class="chara-image" :src="charImage" alt="ERROR">
+		<div class="portrait-box">
+			<img class="portrait" :src="portrait" alt="ERROR">
+			<div class="portrait-mask" :style="{'background-image': portraitMaskStyle}"></div>
+		</div>
 		<div class="chara-name">
 			<img :src="elementIconSrc" alt="ERROR">
 			<h3>{{ data.name }}</h3>
@@ -14,17 +17,28 @@ const template = `
 		<InfoCard title="套装效果" class="suit-list">
 			<template v-if="effectList.length">
 				<div v-for="(e, eKey) of effectList" :key="eKey" class="suit-item">
-				<CharacterEquipment :src="e.icon"></CharacterEquipment>
-				<p class="suit-info">
-					<span class="title">{{ e.name }}</span>
-					<span class="suit-type">{{ e.num }}件套</span>
-				</p>
-			</div>
+					<CharacterEquipment :src="e.icon"></CharacterEquipment>
+					<p class="suit-info">
+						<span class="title">{{ e.name }}</span>
+						<span class="suit-type">{{ e.num }}件套</span>
+					</p>
+				</div>
 			</template>
 			<p v-else>当前没有圣遗物套装效果</p>
 		</InfoCard>
+		<InfoCard title="天赋" class="suit-list">
+			<div v-for="(s, sKey) of skills" :key="sKey" class="suit-item">
+				<div class="circle-image-icon">
+					<img class="center" :src="s.icon" alt="ERROR">
+				</div>
+				<p class="suit-info">
+					<span class="title">{{ s.name }}</span>
+					<span class="suit-type">Lv.{{ s.levelCurrent }}</span>
+				</p>
+			</div>
+		</InfoCard>
 		<InfoCard :title="'命之座('+ data.activedConstellationNum +'/6)'" class="constellations-list">
-			<div v-for="(c, cKey) of data.constellations" :key="cKey" class="constellations-item" :class="{ locked: cKey >= data.activedConstellationNum }">
+			<div v-for="(c, cKey) of data.constellations" :key="cKey" class="circle-image-icon" :class="{ locked: cKey >= data.activedConstellationNum }">
 				<img class="center" :src="c.icon" alt="ERROR">
 				<i class="icon-lock center"></i>
 			</div>
@@ -56,7 +70,7 @@ import { parseURL, request } from "../../public/js/src.js";
 import CharacterEquipment from "./equipment.js"
 import InfoCard from './infoCard.js'
 
-const { defineComponent, computed } = Vue;
+const { defineComponent, computed, ref } = Vue;
 
 export default defineComponent( {
 	name: "CharacterApp",
@@ -68,15 +82,20 @@ export default defineComponent( {
 	setup() {
 		const urlParams = parseURL( location.search );
 		const data = request( `/api/char?qq=${ urlParams.qq }` );
+		console.log(data)
+		
+		/* 立绘阴影 */
+		const portraitMaskStyle = ref( "" );
 		
 		function setStyle( colorList ) {
 			document.documentElement.style.setProperty( "--baseInfoColor", colorList[0] );
 			document.documentElement.style.setProperty( "--backgroundColor", colorList[1] );
+			portraitMaskStyle.value = `linear-gradient(to right, ${ colorList[1] } 5%, transparent 30%, transparent 70%, ${ colorList[1] } 95%)`;
 		}
 		
 		const elementIconSrc = `https://adachi-bot.oss-cn-beijing.aliyuncs.com/images/element/Element_${ data.element }.png`
-		const charImage = computed( () => {
-			return `http://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/character/${ data.id }.png`;
+		const portrait = computed( () => {
+			return `https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/portrait/${ data.id }.png`;
 		} );
 		
 		// 圣遗物默认图标
@@ -92,6 +111,13 @@ export default defineComponent( {
 			}
 			return list
 		} )
+		
+		/* 删除神里绫华、莫娜的闪避技能 */
+		const skills = data.skills;
+		
+		if ( skills.length > 3 ) {
+			skills.splice(2, 1);
+		}
 		
 		const effectList = computed( () => {
 			return data.effects.map( effect => {
@@ -132,10 +158,12 @@ export default defineComponent( {
 		return {
 			urlParams,
 			data,
-			charImage,
+			skills,
+			portrait,
 			effectList,
 			elementIconSrc,
 			artifactsFontIcon,
+			portraitMaskStyle,
 			artifacts
 		}
 	}
