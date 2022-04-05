@@ -92,7 +92,7 @@ export async function main(
 		"/character.html", {
 			qq: userID,
 			showScore,
-			coefficient
+			coefficient: JSON.stringify( coefficient )
 		} );
 	if ( res.code === "ok" ) {
 		await sendMessage( res.data );
