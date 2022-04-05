@@ -59,15 +59,28 @@ export function cardDataParser( data ) {
 		} ]
 	};
 	
+	const chasmsMaw = explorations.find( el => el.id === 7 );
+	
 	const explorationsList = explorations
 		.map( el => {
+			let { id, name, offerings, explorationPercentage } = el;
+			if ( id === 6 ) {
+				name = "层岩巨渊";
+				offerings.unshift( {
+					name: "地下矿区",
+					percent: chasmsMaw.explorationPercentage / 10
+				} )
+			}
 			return {
 				...el,
-				explorationPercentage: `${ el.explorationPercentage / 10 }%`
+				name,
+				offerings,
+				explorationPercentage: `${ explorationPercentage / 10 }%`
 			}
 		} )
 		/* 按id排序防乱序 */
-		.sort( ( x, y ) => x.id - y.id );
+		.sort( ( x, y ) => x.id - y.id )
+		.filter( el => el.id !== 7 );
 	
 	let homesLevel = 0;
 	let maxComfort = 0;

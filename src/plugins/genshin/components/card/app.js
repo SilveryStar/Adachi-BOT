@@ -89,7 +89,7 @@ export default defineComponent( {
 		return {
 			...parsed,
 			urlParams,
-			sizeClass: sizeClass( 4 ),
+			sizeClass: sizeClass( 3 ),
 		};
 	},
 } );
