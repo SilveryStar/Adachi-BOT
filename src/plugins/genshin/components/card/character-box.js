@@ -7,7 +7,7 @@ const template = `
 			:src="getElementIcon(char.element)"
 			alt="ERROR"
 		/>
-		<span class="constellation">{{ char.activedConstellationNum }}</span>
+		<span v-if="char.activedConstellationNum" class="constellation">{{ char.activedConstellationNum }}</span>
 		<div v-if="char.name !== '旅行者'" class="fetter-box">
 			<img src="https://adachi-bot.oss-cn-beijing.aliyuncs.com/images/common/Item_Companionship_EXP.png" alt="ERROR" />
 			<span>{{ char.fetter }}</span>
@@ -58,6 +58,7 @@ export default defineComponent( {
 			rarity = rarity === 105 ? "5" : rarity;
 			return `https://adachi-bot.oss-cn-beijing.aliyuncs.com/images/stars/Icon_${ rarity }_Stars.png`;
 		}
+		
 		function getRarityBg( rarity ) {
 			rarity = rarity === 105 ? "5a" : rarity;
 			return `url(https://adachi-bot.oss-cn-beijing.aliyuncs.com/images/rarity_bg/Background_Item_${ rarity }_Star.png)`;
