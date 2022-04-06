@@ -92,9 +92,9 @@ export async function detailInfoPromise(
 		}
 		
 		await bot.redis.setHash( `silvery-star.card-data-${ uid }`, {
-			explorations: JSON.stringify( data.worldExplorations ),
-			stats: JSON.stringify( data.stats ),
-			homes: JSON.stringify( data.homes )
+			explorations:   JSON.stringify( data.worldExplorations ),
+			stats:          JSON.stringify( data.stats ),
+			homes:          JSON.stringify( data.homes )
 		} );
 		await bot.redis.setTimeout( `silvery-star.card-data-${ uid }`, 3600 );
 		bot.logger.info( `用户 ${ uid } 查询成功，数据已缓存` );

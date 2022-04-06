@@ -11,6 +11,7 @@ const template = `
 			<span>lv{{ data.level }}</span>
 			<span>好感度： {{ data.fetter }}</span>
 		</div>
+		<ScoreChart v-if="showScore" :data="data.score" :color="chartColor"></ScoreChart>
 		<div class="artifact-list">
 			<CharacterEquipment v-for="(a, aKey) of artifacts" :key="index" :src="a.icon" :rarity="a.rarity" :level="a.level" :emptyIcon="artifactsFontIcon[aKey]"></CharacterEquipment>
 		</div>
@@ -67,8 +68,9 @@ const template = `
 `
 
 import { parseURL, request } from "../../public/js/src.js";
-import CharacterEquipment from "./equipment.js"
-import InfoCard from './infoCard.js'
+import CharacterEquipment from "./equipment.js";
+import InfoCard from "./infoCard.js";
+import ScoreChart from "./score-chart.js";
 
 const { defineComponent, computed, ref } = Vue;
 
@@ -77,23 +79,35 @@ export default defineComponent( {
 	template,
 	components: {
 		CharacterEquipment,
-		InfoCard
+		InfoCard,
+		ScoreChart
 	},
 	setup() {
 		const urlParams = parseURL( location.search );
 		const data = request( `/api/char?qq=${ urlParams.qq }` );
-		console.log(data)
+		
+		/* 是否显示评分 */
+		const showScore = computed( () => {
+			return urlParams.showScore === "true"
+		} )
 		
 		/* 立绘阴影 */
 		const portraitMaskStyle = ref( "" );
+		
+		/* echart图表颜色 */
+		const chartColor = ref( null );
 		
 		function setStyle( colorList ) {
 			document.documentElement.style.setProperty( "--baseInfoColor", colorList[0] );
 			document.documentElement.style.setProperty( "--backgroundColor", colorList[1] );
 			portraitMaskStyle.value = `linear-gradient(to right, ${ colorList[1] } 5%, transparent 30%, transparent 70%, ${ colorList[1] } 95%)`;
+			chartColor.value = {
+				graphic: colorList[0],
+				text: colorList[2]
+			};
 		}
 		
-		const elementIconSrc = `https://adachi-bot.oss-cn-beijing.aliyuncs.com/images/element/Element_${ data.element }.png`
+		const elementIconSrc = `https://adachi-bot.oss-cn-beijing.aliyuncs.com/images/element/Element_${ data.element }.png`;
 		const portrait = computed( () => {
 			return `https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/portrait/${ data.id }.png`;
 		} );
@@ -116,7 +130,7 @@ export default defineComponent( {
 		const skills = data.skills;
 		
 		if ( skills.length > 3 ) {
-			skills.splice(2, 1);
+			skills.splice( 2, 1 );
 		}
 		
 		const effectList = computed( () => {
@@ -128,10 +142,10 @@ export default defineComponent( {
 		
 		switch ( data.element ) {
 			case "Anemo":
-				setStyle( [ "#1ddea7", "#f0f7f5" ] );
+				setStyle( [ "#1ddea7", "#f0f7f5", "#006746" ] );
 				break;
 			case "Cryo":
-				setStyle( [ "#1daade", "#f0f5f7" ] );
+				setStyle( [ "#1daade", "#f0f5f7", "#004b66" ] );
 				break;
 			case "Dendro":
 				setStyle( [
@@ -139,31 +153,32 @@ export default defineComponent( {
 				] );
 				break;
 			case "Electro":
-				setStyle( [ "#871dde", "#f4f0f7" ] );
+				setStyle( [ "#871dde", "#f4f0f7", "#380066" ] );
 				break;
 			case "Geo":
-				setStyle( [ "#de8d1d", "#f7f4f0" ] );
+				setStyle( [ "#de8d1d", "#f7f4f0", "#663c00" ] );
 				break;
 			case "Hydro":
-				setStyle( [ "#1d8dde", "#f0f4f7" ] );
+				setStyle( [ "#1d8dde", "#f0f4f7", "#003c66" ] );
 				break;
 			case "Pyro":
-				setStyle( [ "#de3a1d", "#f7f1f0" ] );
+				setStyle( [ "#de3a1d", "#f7f1f0", "#660f00" ] );
 				break;
 			case "None":
-				setStyle( [ "#757575", "#f7f7f7" ] );
+				setStyle( [ "#757575", "#f7f7f7", "#666666" ] );
 				break;
 		}
 		
 		return {
-			urlParams,
 			data,
 			skills,
 			portrait,
+			showScore,
 			effectList,
+			chartColor,
 			elementIconSrc,
-			artifactsFontIcon,
 			portraitMaskStyle,
+			artifactsFontIcon,
 			artifacts
 		}
 	}

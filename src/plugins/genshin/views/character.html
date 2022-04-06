@@ -4,11 +4,14 @@
 	<meta charset="UTF-8">
 	<title>character</title>
 	<script src="https://unpkg.com/vue@3.1.1/dist/vue.global.prod.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/echarts@5.1.2"></script>
+	<script src="https://cdn.jsdelivr.net/npm/vue-echarts@6.0.0"></script>
 	<link rel="stylesheet" href="../styles/reset.css"/>
 	<link rel="stylesheet" href="../styles/icon.css"/>
 	<link rel="stylesheet" href="../styles/character/app.css"/>
 	<link rel="stylesheet" href="../styles/character/equipment.css"/>
 	<link rel="stylesheet" href="../styles/character/infoCard.css"/>
+	<link rel="stylesheet" href="../styles/character/score-chart.css"/>
 </head>
 <body>
 
@@ -17,7 +20,8 @@
 <script type="module">
 	import App from "../components/character/app.js";
 	
-	Vue.createApp( App ).mount( "#app" );
+	const app = Vue.createApp( App )
+	app.component( "v-chart", VueECharts ).mount( "#app" );
 </script>
 
 </body>

@@ -31,6 +31,12 @@
 	z-index: 100;
 }
 
+.character-base > main > .score-chart {
+	position: absolute;
+	right: 12px;
+	top: 168px;
+}
+
 .character-base > main > .portrait-box {
 	display: flex;
 	justify-content: center;
