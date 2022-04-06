@@ -1,12 +1,25 @@
 import { InputParameter } from "@modules/command";
 import { Private } from "#genshin/module/private/main";
 import { RenderResult } from "@modules/renderer";
-import { Avatar, Artifact } from "#genshin/types";
+import { CharacterInformation, Skills } from "#genshin/types";
 import { getRealName, NameResult } from "#genshin/utils/name";
-import { mysInfoPromise } from "#genshin/utils/promise";
+import { mysAvatarDetailInfoPromise, mysInfoPromise } from "#genshin/utils/promise";
 import { getPrivateAccount } from "#genshin/utils/private";
-import { omit } from "lodash";
-import { characterID, renderer } from "#genshin/init";
+import { characterID, config, renderer } from "#genshin/init";
+
+interface ScoreItem {
+	label: string;
+	percentage: number;
+}
+
+interface EvaluateScore {
+	list: ScoreItem[];
+	total: number;
+};
+
+function evaluate( obj: { rarity: number; level: number }, max: number = 5 ): number {
+	return ( obj.rarity / max ) * obj.level;
+}
 
 export async function main(
 	{ sendMessage, messageData, auth, redis, logger }: InputParameter
@@ -28,7 +41,7 @@ export async function main(
 		return;
 	}
 	
-	const { cookie, mysID, uid } = info.setting;
+	const { cookie, mysID, uid, server } = info.setting;
 	const result: NameResult = getRealName( name );
 	
 	if ( !result.definite ) {
@@ -51,7 +64,8 @@ export async function main(
 	}
 	
 	const { avatars } = await redis.getHash( `silvery-star.card-data-${ uid }` );
-	const charInfo = ( <Avatar[]>JSON.parse( avatars ) ).find( ( { id } ) => {
+	const data: CharacterInformation[] = JSON.parse( avatars );
+	const charInfo = data.find( ( { id } ) => {
 		return charID === -1 ? id === 10000005 || id === 10000007 : id === charID;
 	} );
 	
@@ -59,20 +73,51 @@ export async function main(
 		await sendMessage( `[UID-${ uid }] 未拥有角色 ${ realName }` );
 		return;
 	}
-	// @ts-ignore
-	const artifacts: Artifact[] = charInfo.artifacts;
-	
-	const dbKey: string = `silvery-star.character-temp-${ userID }`;
-	await redis.setString( dbKey, JSON.stringify( {
-		...charInfo,
-		reliquaries: artifacts.map( el => omit( el, [ "set" ] ) ),
-		uid
-	} ) );
+	try {
+		const dbKey: string = `silvery-star.character-temp-${ userID }`;
+		const skills: Skills = await mysAvatarDetailInfoPromise( uid, charID, server, cookie );
+		
+		const coefficients: number[] = [ 20, 15, 30, 35 ];
+		const list: ScoreItem[] = [ {
+			label: "圣遗物",
+			percentage: charInfo.artifacts.reduce( ( pre, cur ) => pre + evaluate( cur ), 0 ) / 100
+		}, {
+			label: "武器等级",
+			percentage: evaluate( charInfo.weapon ) / 90
+		}, {
+			label: "角色等级",
+			percentage: charInfo.level / 90
+		}, {
+			label: "天赋升级",
+			percentage: Math.min(
+				skills.reduce(
+					( pre, cur ) => pre + cur.levelCurrent, 0 ), 24
+			) / 24
+		} ];
+		
+		const score: EvaluateScore = {
+			list,
+			total: list.reduce( ( pre, cur, i ) => {
+				return pre + cur.percentage * coefficients[i]
+			}, 0 )
+		};
+
+		await redis.setString( dbKey, JSON.stringify( {
+			...charInfo,
+			skills,
+			score,
+			uid
+		} ) );
+	} catch ( error ) {
+		await sendMessage( <string>error );
+		return;
+	}
 	
 	const res: RenderResult = await renderer.asCqCode(
-		"/character.html",
-		{ qq: userID }
-	);
+		"/character.html", {
+			qq: userID,
+			showScore: config.showCharScore
+		} );
 	if ( res.code === "ok" ) {
 		await sendMessage( res.data );
 	} else {

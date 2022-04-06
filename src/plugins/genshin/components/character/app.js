@@ -1,30 +1,45 @@
 const template = `
 <div class="character-base">
 	<main>
-		<img class="chara-image" :src="charImage" alt="ERROR">
+		<div class="portrait-box">
+			<img class="portrait" :src="portrait" alt="ERROR">
+			<div class="portrait-mask" :style="{'background-image': portraitMaskStyle}"></div>
+		</div>
 		<div class="chara-name">
 			<img :src="elementIconSrc" alt="ERROR">
 			<h3>{{ data.name }}</h3>
 			<span>lv{{ data.level }}</span>
 			<span>好感度： {{ data.fetter }}</span>
 		</div>
+		<ScoreChart v-if="showScore" :data="data.score" :color="chartColor"></ScoreChart>
 		<div class="artifact-list">
 			<CharacterEquipment v-for="(a, aKey) of artifacts" :key="index" :src="a.icon" :rarity="a.rarity" :level="a.level" :emptyIcon="artifactsFontIcon[aKey]"></CharacterEquipment>
 		</div>
 		<InfoCard title="套装效果" class="suit-list">
 			<template v-if="effectList.length">
 				<div v-for="(e, eKey) of effectList" :key="eKey" class="suit-item">
-				<CharacterEquipment :src="e.icon"></CharacterEquipment>
-				<p class="suit-info">
-					<span class="title">{{ e.name }}</span>
-					<span class="suit-type">{{ e.num }}件套</span>
-				</p>
-			</div>
+					<CharacterEquipment :src="e.icon"></CharacterEquipment>
+					<p class="suit-info">
+						<span class="title">{{ e.name }}</span>
+						<span class="suit-type">{{ e.num }}件套</span>
+					</p>
+				</div>
 			</template>
 			<p v-else>当前没有圣遗物套装效果</p>
 		</InfoCard>
+		<InfoCard title="天赋" class="suit-list">
+			<div v-for="(s, sKey) of skills" :key="sKey" class="suit-item">
+				<div class="circle-image-icon">
+					<img class="center" :src="s.icon" alt="ERROR">
+				</div>
+				<p class="suit-info">
+					<span class="title">{{ s.name }}</span>
+					<span class="suit-type">Lv.{{ s.levelCurrent }}</span>
+				</p>
+			</div>
+		</InfoCard>
 		<InfoCard :title="'命之座('+ data.activedConstellationNum +'/6)'" class="constellations-list">
-			<div v-for="(c, cKey) of data.constellations" :key="cKey" class="constellations-item" :class="{ locked: cKey >= data.activedConstellationNum }">
+			<div v-for="(c, cKey) of data.constellations" :key="cKey" class="circle-image-icon" :class="{ locked: cKey >= data.activedConstellationNum }">
 				<img class="center" :src="c.icon" alt="ERROR">
 				<i class="icon-lock center"></i>
 			</div>
@@ -53,31 +68,48 @@ const template = `
 `
 
 import { parseURL, request } from "../../public/js/src.js";
-import CharacterEquipment from "./equipment.js"
-import InfoCard from './infoCard.js'
+import CharacterEquipment from "./equipment.js";
+import InfoCard from "./infoCard.js";
+import ScoreChart from "./score-chart.js";
 
-const { defineComponent, computed } = Vue;
+const { defineComponent, computed, ref } = Vue;
 
 export default defineComponent( {
 	name: "CharacterApp",
 	template,
 	components: {
 		CharacterEquipment,
-		InfoCard
+		InfoCard,
+		ScoreChart
 	},
 	setup() {
 		const urlParams = parseURL( location.search );
 		const data = request( `/api/char?qq=${ urlParams.qq }` );
 		
+		/* 是否显示评分 */
+		const showScore = computed( () => {
+			return urlParams.showScore === "true"
+		} )
+		
+		/* 立绘阴影 */
+		const portraitMaskStyle = ref( "" );
+		
+		/* echart图表颜色 */
+		const chartColor = ref( null );
+		
 		function setStyle( colorList ) {
 			document.documentElement.style.setProperty( "--baseInfoColor", colorList[0] );
 			document.documentElement.style.setProperty( "--backgroundColor", colorList[1] );
+			portraitMaskStyle.value = `linear-gradient(to right, ${ colorList[1] } 5%, transparent 30%, transparent 70%, ${ colorList[1] } 95%)`;
+			chartColor.value = {
+				graphic: colorList[0],
+				text: colorList[2]
+			};
 		}
 		
-		const elementIconSrc = `https://adachi-bot.oss-cn-beijing.aliyuncs.com/images/element/Element_${ data.element }.png`
-		
-		const charImage = computed( () => {
-			return `http://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/character/${ data.id }.png`;
+		const elementIconSrc = `https://adachi-bot.oss-cn-beijing.aliyuncs.com/images/element/Element_${ data.element }.png`;
+		const portrait = computed( () => {
+			return `https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/portrait/${ data.id }.png`;
 		} );
 		
 		/* 武器描述处理 */
@@ -99,6 +131,13 @@ export default defineComponent( {
 			return list
 		} )
 		
+		/* 删除神里绫华、莫娜的闪避技能 */
+		const skills = data.skills;
+		
+		if ( skills.length > 3 ) {
+			skills.splice( 2, 1 );
+		}
+		
 		const effectList = computed( () => {
 			return data.effects.map( effect => {
 				const [ key, num ] = effect.name.split( ' ' )
@@ -108,10 +147,10 @@ export default defineComponent( {
 		
 		switch ( data.element ) {
 			case "Anemo":
-				setStyle( [ "#1ddea7", "#f0f7f5" ] );
+				setStyle( [ "#1ddea7", "#f0f7f5", "#006746" ] );
 				break;
 			case "Cryo":
-				setStyle( [ "#1daade", "#f0f5f7" ] );
+				setStyle( [ "#1daade", "#f0f5f7", "#004b66" ] );
 				break;
 			case "Dendro":
 				setStyle( [
@@ -119,28 +158,31 @@ export default defineComponent( {
 				] );
 				break;
 			case "Electro":
-				setStyle( [ "#871dde", "#f4f0f7" ] );
+				setStyle( [ "#871dde", "#f4f0f7", "#380066" ] );
 				break;
 			case "Geo":
-				setStyle( [ "#de8d1d", "#f7f4f0" ] );
+				setStyle( [ "#de8d1d", "#f7f4f0", "#663c00" ] );
 				break;
 			case "Hydro":
-				setStyle( [ "#1d8dde", "#f0f4f7" ] );
+				setStyle( [ "#1d8dde", "#f0f4f7", "#003c66" ] );
 				break;
 			case "Pyro":
-				setStyle( [ "#de3a1d", "#f7f1f0" ] );
+				setStyle( [ "#de3a1d", "#f7f1f0", "#660f00" ] );
 				break;
 			case "None":
-				setStyle( [ "#757575", "#f7f7f7" ] );
+				setStyle( [ "#757575", "#f7f7f7", "#666666" ] );
 				break;
 		}
 		
 		return {
-			urlParams,
 			data,
-			charImage,
+			skills,
+			portrait,
+			showScore,
 			effectList,
+			chartColor,
 			elementIconSrc,
+			portraitMaskStyle,
 			artifactsFontIcon,
 			artifacts,
 			weaponDesc
