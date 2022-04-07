@@ -9,8 +9,8 @@ const template = `
 		<template v-if="data.offerings">
 			<p v-for="(offer, offerIndex) in data.offerings" :key="offerIndex">
 				<span>{{ offer.name }}: </span>
-				<span v-if="offer.level">Lv.{{ offer.level }}</span>
-				<span v-if="offer.percent">{{ offer.percent }}%</span>
+				<span v-if="offer.level !== undefined">Lv.{{ offer.level }}</span>
+				<span v-else>{{ offer.percent }}%</span>
 			</p>
 		</template>
 	</div>
