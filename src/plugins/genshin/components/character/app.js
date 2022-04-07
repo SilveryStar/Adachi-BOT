@@ -38,8 +38,8 @@ const template = `
 				</p>
 			</div>
 		</InfoCard>
-		<InfoCard v-if="data.constellations" :title="'命之座('+ data.activedConstellationNum +'/6)'" class="constellations-list">
-			<div v-for="(c, cKey) of data.constellations" :key="cKey" class="circle-image-icon" :class="{ locked: cKey >= data.activedConstellationNum }">
+		<InfoCard v-if="data.constellations.detail" :title="'命之座('+ data.activedConstellationNum +'/6)'" class="constellations-list">
+			<div v-for="(c, cKey) of data.constellations.detail" :key="cKey" class="circle-image-icon" :class="{ locked: cKey >= data.activedConstellationNum }">
 				<img class="center" :src="c.icon" alt="ERROR">
 				<i class="icon-lock center"></i>
 			</div>
@@ -131,13 +131,6 @@ export default defineComponent( {
 			return list
 		} )
 		
-		/* 删除神里绫华、莫娜的闪避技能 */
-		const skills = data.skills;
-		
-		if ( skills?.length > 3 ) {
-			skills.splice( 2, 1 );
-		}
-		
 		const effectList = computed( () => {
 			return data.effects.map( effect => {
 				const [ key, num ] = effect.name.split( ' ' )
@@ -176,7 +169,7 @@ export default defineComponent( {
 		
 		return {
 			data,
-			skills,
+			skills: data.skills,
 			portrait,
 			showScore,
 			effectList,

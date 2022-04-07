@@ -66,12 +66,6 @@ export async function main(
 		}
 	}
 	
-	console.log({
-		qq: target, stranger,
-		style: config.cardWeaponStyle,
-		profile: config.cardProfile
-	})
-	
 	const res: RenderResult = await renderer.asCqCode(
 		"/user-base.html", {
 			qq: target, stranger,

@@ -4,6 +4,7 @@ import bot from "ROOT";
 import { Cookies } from "#genshin/module";
 import { omit, pick } from "lodash";
 import { cookies } from "../init";
+import { CharacterCon } from "../types";
 
 export enum ErrorMsg {
 	NOT_FOUND = "未查询到角色数据，请检查米哈游通行证（非UID）是否有误或是否设置角色信息公开",
@@ -139,12 +140,28 @@ export async function characterInfoPromise(
 				...omit( char.weapon, [ "id", "type", "promoteLevel", "typeName" ] ),
 				image: `https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/weapon/${ encodeURI( char.weapon.name ) }.png`
 			};
-			const constellations: ApiType.CharacterCon = char.constellations.map( el => {
-				return pick( el, [ "name", "icon", "isActived" ] )
-			} );
 			const artifacts: ApiType.CharacterArt = char.reliquaries.map( el => {
 				return pick( el, [ "pos", "rarity", "icon", "level" ] );
-			} )
+			} );
+			const constellations: ApiType.CharacterCon = {
+				detail: char.constellations.map( el => {
+					return pick( el, [ "name", "icon", "isActived" ] )
+				} ),
+				activedNum: char.activedConstellationNum,
+				upSkills: char.constellations.reduce( ( pre, cur ) => {
+					const reg: RegExp = /<color=#\w+?>(?<name>.+?)<\/color>的技能等级提高(?<level>\d+)级/;
+					const res: RegExpExecArray | null = reg.exec( cur.effect );
+					if ( res ) {
+						const groups = <{ name: string; level: string; }>res.groups;
+						pre.push( {
+							skillName: groups.name,
+							level: parseInt( groups.level ),
+							requirementNum: cur.pos
+						} );
+					}
+					return pre;
+				}, <ApiType.CharacterConSkill[]>[] )
+			};
 			
 			const tmpSetBucket: Record<string, ApiType.ArtifactSetStat> = {};
 			for ( const pos of char.reliquaries ) {
@@ -191,7 +208,8 @@ export async function mysAvatarDetailInfoPromise(
 	uid: string,
 	avatar: number,
 	server: string,
-	cookie: string
+	cookie: string,
+	constellation: CharacterCon
 ): Promise<ApiType.Skills> {
 	const { retcode, message, data } = await api.getAvatarDetailInfo( uid, avatar, server, cookie );
 	if ( !ApiType.isAvatarDetail( data ) ) {
@@ -205,8 +223,21 @@ export async function mysAvatarDetailInfoPromise(
 		}
 		
 		const skills = data.skillList
-			.filter( el => el.levelCurrent !== 0 )
-			.map( el => pick( el, [ "name", "icon", "levelCurrent" ] ) );
+			.filter( el => el.levelCurrent !== 0 && el.maxLevel !== 1 )
+			.map( el => {
+				const temp: ApiType.Skills[number] = pick( el, [ "name", "icon", "levelCurrent" ] );
+				constellation.upSkills.forEach( v => {
+					if ( temp.name === v.skillName && constellation.activedNum >= v.requirementNum ) {
+						temp.levelCurrent += v.level;
+					}
+				} );
+				
+				if ( /^普通攻击·(.+?)/.test( temp.name ) ) {
+					temp.name = temp.name.slice( 5 );
+				}
+				
+				return temp;
+			} );
 		
 		resolve( skills );
 	} );

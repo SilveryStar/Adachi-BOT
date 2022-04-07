@@ -15,7 +15,7 @@ interface ScoreItem {
 interface EvaluateScore {
 	list: ScoreItem[];
 	total: number;
-};
+}
 
 function evaluate( obj: { rarity: number; level: number }, max: number = 5 ): number {
 	return ( obj.rarity / max ) * obj.level;
@@ -75,7 +75,9 @@ export async function main(
 	}
 	try {
 		const dbKey: string = `silvery-star.character-temp-${ userID }`;
-		const skills: Skills = await mysAvatarDetailInfoPromise( uid, charID, server, cookie );
+		const skills: Skills = await mysAvatarDetailInfoPromise(
+			uid, charID, server, cookie, charInfo.constellations
+		);
 		
 		const coefficients: number[] = [ 20, 15, 30, 35 ];
 		const list: ScoreItem[] = [ {
