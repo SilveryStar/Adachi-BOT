@@ -66,10 +66,12 @@ export function cardDataParser( data ) {
 			let { id, name, offerings, explorationPercentage } = el;
 			if ( id === 6 ) {
 				name = "层岩巨渊";
-				offerings.unshift( {
-					name: "地下矿区",
-					percent: chasmsMaw.explorationPercentage / 10
-				} )
+				if ( offerings && chasmsMaw ) {
+					offerings.unshift( {
+						name: "地下矿区",
+						percent: chasmsMaw.explorationPercentage / 10
+					} )
+				}
 			}
 			return {
 				...el,
