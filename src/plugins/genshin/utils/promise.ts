@@ -34,16 +34,16 @@ export async function baseInfoPromise(
 			reject( ErrorMsg.NOT_FOUND );
 			return;
 		}
-
+		
 		const genshinInfo: ApiType.Game | undefined = data.list.find( el => el.gameId === 2 );
 		if ( !genshinInfo ) {
 			reject( ErrorMsg.NOT_FOUND );
 			return;
 		}
-
+		
 		const { gameRoleId, nickname, region, level } = genshinInfo;
 		const uid: number = parseInt( gameRoleId );
-
+		
 		await bot.redis.setString( `silvery-star.user-querying-id-${ userID }`, uid );
 		await bot.redis.setHash( `silvery-star.card-data-${ uid }`, { nickname, uid, level } );
 		resolve( region );
@@ -54,7 +54,7 @@ export async function detailInfoPromise(
 	userID: number,
 	server: string,
 	cookie: string = ""
-): Promise<string | number[]> {
+): Promise<number[]> {
 	const UID: string = await bot.redis.getString( `silvery-star.user-querying-id-${ userID }` );
 	if ( UID.length === 0 ) {
 		return Promise.reject( ErrorMsg.UNKNOWN );
@@ -62,7 +62,7 @@ export async function detailInfoPromise(
 	
 	const detail: any = await bot.redis.getHash( `silvery-star.card-data-${ UID }` );
 	const uid: number = parseInt( UID );
-
+	
 	if ( detail.stats && uid === parseInt( detail.uid ) ) {
 		if ( !cookie || ( detail.avatars && JSON.parse( detail.avatars ).length > 8 ) ) {
 			bot.logger.info( `用户 ${ uid } 在一小时内进行过查询操作，将返回上次数据` );
@@ -112,7 +112,7 @@ export async function characterInfoPromise(
 	server: string,
 	charIDs: number[],
 	cookie: string = ""
-): Promise<string | void> {
+): Promise<void> {
 	const uid: number = parseInt( await bot.redis.getString( `silvery-star.user-querying-id-${ userID }` ) );
 	
 	if ( cookie.length === 0 ) {
@@ -122,53 +122,52 @@ export async function characterInfoPromise(
 	if ( !ApiType.isCharacter( data ) ) {
 		return Promise.reject( ErrorMsg.UNKNOWN );
 	}
-
+	
 	return new Promise( async ( resolve, reject ) => {
 		if ( retcode !== 0 ) {
 			reject( ErrorMsg.FORM_MESSAGE + message );
 			return;
 		}
 		
-		const avatars: any[] = [];
+		const avatars: ApiType.CharacterInformation[] = [];
 		const charList: ApiType.Avatar[] = data.avatars;
-		for ( let char of charList ) {
-			const base = omit( char, [ "image", "weapon", "reliquaries", "constellations" ] );
-			const weapon = {
+		for ( const char of charList ) {
+			const base: ApiType.CharacterBase = omit(
+				char, [ "image", "weapon", "reliquaries", "constellations" ]
+			);
+			const weapon: ApiType.CharacterWeapon = {
 				...omit( char.weapon, [ "id", "type", "promoteLevel", "typeName" ] ),
 				image: `https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/weapon/${ encodeURI( char.weapon.name ) }.png`
 			};
+			const constellations: ApiType.CharacterCon = char.constellations.map( el => {
+				return pick( el, [ "name", "icon", "isActived" ] )
+			} );
+			const artifacts: ApiType.CharacterArt = char.reliquaries.map( el => {
+				return pick( el, [ "pos", "rarity", "icon", "level" ] );
+			} )
 			
-			const artifacts: any[] = [];
-			const tmpBucket: Record<string, number> = {};
-			const suitEffect: Record<string, ApiType.ArtifactAffixes[]> = {};
-			const suitIcon: Record<string, string> = {}
+			const tmpSetBucket: Record<string, ApiType.ArtifactSetStat> = {};
 			for ( const pos of char.reliquaries ) {
-				const posInfo = omit( pos, [ "id", "set", "posName" ] );
-				artifacts.push( posInfo );
-				
 				const id: string = pos.set.name;
-				tmpBucket[id] = tmpBucket[id] ? tmpBucket[id] + 1 : 1;
-				suitEffect[id] = suitEffect[id] ?? pos.set.affixes;
-				suitIcon[id] = suitIcon[id] ?? pos.icon.replace( /\d\.png/, '3.png' )
+				const t = tmpSetBucket[id];
+				tmpSetBucket[id] = {
+					count: t?.count ? t.count + 1 : 1,
+					effect: t?.effect ?? pos.set.affixes,
+					icon: t?.icon ?? pos.icon.replace( /\d\.png/, "4.png" )
+				};
+			}
+			const effects: ApiType.CharacterEffect = [];
+			for ( const key of Object.keys( tmpSetBucket ) ) {
+				const { count, effect, icon } = tmpSetBucket[key];
+				effect.forEach( ( { activationNumber: num } ) => {
+					if ( count >= num ) {
+						const name: string = `${ key } ${ num } 件套`;
+						effects.push( { icon, name } );
+					}
+				} )
 			}
 			
-			const effects: any[] = [];
-			Object.keys( tmpBucket ).forEach( key => {
-				const affixes: ApiType.ArtifactAffixes[] = suitEffect[key];
-				affixes.forEach( el => {
-					if ( tmpBucket[key] >= el.activationNumber ) {
-						effects.push( {
-							icon: suitIcon[key],
-							name: `${ key } ${ el.activationNumber } 件套`,
-							effect: el.effect
-						} );
-					}
-				} );
-			} );
-			
-			const constellations = char.constellations.map( el => pick( el, [ "name", "icon", "isActived" ] ) );
-			
-			avatars.push( { ...base, weapon, artifacts, effects, constellations } );
+			avatars.push( { ...base, weapon, constellations, artifacts, effects } );
 		}
 		
 		await bot.redis.setHash( `silvery-star.card-data-${ uid }`, {
@@ -188,12 +187,37 @@ export async function mysInfoPromise(
 	await characterInfoPromise( userID, server, charIDs, cookie );
 }
 
+export async function mysAvatarDetailInfoPromise(
+	uid: string,
+	avatar: number,
+	server: string,
+	cookie: string
+): Promise<ApiType.Skills> {
+	const { retcode, message, data } = await api.getAvatarDetailInfo( uid, avatar, server, cookie );
+	if ( !ApiType.isAvatarDetail( data ) ) {
+		return Promise.reject( ErrorMsg.UNKNOWN );
+	}
+	
+	return new Promise( async ( resolve, reject ) => {
+		if ( retcode !== 0 ) {
+			reject( ErrorMsg.FORM_MESSAGE + message );
+			return;
+		}
+		
+		const skills = data.skillList
+			.filter( el => el.levelCurrent !== 0 )
+			.map( el => pick( el, [ "name", "icon", "levelCurrent" ] ) );
+		
+		resolve( skills );
+	} );
+}
+
 export async function abyssInfoPromise(
 	userID: number,
 	server: string,
 	period: number,
 	cookie: string = ""
-): Promise<string | void> {
+): Promise<void> {
 	const uid: number = parseInt(
 		await bot.redis.getString( `silvery-star.abyss-querying-${ userID }` )
 	);
@@ -216,7 +240,7 @@ export async function abyssInfoPromise(
 	if ( !ApiType.isAbyss( data ) ) {
 		return Promise.reject( ErrorMsg.UNKNOWN );
 	}
-
+	
 	return new Promise( async ( resolve, reject ) => {
 		if ( retcode === 10001 ) {
 			reject( Cookies.checkExpired( cookie ) );
@@ -225,7 +249,7 @@ export async function abyssInfoPromise(
 			reject( ErrorMsg.FORM_MESSAGE + message );
 			return;
 		}
-
+		
 		await bot.redis.setString( dbKey, JSON.stringify( { ...data, uid, period } ) );
 		await bot.redis.setTimeout( dbKey, 3600 );
 		bot.logger.info( `用户 ${ uid } 的深渊数据查询成功，数据已缓存` );
@@ -238,7 +262,7 @@ export async function ledgerPromise(
 	server: string,
 	month: number,
 	cookie: string = ""
-): Promise<string | void> {
+): Promise<void> {
 	const dbKey: string = `silvery-star.ledger-data-${ uid }`;
 	const detail: string = await bot.redis.getString( dbKey );
 	
@@ -267,7 +291,7 @@ export async function ledgerPromise(
 			reject( ErrorMsg.FORM_MESSAGE + message );
 			return;
 		}
-
+		
 		await bot.redis.setString( dbKey, JSON.stringify( data ) );
 		await bot.redis.setTimeout( dbKey, 21600 );
 		bot.logger.info( `用户 ${ uid } 的札记数据查询成功，数据已缓存` );
@@ -309,7 +333,7 @@ export async function signInInfoPromise(
 	uid: string,
 	server: string,
 	cookie: string
-): Promise<ApiType.SignInInfo | string> {
+): Promise<ApiType.SignInInfo> {
 	const { retcode, message, data } = await api.getSignInInfo( uid, server, cookie );
 	if ( !ApiType.isSignInInfo( data ) ) {
 		return Promise.reject( ErrorMsg.UNKNOWN );
@@ -333,7 +357,7 @@ export async function signInResultPromise(
 	uid: string,
 	server: string,
 	cookie: string
-): Promise<ApiType.SignInResult | string> {
+): Promise<ApiType.SignInResult> {
 	const { retcode, message, data } = await api.mihoyoBBSSignIn( uid, server, cookie );
 	if ( !ApiType.isSignInResult( data ) ) {
 		return Promise.reject( ErrorMsg.UNKNOWN );

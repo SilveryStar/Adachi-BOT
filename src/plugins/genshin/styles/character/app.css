@@ -28,16 +28,38 @@
 	box-sizing: border-box;
 	filter: brightness(0);
 	opacity: 0.25;
+	z-index: 100;
 }
 
-.character-base > main > .chara-image {
+.character-base > main > .score-chart {
 	position: absolute;
+	right: 12px;
+	top: 158px;
+}
+
+.character-base > main > .portrait-box {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	position: absolute;
+	width: 100%;
 	left: 50%;
-	top: 134px;
+	top: 150px;
 	transform: translateX(-50%);
-	width: 410px;
-	height: 410px;
+	text-align: center;
 	opacity: 0.5;
+}
+
+.character-base > main > .portrait-box > .portrait {
+	height: 850px;
+}
+
+.character-base > main > .portrait-box > .portrait-mask {
+	position: absolute;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left: 0;
 }
 
 /* 角色名称部分（标题） */
@@ -77,7 +99,7 @@
 
 /* 圣遗物列表 */
 .character-base > main > .artifact-list {
-	margin: 398px auto 16px auto;
+	margin: 340px auto 16px auto;
 	display: flex;
 	align-items: center;
 }
@@ -100,6 +122,7 @@
 }
 
 .character-base > main .suit-list > .suit-item > .suit-info {
+	flex: 1;
 	height: 44px;
 	display: flex;
 	flex-direction: column;
@@ -115,19 +138,20 @@
 
 /* 命座卡片 */
 .character-base > main .constellations-list {
-	display: flex;
-	justify-content: center;
-	align-items: center;
+	padding: 0 9px;
+	display: grid;
+	grid-template-columns: repeat(6, 1fr);
+	place-items: center center;
 }
 
-.character-base > main .constellations-list > .constellations-item {
+/* 圆形图标 */
+.circle-image-icon {
 	width: 58px;
 	height: 58px;
-	margin: 0 9px;
 	position: relative;
 }
 
-.character-base > main .constellations-list > .constellations-item::before {
+.circle-image-icon::before {
 	content: '';
 	width: inherit;
 	height: inherit;
@@ -142,34 +166,34 @@
 	opacity: 0.7;
 }
 
-.character-base > main .constellations-list > .constellations-item.locked::before {
+.circle-image-icon.locked::before {
 	opacity: 0.45;
 }
 
-.character-base > main .constellations-list > .constellations-item > .center {
+.circle-image-icon > .center {
 	position: absolute;
 	top: 50%;
 	left: 50%;
 	transform: translate(-50%, -50%);
 }
 
-.character-base > main .constellations-list > .constellations-item > img {
+.circle-image-icon > img {
 	width: 58px;
 	height: 58px;
 }
 
-.character-base > main .constellations-list > .constellations-item.locked > img {
+.circle-image-icon.locked > img {
 	opacity: 0.5;
 }
 
-.character-base > main .constellations-list > .constellations-item > i {
+.circle-image-icon > i {
 	display: none;
 	font-size: 24px;
 	line-height: 26px;
 	color: #fff;
 }
 
-.character-base > main .constellations-list > .constellations-item.locked > i {
+.circle-image-icon.locked > i {
 	display: block;
 }
 

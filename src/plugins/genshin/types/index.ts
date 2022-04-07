@@ -1,3 +1,4 @@
+export * from "./avatar";
 export * from "./abyss";
 export * from "./hoyobbs";
 export * from "./user-info";
