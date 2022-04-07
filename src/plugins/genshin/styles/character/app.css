@@ -138,10 +138,10 @@
 
 /* 命座卡片 */
 .character-base > main .constellations-list {
-	padding: 0 9px;
-	display: grid;
-	grid-template-columns: repeat(6, 1fr);
-	place-items: center center;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 0 18px;
 }
 
 /* 圆形图标 */
