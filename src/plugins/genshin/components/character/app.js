@@ -11,7 +11,7 @@ const template = `
 			<span>lv{{ data.level }}</span>
 			<span>好感度： {{ data.fetter }}</span>
 		</div>
-		<ScoreChart v-if="showScore" :data="data.score" :color="chartColor"></ScoreChart>
+		<ScoreChart v-if="showScore && data.score" :data="data.score" :color="chartColor"></ScoreChart>
 		<div class="artifact-list">
 			<CharacterEquipment v-for="(a, aKey) of artifacts" :key="index" :src="a.icon" :rarity="a.rarity" :level="a.level" :emptyIcon="artifactsFontIcon[aKey]"></CharacterEquipment>
 		</div>
@@ -27,7 +27,7 @@ const template = `
 			</template>
 			<p v-else>当前没有圣遗物套装效果</p>
 		</InfoCard>
-		<InfoCard title="天赋" class="suit-list">
+		<InfoCard v-if="skills" title="天赋" class="suit-list">
 			<div v-for="(s, sKey) of skills" :key="sKey" class="suit-item">
 				<div class="circle-image-icon">
 					<img class="center" :src="s.icon" alt="ERROR">
@@ -38,7 +38,7 @@ const template = `
 				</p>
 			</div>
 		</InfoCard>
-		<InfoCard :title="'命之座('+ data.activedConstellationNum +'/6)'" class="constellations-list">
+		<InfoCard v-if="data.constellations" :title="'命之座('+ data.activedConstellationNum +'/6)'" class="constellations-list">
 			<div v-for="(c, cKey) of data.constellations" :key="cKey" class="circle-image-icon" :class="{ locked: cKey >= data.activedConstellationNum }">
 				<img class="center" :src="c.icon" alt="ERROR">
 				<i class="icon-lock center"></i>
@@ -134,7 +134,7 @@ export default defineComponent( {
 		/* 删除神里绫华、莫娜的闪避技能 */
 		const skills = data.skills;
 		
-		if ( skills.length > 3 ) {
+		if ( skills?.length > 3 ) {
 			skills.splice( 2, 1 );
 		}
 		
