@@ -24,7 +24,7 @@ export async function main(
 	let month: number = -1;
 	let idMsg: string = "";
 	if ( !data[1] ) {
-		/* 编号 和 月份 均为指定，使用默认编号和月份 */
+		/* 序号 和 月份 均为指定，使用默认序号和月份 */
 		month = new Date().getMonth() + 1;
 	} else {
 		let m: number;

@@ -13,7 +13,7 @@ const help: OrderConfig = {
 const detail: OrderConfig = {
 	type: "order",
 	cmdKey: "adachi.detail",
-	desc: [ "指令详细", "[编号]" ],
+	desc: [ "指令详细", "[序号]" ],
 	headers: [ "detail" ],
 	regexps: [ "\\d+" ],
 	main: "achieves/detail",

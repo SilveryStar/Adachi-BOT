@@ -71,32 +71,33 @@ export class Private {
 	public readonly sendMessage: SendFunc;
 	public readonly dbKey: string;
 	
+	public id: number;
 	public options: Record<string, any>;
 	
-	static parse( content: string ): Private {
-		const data = JSON.parse( content );
+	static parse( data: Record<string, any> ): Private {
 		if ( !data.setting.mysID ) {
 			const reg = new RegExp( /.*?ltuid=([0-9]+).*?/g );
 			const execRes = <RegExpExecArray>reg.exec( data.setting.cookie );
 			data.setting.mysID = parseInt( execRes[1] );
 		}
 		return new Private(
-			data.setting.uid,    data.setting.cookie,
-			data.setting.userID, data.setting.mysID,
-			data.options
+			data.setting.uid,       data.setting.cookie,
+			data.setting.userID,    data.setting.mysID,
+			data.id,                data.options
 		);
 	}
 	
 	constructor(
-		uid: string, cookie: string,
+		uid: string,    cookie: string,
 		userID: number, mysID: number,
-		options?: Record<string, any>
+		id: number,     options?: Record<string, any>
 	) {
 		this.options = options || {};
 		this.setting = new UserInfo( uid, cookie, userID, mysID );
 		this.sendMessage = bot.message.getSendMessageFunc( userID, MessageType.Private );
 		
 		const md5: string = Md5.init( `${ userID }-${ uid }` );
+		this.id = id;
 		this.dbKey = dbPrefix + md5;
 		this.services = {
 			[ NoteService.FixedField ]:      new NoteService( this ),
@@ -123,14 +124,21 @@ export class Private {
 		} );
 	}
 	
-	public async refreshDBContent( field: string ): Promise<void> {
-		this.options[field] = this.services[field].getOptions();
+	public async refreshDBContent( field?: string ): Promise<void> {
+		if ( field ) {
+			this.options[field] = this.services[field].getOptions();
+		}
 		await bot.redis.setString( this.dbKey, this.stringify() );
 	}
 	
 	public async replaceCookie( cookie: string ): Promise<void> {
 		this.setting.cookie = cookie;
 		await bot.redis.setString( this.dbKey, this.stringify() );
+	}
+	
+	public updateID( id: number ): void {
+		this.id = id;
+		this.refreshDBContent();
 	}
 }
 
@@ -139,6 +147,7 @@ export class PrivateClass {
 	
 	constructor() {
 		this.list = [];
+		const tempIDs: Record<number, number> = {};
 		
 		bot.redis.getKeysByPrefix( dbPrefix ).then( async ( keys: string[] ) => {
 			for ( let k of keys ) {
@@ -146,7 +155,14 @@ export class PrivateClass {
 				if ( !data ) {
 					continue;
 				}
-				const account = Private.parse( data );
+				const obj: Record<string, any> = JSON.parse( data );
+				if ( !obj.id ) {
+					const id: number = obj.setting.userID;
+					tempIDs[id] = tempIDs[id] ? tempIDs[id] + 1 : 1;
+					obj.id = tempIDs[id];
+					await bot.redis.setString( k, JSON.stringify( obj ) );
+				}
+				const account = Private.parse( obj );
 				this.list.push( account );
 				
 				for ( let s of <Service[]>Object.values( account.services ) ) {
@@ -159,7 +175,9 @@ export class PrivateClass {
 	}
 	
 	public getUserPrivateList( userID: number ): Private[] {
-		return this.list.filter( el => el.setting.userID === userID );
+		return this.list
+			.filter( el => el.setting.userID === userID )
+			.sort( ( x, y ) => x.id - y.id );
 	}
 	
 	public async getSinglePrivate( userID: number, privateID: number ): Promise<Private | string> {
@@ -169,7 +187,7 @@ export class PrivateClass {
 			const PRIVATE_LIST = <Order>bot.command.getSingle(
 				"silvery-star.private-list", auth
 			);
-			return `无效的编号，请使用 ${ PRIVATE_LIST.getHeaders()[0] } 检查`;
+			return `无效的序号，请使用 ${ PRIVATE_LIST.getHeaders()[0] } 检查`;
 		} else {
 			return list[privateID - 1];
 		}
@@ -188,7 +206,8 @@ export class PrivateClass {
 		const execRes = <RegExpExecArray>reg.exec( cookie );
 		const mysID: number = parseInt( execRes[1] );
 		
-		const newPrivate = new Private( uid, cookie, userID, mysID );
+		const userAddedList: Private[] = this.getUserPrivateList( userID );
+		const newPrivate = new Private( uid, cookie, userID, mysID, userAddedList.length + 1 );
 		this.list.push( newPrivate );
 		await bot.redis.setString( newPrivate.dbKey, newPrivate.stringify() );
 

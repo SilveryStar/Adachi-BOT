@@ -12,7 +12,7 @@ function getVersion( file: FileManagement ): string {
 
 function messageStyle( title: string, list: string[], command: Command ): Sendable {
 	const DETAIL = <Order>command.getSingle( "adachi.detail" );
-	list.push( "", `使用 ${ DETAIL.getHeaders()[0] }+指令编号 获取更多信息`, );
+	list.push( "", `使用 ${ DETAIL.getHeaders()[0] }+指令序号 获取更多信息`, );
 	list.push( "[] 表示必填, () 表示选填, | 表示选择" );
 	return [ title, ...list ].join( "\n" );
 }
@@ -24,7 +24,7 @@ async function forwardStyle(
 	const content: FakeMessage[] = [];
 	
 	const DETAIL = <Order>command.getSingle( "adachi.detail" );
-	list.push( `使用 ${ DETAIL.getHeaders()[0] }+指令编号 获取更多信息` );
+	list.push( `使用 ${ DETAIL.getHeaders()[0] }+指令序号 获取更多信息` );
 	list.push( "[] 表示必填, () 表示选填, | 表示选择" );
 	list.forEach( el => content.push( {
 		user_id: config.number,
@@ -64,7 +64,7 @@ function xmlStyle( title: string, list: string[], command: Command ): Sendable {
 	const xmlFoot: string =     "</summary>" +
 								'<hr hidden="false" style="0" />' +
 								'<summary size="26">' +
-									`使用 ${ DETAIL.getHeaders()[0] }+指令编号 获取更多信息\n` +
+									`使用 ${ DETAIL.getHeaders()[0] }+指令序号 获取更多信息\n` +
 									"&#91;&#93; 表示必填&#44; () 表示选填&#44; | 表示选择" +
 								"</summary>" +
 							"</item>" +
