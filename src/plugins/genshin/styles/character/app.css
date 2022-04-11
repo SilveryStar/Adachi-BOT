@@ -31,12 +31,24 @@
 	z-index: 100;
 }
 
+/* uid */
+.character-base > main > .uid-box {
+	position: absolute;
+	width: 100%;
+	left: 0;
+	top: 145px;
+	font-size: 18px;
+	color: #636363;
+}
+
+/* 评分 */
 .character-base > main > .score-chart {
 	position: absolute;
 	right: 12px;
-	top: 158px;
+	top: 188px;
 }
 
+/* 背景立绘 */
 .character-base > main > .portrait-box {
 	display: flex;
 	justify-content: center;
@@ -44,7 +56,7 @@
 	position: absolute;
 	width: 100%;
 	left: 50%;
-	top: 150px;
+	top: 190px;
 	transform: translateX(-50%);
 	text-align: center;
 	opacity: 0.5;
@@ -66,7 +78,7 @@
 .character-base > main > .chara-name {
 	position: absolute;
 	left: 50%;
-	top: 72px;
+	top: 62px;
 	transform: translateX(-50%);
 	display: flex;
 	align-items: center;
@@ -99,7 +111,7 @@
 
 /* 圣遗物列表 */
 .character-base > main > .artifact-list {
-	margin: 340px auto 16px auto;
+	margin: 380px auto 16px auto;
 	display: flex;
 	align-items: center;
 }

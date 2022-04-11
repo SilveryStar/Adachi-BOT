@@ -5,6 +5,9 @@ const template = `
 			<img class="portrait" :src="portrait" alt="ERROR">
 			<div class="portrait-mask" :style="{'background-image': portraitMaskStyle}"></div>
 		</div>
+		<p class="uid-box" style="text-align: center">
+			<span>———— UID {{ data.uid }} ————</span>
+		</p>
 		<div class="chara-name">
 			<img :src="elementIconSrc" alt="ERROR">
 			<h3>{{ data.name }}</h3>
@@ -88,7 +91,7 @@ export default defineComponent( {
 		
 		/* 是否显示评分 */
 		const showScore = computed( () => {
-			return urlParams.showScore === "true"
+			return urlParams.showScore === "true";
 		} )
 		
 		/* 立绘阴影 */
