@@ -76,7 +76,7 @@ export async function main(
 	try {
 		const dbKey: string = `silvery-star.character-temp-${ userID }`;
 		const skills: Skills = await mysAvatarDetailInfoPromise(
-			uid, charID, server, cookie, charInfo.constellations
+			uid, charInfo.id, server, cookie, charInfo.constellations
 		);
 		
 		const coefficients: number[] = [ 20, 15, 30, 35 ];
