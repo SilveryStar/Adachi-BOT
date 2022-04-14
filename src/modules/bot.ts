@@ -91,7 +91,7 @@ export default class Adachi {
 			this.bot.client.on( "message.group", this.parseGroupMsg( this ) );
 			this.bot.client.on( "message.private", this.parsePrivateMsg( this ) );
 			this.bot.client.on( "request.group", this.acceptInvite( this ) );
-			this.bot.client.on( "request.friend.add", this.acceptFriend( this ) );
+			this.bot.client.on( "request.friend", this.acceptFriend( this ) );
 			this.bot.logger.info( "事件监听启动成功" );
 		} );
 		
