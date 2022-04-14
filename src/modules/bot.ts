@@ -214,7 +214,7 @@ export default class Adachi {
 				const text: string = cmd.ignoreCase
 					? content.toLowerCase() : content;
 				messageData.raw_message = trim(
-					msg.removeStringPrefix( text, res.header )
+					msg.removeStringPrefix( text, res.header.toLowerCase() )
 					   .replace( / +/g, " " )
 				);
 			}
