@@ -75,17 +75,18 @@ export class DailyClass {
 		scheduleJob( "0 0 0 * * *", async () => {
 			this.detail = await getDailyMaterial();
 		} );
-
+		
 		scheduleJob( "0 0 6 * * *", async () => {
 			const date: Date = new Date();
 			
 			/* 获取当日副本对应的角色和武器 */
-			const week: number = date.getDay();
+			let week: number = date.getDay();
+			week = date.getHours() < 4 ? week === 0 ? 6 : week - 1 : week;
 			const todayInfoSet: string[] = this.getDailySet( week );
 			
 			/* 获取所有角色和武器的信息 */
 			await this.getAllData( week, todayInfoSet );
-
+			
 			/* 群发订阅信息 */
 			const groupIDs: string[] = await bot.redis.getList( "silvery-star.daily-sub-group" );
 			
@@ -108,7 +109,7 @@ export class DailyClass {
 					await bot.client.sendGroupMsg( parseInt( id ), subMessage );
 				}
 			}
-
+			
 			/* 周日不对订阅信息的用户进行私发 */
 			if ( week === 0 ) {
 				return;
@@ -163,12 +164,14 @@ export class DailyClass {
 			}
 		}
 	}
- 
+	
 	private async getUserSubList( userID: number ): Promise<DailySet | undefined> {
 		const dbKey: string = `silvery-star.daily-sub-${ userID }`;
 		const subList: string[] = await bot.redis.getList( dbKey );
 		if ( this.allData.length === 0 ) {
-			const week: number = new Date().getDay();
+			const date = new Date();
+			let week: number = date.getDay();
+			week = date.getHours() < 4 ? week === 0 ? 6 : week - 1 : week;
 			const set: string[] = this.getDailySet( week );
 			await this.getAllData( week, set );
 		}
@@ -193,7 +196,10 @@ export class DailyClass {
 	
 	public async getUserSubscription( userID: number ): Promise<string> {
 		const date: Date = new Date();
-		if ( date.getDay() === 0 ) {
+		
+		let week: number = date.getDay();
+		week = date.getHours() < 4 ? week === 0 ? 6 : week - 1 : week;
+		if ( week === 0 ) {
 			return "周日所有材料都可以刷取哦~";
 		}
 		
@@ -215,7 +221,7 @@ export class DailyClass {
 		if ( isGroup ) {
 			const dbKey: string = "silvery-star.daily-sub-group";
 			const exist: boolean = await bot.redis.existListElement( dbKey, name );
-		
+			
 			if ( exist === operation ) {
 				return `群聊 ${ name } ${ operation ? "已订阅" : "未曾订阅" }`;
 			} else if ( operation ) {
@@ -234,7 +240,7 @@ export class DailyClass {
 			const realName: string = <string>result.info;
 			const dbKey: string = `silvery-star.daily-sub-${ userID }`;
 			const exist: boolean = await bot.redis.existListElement( dbKey, realName );
-
+			
 			if ( exist === operation ) {
 				return `「${ realName }」${ operation ? "已订阅" : "未曾订阅" }`;
 			} else if ( operation ) {
