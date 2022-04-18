@@ -26,7 +26,7 @@ export class NoteService implements Service {
 	
 	constructor( p: Private ) {
 		const options: Record<string, any> =
-			p.options[ NoteService.FixedField ] || {};
+			p.options[NoteService.FixedField] || {};
 		
 		this.parent = p;
 		this.timePoint = options.timePoint || [ 120, 155 ];
@@ -62,9 +62,9 @@ export class NoteService implements Service {
 			
 			return "实时便笺功能已开启：\n" +
 				"默认情况下，树脂数量达到 120 和 155 时会发送进行私聊推送\n" +
-				`也可以通过「${ SET_TIME.getHeaders()[0] }+账户编号+树脂量」来设置\n` +
+				`也可以通过「${ SET_TIME.getHeaders()[0] }+账户序号+树脂量」来设置\n` +
 				"当冒险探索结束时，BOT 也会进行提醒\n" +
-				`如果你希望关闭定时提醒功能，可以使用「${ TOGGLE_NOTE.getHeaders()[0] }+账户编号」`;
+				`如果你希望关闭定时提醒功能，可以使用「${ TOGGLE_NOTE.getHeaders()[0] }+账户序号」`;
 		}
 	}
 	
@@ -136,6 +136,10 @@ export class NoteService implements Service {
 		
 		await this.getData();
 		if ( typeof this.globalData === "string" ) {
+			if ( /cookie/.test( this.globalData ) ) {
+				this.globalData += "，自动提醒已停止，请更新 cookie 后重新开启";
+				await this.toggleEnableStatus( false, false );
+			}
 			return Promise.reject();
 		}
 		
@@ -147,11 +151,11 @@ export class NoteService implements Service {
 			if ( this.globalData.currentResin >= t ) {
 				continue;
 			}
-
+			
 			const recovery: number = parseInt( this.globalData.resinRecoveryTime );
 			const remaining: number = recovery - ( 160 - t ) * 8 * 60;
 			const time = new Date( now + remaining * 1000 );
-
+			
 			const job: Job = scheduleJob( time, async () => {
 				await this.parent.sendMessage( `[UID${ this.parent.setting.uid }] - 树脂量已经到达 ${ t } 了哦~` );
 			} );
@@ -169,7 +173,7 @@ export class NoteService implements Service {
 		
 		const compressed: any = [];
 		let num: number = 0;
-
+		
 		compressed.push( { num: 1, ...expeditions.shift() } );
 		for ( let e of expeditions ) {
 			if ( parseInt( e.remainedTime ) - parseInt( compressed[num].remainedTime ) <= 30 ) {

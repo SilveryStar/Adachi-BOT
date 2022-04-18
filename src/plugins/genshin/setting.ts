@@ -198,25 +198,37 @@ const privateSubList: OrderConfig = {
 const privateCancel: OrderConfig = {
 	type: "order",
 	cmdKey: "silvery-star.private-cancel",
-	desc: [ "取消私人服务", "[账户编号]" ],
+	desc: [ "取消私人服务", "[账户序号]" ],
 	headers: [ "pc" ],
 	regexps: [ "\\d+" ],
 	main: "achieves/private/cancel",
 	scope: MessageScope.Private,
-	detail: "账户编号在私人服务列表中查看"
+	detail: "账户序号在私人服务列表中查看"
 };
 
 const privateReplace: OrderConfig = {
 	type: "order",
 	cmdKey: "silvery-star.private-replace",
-	desc: [ "更新私人服务", "[账户编号] [cookie]" ],
+	desc: [ "更新私人服务", "[账户序号] [cookie]" ],
 	headers: [ "pr" ],
 	regexps: [ "\\d+", ".+" ],
 	ignoreCase: false,
 	main: "achieves/private/replace",
 	scope: MessageScope.Private,
-	detail: "账户编号在私人服务列表中查看\n" +
+	detail: "账户序号在私人服务列表中查看\n" +
 			"该指令用于更换私人服务所绑定的 cookie"
+};
+
+const privateReorder: OrderConfig = {
+	type: "order",
+	cmdKey: "silvery-star.private-reorder",
+	desc: [ "排序服务列表", "[当前序号的新排序列表]" ],
+	headers: [ "reorder" ],
+	regexps: [ "(\\s|\\d)+" ],
+	main: "achieves/private/reorder",
+	scope: MessageScope.Private,
+	detail: "对当前的私人服务列表的顺序重新调整\n" +
+			"例如用户有 5 个订阅的私人服务账号，则新排序列表的格式为：5 2 3 1 4"
 };
 
 const privateNowNote: OrderConfig = {
@@ -231,7 +243,7 @@ const privateNowNote: OrderConfig = {
 const privateNoteEvent: OrderConfig = {
 	type: "order",
 	cmdKey: "silvery-star.note-set-time",
-	desc: [ "便笺推送时间", "[账户编号] [树脂量]" ],
+	desc: [ "便笺推送时间", "[账户序号] [树脂量]" ],
 	headers: [ "nt" ],
 	regexps: [ "[\\d ]+" ],
 	main: "achieves/private/note/set-time",
@@ -243,7 +255,7 @@ const privateNoteEvent: OrderConfig = {
 const privateMysSetAppoint: OrderConfig = {
 	type: "order",
 	cmdKey: "silvery-star.private-set-appoint",
-	desc: [ "指定头像", "[账户编号] [角色名]" ],
+	desc: [ "指定头像", "[账户序号] [角色名]" ],
 	headers: [ "appoint" ],
 	regexps: [ "\\d+", "[\\w\\u4e00-\\u9fa5]+" ],
 	main: "achieves/private/query/appoint",
@@ -254,7 +266,7 @@ const privateMysSetAppoint: OrderConfig = {
 const privateMysQuery: OrderConfig = {
 	type: "order",
 	cmdKey: "silvery-star.private-mys",
-	desc: [ "游戏查询", "(账户编号)" ],
+	desc: [ "游戏查询", "(账户序号)" ],
 	headers: [ "mys" ],
 	regexps: [ "(\\d+)?" ],
 	main: "achieves/private/query/mys"
@@ -264,7 +276,7 @@ const privateAbyssQuery: SwitchConfig = {
 	type: "switch",
 	mode: "divided",
 	cmdKey: "silvery-star.private-abyss",
-	desc: [ "深渊查询", "(账户编号) #{OPT}" ],
+	desc: [ "深渊查询", "(账户序号) #{OPT}" ],
 	header: "",
 	regexp: [ "(\\d+)?" ],
 	main: "achieves/private/query/abyss",
@@ -276,7 +288,7 @@ const privateAbyssQuery: SwitchConfig = {
 const privateCharQuery: OrderConfig = {
 	type: "order",
 	cmdKey: "silvery-star.private-character",
-	desc: [ "角色信息", "(账户编号) [角色名]" ],
+	desc: [ "角色信息", "(账户序号) [角色名]" ],
 	headers: [ "char" ],
 	regexps: [ "(\\d+)?", "[\\w\\u4e00-\\u9fa5]+" ],
 	main: "achieves/private/query/character",
@@ -287,7 +299,7 @@ const privateCharQuery: OrderConfig = {
 const privateToggleSign: OrderConfig = {
 	type: "order",
 	cmdKey: "silvery-star.private-toggle-sign",
-	desc: [ "米游社签到", "[账户编号]" ],
+	desc: [ "米游社签到", "[账户序号]" ],
 	headers: [ "signin" ],
 	regexps: [ "\\d+" ],
 	main: "achieves/private/sign-in/main",
@@ -298,7 +310,7 @@ const privateToggleSign: OrderConfig = {
 const privateToggleNote: OrderConfig = {
 	type: "order",
 	cmdKey: "silvery-star.private-toggle-note",
-	desc: [ "定时提醒", "[账户编号]" ],
+	desc: [ "定时提醒", "[账户序号]" ],
 	headers: [ "tnote" ],
 	regexps: [ "\\d+" ],
 	main: "achieves/private/note/toggle",
@@ -309,7 +321,7 @@ const privateToggleNote: OrderConfig = {
 const privateLedger: OrderConfig = {
 	type: "order",
 	cmdKey: "silvery-star.private-ledger",
-	desc: [ "旅行札记", "(账户编号) (月份)" ],
+	desc: [ "旅行札记", "(账户序号) (月份)" ],
 	headers: [ "led" ],
 	regexps: [ "(\\d+)?", "(\\d+)?" ],
 	main: "achieves/private/query/ledger",
@@ -325,8 +337,9 @@ export default <PluginSetting>{
 		slip, uidQuery, epitomizedPath, information,
 		privateNowNote, privateNoteEvent, privateSubList,
 		privateConfirm, privateSubscribe, privateReplace,
-		privateAbyssQuery, privateCancel, privateMysQuery,
+		privateAbyssQuery, privateCancel, privateReorder,
 		privateToggleSign, privateLedger, privateCharQuery,
-		privateToggleNote, privateMysSetAppoint
+		privateToggleNote, privateMysQuery,
+		privateMysSetAppoint
 	]
 };

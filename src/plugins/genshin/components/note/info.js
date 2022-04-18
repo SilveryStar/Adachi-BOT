@@ -4,7 +4,7 @@ const template = `<div class="info box">
 		<p class="info-title">{{ data.title }}</p>
 		<p class="info-subtitle">{{ data.subtitle }}</p>
 	</div>
-	<p class="data" :class="{ mini: data.miniFontSize }">{{ data.numerator }}/{{ data.denominator }}</p>
+	<p class="data" :class="{ mini: data.miniFontSize }">{{ data.value }}</p>
 </div>`;
 
 const { defineComponent } = Vue;
