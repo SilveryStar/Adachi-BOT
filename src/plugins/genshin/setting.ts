@@ -206,6 +206,18 @@ const privateCancel: OrderConfig = {
 	detail: "账户序号在私人服务列表中查看"
 };
 
+const privateRemove: OrderConfig = {
+	type: "order",
+	cmdKey: "silvery-star.private-remove",
+	desc: [ "移除用户私人服务", "[qq]" ],
+	headers: [ "remove" ],
+	regexps: [ "\\d+" ],
+	main: "achieves/private/remove",
+	auth: AuthLevel.Master,
+	detail: "移除指定qq号所绑定的所有私人服务\n" +
+		"移除后将会给对方发送提示信息"
+};
+
 const privateReplace: OrderConfig = {
 	type: "order",
 	cmdKey: "silvery-star.private-replace",
@@ -337,9 +349,9 @@ export default <PluginSetting>{
 		slip, uidQuery, epitomizedPath, information,
 		privateNowNote, privateNoteEvent, privateSubList,
 		privateConfirm, privateSubscribe, privateReplace,
-		privateAbyssQuery, privateCancel, privateReorder,
-		privateToggleSign, privateLedger, privateCharQuery,
-		privateToggleNote, privateMysQuery,
+		privateAbyssQuery, privateCancel, privateRemove,
+		privateReorder, privateToggleSign, privateLedger,
+		privateCharQuery, privateToggleNote, privateMysQuery,
 		privateMysSetAppoint
 	]
 };
