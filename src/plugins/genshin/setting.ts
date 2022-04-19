@@ -68,10 +68,10 @@ const epitomizedPath: OrderConfig = {
 	cmdKey: "silvery-star.epitomized-path",
 	desc: [ "神器定轨", "(1|2)" ],
 	headers: [ "epit" ],
-	regexps: [ "(1|2)?" ],
+	regexps: [ "(0|1|2)?" ],
 	main: "achieves/epitomized",
 	detail: "神器定轨，不添加参数查看当前 UP 的武器\n" +
-			"添加 1 或 2 定规武器"
+			"添加 1 或 2 定规武器，0取消定轨"
 };
 
 const choosePool: OrderConfig = {

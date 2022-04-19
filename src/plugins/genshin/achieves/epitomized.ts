@@ -34,6 +34,11 @@ export async function main(
 					      `${ i === user && i > 0 ? ` (${ epit }/2)` : "" }`
 			} );
 		await sendMessage( "当前定轨:" + msg.join( "" ) );
+	} else if ( parseInt( param ) === 0 ) {
+		/*清除定轨*/
+		await redis.deleteKey(weaponDBKey);
+		await redis.deleteKey(dbKey);
+		await sendMessage(`武器定轨记录已清除`);
 	} else {
 		/* 切换定轨武器，清空命定值 */
 		await redis.setHash( weaponDBKey, { epit: 0 } );
