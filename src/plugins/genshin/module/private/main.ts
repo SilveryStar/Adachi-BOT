@@ -216,19 +216,35 @@ export class PrivateClass {
 		return `私人服务开启成功，UID: ${ uid }` + [ "", ...contents  ].join( "\n" );
 	}
 	
-	public async delPrivate( userID: number, privateID: number ): Promise<string> {
+	public async delPrivate( p: Private ): Promise<void> {
+		Object.values( p.services ).forEach( ( service ) => {
+			if ( 'toggleEnableStatus' in service ) {
+				service.toggleEnableStatus( false, false );
+			}
+		} )
+		pull( this.list, p );
+		await bot.redis.deleteKey( p.dbKey );
+	}
+	
+	/* 移除指定用户的某个私人服务 */
+	public async delSinglePrivate( userID: number, privateID: number ): Promise<string> {
 		const single: Private | string = await this.getSinglePrivate( userID, privateID );
 		if ( typeof single === "string" ) {
 			return single;
 		} else {
-			Object.values( single.services ).forEach( ( service ) => {
-				if ( 'toggleEnableStatus' in service ) {
-					service.toggleEnableStatus( false, false )
-				}
-			} )
-			pull( this.list, single );
-			await bot.redis.deleteKey( single.dbKey );
+			await this.delPrivate( single );
 			return "私人服务取消成功";
 		}
+	}
+	
+	/* 批量移除指定用户的私人服务 */
+	public async delBatchPrivate( userID: number ): Promise<string> {
+		const privateList: Private[] = this.getUserPrivateList( userID );
+		
+		for ( const batch of privateList ) {
+			await this.delPrivate( batch );
+		}
+		
+		return `用户${ userID }的私人服务已全部移除`;
 	}
 }

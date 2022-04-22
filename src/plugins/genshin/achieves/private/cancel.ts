@@ -8,7 +8,7 @@ async function cancelPrivate( userID: number, id: number ): Promise<string> {
 		return "你还未启用任何私人服务";
 	}
 	
-	return privateClass.delPrivate( userID, id );
+	return privateClass.delSinglePrivate( userID, id );
 }
 
 export async function main(
