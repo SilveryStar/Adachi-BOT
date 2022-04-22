@@ -23,6 +23,7 @@ const __API = {
 	FETCH_SLIP: "https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/slip/index.yml",
 	FETCH_WISH_CONFIG: "https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/wish/config/$.json",
 	FETCH_INFO: "https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/info/docs/$.json",
+	FETCH_GUIDE: "https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/guide/$.png",
 	FETCH_ALIAS_SET: "https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/alias/alias.yml",
 	FETCH_DAILY_MAP: "https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/daily/daily.yml",
 	FETCH_ALMANAC: "https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/almanac/almanac.yml",
@@ -286,6 +287,18 @@ export async function getInfo( name: string ): Promise<InfoResponse | string> {
 	} );
 }
 
+export async function checkGuideExist( name: string ): Promise<boolean | string> {
+	const charLinkWithName: string = __API.FETCH_GUIDE.replace( "$", encodeURI( name ) );
+	
+	return new Promise( ( resolve ) => {
+		fetch( charLinkWithName ).then( ( result: Response ) => {
+			resolve( result.status !== 404 );
+		} ).catch( ( error: Error ) => {
+			resolve( error.message );
+		} )
+	} )
+}
+
 export async function getArtifact(): Promise<any> {
 	return new Promise( ( resolve ) => {
 		fetch( __API.FETCH_ARTIFACT )
@@ -370,7 +383,7 @@ const activityID: string = "e202009291139501";
 const SIGN_HEADERS = {
 	"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) miHoYoBBS/2.10.1",
 	"Referer": "https://webstatic.mihoyo.com/bbs/event/signin-ys/index.html" +
-		       `?bbs_auth_required=true&act_id=${ activityID }&utm_source=bbs&utm_medium=mys&utm_campaign=icon`,
+		`?bbs_auth_required=true&act_id=${ activityID }&utm_source=bbs&utm_medium=mys&utm_campaign=icon`,
 	"Accept": "application/json",
 	"Accept-Encoding": "gzip, deflate",
 	"X-Requested-With": "com.mihoyo.hyperion",
@@ -385,7 +398,7 @@ export async function mihoyoBBSSignIn( uid: string, region: string, cookie: stri
 		act_id: activityID,
 		uid, region
 	};
-
+	
 	return new Promise( ( resolve, reject ) => {
 		request( {
 			method: "POST",
@@ -419,7 +432,7 @@ export async function getSignInInfo( uid: string, region: string, cookie: string
 		act_id: activityID,
 		region, uid
 	};
-
+	
 	return new Promise( ( resolve, reject ) => {
 		request( {
 			method: "GET",
