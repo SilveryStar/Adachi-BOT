@@ -10,6 +10,7 @@ export default class BotConfig {
 	public readonly platform: 1 | 2 | 3 | 4 | 5;
 	public readonly atUser: boolean;
 	public readonly atBOT: boolean;
+	public readonly addFriend: boolean;
 	public readonly dbPort: number;
 	public readonly inviteAuth: AuthLevel;
 	public readonly countThreshold: number;
@@ -36,6 +37,7 @@ export default class BotConfig {
 		platform: 1,
 		atUser: false,
 		atBOT: false,
+		addFriend: false,
 		inviteAuth: "master",
 		countThreshold: 60,
 		groupIntervalTime: 1500,
@@ -53,7 +55,7 @@ export default class BotConfig {
 	
 	constructor( file: FileManagement ) {
 		const config: any = file.loadYAML( "setting" );
-		const checkFields: Array<keyof BotConfig> = [ "atBOT" ];
+		const checkFields: Array<keyof BotConfig> = [ "atBOT", "addFriend" ];
 		
 		for ( let key of checkFields ) {
 			if ( config[key] === undefined ) {
@@ -69,6 +71,7 @@ export default class BotConfig {
 		this.header = config.header;
 		this.dbPort = config.dbPort;
 		this.atUser = config.atUser;
+		this.addFriend = config.addFriend;
 		this.platform = config.platform;
 		this.password = config.password;
 		this.groupIntervalTime = config.groupIntervalTime;

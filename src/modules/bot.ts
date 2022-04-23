@@ -256,6 +256,11 @@ export default class Adachi {
 			if ( !bot.interval.check( userID, -1 ) ) {
 				return;
 			}
+
+			if ( bot.config.addFriend && messageData.sub_type !== "friend" ) {
+				await bot.client.sendPrivateMsg( userID, "请先添加 BOT 为好友再尝试发送指令" );
+				return;
+			}
 			
 			const auth: AuthLevel = await bot.auth.get( userID );
 			const limit: string[] = await bot.redis.getList( `adachi.user-command-limit-${ userID }` );
