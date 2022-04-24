@@ -8,10 +8,16 @@
 	list-style: none;
 	padding: 6px 0;
 	display: grid;
-	grid-template-columns: auto 1fr;
+	grid-template-columns: auto auto;
 	grid-row-gap: 8px;
 	grid-column-gap: 8px;
 	font-size: 10.38pt;
+}
+
+.info-character .base-info > li {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 
 .info-character .base-info > li:nth-child(2n + 1) {

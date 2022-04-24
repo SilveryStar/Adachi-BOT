@@ -148,12 +148,12 @@ export default class Adachi {
 		 * 所发送的数据中只包含所有用户的 QQ号 的 MD5
 		 * Adachi-BOT 不会对任何用户的隐私数据进行收集
 		 * */
-		return async function() {
+		return async function () {
 			const master: string = md5( _bot.config.master.toString() );
 			const bot: string = md5( _bot.config.number.toString() );
 			const users: string[] = (
 				await _bot.redis.getKeysByPrefix(
-				"adachi.user-used-groups"
+					"adachi.user-used-groups"
 				)
 			).map( key => {
 				const userID = <string>key.split( "-" ).pop();
@@ -197,10 +197,17 @@ export default class Adachi {
 		sendMessage: msg.SendFunc,
 		cmdSet: BasicConfig[],
 		limits: string[],
-		unionRegExp: RegExp
+		unionRegExp: RegExp,
+		isPrivate: boolean
 	): Promise<void> {
 		const content: string = messageData.raw_message;
-		if ( this.bot.refresh.isRefreshing && !unionRegExp.test( content ) ) {
+		
+		if ( this.bot.refresh.isRefreshing || !unionRegExp.test( content ) ) {
+			return;
+		}
+		
+		if ( isPrivate && this.bot.config.addFriend && messageData.sub_type !== "friend" ) {
+			await this.bot.client.sendPrivateMsg( messageData.user_id, "请先添加 BOT 为好友再尝试发送指令" );
 			return;
 		}
 		
@@ -251,7 +258,7 @@ export default class Adachi {
 	/* 处理私聊事件 */
 	private parsePrivateMsg( that: Adachi ) {
 		const bot = that.bot;
-		return async function( messageData: sdk.PrivateMessageEventData ) {
+		return async function ( messageData: sdk.PrivateMessageEventData ) {
 			const userID: number = messageData.user_id;
 			if ( !bot.interval.check( userID, -1 ) ) {
 				return;
@@ -264,14 +271,14 @@ export default class Adachi {
 			);
 			const cmdSet: BasicConfig[] = bot.command.get( auth, msg.MessageScope.Private );
 			const unionReg: RegExp = bot.command.getUnion( auth, msg.MessageScope.Private );
-			await that.execute( messageData, sendMessage, cmdSet, limit, unionReg );
+			await that.execute( messageData, sendMessage, cmdSet, limit, unionReg, true );
 		}
 	}
 	
 	/* 处理群聊事件 */
 	private parseGroupMsg( that: Adachi ) {
 		const bot = that.bot;
-		return async function( messageData: sdk.GroupMessageEventData ) {
+		return async function ( messageData: sdk.GroupMessageEventData ) {
 			if ( bot.config.atBOT && !that.checkAtBOT( messageData ) ) {
 				return;
 			}
@@ -283,7 +290,7 @@ export default class Adachi {
 			const isBanned: boolean = await bot.redis.existListElement(
 				"adachi.banned-group", groupID
 			);
-
+			
 			const groupInfo = <sdk.GroupInfo>( await bot.client.getGroupInfo( groupID ) ).data;
 			if ( !isBanned && groupInfo.shutup_time_me === 0 ) {
 				const auth: AuthLevel = await bot.auth.get( userID );
@@ -294,7 +301,7 @@ export default class Adachi {
 				);
 				const cmdSet: BasicConfig[] = bot.command.get( auth, msg.MessageScope.Group );
 				const unionReg: RegExp = bot.command.getUnion( auth, msg.MessageScope.Group );
-				await that.execute( messageData, sendMessage, cmdSet, [ ...gLim, ...uLim ], unionReg );
+				await that.execute( messageData, sendMessage, cmdSet, [ ...gLim, ...uLim ], unionReg, false );
 			}
 		}
 	}
@@ -316,7 +323,7 @@ export default class Adachi {
 	/* 自动接受入群邀请 */
 	private acceptInvite( that: Adachi ) {
 		const bot = that.bot;
-		return async function( data: sdk.GroupInviteEventData | sdk.GroupAddEventData ) {
+		return async function ( data: sdk.GroupInviteEventData | sdk.GroupAddEventData ) {
 			if ( data.sub_type === "add" ) {
 				return;
 			}
@@ -333,7 +340,7 @@ export default class Adachi {
 	
 	/* 自动接受好友申请 */
 	private acceptFriend( that: Adachi ) {
-		return async function( friendDate: sdk.FriendAddEventData ) {
+		return async function ( friendDate: sdk.FriendAddEventData ) {
 			await that.bot.client.setFriendAddRequest( friendDate.flag );
 		}
 	}
@@ -341,7 +348,7 @@ export default class Adachi {
 	/* 数据统计 与 超量使用监看 */
 	private hourlyCheck( that: Adachi ): JobCallback {
 		const bot = that.bot;
-		return function(): void {
+		return function (): void {
 			bot.redis.getHash( "adachi.hour-stat" ).then( async data => {
 				const cmdOverusedUser: string[] = [];
 				const threshold: number = bot.config.countThreshold;
