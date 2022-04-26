@@ -70,9 +70,20 @@ const refresh: OrderConfig = {
 	detail: "该指令用于重新加载在 /config 目录中的部分配置文件（setting 不会重新加载）"
 }
 
+const upgrade: OrderConfig = {
+	type: "order",
+	cmdKey: "adachi.hot-upgrade",
+	desc: [ "更新服务", "" ],
+	headers: [ "upgrade" ],
+	regexps: [],
+	auth: AuthLevel.Master,
+	main: "upgrade",
+	detail: "该指令会通过git更新代码，所以需要服务是通过git下载的。"
+}
+
 export async function init(): Promise<PluginSetting> {
 	return {
 		pluginName: "@management",
-		cfgList: [ manager, ban, limit, interval, refresh ]
+		cfgList: [ manager, ban, limit, interval, refresh, upgrade ]
 	}
 }
