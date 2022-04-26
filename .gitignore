@@ -9,6 +9,7 @@
 /src/plugins/genshin/data/
 
 /src/plugins/
+/src/data/
 !/src/plugins/@help/
 !/src/plugins/@management/
 !/src/plugins/genshin/
