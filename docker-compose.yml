@@ -3,6 +3,8 @@ services:
   redis:
     image: redis:6.2.3
     container_name: adachi-redis
+    environment:
+      - TZ=Asia/Shanghai
     restart: always
     command: redis-server /usr/local/etc/redis/redis.conf
     volumes:

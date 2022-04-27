@@ -1,13 +1,16 @@
 {
   "name": "adachi-bot",
-  "version": "2.2.13-bugfix1",
+  "version": "2.3.0",
   "description": "",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "login": "node ./src/login.js",
-    "start": "ts-node -r tsconfig-paths/register app.ts --files",
-    "serve": "forever start --minUptime 1000 --spinSleepTime 1000 -v -c \"ts-node -r tsconfig-paths/register app.ts --files\" ./"
+    "start": "pm2 start adachi-bot.config.js",
+    "win-start": "ts-node -r tsconfig-paths/register app.ts --files",
+    "docker-start": "pm2 start adachi-bot.config.js --no-daemon",
+    "restart": "cnpm i && pm2 restart adachi-bot.config.js",
+    "docker-restart": "cnpm i && pm2 restart adachi-bot.config.js --no-daemon"
   },
   "keywords": [],
   "author": "",
@@ -32,7 +35,6 @@
     "eslint": "^7.29.0",
     "express-jwt": "^6.1.0",
     "express-ws": "^5.0.2",
-    "forever": "^3.0.4",
     "jsonwebtoken": "^8.5.1",
     "lodash": "^4.17.21",
     "log4js": "^6.3.0",
@@ -42,6 +44,7 @@
     "node-schedule": "^2.0.0",
     "object-immutable-set": "^1.0.0",
     "oicq": "^1.21.3",
+    "pm2": "^5.2.0",
     "puppeteer": "^10.0.0",
     "redis": "^3.1.2",
     "request": "^2.88.2",
