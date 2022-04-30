@@ -10,15 +10,15 @@ const template = `<div v-if="showData" class="overview">
 	<div class="reveal">
 		<SectionTitle>出战次数</SectionTitle>
 		<div class="character-list">
-			<CharacterItem v-for="(char, index) in reveal" :key="index" class="character-item" :char="char" type="reveal"/>
+			<CharacterItem v-for="(char, index) in reveals" :key="index" class="character-item" :char="char" type="reveal"/>
 		</div>
 	</div>
 	<div class="battle-data">
 		<SectionTitle>战斗数据</SectionTitle>
 		<ul class="data-list">
 			<li v-for="key of Object.keys(dataList)" :key="key">
-				<span>{{key}}: {{dataList[key][0].value}}</span>
-				<img :src="dataList[key][0].avatarIcon" alt="ERROR" />
+				<span>{{key}}: {{dataList[key].value}}</span>
+				<img :src="dataList[key].avatarIcon" alt="ERROR" />
 			</li>
 		</ul>
 	</div>
@@ -28,10 +28,11 @@ const template = `<div v-if="showData" class="overview">
 </div>
 `;
 
+import { abyssDataParser } from "../../public/js/abyss-data-parser.js"
 import SectionTitle from "./section-title.js";
 import CharacterItem from "./character-item.js";
 
-const { defineComponent, computed } = Vue;
+const { defineComponent } = Vue;
 
 export default defineComponent( {
 	name: "AbyssOverview",
@@ -44,28 +45,18 @@ export default defineComponent( {
 		data: Object
 	},
 	setup( { data } ) {
-		const arr = data.revealRank.map( ( el ) => {
-			el.icon = el.avatarIcon;
-			return el;
+		const parsed = abyssDataParser( data );
+		
+		const reveals = parsed.reveals.map( ( el ) => {
+			return {
+				...el,
+				icon: el.avatarIcon
+			};
 		} );
 		
-		const reveal = arr.splice( 0, 4 );
-		
-		const dataList = {
-			最强一击: data.damageRank,
-			击破数: data.defeatRank,
-			承受伤害: data.takeDamageRank,
-			元素战技次数: data.normalSkillRank,
-			元素爆发次数: data.energySkillRank
-		};
-		
-		/* 判断深渊数据是否为空 */
-		const showData = computed( () => !!Object.values( dataList ).filter( item => item?.length ).length );
-		
 		return {
-			reveal,
-			showData,
-			dataList
+			...parsed,
+			reveals
 		}
 	}
 } );

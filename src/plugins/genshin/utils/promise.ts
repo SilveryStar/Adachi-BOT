@@ -3,8 +3,8 @@ import * as api from "./api";
 import bot from "ROOT";
 import { Cookies } from "#genshin/module";
 import { omit, pick } from "lodash";
-import { cookies } from "../init";
-import { CharacterCon } from "../types";
+import { characterID, cookies } from "../init";
+import { CharacterCon, Abyss } from "../types";
 
 export enum ErrorMsg {
 	NOT_FOUND = "未查询到角色数据，请检查米哈游通行证（非UID）是否有误或是否设置角色信息公开",
@@ -267,9 +267,33 @@ export async function abyssInfoPromise(
 		cookie = cookies.get();
 		cookies.increaseIndex();
 	}
-	const { retcode, message, data } = await api.getSpiralAbyssInfo( uid, server, period, cookie );
+	let { retcode, message, data } = await api.getSpiralAbyssInfo( uid, server, period, cookie );
 	if ( !ApiType.isAbyss( data ) ) {
 		return Promise.reject( ErrorMsg.UNKNOWN );
+	}
+	
+	const idMap: Record<number, string> = {};
+	
+	for ( const name in characterID.map ) {
+		const id = characterID.map[name];
+		idMap[id] = name;
+	}
+	
+	const getRankWithName = <T extends { avatarId: number }>( rankList: T[] ) => rankList.map( r => {
+		return {
+			...r,
+			name: idMap[r.avatarId]
+		}
+	} )
+	
+	data = {
+		...data,
+		revealRank: getRankWithName(data.revealRank),
+		defeatRank: getRankWithName(data.defeatRank),
+		takeDamageRank: getRankWithName(data.takeDamageRank),
+		normalSkillRank: getRankWithName(data.normalSkillRank),
+		energySkillRank: getRankWithName(data.energySkillRank),
+		damageRank: getRankWithName(data.damageRank),
 	}
 	
 	return new Promise( async ( resolve, reject ) => {
