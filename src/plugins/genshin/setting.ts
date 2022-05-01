@@ -288,13 +288,15 @@ const privateAbyssQuery: SwitchConfig = {
 	type: "switch",
 	mode: "divided",
 	cmdKey: "silvery-star.private-abyss",
-	desc: [ "深渊查询", "(账户序号) #{OPT}" ],
+	desc: [ "深渊查询", "(账户序号) (-s)" ],
 	header: "",
-	regexp: [ "(\\d+)?" ],
+	regexp: [ "(\\d+)?", "(-l)?" ],
 	main: "achieves/private/query/abyss",
 	stop: false,
 	onKey: "caby",
-	offKey: "laby"
+	offKey: "laby",
+	detail: "分别为查询上期与本期的深渊数据\n" +
+			"使用 -l 以转发消息方式显示每层详细图片"
 };
 
 const privateCharQuery: OrderConfig = {

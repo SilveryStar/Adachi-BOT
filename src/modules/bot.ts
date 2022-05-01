@@ -9,6 +9,7 @@ import Plugin from "./plugin";
 import WebConfiguration from "./logger";
 import WebConsole from "@web-console/backend";
 import RefreshConfig from "./management/refresh";
+import { Order } from "./command";
 import Command, { BasicConfig, MatchResult } from "./command/main";
 import Authorization, { AuthLevel } from "./management/auth";
 import MsgManagement, * as msg from "./message";
@@ -92,6 +93,7 @@ export default class Adachi {
 			this.bot.client.on( "message.private", this.parsePrivateMsg( this ) );
 			this.bot.client.on( "request.group", this.acceptInvite( this ) );
 			this.bot.client.on( "request.friend", this.acceptFriend( this ) );
+			this.bot.client.on( "system.online", this.botOnline( this ) );
 			this.bot.logger.info( "事件监听启动成功" );
 		} );
 		
@@ -342,6 +344,15 @@ export default class Adachi {
 	private acceptFriend( that: Adachi ) {
 		return async function ( friendDate: sdk.FriendAddEventData ) {
 			await that.bot.client.setFriendAddRequest( friendDate.flag );
+		}
+	}
+	
+	/* 上线事件 */
+	private botOnline( that: Adachi ) {
+		const bot = that.bot;
+		return async function () {
+			const HELP = <Order>bot.command.getSingle( "adachi.help", AuthLevel.Master );
+			await that.bot.message.sendMaster( `Adachi-BOT 已启动成功，请输入 ${ HELP.getHeaders()[0] } 查看命令帮助\n如有问题请前往 github.com/SilveryStar/Adachi-BOT 进行反馈` );
 		}
 	}
 	
