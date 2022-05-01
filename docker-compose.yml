@@ -25,4 +25,4 @@ services:
       - ./config:/bot/config
       - ./logs:/bot/logs
       - ./src:/bot/src
-      - ./package.json:/bot/package.json
+      #- ./package.json:/bot/package.json

@@ -73,12 +73,15 @@ const refresh: OrderConfig = {
 const upgrade: OrderConfig = {
 	type: "order",
 	cmdKey: "adachi.hot-upgrade",
-	desc: [ "更新服务", "" ],
+	desc: [ "更新bot", "(-f)" ],
 	headers: [ "upgrade" ],
-	regexps: [],
+	regexps: ["(-f)?"],
 	auth: AuthLevel.Master,
 	main: "upgrade",
-	detail: "该指令会通过git更新代码，所以需要服务是通过git下载的。"
+	detail: "该指令用于检测并更新 bot 源码\n" +
+		"要求项目必须是通过 git clone 下载的\n" +
+		"若存在更新则会更新并重启 bot\n" +
+		"在指令后追加 -f 来覆盖本地修改强制更新"
 }
 
 export async function init(): Promise<PluginSetting> {
