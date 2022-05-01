@@ -70,9 +70,23 @@ const refresh: OrderConfig = {
 	detail: "该指令用于重新加载在 /config 目录中的部分配置文件（setting 不会重新加载）"
 }
 
+const upgrade: OrderConfig = {
+	type: "order",
+	cmdKey: "adachi.hot-upgrade",
+	desc: [ "更新bot", "(-f)" ],
+	headers: [ "upgrade" ],
+	regexps: ["(-f)?"],
+	auth: AuthLevel.Master,
+	main: "upgrade",
+	detail: "该指令用于检测并更新 bot 源码\n" +
+		"要求项目必须是通过 git clone 下载的\n" +
+		"若存在更新则会更新并重启 bot\n" +
+		"在指令后追加 -f 来覆盖本地修改强制更新"
+}
+
 export async function init(): Promise<PluginSetting> {
 	return {
 		pluginName: "@management",
-		cfgList: [ manager, ban, limit, interval, refresh ]
+		cfgList: [ manager, ban, limit, interval, refresh, upgrade ]
 	}
 }
