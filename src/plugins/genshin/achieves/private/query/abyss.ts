@@ -14,6 +14,7 @@ async function forwardAchieves( abyss: Abyss, uid: string, userID: number, {
 	redis,
 	logger,
 	config,
+	messageData,
 	sendMessage
 }: InputParameter ) {
 	const userInfo: string = `UID-${ uid }`;
@@ -64,7 +65,10 @@ async function forwardAchieves( abyss: Abyss, uid: string, userID: number, {
 		content.push( msgNode );
 	}
 	
-	const replyMessage = await client.makeForwardMsg( content );
+	/* 是否为私聊消息 */
+	const isPrivate = messageData.message_type === "private";
+	
+	const replyMessage = await client.makeForwardMsg( content, isPrivate );
 	if ( replyMessage.status === "ok" ) {
 		await sendMessage( replyMessage.data, false );
 	} else {
