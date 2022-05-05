@@ -5,4 +5,5 @@ RUN ln -snf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && yum install -y g
 
 COPY . /bot
 WORKDIR /bot
-CMD nohup sh -c "npm i && npm i puppeteer --unsafe-perm=true --allow-root && npm run docker-start"
+RUN npm i puppeteer --unsafe-perm=true --allow-root
+CMD nohup sh -c "npm i && npm run docker-start"
