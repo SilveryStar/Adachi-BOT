@@ -14,10 +14,11 @@ import Command, { BasicConfig, MatchResult } from "./command/main";
 import Authorization, { AuthLevel } from "./management/auth";
 import MsgManagement, * as msg from "./message";
 import { Md5 } from "md5-typescript";
-import { scheduleJob, JobCallback } from "node-schedule";
+import { Job, JobCallback, scheduleJob } from "node-schedule";
 import { trim } from "lodash";
-import { unlinkSync } from "fs";
+import fs, { readFileSync, unlinkSync } from "fs";
 import axios, { AxiosError } from "axios";
+import { resolve } from "path";
 
 /**
  * @interface
@@ -175,19 +176,69 @@ export default class Adachi {
 		if ( this.bot.config.qrcode ) {
 			/* 扫码登录 */
 			this.bot.client.on( "system.login.qrcode", () => {
-				this.bot.logger.mark( "手机扫码完成后按下 Enter 继续...\n" );
-				process.stdin.once( "data", () => this.bot.client.login() );
+				this.bot.logger.mark( "请在2分钟内完成扫描码登录(或在完成扫码后按下Enter继续)...\n" );
+				const d = new Date();
+				const job: Job = scheduleJob( d.setMinutes( d.getMinutes() + 2 ), async () => {
+					this.bot.client.login();
+				} );
+				
+				/* 兼容终端输入 */
+				process.stdin.once( "data", () => {
+					this.bot.client.login();
+					job.cancel();
+				} );
 			} )
 		} else {
 			/* 账密登录 */
+			/* 处理滑动验证码事件 */
 			this.bot.client.on( "system.login.slider", () => {
-				process.stdin.once( "data", ( input: Buffer ) => {
+				const number = this.bot.config.number;
+				this.bot.logger.mark( `请在5分钟内完成滑动验证,并将获取到的ticket写入到src/data/${ number }/ticket.txt文件中并保存(或在终端粘贴获取到的ticket)` );
+				const d = new Date();
+				// 创建空的ticket.txt
+				let dirName = `src/data/${ number }`;
+				let path = resolve( this.bot.file.root, dirName );
+				if ( !this.bot.file.isExist( path ) ) {
+					fs.mkdirSync( path, { recursive: true } );
+				}
+				const ticketPath = resolve( this.bot.file.root, `${ dirName }/ticket.txt` );
+				const opened: number = fs.openSync( ticketPath, "w" );
+				fs.writeSync( opened, "" );
+				fs.closeSync( opened );
+				
+				// 定时去查看ticket文件是否已写入ticket
+				const job: Job = scheduleJob( "0 * * * * *", () => {
+					if ( d.setMinutes( d.getMinutes() + 5 ) > d.getTime() ) {
+						this.bot.logger.warn( "已超过5分钟了，请重新登录" )
+						job.cancel();
+						return;
+					}
+					const file = readFileSync( ticketPath, "utf-8" );
+					if ( file ) {
+						this.bot.client.sliderLogin( file );
+						job.cancel();
+					}
+				} )
+				
+				/* 兼容终端输入 */
+				process.stdin.once( "data", ( input ) => {
 					this.bot.client.sliderLogin( input.toString() );
+					job.cancel();
 				} );
 			} );
+			/* 处理设备锁事件 */
 			this.bot.client.on( "system.login.device", () => {
-				this.bot.logger.mark( "手机扫码完成后按下 Enter 继续...\n" );
-				process.stdin.once( "data", () => this.bot.client.login() );
+				this.bot.logger.mark( "请在2分钟内完成扫描码登录(或在完成扫码后按下Enter继续)...\n" );
+				const d = new Date();
+				const job: Job = scheduleJob( d.setMinutes( d.getMinutes() + 2 ), async () => {
+					this.bot.client.login();
+				} );
+				
+				/* 兼容终端输入 */
+				process.stdin.once( "data", () => {
+					this.bot.client.login();
+					job.cancel();
+				} );
 			} );
 			this.bot.client.login( this.bot.config.password );
 		}
