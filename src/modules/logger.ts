@@ -16,7 +16,7 @@ export default class WebConfiguration {
 		this.tcpLoggerPort = config.webConsole.tcpLoggerPort;
 		this.deviceName = `[${ platformName[config.platform] }:${ config.number }]`;
 		this.setNetworkLayout();
-		const cfg = this.getConfiguration( config.webConsole.enable );
+		const cfg = this.getConfiguration( config.webConsole.enable, config.logLevel );
 		configure( cfg );
 	}
 	
@@ -30,7 +30,7 @@ export default class WebConfiguration {
 		} ) );
 	}
 	
-	private getConfiguration( enable: boolean ): Configuration {
+	private getConfiguration( enable: boolean, logLevel: string ): Configuration {
 		const console = { type: "console" };
 		const network = {
 			type: "tcp",
@@ -49,7 +49,7 @@ export default class WebConfiguration {
 		const Default = { appenders: [ "console" ], level: "off" };
 		const Device = {
 			appenders: [ "logFile", enable ? "network" : "console" ],
-			level: "debug"
+			level: logLevel
 		};
 		
 		return <Configuration>{
