@@ -10,7 +10,8 @@
     "win-start": "ts-node -r tsconfig-paths/register app.ts --files",
     "docker-start": "pm2 start adachi-bot.config.js --no-daemon",
     "restart": "npm i --registry https://registry.npmmirror.com && pm2 restart adachi-bot.config.js",
-    "docker-restart": "npm i --registry https://registry.npmmirror.com && pm2 restart adachi-bot.config.js"
+    "docker-restart": "npm i --registry https://registry.npmmirror.com && pm2 restart adachi-bot.config.js",
+    "stop": "pm2 delete adachi-bot.config.js"
   },
   "keywords": [],
   "author": "",
