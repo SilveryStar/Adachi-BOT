@@ -1,0 +1,41 @@
+.character-skill {
+	display: flex;
+	justify-content: space-between;
+	padding-bottom: 30px;
+}
+
+.character-skill > .info-card {
+	width: 400px;
+}
+
+.character-skill > .info-card.skill-card > .card-content,
+.character-skill > .info-card.burst-card > .card-content {
+	padding: 20px;
+	height: 100%;
+	min-height: 415px;
+}
+
+.character-skill > .info-card .skill-card-title {
+	margin-bottom: 10px;
+	font-size: 24px;
+	font-weight: 500;
+	color: var(--light-color);
+}
+
+.character-skill > .info-card .skill-card-content {
+	word-break: break-all;
+	font-size: 14px;
+	color: #666;
+}
+
+.character-skill > .info-card .skill-card-content span[style] {
+	margin: 4px 0;
+	display: inline-block;
+	font-size: 16px;
+	color: var(--light-color) !important;
+}
+
+.character-skill > .info-card .skill-card-content ul {
+	margin: 1em 0;
+	padding-left: 40px;
+}

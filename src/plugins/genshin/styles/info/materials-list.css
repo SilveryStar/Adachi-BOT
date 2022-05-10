@@ -1,0 +1,42 @@
+.materials-list {
+	position: relative;
+	padding: 0 20px 0 40px
+}
+
+.materials-list > .list-label {
+	position: absolute;
+	left: 0;
+	top: 16px;
+	display: flex;
+	align-items: center;
+	padding: 0 2px;
+	width: 21px;
+	height: 64px;
+	background-color: var(--base-color);
+	border-radius: 0 9px 9px 0;
+	font-size: 16px;
+	color: #fff;
+	box-sizing: border-box;
+}
+
+.materials-list > .list-data {
+	position: relative;
+	display: grid;
+	grid-template-columns: repeat(4, 1fr);
+	grid-row-gap: 16px;
+	justify-content: space-between;
+	justify-items: center;
+	flex-wrap: wrap;
+	padding: 16px 0;
+}
+
+.materials-list > .list-data:after {
+	content: '';
+	position: absolute;
+	left: 0;
+	bottom: 0;
+	width: 100%;
+	height: 1px;
+	background-color: var(--base-color);
+	opacity: 0.2;
+}

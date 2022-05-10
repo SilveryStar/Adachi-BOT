@@ -1,101 +1,39 @@
-.info-weapon {
-	position: relative;
-}
-
-.info-weapon .access {
-	margin-top: 6px;
-}
-
-.info-weapon .access .title,
-.info-weapon .access .content {
-	position: relative;
-	display: inline-block;
-	font-size: 10.38pt;
-}
-
-.info-weapon .access .title {
-	margin-right: 9px;
-	color: rgb(81, 92, 113);
-}
-
-.info-weapon .access .content {
-	color: rgb(116, 129, 156);
-}
-
-/* 基本属性 */
-.info-weapon .data-block {
-	width: 474px;
-	margin-top: 5px;
-	padding: 0 24px 0 5px;
+.weapon {
 	display: flex;
 	justify-content: space-between;
-	align-items: center;
-	border-radius: 2px;;
-	background-color: var(--backgroundColor);
-	box-sizing: border-box;
+	padding-bottom: 30px;
 }
 
-.info-weapon .data-block .star-icon {
-	height: 19px;
+.weapon > .info-top-base > .info-line {
+	margin-bottom: 48px;
 }
 
-.info-weapon .data-block .data-block-info {
-	list-style: none;
-	display: grid;
-	grid-template-columns: repeat(2, auto);
-	grid-column-gap: 24px;
-	align-items: center;
+.weapon > .info-top-base > .info-line:last-child {
+	margin-bottom: 0;
 }
 
-.info-weapon .data-block .data-block-info span {
-	vertical-align: middle;
+.weapon > .info-top-base > .skill-card > .card-content {
+	padding: 20px;
+	min-height: 250px;
 }
 
-.info-weapon .data-block .title {
-	display: inline-block;
-	margin-right: 12px;
-	font-size: 14px;
-	color: rgba(255, 255, 255, 0.75);
+.weapon > .info-top-base > .skill-card .skill-title {
+	margin-bottom: 10px;
+	font-size: 24px;
+	font-weight: 500;
+	color: var(--light-color);
 }
 
-.info-weapon .data-block .value {
-	font-size: 20px;
-	color: rgb(255, 255, 255);
-}
-
-/* 素材 */
-.info-weapon .materials {
-	position: relative;
-	left: 12px;
-	margin-top: 8px;
-}
-
-.info-weapon .materials .time {
-	position: absolute;
-	font-size: 11.15pt;
-	top: 6px;
-	left: 300px;
-	color: rgb(93, 105, 131);
-}
-
-.info-weapon .skill {
-	margin-top: 10px;
-	margin-left: 10px;
-}
-
-.info-weapon .skill .name {
-	position: relative;
-	font-size: 18.46pt;
-	font-family: HuaWen, GenshinUsedFont, monospace;
-	color: rgb(85, 97, 120);
-}
-
-.info-weapon .skill .content {
-	position: relative;
-	width: auto;
+.weapon > .info-top-base > .skill-card .skill-content {
 	word-break: break-all;
-	word-wrap: break-word;
-	color: rgb(118, 130, 157);
-	top: 7px;
-	left: 13px;
+	font-size: 18px;
+	color: #666;
+}
+
+.weapon > .materials-card > .card-content {
+	height: 100%;
+}
+
+.weapon > .materials-card .materials-list:last-child > .list-data::after {
+	display: none;
 }

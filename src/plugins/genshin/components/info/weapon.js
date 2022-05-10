@@ -1,37 +1,19 @@
-const template = `<div class="info-weapon">
-	<div class="access">
-	    <p class="title">获取方式: </p>
-	    <p class="content">{{ access }}</p>
-    </div>
-    <div class="data-block">
-	    <img class="star-icon" :src="starIcon" alt="ERROR"/>
-		<ul class="data-block-info">
-			<li v-for="key of Object.keys(dataBlockInfo)" :key="key">
-			    <span class="title" :class="{'special-title': key.length > 5}">{{ key }}:</span>
-			    <span class="value">{{ dataBlockInfo[key] }}</span>
-	    	</li>
-		</ul>
-    </div>
-    <div class="materials">
-		<p class="time">{{ time }}</p>
-        <ItemList
-            title="突破材料"
-			label-width="65px"
-            :arr="ascensionMaterials[0]"
-        ></ItemList>
-        <ItemList
-            title=""
-			label-width="65px"
-            :arr="ascensionMaterials[1]"
-        ></ItemList>
-    </div>
-    <div class="skill">
-        <p class="name">{{ skillName }}</p>
-        <div class="content" v-html="skillContent"></div>
-    </div>
+const template = `<div class="weapon">
+	<div class="info-top-base">
+		<info-line title="基本属性" :data="dataBlockInfo"></info-line>
+		<info-card class="skill-card">
+			<h3 class="skill-title">{{ skillName }}</h3>
+        	<div class="skill-content" v-html="skillContent"></div>
+		</info-card>
+	</div>
+	<info-card class="materials-card" :title="materialsTitle">
+		<materials-list :data="materialsInfo" ></materials-list>
+	</info-card>
 </div>`;
 
-import ItemList from "./item-list.js";
+import InfoLine from "./info-line.js";
+import InfoCard from "./info-card.js";
+import MaterialsList from "./materials-list.js"
 
 const { defineComponent, computed, toRefs } = Vue;
 
@@ -39,7 +21,9 @@ export default defineComponent( {
 	name: "InfoWeapon",
 	template,
 	components: {
-		ItemList
+		InfoLine,
+		InfoCard,
+		MaterialsList,
 	},
 	props: {
 		data: {
@@ -59,18 +43,30 @@ export default defineComponent( {
 	},
 	setup( props ) {
 		const data = props.data;
-		const starIcon = computed( () => {
-			return `https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/info/icon/BaseStar${ data.rarity }.png`;
-		} );
 		
-		const dataBlockInfo = {
-			基础攻击力: data.baseATK,
-			[data.mainStat]: data.mainValue
-		};
+		const materialsTitle = `材料消耗${ data.time }`;
+		
+		const materialsInfo =
+			{
+				label: "突破",
+				value: data.ascensionMaterials?.flat(),
+				showTitle: false,
+			}
+		
+		const dataBlockInfo = [
+			{
+				基础攻击力: data.baseATK,
+				[data.mainStat]: data.mainValue
+			},
+			{
+				来源: data.access
+			}
+		];
 		
 		return {
 			...toRefs( data ),
-			starIcon,
+			materialsTitle,
+			materialsInfo,
 			dataBlockInfo
 		}
 	}
