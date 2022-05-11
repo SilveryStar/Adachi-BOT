@@ -76,6 +76,12 @@ export default class Renderer {
 		this.screenshotCount = 0;
 	}
 	
+	private async pageLoaded( page: puppeteer.Page ) {
+		await page.waitForFunction( () => {
+			return document.readyState === "complete";
+		}, { timeout: 10000 } )
+	}
+	
 	private getURL( route: string, params?: Record<string, any> ): string {
 		const paramStr: string = new URLSearchParams( params ).toString();
 		
@@ -99,6 +105,7 @@ export default class Renderer {
 		const url: string = this.getURL( route, params );
 		const page: puppeteer.Page = await this.browser.newPage();
 		await page.goto( url );
+		await this.pageLoaded( page );
 		
 		const option: puppeteer.ScreenshotOptions = { encoding: "base64" };
 		const element = await page.$( selector );

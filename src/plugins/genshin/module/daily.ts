@@ -158,9 +158,14 @@ export class DailyClass {
 			return;
 		}
 		for ( let targetName of set ) {
-			const data = await getInfo( targetName );
-			if ( typeof data !== "string" ) {
-				this.allData.push( data );
+			try {
+				const data = await getInfo( targetName );
+				if ( typeof data !== "string" ) {
+					this.allData.push( data );
+				}
+			} catch ( e ) {
+				bot.logger.error( `「${targetName}」信息获取失败: ${ e }` );
+				continue;
 			}
 		}
 	}
