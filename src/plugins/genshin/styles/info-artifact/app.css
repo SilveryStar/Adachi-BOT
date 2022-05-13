@@ -1,0 +1,118 @@
+.info-artifact {
+	position: relative;
+	border: 40px solid;
+	border-image: url("https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/info/other/base-border-5.png") 55 fill;
+}
+
+.info-artifact > header,
+.info-artifact > main,
+.info-artifact > footer {
+	margin: 0 -10px;
+}
+
+.info-artifact > header {
+	position: relative;
+}
+
+.info-artifact > header > .title-and-name {
+	margin-left: -5px;
+	font-size: 24px;
+	color: var(--light-color);
+}
+
+.info-artifact > header > .rarity-icon {
+	margin-left: -3px;
+	height: 25px;
+}
+
+/* 头像部分 */
+.info-artifact > main > .avatar-box {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	margin-top: -5px;
+	margin-left: -12px;
+	margin-bottom: -16px;
+	width: 420px;
+	height: 416px;
+	background-size: contain;
+	background-position: center;
+	background-repeat: no-repeat;
+	box-sizing: border-box;
+}
+
+.info-artifact > main > .avatar-box > img {
+	width: 256px;
+}
+
+.info-artifact > main > .main-content {
+	padding: 6px 0;
+	border-bottom: 1px solid var(--shadow-color);
+}
+
+.info-artifact > main > .main-content > .shirt-title {
+	margin-bottom: 10px;
+	font-size: 22px;
+	line-height: 24px;
+	color: var(--light-color);
+}
+
+.info-artifact > main > .main-content > .effect-title {
+	font-size: 16px;
+	line-height: 20px;
+	color: var(--light-color);
+}
+
+.info-artifact > main > .main-content > .effect-content {
+	margin-bottom: 6px;
+	font-size: 14px;
+	line-height: 24px;
+	color: #666;
+}
+
+.info-artifact > main > .main-content > .skill-content:last-child {
+	margin-bottom: 0;
+}
+
+/* 来源 */
+.info-artifact > main > .main-content > .access {
+	font-size: 14px;
+	line-height: 24px;
+	color: #666;
+}
+
+/* 作者信息 */
+.info-artifact > footer.author {
+	margin-bottom: -23px;
+	font-size: 14px;
+	line-height: 32px;
+	color: #666;
+	text-align: center;
+}
+
+/* 不同星级背景图 */
+.info-artifact.rarity_3 {
+	border-image-source: url("https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/info/other/base-border-3.png");
+	background-image: url('https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/info/background/base-bg-3.png');
+}
+
+.info-artifact.rarity_3 > main > .avatar-box {
+	background-image: url('https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/info/background/stand-bg-3.png');
+}
+
+.info-artifact.rarity_4 {
+	border-image-source: url("https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/info/other/base-border-4.png");
+	background-image: url('https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/info/background/base-bg-4.png');
+}
+
+.info-artifact.rarity_4 > main > .avatar-box {
+	background-image: url('https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/info/background/stand-bg-4.png');
+}
+
+.info-artifact.rarity_5 {
+	background-image: url('https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/info/background/base-bg-5.png');
+}
+
+.info-artifact.rarity_5 > main > .avatar-box {
+	background-image: url('https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/info/background/stand-bg-5.png');
+}

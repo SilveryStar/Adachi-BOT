@@ -106,7 +106,8 @@ export default class Adachi {
 	}
 	
 	private static setEnv( file: FileManagement ): void {
-		const exist: boolean = file.createDir( "config", "root" );
+		file.createDir( "config", "root" );
+		const exist: boolean = file.createYAML( "setting", BotConfig.initObject );
 		if ( exist ) {
 			return;
 		}
@@ -136,7 +137,6 @@ export default class Adachi {
 			"commands",
 			{ tips: "此文件修改后需重启应用" }
 		);
-		file.createYAML( "setting", BotConfig.initObject );
 		
 		console.log( "环境初始化完成，请在 /config 文件夹中配置信息" );
 		process.exit( 0 );

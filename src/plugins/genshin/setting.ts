@@ -86,10 +86,12 @@ const choosePool: OrderConfig = {
 const information: OrderConfig = {
 	type: "order",
 	cmdKey: "silvery-star.information",
-	desc: [ "信息查询", "[角色|武器名]" ],
+	desc: [ "信息查询", "[角色|武器名|圣遗物] (-skill)" ],
 	headers: [ "info" ],
-	regexps: [ "[\\w\\u4e00-\\u9fa5]+" ],
-	main: "achieves/info"
+	regexps: [ "[\\w\\u4e00-\\u9fa5]+", "(-skill)?" ],
+	main: "achieves/info",
+	detail: "使用 -skill 来查看角色元素战技与元素爆发详情\n" +
+			"武器与圣遗物不可使用该配置项"
 };
 
 const slip: OrderConfig = {
@@ -288,7 +290,7 @@ const privateAbyssQuery: SwitchConfig = {
 	type: "switch",
 	mode: "divided",
 	cmdKey: "silvery-star.private-abyss",
-	desc: [ "深渊查询", "(账户序号) (-s)" ],
+	desc: [ "深渊查询", "(账户序号) (-l)" ],
 	header: "",
 	regexp: [ "(\\d+)?", "(-l)?" ],
 	main: "achieves/private/query/abyss",
