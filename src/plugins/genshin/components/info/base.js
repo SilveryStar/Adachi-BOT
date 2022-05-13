@@ -20,6 +20,8 @@ const template = `<div class="info-base" :class="backgroundClass">
 	<footer class="author">Created by Adachi-BOT</footer>
 </div>`;
 
+import { infoDataParser } from "../../public/js/info-data-parser.js";
+
 const { defineComponent, computed, toRefs } = Vue;
 
 export default defineComponent( {
@@ -41,6 +43,8 @@ export default defineComponent( {
 	setup( props ) {
 		const data = props.data;
 		
+		const parsed = infoDataParser( data );
+		
 		const elementFormat = {
 			"风元素": "Anemo",
 			"冰元素": "Cryo",
@@ -56,31 +60,10 @@ export default defineComponent( {
 			return data.element ? `https://adachi-bot.oss-cn-beijing.aliyuncs.com/images/element/Element_${ elementFormat[data.element] }.png` : "";
 		} )
 		
-		/* 星级 icon */
-		const rarityIcon = computed( () => {
-			return `https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/info/icon/BaseStar${ data.rarity }.png`
-		} )
-		
-		const backgroundClass = computed( () => {
-			return `rarity_${ data.rarity }`;
-		} );
-
-		const mainImage = computed( () => {
-			const baseURL = "https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/";
-			switch ( data.type ) {
-				case "角色":
-					return baseURL + `character/${ data.id }.png`;
-				case "武器":
-					return baseURL + `weapon/${ data.name }.png`;
-			}
-		} );
-		
 		return {
 			...toRefs( data ),
+			...parsed,
 			elementIcon,
-			rarityIcon,
-			backgroundClass,
-			mainImage
 		}
 	}
 } );
