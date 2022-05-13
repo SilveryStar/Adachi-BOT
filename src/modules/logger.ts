@@ -30,7 +30,7 @@ export default class WebConfiguration {
 		} ) );
 	}
 	
-	private getConfiguration( enable: boolean, logLevel: string ): Configuration {
+	private getConfiguration( enable: boolean, logLevel: BotConfig["logLevel"] ): Configuration {
 		const console = { type: "console" };
 		const network = {
 			type: "tcp",

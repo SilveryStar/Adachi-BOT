@@ -37,7 +37,7 @@ export default class BotConfig {
 		platform: 1,
 		atUser: false,
 		atBOT: false,
-		addFriend: false,
+		addFriend: true,
 		inviteAuth: "master",
 		countThreshold: 60,
 		groupIntervalTime: 1500,

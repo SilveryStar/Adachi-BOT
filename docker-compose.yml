@@ -22,6 +22,7 @@ services:
     depends_on:
       - redis
     volumes:
+      - ./.git:/bot/.git
       - ./config:/bot/config
       - ./logs:/bot/logs
       - ./src:/bot/src

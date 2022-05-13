@@ -110,6 +110,8 @@ export async function main( i: InputParameter ): Promise<void> {
 		return;
 	}
 	
+	await i.sendMessage( "开始尝试更新 BOT..." );
+	
 	try {
 		await updateBot( i );
 	} catch ( error ) {
