@@ -44,7 +44,7 @@
 .info-base > .author {
 	position: absolute;
 	top: 2px;
-	right: -1px;
+	right: 22px;
 	font-size: 22px;
 	color: #666666;
 }
