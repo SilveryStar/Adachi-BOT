@@ -71,7 +71,7 @@ export default class Adachi {
 			logger.error( ( <Error>reason ).stack );
 		} );
 		
-		const redis = new Database( config.dbPort, logger, file );
+		const redis = new Database( config.dbPort, config.dbPassword, logger, file );
 		const interval = new Interval( config, redis );
 		const auth = new Authorization( config, redis );
 		const message = new MsgManagement( config, client );

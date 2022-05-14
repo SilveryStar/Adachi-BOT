@@ -43,7 +43,7 @@ export default class MsgManagement implements MsgManagementMethod {
 		} else {
 			return async function( content, allowAt ): Promise<void> {
 				if ( atUser && allowAt !== false ) {
-					content = sdk.cqcode.at( userID ) + content;
+					content = sdk.cqcode.at( userID ) + " " + content;
 				}
 				await client.sendGroupMsg( <number>groupID, content );
 			}

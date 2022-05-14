@@ -32,10 +32,10 @@ interface DatabaseMethod {
 export default class Database implements DatabaseMethod {
 	public readonly client: RedisClient;
 	
-	constructor( port: number, logger: Logger, file: FileManagement ) {
+	constructor( port: number, auth_pass, logger: Logger, file: FileManagement ) {
 		const host: string = process.env.docker === "yes" ? "redis" : "localhost";
 		
-		this.client = createClient( port, host );
+		this.client = createClient( port, host, { auth_pass } );
 		this.client.on( "connect", async () => {
 			logger.info( "Redis 数据库已连接" );
 		} );
