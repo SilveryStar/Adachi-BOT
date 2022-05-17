@@ -10,6 +10,7 @@ import WebConfiguration from "./logger";
 import WebConsole from "@web-console/backend";
 import RefreshConfig from "./management/refresh";
 import { Order } from "./command";
+import { BasicRenderer } from "@modules/renderer";
 import Command, { BasicConfig, MatchResult } from "./command/main";
 import Authorization, { AuthLevel } from "./management/auth";
 import MsgManagement, * as msg from "./message";
@@ -33,6 +34,7 @@ import { resolve } from "path";
  * @message 消息管理
  * @command 指令集
  * @refresh 配置刷新
+ * @renderer 渲染器
  * */
 export interface BOT {
 	readonly redis: Database;
@@ -45,10 +47,12 @@ export interface BOT {
 	readonly message: MsgManagement;
 	readonly command: Command;
 	readonly refresh: RefreshConfig;
+	readonly renderer: BasicRenderer;
 }
 
 export default class Adachi {
 	public readonly bot: BOT;
+	private isOnline: boolean = false;
 	
 	constructor( root: string ) {
 		/* 初始化运行环境 */
@@ -77,12 +81,14 @@ export default class Adachi {
 		const message = new MsgManagement( config, client );
 		const command = new Command( file );
 		const refresh = new RefreshConfig( file, command );
+		const renderer = new BasicRenderer();
 		
 		this.bot = {
 			client, command, file, redis,
 			logger, message, auth, interval,
-			config, refresh
+			config, refresh, renderer
 		};
+		refresh.registerRefreshableFunc( renderer );
 	}
 	
 	public run(): BOT {
@@ -402,8 +408,15 @@ export default class Adachi {
 	private botOnline( that: Adachi ) {
 		const bot = that.bot;
 		return async function () {
+			if ( that.isOnline ) {
+				return;
+			}
+			that.isOnline = true;
 			const HELP = <Order>bot.command.getSingle( "adachi.help", AuthLevel.Master );
-			await that.bot.message.sendMaster( `Adachi-BOT 已启动成功，请输入 ${ HELP.getHeaders()[0] } 查看命令帮助\n如有问题请前往 github.com/SilveryStar/Adachi-BOT 进行反馈` );
+			const message: string =
+				`Adachi-BOT 已启动成功，请输入 ${ HELP.getHeaders()[0] } 查看命令帮助\n` +
+				"如有问题请前往 github.com/SilveryStar/Adachi-BOT 进行反馈"
+			await that.bot.message.sendMaster( message );
 		}
 	}
 	

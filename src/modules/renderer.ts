@@ -15,30 +15,80 @@ interface RenderError {
 
 export type RenderResult = RenderSuccess | RenderError;
 
-export default class Renderer {
-	private browser?: puppeteer.Browser;
-	private screenshotCount: number;
-	
-	private readonly sourceName: string;
-	private readonly defaultSelector: string;
+export class Renderer {
 	private readonly httpBase: string;
+	
+	constructor(
+		private readonly sourceName: string,
+		private readonly defaultSelector: string,
+		route: string, port: number
+	) {
+		this.httpBase = `http://localhost:${ port }${ route }`;
+	}
+	
+	private getURL( route: string, params?: Record<string, any> ): string {
+		const paramStr: string = new URLSearchParams( params ).toString();
+		
+		try {
+			new URL( route );
+			return `${ route }?${ paramStr }`;
+		} catch ( e ) {
+			const url: string = this.httpBase + route;
+			return `${ url }?${ paramStr }`;
+		}
+	}
+	
+	public async asBase64(
+		route: string,
+		params: Record<string, any> = {},
+		selector: string = this.defaultSelector
+	): Promise<RenderResult> {
+		try {
+			const url: string = this.getURL( route, params );
+			const base64: string = await bot.renderer.screenshot( url, selector );
+			return { code: "ok", data: base64 };
+		} catch ( error ) {
+			const err = <string>( <Error>error ).stack;
+			return { code: "error", error: err };
+		}
+	}
+	
+	public async asCqCode(
+		route: string,
+		params: Record<string, any> = {},
+		selector: string = this.defaultSelector
+	): Promise<RenderResult> {
+		try {
+			const url: string = this.getURL( route, params );
+			const base64: string = await bot.renderer.screenshot( url, selector );
+			const cqCode: string = `[CQ:image,file=${ base64 }]`;
+			return { code: "ok", data: cqCode };
+		} catch ( error ) {
+			const err = <string>( <Error>error ).stack;
+			return { code: "error", error: err };
+		}
+	}
+}
+
+export class BasicRenderer {
+	private browser?: puppeteer.Browser;
+	private screenshotCount: number = 0;
 	
 	static screenshotLimit = <const>233;
 	
-	constructor(
-		name: string, route: string,
-		port: number, defaultSelector: string
-	) {
-		this.screenshotCount = 0;
-		this.defaultSelector = defaultSelector;
-		this.sourceName = name;
-		this.httpBase = `http://localhost:${ port }${ route }`;
-		
+	constructor() {
 		this.launchBrowser()
 			.then( browser => this.browser = browser );
 	}
 	
-	private async closeBrowser(): Promise<void> {
+	public register(
+		name: string, route: string,
+		port: number, defaultSelector: string
+	): Renderer {
+		 return new Renderer( name, defaultSelector, route, port );
+	}
+	
+	public async closeBrowser(): Promise<void> {
 		if ( !this.browser ) {
 			return;
 		}
@@ -46,7 +96,7 @@ export default class Renderer {
 		this.browser = undefined;
 	}
 	
-	private async launchBrowser(): Promise<puppeteer.Browser> {
+	public async launchBrowser(): Promise<puppeteer.Browser> {
 		return new Promise( async ( resolve, reject ) => {
 			if ( this.browser ) {
 				reject( "浏览器已经启动" );
@@ -70,10 +120,22 @@ export default class Renderer {
 		} );
 	}
 	
-	private async restartBrowser(): Promise<void> {
+	public async restartBrowser(): Promise<void> {
 		await this.closeBrowser();
 		this.browser = await this.launchBrowser();
 		this.screenshotCount = 0;
+	}
+	
+	public async refresh(): Promise<string> {
+		try {
+			await this.restartBrowser();
+			return `浏览器重启完成`;
+		} catch ( error ) {
+			throw <RefreshCatch>{
+				log: ( <Error>error ).stack,
+				msg: `浏览器重启失败，请前往控制台查看日志`
+			};
+		}
 	}
 	
 	private async pageLoaded( page: puppeteer.Page ) {
@@ -82,27 +144,10 @@ export default class Renderer {
 		}, { timeout: 10000 } )
 	}
 	
-	private getURL( route: string, params?: Record<string, any> ): string {
-		const paramStr: string = new URLSearchParams( params ).toString();
-		
-		try {
-			new URL( route );
-			return `${ route }?${ paramStr }`;
-		} catch ( e ) {
-			const url: string = this.httpBase + route;
-			return `${ url }?${ paramStr }`;
-		}
-	}
-	
-	private async render(
-		route: string,
-		params: Record<string, any>,
-		selector: string
-	): Promise<string> {
+	public async screenshot( url: string, selector: string ): Promise<string> {
 		if ( !this.browser ) {
 			throw new Error( "浏览器未启动" );
 		}
-		const url: string = this.getURL( route, params );
 		const page: puppeteer.Page = await this.browser.newPage();
 		await page.goto( url );
 		await this.pageLoaded( page );
@@ -114,51 +159,10 @@ export default class Renderer {
 		await page.close();
 		
 		this.screenshotCount++;
-		if ( this.screenshotCount >= Renderer.screenshotLimit ) {
-			await this.restartBrowser();
+		if ( this.screenshotCount >= BasicRenderer.screenshotLimit ) {
+			await bot.renderer.restartBrowser();
 		}
 		
 		return base64;
-	}
-	
-	public async refresh(): Promise<string> {
-		try {
-			await this.restartBrowser();
-			return `浏览器 ${ this.sourceName } 重启完成`;
-		} catch ( error ) {
-			throw <RefreshCatch>{
-				log: ( <Error>error ).stack,
-				msg: `浏览器 ${ this.sourceName } 重启完成失败，请前往控制台查看日志`
-			};
-		}
-	}
-	
-	public async asBase64(
-		route: string,
-		params: Record<string, any> = {},
-		selector: string = this.defaultSelector
-	): Promise<RenderResult> {
-		try {
-			const base64: string = await this.render( route, params, selector );
-			return { code: "ok", data: base64 };
-		} catch ( error ) {
-			const err = <string>( <Error>error ).stack;
-			return { code: "error", error: err };
-		}
-	}
-	
-	public async asCqCode(
-		route: string,
-		params: Record<string, any> = {},
-		selector: string = this.defaultSelector
-	): Promise<RenderResult> {
-		try {
-			const base64: string = await this.render( route, params, selector );
-			const cqCode: string = `[CQ:image,file=${ base64 }]`;
-			return { code: "ok", data: cqCode };
-		} catch ( error ) {
-			const err = <string>( <Error>error ).stack;
-			return { code: "error", error: err };
-		}
 	}
 }
