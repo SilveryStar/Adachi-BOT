@@ -36,7 +36,7 @@
 	padding-top: var(--card-title-height);
 	min-height: 200px;
 	background-color: #fff;
-	box-shadow: 0 0 6px 0 rgba(198, 156, 80, 0.4);
+	box-shadow: 0 0 6px 0 var(--shadow-color);
 	border-radius: 6px;
 	box-sizing: border-box;
 }

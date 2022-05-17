@@ -10,7 +10,7 @@ const template = `<div class="info-artifact" :class="backgroundClass">
 			<img :src="mainImage" alt="ERROR"/>
 		</div>
 		<div class="main-content">
-			<div v-if="effectTitle" class="shirt-title">{{ effectTitle }}</div>
+			<div class="shirt-title">{{ name }}</div>
 			<template v-for="(e, eKey) in effects">
 				<p class="effect-title">{{ eKey }}件套</p>
 				<div class="effect-content" v-html="e"></div>
