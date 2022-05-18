@@ -80,8 +80,8 @@ export async function main( i: InputParameter ): Promise<void> {
 	let commits: any[] = []
 	try {
 		commits = await getCommitsInfo();
-	} catch ( err ) {
-		i.logger.error( err.message );
+	} catch ( error ) {
+		i.logger.error( error );
 		await i.sendMessage( "检查更新出错，可能是网络波动，请重试" );
 		return;
 	}

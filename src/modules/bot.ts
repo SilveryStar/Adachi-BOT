@@ -388,7 +388,10 @@ export default class Adachi {
 			}
 			const inviterID: number = data.user_id;
 			if ( await bot.auth.check( inviterID, bot.config.inviteAuth ) ) {
-				await bot.client.setGroupAddRequest( data.flag );
+				const delay = Math.random() * ( 5 - 2 ) + 2;
+				setTimeout( async () => {
+					await bot.client.setGroupAddRequest( data.flag );
+				}, Math.floor( delay * 1000 ) );
 			} else {
 				const groupID: number = data.group_id;
 				await bot.client.sendPrivateMsg( inviterID, "你没有邀请 BOT 入群的权限" );
@@ -400,7 +403,10 @@ export default class Adachi {
 	/* 自动接受好友申请 */
 	private acceptFriend( that: Adachi ) {
 		return async function ( friendDate: sdk.FriendAddEventData ) {
-			await that.bot.client.setFriendAddRequest( friendDate.flag );
+			const delay = Math.random() * ( 5 - 2 ) + 2;
+			setTimeout( async () => {
+				await that.bot.client.setFriendAddRequest( friendDate.flag );
+			}, Math.floor( delay * 1000 ) );
 		}
 	}
 	
