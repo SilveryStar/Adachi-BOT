@@ -1,7 +1,7 @@
 import { InputParameter } from "@modules/command";
 import { WishResult, WishTotalSet } from "../module/wish";
 import { RenderResult } from "@modules/renderer";
-import { wishClass, renderer } from "../init";
+import { wishClass, renderer, config } from "../init";
 
 type WishStatistic = WishResult & {
 	count: number;
@@ -13,6 +13,12 @@ export async function main(
 	const userID: number = messageData.user_id;
 	const nickname: string = messageData.sender.nickname;
 	const param: string = messageData.raw_message;
+	
+	const wishLimitNum = config.wishLimitNum;
+	if ( wishLimitNum < 99 && ( /^\d+$/.test( param ) && parseInt( param ) > wishLimitNum ) || "until" === param ) {
+		await sendMessage( `由于服务器配置较低，请使用${ wishLimitNum }次以内的十连抽卡` );
+		return;
+	}
 	
 	let choice: string | null = await redis.getString( `silvery-star.wish-choice-${ userID }` );
 	if ( choice.length === 0 ) {

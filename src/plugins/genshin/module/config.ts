@@ -5,12 +5,14 @@ export default class GenshinConfig {
 	public cardProfile: "user" | "random";
 	public serverPort: number;
 	public showCharScore: boolean | number[];
+	public wishLimitNum: number;
 	
 	public static init = {
 		cardWeaponStyle: "normal",
 		cardProfile: "random",
 		serverPort: 58612,
-		showCharScore: true
+		showCharScore: true,
+		wishLimitNum: 99
 	};
 	
 	constructor( config: any ) {
@@ -18,6 +20,7 @@ export default class GenshinConfig {
 		this.cardProfile = config.cardProfile;
 		this.serverPort = config.serverPort;
 		this.showCharScore = config.showCharScore;
+		this.wishLimitNum = config.wishLimitNum;
 	}
 	
 	public async refresh( config ): Promise<string> {
@@ -25,6 +28,7 @@ export default class GenshinConfig {
 			this.cardWeaponStyle = config.cardWeaponStyle;
 			this.cardProfile = config.cardProfile;
 			this.showCharScore = config.showCharScore;
+			this.wishLimitNum = config.wishLimitNum;
 			return "genshin.yml 重新加载完毕";
 		} catch ( error ) {
 			throw <RefreshCatch> {
