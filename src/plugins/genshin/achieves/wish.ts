@@ -15,7 +15,7 @@ export async function main(
 	const param: string = messageData.raw_message;
 	
 	const wishLimitNum = config.wishLimitNum;
-	if ( wishLimitNum < 99 && ( /^\d+$/.test( param ) && parseInt( param ) > wishLimitNum ) || "until" === param ) {
+	if ( wishLimitNum < 99 && ( ( /^\d+$/.test( param ) && parseInt( param ) > wishLimitNum ) || "until" === param ) ) {
 		await sendMessage( `由于服务器配置较低，请使用${ wishLimitNum }次以内的十连抽卡` );
 		return;
 	}
