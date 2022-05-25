@@ -1,4 +1,4 @@
-const template = `<div class="info-base" :class="backgroundClass">
+const template = `<div class="info-base">
 	<header class="info-title">
 		<div v-if="elementIcon" class="element-box">
 			<img :src="elementIcon" alt="ERROR">
