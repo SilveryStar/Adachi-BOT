@@ -16,8 +16,10 @@
 	right: 0;
 	background-color: #fff;
 	border-radius: 10px;
-	border: 1px solid #ccc;
+	border: 1px solid #dec8a9;
+	box-sizing: border-box;
 	opacity: 0.85;
+	filter: hue-rotate(var(--hue-rotate));
 }
 
 .info-card > h3 {
@@ -26,14 +28,27 @@
 	margin-top: 1px;
 	margin-left: -1px;
 	padding: 0 20px;
-	border-radius: 10px 10px 0 0;
 	display: flex;
 	align-items: center;
-	background-image: linear-gradient(to right, #eee, transparent 80%);
 	font-size: 18px;
 	font-weight: 300;
-	opacity: 0.85;
 	z-index: 100;
+}
+
+.info-card > h3::before {
+	content: "";
+	position: absolute;
+	top: 1px;
+	right: 2px;
+	bottom: 0;
+	left: 2px;
+	border-radius: 10px 10px 0 0;
+	background-image: linear-gradient(to right, #faf3e8, transparent 80%);
+	filter: hue-rotate(var(--hue-rotate));
+}
+
+.info-card > h3 > span {
+	position: relative;
 }
 
 .info-card > .info-card-content {

@@ -3,11 +3,8 @@ const template = `
 	<main>
 		<div class="portrait-box">
 			<img class="portrait" :src="portrait" alt="ERROR">
-			<div class="portrait-mask" :style="{'background-image': portraitMaskStyle}"></div>
 		</div>
-		<p class="uid-box" style="text-align: center">
-			<span>———— UID {{ data.uid }} ————</span>
-		</p>
+		<span class="uid-box">UID {{ data.uid }}</span>
 		<div class="chara-name">
 			<img :src="elementIconSrc" alt="ERROR">
 			<h3>{{ data.name }}</h3>
@@ -94,20 +91,16 @@ export default defineComponent( {
 			return urlParams.showScore === "true";
 		} )
 		
-		/* 立绘阴影 */
-		const portraitMaskStyle = ref( "" );
-		
 		/* echart图表颜色 */
 		const chartColor = ref( null );
 		
 		function setStyle( colorList ) {
 			document.documentElement.style.setProperty( "--baseInfoColor", colorList[0] );
-			document.documentElement.style.setProperty( "--backgroundColor", colorList[1] );
-			portraitMaskStyle.value = `linear-gradient(to right, ${ colorList[1] } 5%, transparent 30%, transparent 70%, ${ colorList[1] } 95%)`;
 			chartColor.value = {
 				graphic: colorList[0],
-				text: colorList[2]
+				text: colorList[1]
 			};
+			document.documentElement.style.setProperty( "--hue-rotate", colorList[2] )
 		}
 		
 		const elementIconSrc = `https://adachi-bot.oss-cn-beijing.aliyuncs.com/images/element/Element_${ data.element }.png`;
@@ -143,30 +136,28 @@ export default defineComponent( {
 		
 		switch ( data.element ) {
 			case "Anemo":
-				setStyle( [ "#1ddea7", "#f0f7f5", "#006746" ] );
+				setStyle( [ "#1ddea7", "#006746", "120deg" ] );
 				break;
 			case "Cryo":
-				setStyle( [ "#1daade", "#f0f5f7", "#004b66" ] );
+				setStyle( [ "#1daade", "#004b66", "165deg" ] );
 				break;
 			case "Dendro":
-				setStyle( [
-					// 暂无
-				] );
+				setStyle( [ "#5dde1d", "#226600", "85deg" ] );
 				break;
 			case "Electro":
-				setStyle( [ "#871dde", "#f4f0f7", "#380066" ] );
+				setStyle( [ "#871dde", "#380066", "240deg" ] );
 				break;
 			case "Geo":
-				setStyle( [ "#de8d1d", "#f7f4f0", "#663c00" ] );
+				setStyle( [ "#de8d1d", "#663c00", "0deg" ] );
 				break;
 			case "Hydro":
-				setStyle( [ "#1d8dde", "#f0f4f7", "#003c66" ] );
+				setStyle( [ "#1d8dde", "#003c66", "180deg" ] );
 				break;
 			case "Pyro":
-				setStyle( [ "#de3a1d", "#f7f1f0", "#660f00" ] );
+				setStyle( [ "#de3a1d", "#660f00", "315deg" ] );
 				break;
 			case "None":
-				setStyle( [ "#757575", "#f7f7f7", "#666666" ] );
+				setStyle( [ "#757575", "#666666", "0deg" ] );
 				break;
 		}
 		
@@ -178,7 +169,6 @@ export default defineComponent( {
 			effectList,
 			chartColor,
 			elementIconSrc,
-			portraitMaskStyle,
 			artifactsFontIcon,
 			artifacts,
 			weaponDesc

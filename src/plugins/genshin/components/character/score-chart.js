@@ -1,7 +1,7 @@
 const template = `<div class="score-chart">
 	<v-chart class="chart" :key="chartKey" :option="chartOption"></v-chart>
 	<p>评分：
-		<span class="score" :style="{ color: color.graphic }">{{ score }}</span>
+		<span class="score" :style="{ color: color.text }">{{ score }}</span>
 	</p>
 	<p class="desc">*根据等级以及星级评分，仅供娱乐参考</p>
 </div>`
