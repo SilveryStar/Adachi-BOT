@@ -2,50 +2,48 @@
 	position: relative;
 	display: flex;
 	flex-direction: column;
-	background-color: var(--backgroundColor);
+	padding: 40px;
 	color: #333;
+	overflow: hidden;
 }
 
 .character-base > main {
 	position: relative;
-	padding: 70px 0;
 	display: flex;
 	flex-direction: column;
-	overflow: hidden;
+	align-items: center;
 	box-sizing: border-box;
 }
 
-.character-base > main::before {
+.character-base::before {
 	content: "";
 	position: absolute;
-	top: 0;
 	left: 0;
+	top: 0;
 	right: 0;
 	bottom: 0;
-	border-style: solid;
-	border-width: 70px;
-	border-image: url("https://adachi-bot.oss-cn-beijing.aliyuncs.com/images/card/card-base-bg.png") 70 fill;
-	box-sizing: border-box;
-	filter: brightness(0);
-	opacity: 0.25;
-	z-index: 100;
+	border: 40px solid;
+	border-image: url("https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/common/base-border.png") 55 fill;
+	background: url('https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/common/stand-bg.png') center 105px no-repeat,
+				url("https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/common/base-bg.png");
+	background-size: 523px 518px, auto;
+	filter: hue-rotate(var(--hue-rotate));
 }
 
 /* uid */
 .character-base > main > .uid-box {
 	position: absolute;
-	width: 100%;
-	left: 0;
-	top: 145px;
-	font-size: 18px;
-	color: #636363;
+	left: -4px;
+	top: -8px;
+	font-size: 16px;
+	color: #555;
 }
 
 /* 评分 */
 .character-base > main > .score-chart {
 	position: absolute;
-	right: 12px;
-	top: 188px;
+	right: -45px;
+	top: 115px;
 }
 
 /* 背景立绘 */
@@ -56,32 +54,21 @@
 	position: absolute;
 	width: 100%;
 	left: 50%;
-	top: 190px;
+	top: 152px;
 	transform: translateX(-50%);
 	text-align: center;
-	opacity: 0.5;
+	opacity: 0.8;
 }
 
 .character-base > main > .portrait-box > .portrait {
 	height: 850px;
 }
 
-.character-base > main > .portrait-box > .portrait-mask {
-	position: absolute;
-	top: 0;
-	right: 0;
-	bottom: 0;
-	left: 0;
-}
-
 /* 角色名称部分（标题） */
 .character-base > main > .chara-name {
-	position: absolute;
-	left: 50%;
-	top: 62px;
-	transform: translateX(-50%);
 	display: flex;
 	align-items: center;
+	margin-top: 29px;
 	height: 76px;
 	border-style: solid;
 	border-width: 12px 140px 12px 150px;
@@ -111,7 +98,7 @@
 
 /* 圣遗物列表 */
 .character-base > main > .artifact-list {
-	margin: 380px auto 16px auto;
+	margin: 289px auto 16px;
 	display: flex;
 	align-items: center;
 }
@@ -279,10 +266,15 @@
 	margin-bottom: 0;
 }
 
+/* 作者信息 */
 .character-base > footer {
-	margin-top: -10px;
-	padding-bottom: 10px;
+	position: relative;
+	margin-top: 30px;
+	margin-bottom: -14px;
+	padding-top: 6px;
+	border-top: 1px solid #dec8a9;
 	font-size: 16px;
-	color: #636363;
+	color: #666;
 	text-align: center;
+	filter: hue-rotate(var(--hue-rotate));
 }

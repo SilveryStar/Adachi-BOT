@@ -1,4 +1,4 @@
-const template = `<div class="info-artifact" :class="backgroundClass">
+const template = `<div class="info-artifact">
 	<header>
     	<p class="title-and-name">
     		「<span v-show="title">{{ title }}·</span>{{ name }}」
