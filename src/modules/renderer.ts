@@ -107,13 +107,15 @@ export class BasicRenderer {
 		name: string, route: string,
 		port: number, defaultSelector: string
 	): Renderer {
-		 return new Renderer( name, defaultSelector, route, port );
+		return new Renderer( name, defaultSelector, route, port );
 	}
 	
 	public async closeBrowser(): Promise<void> {
 		if ( !this.browser ) {
 			return;
 		}
+		const pages = await this.browser.pages();
+		await Promise.all( pages.map( page => page.close() ) );
 		await this.browser.close();
 		this.browser = undefined;
 	}
@@ -171,25 +173,30 @@ export class BasicRenderer {
 			throw new Error( "浏览器未启动" );
 		}
 		const page: puppeteer.Page = await this.browser.newPage();
-		// 设置设备参数
-		if ( viewPort ) {
-			await page.setViewport( viewPort );
+		try {
+			// 设置设备参数
+			if ( viewPort ) {
+				await page.setViewport( viewPort );
+			}
+			await page.goto( url );
+			await this.pageLoaded( page );
+			
+			const option: puppeteer.ScreenshotOptions = { encoding: "base64" };
+			const element = await page.$( selector );
+			const result = <string>await element?.screenshot( option );
+			const base64: string = `base64://${ result }`;
+			await page.close();
+			
+			this.screenshotCount++;
+			if ( this.screenshotCount >= BasicRenderer.screenshotLimit ) {
+				await bot.renderer.restartBrowser();
+			}
+			
+			return base64;
+		} catch ( err: any ) {
+			await page.close();
+			throw err;
 		}
-		await page.goto( url );
-		await this.pageLoaded( page );
-		
-		const option: puppeteer.ScreenshotOptions = { encoding: "base64" };
-		const element = await page.$( selector );
-		const result = <string>await element?.screenshot( option );
-		const base64: string = `base64://${ result }`;
-		await page.close();
-		
-		this.screenshotCount++;
-		if ( this.screenshotCount >= BasicRenderer.screenshotLimit ) {
-			await bot.renderer.restartBrowser();
-		}
-		
-		return base64;
 	}
 	
 	public async screenshotForFunction( url: string, viewPort: puppeteer.Viewport | null, pageFunction: PageFunction ): Promise<string> {
@@ -197,21 +204,26 @@ export class BasicRenderer {
 			throw new Error( "浏览器未启动" );
 		}
 		const page: puppeteer.Page = await this.browser.newPage();
-		// 设置设备参数
-		if ( viewPort ) {
-			await page.setViewport( viewPort );
+		try {
+			// 设置设备参数
+			if ( viewPort ) {
+				await page.setViewport( viewPort );
+			}
+			await page.goto( url );
+			await this.pageLoaded( page );
+			
+			const result = await pageFunction( page );
+			await page.close();
+			
+			this.screenshotCount++;
+			if ( this.screenshotCount >= BasicRenderer.screenshotLimit ) {
+				await bot.renderer.restartBrowser();
+			}
+			
+			return result === undefined ? "" : result.toString();
+		} catch ( err: any ) {
+			await page.close();
+			throw err;
 		}
-		await page.goto( url );
-		await this.pageLoaded( page );
-		
-		const result = await pageFunction( page );
-		await page.close();
-		
-		this.screenshotCount++;
-		if ( this.screenshotCount >= BasicRenderer.screenshotLimit ) {
-			await bot.renderer.restartBrowser();
-		}
-		
-		return result === undefined ? "" : result.toString();
 	}
 }
