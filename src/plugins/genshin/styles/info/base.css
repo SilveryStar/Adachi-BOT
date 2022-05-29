@@ -74,6 +74,11 @@
 	transform: translateX(-50%);
 }
 
+.info-base > main > .avatar-box.weapon {
+	top: 50%;
+	transform: translate(-50%, -50%);
+}
+
 .info-base > main > .avatar-box::before {
 	content: '';
 	position: absolute;

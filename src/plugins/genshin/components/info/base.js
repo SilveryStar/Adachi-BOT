@@ -9,7 +9,7 @@ const template = `<div class="info-base">
     	<img :src="rarityIcon" alt="ERROR" class="rarity-icon">
 	</header>
 	<main>
-		<div class="avatar-box">
+		<div class="avatar-box" :class="{ weapon: data.type !== '角色' }">
 			<img :src="mainImage" alt="ERROR"/>
         	<p class="introduce">{{ introduce || '暂无介绍' }}</p>
 		</div>
