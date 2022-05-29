@@ -27,8 +27,8 @@ const ban: SwitchConfig = {
 	auth: AuthLevel.Manager,
 	main: "ban",
 	detail: "qq和群号需使用标识符开头\n" +
-			"qq的标识符为 u，群号为 g\n" +
-			"例：u123456789 表示qq为 123456789 的用户"
+		"qq的标识符为 u，群号为 g\n" +
+		"例：u123456789 表示qq为 123456789 的用户"
 };
 
 const limit: SwitchConfig = {
@@ -43,8 +43,8 @@ const limit: SwitchConfig = {
 	auth: AuthLevel.Manager,
 	main: "limit",
 	detail: "qq和群号需使用标识符开头\n" +
-			"qq的标识符为 u，群号为 g\n" +
-			"例：g987654321 表示群号为 987654321 的群聊"
+		"qq的标识符为 u，群号为 g\n" +
+		"例：g987654321 表示群号为 987654321 的群聊"
 };
 
 const interval: OrderConfig = {
@@ -56,7 +56,7 @@ const interval: OrderConfig = {
 	auth: AuthLevel.Manager,
 	main: "interval",
 	detail: "该命令用于设置群聊/私聊的指令操作触发间隔，时间的单位为毫秒\n" +
-			"1秒=1000毫秒，不支持设置小数"
+		"1秒=1000毫秒，不支持设置小数"
 };
 
 const refresh: OrderConfig = {
@@ -75,7 +75,7 @@ const upgrade: OrderConfig = {
 	cmdKey: "adachi.hot-upgrade",
 	desc: [ "更新bot", "(-f)" ],
 	headers: [ "upgrade" ],
-	regexps: ["(-f)?"],
+	regexps: [ "(-f)?" ],
 	auth: AuthLevel.Master,
 	main: "upgrade",
 	detail: "该指令用于检测并更新 bot 源码\n" +
@@ -84,9 +84,23 @@ const upgrade: OrderConfig = {
 		"在指令后追加 -f 来覆盖本地修改强制更新"
 }
 
+const restart: OrderConfig = {
+	type: "order",
+	cmdKey: "adachi.restart",
+	desc: [ "重启bot", "" ],
+	headers: [ "restart" ],
+	regexps: [],
+	auth: AuthLevel.Master,
+	main: "restart",
+	detail: "用于重启 bot，win 平台暂时无法使用"
+}
+
 export async function init(): Promise<PluginSetting> {
 	return {
 		pluginName: "@management",
-		cfgList: [ manager, ban, limit, interval, refresh, upgrade ]
+		cfgList: [
+			manager, ban, limit, interval,
+			refresh, upgrade, restart
+		]
 	}
 }
