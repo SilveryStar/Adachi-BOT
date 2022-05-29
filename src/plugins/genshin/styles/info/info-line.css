@@ -9,7 +9,7 @@
 	height: 39px;
 	border-radius: 3px;
 	background-color: var(--base-color);
-	font-size: 22px;
+	font-size: 20px;
 	line-height: 39px;
 	font-weight: 500;
 	text-align: center;
@@ -27,7 +27,7 @@
 	align-items: center;
 	margin-bottom: 18px;
 	padding: 0 20px;
-	height: 41px;
+	height: 40px;
 	background: #fff;
 	box-shadow: 0px 0 6px 0 var(--shadow-color);
 	border-radius: 6px;
@@ -43,11 +43,11 @@
 }
 
 .info-line > .line-content > li > .item-data > span {
-	font-size: 18px;
+	font-size: 16px;
 	color: #666;
 }
 
 .info-line > .line-content > li > .item-data > span:first-child {
-	margin-right: 20px;
+	margin-right: 14px;
 }
 
