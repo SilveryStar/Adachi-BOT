@@ -15,12 +15,22 @@ export async function main(
 	const param: string = messageData.raw_message;
 	
 	const wishLimitNum = config.wishLimitNum;
-	if ( wishLimitNum < 99 && ( ( /^\d+$/.test( param ) && parseInt( param ) > wishLimitNum ) || "until" === param ) ) {
-		await sendMessage( `由于服务器配置较低，请使用${ wishLimitNum }次以内的十连抽卡` );
+	if ( wishLimitNum < 99 && ( /^\d+$/.test( param ) && parseInt( param ) > wishLimitNum ) ) {
+		await sendMessage( `因 BOT 持有者限制，仅允许使用 ${ wishLimitNum } 次以内的十连抽卡` );
 		return;
 	}
 	
 	let choice: string | null = await redis.getString( `silvery-star.wish-choice-${ userID }` );
+	
+	// 限制抽卡次数小于一次大保底时禁用 until
+	if ( param === "until" ) {
+		const maxLimitNum = choice === "武器" ? 16 : choice === "常驻" ? 9 : 18;
+		if ( wishLimitNum < maxLimitNum ) {
+			await sendMessage( `因 BOT 持有者限制，当前卡池无法使用 until 指令` );
+			return;
+		}
+	}
+	
 	if ( choice.length === 0 ) {
 		choice = "角色"
 		await redis.setString( `silvery-star.wish-choice-${ userID }`, "角色" );
