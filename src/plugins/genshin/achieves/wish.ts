@@ -15,12 +15,20 @@ export async function main(
 	const param: string = messageData.raw_message;
 	
 	const wishLimitNum = config.wishLimitNum;
-	if ( wishLimitNum < 99 && ( ( /^\d+$/.test( param ) && parseInt( param ) > wishLimitNum ) || "until" === param ) ) {
+	let choice: string | null = await redis.getString( `silvery-star.wish-choice-${ userID }` );
+	const choiceTmp = choice || "角色";
+	let maxWishNum;
+	if ( choiceTmp === "武器" ) {
+		maxWishNum = 24;
+	} else {
+		// 常驻、角色、角色2
+		maxWishNum = 18;
+	}
+	if ( ( /^\d+$/.test( param ) && parseInt( param ) > wishLimitNum ) || ( wishLimitNum < maxWishNum && "until" === param ) ) {
 		await sendMessage( `由于服务器配置较低，请使用${ wishLimitNum }次以内的十连抽卡` );
 		return;
 	}
 	
-	let choice: string | null = await redis.getString( `silvery-star.wish-choice-${ userID }` );
 	if ( choice.length === 0 ) {
 		choice = "角色"
 		await redis.setString( `silvery-star.wish-choice-${ userID }`, "角色" );
