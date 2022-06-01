@@ -23,15 +23,17 @@
 /* 间内容 */
 .room > .room-content {
 	display: flex;
-	margin-top: 16px;
 	align-items: center;
 	justify-content: space-between;
+	margin-top: 16px;
+	height: 126px;
 }
 
 .room > .room-content > .chara-list {
 	position: relative;
 	padding: 7px 20px;
 	width: 254px;
+	height: 100%;
 	box-sizing: border-box;
 }
 
@@ -52,6 +54,8 @@
 	padding: 5px 0;
 	justify-content: space-between;
 	align-items: center;
+	height: 50%;
+	box-sizing: border-box;
 }
 
 .room > .room-content > .chara-list > li:first-child {
@@ -113,4 +117,12 @@
 
 .room > .room-content > .star-box > img.star-crush {
 	opacity: 0.4;
+}
+
+/* 空数据文字 */
+.room > .room-content > .empty-massage {
+	flex: 1;
+	font-size: 26px;
+	text-align: center;
+	text-shadow: 3px 2px 1px rgb(0 0 0);
 }
