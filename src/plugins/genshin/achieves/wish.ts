@@ -24,7 +24,7 @@ export async function main(
 	
 	// 限制抽卡次数小于一次大保底时禁用 until
 	if ( param === "until" ) {
-		const maxLimitNum = choice === "武器" ? 16 : choice === "常驻" ? 9 : 18;
+		const maxLimitNum = choice === "武器" ? 24 : choice === "常驻" ? 9 : 18;
 		if ( wishLimitNum < maxLimitNum ) {
 			await sendMessage( `因 BOT 持有者限制，当前卡池无法使用 until 指令` );
 			return;

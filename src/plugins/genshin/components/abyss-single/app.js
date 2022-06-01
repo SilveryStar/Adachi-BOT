@@ -28,7 +28,7 @@ const template = `<div class="abyss-single">
 	<main>
 		<Overview v-if="showData" :data="dataList"></Overview>
 		<div class="floors-data">
-			<Floor v-for="(f, fKey) of data.floors" :key="fKey" :data="f"></Floor>
+			<Floor v-for="(f, fKey) of floors" :key="fKey" :data="f"></Floor>
 		</div>
 	</main>
 	<footer>
@@ -56,6 +56,16 @@ export default defineComponent( {
 		const urlParams = parseURL( location.search );
 		const data = request( `/api/abyss/single?qq=${ urlParams.qq }` );
 		
+		/* 获取9-12层数据，无数据使用默认数据填充 */
+		const floors = new Array(4).fill('').map((fake, fKey) => {
+			const index = fKey + 9;
+			const floor = data.floors?.find(f => f.index === index);
+			return floor || {
+				index,
+				levels: []
+			}
+		});
+		
 		const parsed = abyssDataParser( data );
 		
 		/* 获取头像 */
@@ -64,6 +74,7 @@ export default defineComponent( {
 		return {
 			...parsed,
 			data,
+			floors,
 			avatar
 		};
 	}
