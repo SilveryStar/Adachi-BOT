@@ -78,6 +78,22 @@ export default class Database implements DatabaseMethod {
 			} );
 		} );
 	}
+
+	public async setHashField(key: string, field: string, value: string): Promise<void> {
+		this.client.hmset(key, field,value);
+	}
+
+	public async getHashField(key: string, field: string): Promise<any> {
+		return new Promise((resolve, reject) => {
+			this.client.hget(key, field, (error: Error | null, data: string | null) => {
+				if (error !== null) {
+					reject(error);
+				} else {
+					resolve(data || "");
+				}
+			});
+		});
+	}
 	
 	public async delHash( key: string, ...fields: string[] ): Promise<void> {
 		this.client.hdel( key, fields );
