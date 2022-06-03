@@ -1,9 +1,21 @@
-const { defineComponent, ref, onBeforeMount, onUnmounted } = Vue;
+const template = `<component :is="layout" :isMobile="isMobile"></component>`
+
+import * as l from "./layout/index.js";
+const { defineComponent, ref, onBeforeMount, onUnmounted, computed } = Vue;
+const { useRoute } = VueRouter;
 
 export default defineComponent( {
 	name: "App",
-	template: "<router-view :isMobile='isMobile' />",
+	template,
+	components: {
+		BlankLayout: l.BlankLayout,
+		SystemLayout: l.SystemLayout
+	},
 	setup() {
+		const route = useRoute();
+		const layout = computed(() => `${ route.meta.layout || "blank" }-layout`)
+		
+		// 是否移动端
 		const isMobile = ref( false );
 		
 		function onLayoutResize() {
@@ -13,14 +25,14 @@ export default defineComponent( {
 		}
 		
 		onBeforeMount( () => {
-			window.addEventListener( "resize", onLayoutResize );
 			onLayoutResize();
+			window.addEventListener( "resize", onLayoutResize );
 		} )
 		
 		onUnmounted( () => {
 			window.removeEventListener( "resize", onLayoutResize );
 		} );
 		
-		return { isMobile };
+		return { layout, isMobile };
 	}
 } );

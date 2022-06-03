@@ -1,49 +1,25 @@
-import Layout from "../layout/index.js";
+import systemRouters from "./system.js";
 
 const { createRouter, createWebHashHistory } = VueRouter;
-const { get } = axios;
 
-const routes = [ {
-	path: "/",
-	redirect: "/login"
-}, {
-	path: "/login",
-	name: "Login",
-	meta: { title: "登录" },
-	component: () => import( "../view/login.js" )
-}, {
-	component: Layout,
-	children: [ {
-		path: "/home",
-		name: "Home",
-		meta: { title: "首页" },
-		component: () => import( "../view/home.js" )
-	} ]
-}, {
-	component: Layout,
-	children: [ {
-		path: "/log",
-		name: "Log",
-		meta: { title: "日志" },
-		component: () => import( "../view/log.js" )
-	} ]
-}, {
-	component: Layout,
-	children: [ {
-		path: "/user",
-		name: "User",
-		meta: { title: "用户" },
-		component: () => import( "../view/user.js" )
-	} ]
-}, {
-	component: Layout,
-	children: [ {
-		path: "/stat",
-		name: "Stat",
-		meta: { title: "统计" },
-		component: () => import( "../view/stat.js" )
-	} ]
-} ];
+const routes = [
+	{
+		path: "/",
+		redirect: "/login"
+	}, {
+		path: "/login",
+		name: "Login",
+		component: () => import( "../views/login.js" ),
+		meta: { title: "登录", noAuth: true }
+	},
+	...systemRouters,
+	{
+		path: '/:catchAll(.*)',
+		name: '404',
+		meta: { title: '404', noAuth: true },
+		component: () => import('../views/not-found.js')
+	}
+];
 
 const router = createRouter( {
 	routes,

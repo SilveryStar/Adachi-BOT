@@ -1,26 +1,27 @@
 <!DOCTYPE html>
 <html lang="zh-cmn-Hans">
 <head>
-    <title>Adachi-Admin</title>
+	<title>Adachi-Admin</title>
 	<link rel="icon" href="./public/favicon.ico"/>
 	<meta name="robots" content="noindex,nofollow">
 	<meta charset="UTF-8">
 	<meta name="viewport"
-          content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"
-    />
-
-    <script src="https://unpkg.com/vue@3.2.21/dist/vue.global.prod.js"></script>
-    <script src="https://unpkg.com/vue-router@4.0.12/dist/vue-router.global.prod.js"></script>
-    <script src="https://unpkg.com/axios@0.24.0/dist/axios.min.js"></script>
-    <script src="https://unpkg.com/element-plus@1.2.0-beta.3/dist/index.full.min.js"></script>
+	      content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"
+	/>
+	
+	<script src="https://unpkg.com/vue@3.2.21/dist/vue.global.prod.js"></script>
+	<script src="https://unpkg.com/vue-router@4.0.12/dist/vue-router.global.prod.js"></script>
+	<script src="https://unpkg.com/axios@0.24.0/dist/axios.min.js"></script>
+	<script src="https://unpkg.com/element-plus@1.2.0-beta.3/dist/index.full.min.js"></script>
 	<script src="https://unpkg.com/echarts@5.1.2/dist/echarts.min.js"></script>
 	<script src="https://unpkg.com/vue-echarts@6.0.0/dist/index.umd.min.js"></script>
 	<script src="https://unpkg.com/blueimp-md5@2.18.0/js/md5.min.js"></script>
 	<script src="main.js" type="module"></script>
 	
-    <link rel="stylesheet" href="https://unpkg.com/element-plus@1.2.0-beta.3/dist/index.css"/>
+	<link rel="stylesheet" href="https://unpkg.com/element-plus@1.2.0-beta.3/dist/index.css"/>
 	<link rel="stylesheet" href="assets/styles/reset.css"/>
-	<link rel="stylesheet" href="assets/styles/layout.css"/>
+	<link rel="stylesheet" href="assets/styles/layout/system.css"/>
+	<link rel="stylesheet" href="assets/iconfont/iconfont.css"/>
 	<link rel="stylesheet" href="assets/styles/transition.css"/>
 	<link rel="stylesheet" href="assets/styles/view/home.css"/>
 	<link rel="stylesheet" href="assets/styles/view/login.css"/>
@@ -37,7 +38,9 @@
 
 <style>
 	:root {
-		--aside-width: 180px;
+		--app-height: auto;
+		--base-color: #F9D87F;
+		--aside-width: 240px;
 		--logo-height: 50px;
 		--footer-height: 36px;
 		--mobile-header: 46px;

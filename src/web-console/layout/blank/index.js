@@ -1,6 +1,5 @@
-const template =
-`<div class="layout-main">
-	<router-view v-slot="{ Component }">
+const template = `<div class="blank-layout">
+	<router-view v-slot="{ Component }" :isMobile="isMobile">
 		<transition name="fade-transform" mode="out-in" appear>
 			<component :is="Component" />
         </transition>
@@ -10,6 +9,12 @@ const template =
 const { defineComponent } = Vue;
 
 export default defineComponent( {
-	name: "Main",
-	template
+	name: "BlankLayout",
+	template,
+	props: {
+		isMobile: {
+			type: Boolean,
+			default: false
+		}
+	}
 } );
