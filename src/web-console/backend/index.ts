@@ -56,7 +56,10 @@ export default class WebConsole {
 				const cron: string = "*/2 * * * * ?";
 				const job = scheduleJob( cron, () => {
 					if ( messageCache.length !== 0 ) {
-						ws.send( messageCache );
+						const data = messageCache.split( "__ADACHI__" )
+							.filter( el => el.length !== 0 )
+							.map( el => JSON.parse( el ) );
+						ws.send( JSON.stringify( data ) );
 						messageCache = "";
 					}
 				} );

@@ -1,6 +1,4 @@
 .logger {
-	position: absolute;
-	top: 0;
 	width: calc( 100% - 2 * var( --box-padding ) );
 	height: calc( 100% - 2 * var( --box-padding ) );
 	padding: var( --box-padding );
