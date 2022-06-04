@@ -117,7 +117,7 @@ export default defineComponent( {
 		
 		/* 获取日志列表 */
 		async function getLogsData( date = state.currentDate ) {
-			return new Promise( ( resolve, reject ) => {
+			return new Promise( ( resolve ) => {
 				$http.LOG_INFO( {
 					date: date.getTime(),
 					page: state.currentPage,
@@ -126,9 +126,10 @@ export default defineComponent( {
 					const data = resp.data
 					state.list = data.data;
 					state.totalLog = data.total;
-					resolve( resp.data );
-				} ).catch( err => {
-					reject( err );
+					resolve();
+				} ).catch( () => {
+					state.error = true;
+					resolve();
 				} );
 			} )
 		}
@@ -144,8 +145,6 @@ export default defineComponent( {
 				} else if ( ws ) {
 					ws.close();
 				}
-			} ).catch( () => {
-				state.error = true;
 			} );
 		}
 		

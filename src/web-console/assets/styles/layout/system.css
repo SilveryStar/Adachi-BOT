@@ -54,7 +54,6 @@
 	position: relative;
 	padding: 30px 30px 12px;
 	min-height: calc(var(--content-height) - var( --footer-height ));
-	height: 0;
 	box-sizing: border-box;
 	overflow: hidden;
 }

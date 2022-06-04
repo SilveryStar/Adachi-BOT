@@ -26,7 +26,7 @@ const systemRoutes = [
 	{
 		path: "/system/user",
 		name: "User",
-		component: () => import("../views/user.js"),
+		component: () => import("../views/user/index.js"),
 		meta: { title: "用户", icon: "icon-user", layout: "system", group: "Components" }
 	}
 ];

@@ -1,8 +1,13 @@
 .logger {
-	width: calc( 100% - 2 * var( --box-padding ) );
-	height: calc( 100% - 2 * var( --box-padding ) );
+	position: absolute;
+	top: 30px;
+	left: 30px;
+	right: 30px;
+	bottom: 12px;
 	padding: var( --box-padding );
 	background-color: #ffffff;
+	border-radius: 4px;
+	box-shadow: var( --box-shadow );
 }
 
 .logger .picker {
