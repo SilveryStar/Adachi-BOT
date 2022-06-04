@@ -1,9 +1,7 @@
 const template = `<section class="main-view">
-	<router-view v-slot="{ Component }" :isMobile="isMobile">
-		<transition name="fade-transform" mode="out-in" appear>
-			<component :is="Component" />
-        </transition>
-	</router-view>
+	<transition name="fade-transform" mode="out-in" appear>
+		<router-view :isMobile="isMobile" />
+	</transition>
 </section>`;
 
 const { defineComponent } = Vue;

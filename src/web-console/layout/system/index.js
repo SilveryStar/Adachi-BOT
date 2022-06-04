@@ -3,13 +3,17 @@ const template = `<div class="user-layout" :class="{ open: isOpen }">
 	<AsideView :is-open="isOpen" :is-mobile="isMobile" @toggle="toggle" />
 	<main class="content">
 		<NavView :is-open="isOpen" @toggle="toggle" />
-		<MainView />
+		<el-scrollbar wrap-class="scrollbar-wrapper">
+			<MainView />
+			<FooterView :is-mobile="isMobile" />
+		</el-scrollbar>
 	</main>
 </div>`;
 
 import NavView from "./nav.js";
 import AsideView from "./aside.js";
 import MainView from "./main.js";
+import FooterView from "./footer.js";
 
 const { defineComponent, ref, onMounted, watch } = Vue;
 
@@ -19,7 +23,8 @@ export default defineComponent( {
 	components: {
 		NavView,
 		AsideView,
-		MainView
+		MainView,
+		FooterView
 	},
 	props: {
 		isMobile: {

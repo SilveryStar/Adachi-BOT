@@ -1,32 +1,34 @@
 const template = `<aside class="aside-view">
-	<el-menu :default-active="$route.path" router>
-		<a class="logo-box" href="https://github.com/SilveryStar/Adachi-BOT" target="_blank">
-        	<img src="../../public/image/logo-text.png" alt="ERROR" draggable="false">
-        	<p>
-        		<span class="login-title">Adachi-BOT</span>
-        		<span class="login-desc">Admin</span>
-			</p>
-      	</a>
-      	<div v-for="group in Object.keys(userRoutes)" :key="group" class="routes-group">
-      		<h3 class="group-title">{{ group }}</h3>
-      		<div v-for="routes of userRoutes[group]" :key="routes.path">
-      	  		<el-sub-menu v-if="routes.children && routes.children.length > 1" :class="{'is-active': route.path === routes.path}" :index="routes.path">
-      	    		<template #title>
+	<el-scrollbar wrap-class="scrollbar-wrapper">
+		<el-menu :default-active="$route.path" router>
+			<a class="logo-box" href="https://github.com/SilveryStar/Adachi-BOT" target="_blank">
+        		<img src="../../public/image/logo-text.png" alt="ERROR" draggable="false">
+        		<p>
+        			<span class="login-title">Adachi-BOT</span>
+        			<span class="login-desc">Admin</span>
+				</p>
+      		</a>
+      		<div v-for="group in Object.keys(userRoutes)" :key="group" class="routes-group">
+      			<h3 class="group-title">{{ group }}</h3>
+      			<div v-for="routes of userRoutes[group]" :key="routes.path">
+      	  			<el-sub-menu v-if="routes.children && routes.children.length > 1" :class="{'is-active': route.path === routes.path}" :index="routes.path">
+      	    			<template #title>
+      	    				<i :class="routes.meta?.icon"></i>
+      	    				<span>{{ routes.meta?.title }}</span>
+			  			</template>
+      	    			<el-menu-item v-for="route of routes.children" :key="route.path" :index="route.path" @click="cancelToggle">
+      	    				<i :class="route.meta?.icon"></i>
+      	      				<span>{{ route.meta?.title }}</span>
+      	    			</el-menu-item>
+      	  			</el-sub-menu>
+      	  			<el-menu-item v-else :index="routes.path" @click="cancelToggle">
       	    			<i :class="routes.meta?.icon"></i>
       	    			<span>{{ routes.meta?.title }}</span>
-			  		</template>
-      	    		<el-menu-item v-for="route of routes.children" :key="route.path" :index="route.path" @click="cancelToggle">
-      	    			<i :class="route.meta?.icon"></i>
-      	      			<span>{{ route.meta?.title }}</span>
-      	    		</el-menu-item>
-      	  		</el-sub-menu>
-      	  		<el-menu-item v-else :index="routes.path" @click="cancelToggle">
-      	    		<i :class="routes.meta?.icon"></i>
-      	    		<span>{{ routes.meta?.title }}</span>
-      	  		</el-menu-item>
-      		</div>
-    	</div>
-    </el-menu>
+      	  			</el-menu-item>
+      			</div>
+    		</div>
+    	</el-menu>
+	</el-scrollbar>
 </aside>`;
 
 const { defineComponent } = Vue;
