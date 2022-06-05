@@ -31,23 +31,20 @@ const template = `<aside class="aside-view">
 	</el-scrollbar>
 </aside>`;
 
-const { defineComponent } = Vue;
 import systemRoutes from "../../router/system.js";
+
+const { defineComponent, inject } = Vue;
 
 export default defineComponent( {
 	name: "AsideView",
 	template,
 	emits: [ "toggle" ],
-	props: {
-		isMobile: {
-			type: Boolean,
-			default: false
-		}
-	},
 	setup( props, { emit } ) {
+		const { device } = inject( "app" );
+		
 		// 关闭弹窗
 		function cancelToggle() {
-			if ( props.isMobile ) {
+			if ( device.value === "mobile" ) {
 				emit( "toggle", false );
 			}
 		}

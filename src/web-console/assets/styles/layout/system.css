@@ -198,4 +198,10 @@
 	.user-layout > .content {
 		padding-left: 0;
 	}
+	.user-layout > .content > .el-scrollbar .main-view {
+		padding: 12px;
+	}
+	.user-layout > .content > .el-scrollbar .footer-view {
+		padding: 0 12px;
+	}
 }

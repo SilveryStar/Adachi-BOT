@@ -1,5 +1,4 @@
-const template =
-`<div class="stat-page">
+const template = `<div class="stat-page">
 	<div class="week-stat">
 		<el-date-picker
 			class="picker"
@@ -149,7 +148,7 @@ export default defineComponent( {
 			}, "GET" );
 			state.dataset = [];
 			state.total = [];
-			for ( let u of resp.data ) {
+			for ( let u of resp ) {
 				const subData = u.data;
 				const dayID = subData.dayID;
 				const tmpSet = [];
@@ -179,7 +178,7 @@ export default defineComponent( {
 					state.curWeek.getDate() -
 					state.curWeek.getDay() +
 					weekList.findIndex( el => el === params.name )
-			) );
+				) );
 			state.dayOption.series[0].data = getDayData();
 		}
 		

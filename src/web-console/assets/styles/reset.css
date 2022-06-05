@@ -48,3 +48,20 @@ a, a:focus, a:hover {
 .el-scrollbar__bar.is-horizontal {
 	 display: none;
 }
+
+/* el-table */
+.el-table .el-table__header-wrapper tr .el-table__cell {
+	padding: 0;
+}
+
+.el-table .el-table__cell {
+	padding: 10px 0;
+}
+
+.el-table th > .cell {
+	padding: 0 10px;
+	line-height: 30px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}

@@ -1,7 +1,9 @@
-const template = `<component :is="layout" :isMobile="isMobile"></component>`
+const template = `<component :is="layout"></component>`
 
 import * as l from "./layout/index.js";
-const { defineComponent, ref, onBeforeMount, onUnmounted, computed } = Vue;
+import { useAppStore, useUserStore } from "./store/index.js";
+
+const { defineComponent, onBeforeMount, onUnmounted, computed, provide } = Vue;
 const { useRoute } = VueRouter;
 
 export default defineComponent( {
@@ -13,15 +15,30 @@ export default defineComponent( {
 	},
 	setup() {
 		const route = useRoute();
-		const layout = computed(() => `${ route.meta.layout || "blank" }-layout`)
+		const layout = computed( () => `${ route.meta.layout || "blank" }-layout` );
 		
-		// 是否移动端
-		const isMobile = ref( false );
+		const appStore = useAppStore();
+		
+		/* 挂载store */
+		provide( "app", appStore );
+		provide( "user", useUserStore() );
 		
 		function onLayoutResize() {
 			/* 移动端地址栏问题 */
-			document.documentElement.style.setProperty( "--app-height", `${ window.innerHeight }px` );
-			isMobile.value = window.innerWidth <= 768;
+			const height = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
+			const width = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
+			
+			const device = width <= 768 ? "mobile" : "desktop";
+			if ( appStore.device.value !== device ) {
+				appStore.SET_DEVICE( device );
+			}
+			if ( appStore.deviceWidth.value !== width ) {
+				appStore.SET_DEVICE_WIDTH( width );
+			}
+			if ( appStore.deviceHeight.value !== height ) {
+				document.documentElement.style.setProperty( "--app-height", `${ height }px` );
+				appStore.SET_DEVICE_HEIGHT( height );
+			}
 		}
 		
 		onBeforeMount( () => {
@@ -33,6 +50,6 @@ export default defineComponent( {
 			window.removeEventListener( "resize", onLayoutResize );
 		} );
 		
-		return { layout, isMobile };
+		return { layout };
 	}
 } );

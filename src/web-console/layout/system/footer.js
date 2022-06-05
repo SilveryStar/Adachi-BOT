@@ -5,10 +5,17 @@ const template = `<div class="footer-view">
 	</div>
 </div>`;
 
-const { defineComponent } = Vue;
+const { defineComponent, computed, inject } = Vue;
 
 export default defineComponent( {
 	name: "FooterView",
-	props: { isMobile: Boolean },
-	template
+	template,
+	setup() {
+		const { device } = inject( "app" );
+		const isMobile = computed( () => device.value === "mobile" );
+		
+		return {
+			isMobile
+		};
+	}
 } );

@@ -1,4 +1,5 @@
 import router from "../router/index.js";
+import { getToken } from "../utils/session.js";
 
 const server = axios.create( {
 	baseURL: "/api",
@@ -10,7 +11,7 @@ const server = axios.create( {
 } )
 
 server.interceptors.request.use( config => {
-	const token = localStorage.getItem( "token" );
+	const token = getToken();
 	if ( token ) {
 		config.headers.authorization = `Bearer ${ token }`;
 	}
@@ -18,7 +19,7 @@ server.interceptors.request.use( config => {
 } );
 
 server.interceptors.response.use( resp => {
-	return Promise.resolve( resp );
+	return Promise.resolve( resp.data );
 }, error => {
 	if ( error.response && error.response.status === 401 ) {
 		localStorage.removeItem( "token" );

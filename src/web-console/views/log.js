@@ -123,9 +123,8 @@ export default defineComponent( {
 					page: state.currentPage,
 					length: state.pageSize
 				}, "GET" ).then( resp => {
-					const data = resp.data
-					state.list = data.data;
-					state.totalLog = data.total;
+					state.list = resp.data;
+					state.totalLog = resp.total;
 					resolve();
 				} ).catch( () => {
 					state.error = true;

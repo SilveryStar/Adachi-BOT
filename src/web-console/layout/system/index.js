@@ -1,11 +1,11 @@
 const template = `<div class="user-layout" :class="{ open: isOpen }">
 	<div class="mask" :class="{ open: isOpen && isMobile }" @click="toggle( false )" />
-	<AsideView :is-open="isOpen" :is-mobile="isMobile" @toggle="toggle" />
+	<AsideView :is-open="isOpen" @toggle="toggle" />
 	<main class="content">
 		<NavView :is-open="isOpen" @toggle="toggle" />
 		<el-scrollbar wrap-class="scrollbar-wrapper">
 			<MainView />
-			<FooterView :is-mobile="isMobile" />
+			<FooterView />
 		</el-scrollbar>
 	</main>
 </div>`;
@@ -15,7 +15,7 @@ import AsideView from "./aside.js";
 import MainView from "./main.js";
 import FooterView from "./footer.js";
 
-const { defineComponent, ref, onMounted, watch } = Vue;
+const { defineComponent, ref, watch, computed, inject } = Vue;
 
 export default defineComponent( {
 	name: "SystemLayout",
@@ -26,22 +26,15 @@ export default defineComponent( {
 		MainView,
 		FooterView
 	},
-	props: {
-		isMobile: {
-			type: Boolean,
-			default: false
-		}
-	},
-	setup( props ) {
+	setup() {
+		const { device } = inject( "app" );
 		const isOpen = ref( false );
 		
-		watch( () => props.isMobile, state => {
+		const isMobile = computed( () => device.value === "mobile" );
+		
+		watch( () => isMobile.value, state => {
 			isOpen.value = !state;
 		}, { immediate: true } );
-		
-		onMounted( () => {
-			isOpen.value = !props.isMobile
-		} )
 		
 		function toggle( state ) {
 			isOpen.value = state;
@@ -49,6 +42,7 @@ export default defineComponent( {
 		
 		return {
 			isOpen,
+			isMobile,
 			toggle
 		}
 	}

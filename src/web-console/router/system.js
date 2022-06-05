@@ -2,7 +2,7 @@ const systemRoutes = [
 	{
 		path: "/system",
 		name: "System",
-		redirect: "/system/dashboard",
+		redirect: "/system/home",
 		meta: { title: "后台管理", hidden: true }
 	},
 	{

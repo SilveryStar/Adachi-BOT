@@ -8,6 +8,7 @@
 	background-color: #ffffff;
 	border-radius: 4px;
 	box-shadow: var( --box-shadow );
+	box-sizing: border-box;
 }
 
 .logger .picker {
@@ -185,9 +186,11 @@
 
 @media (max-width: 768px) {
 	.logger {
-		width: 100%;
-		height: 100%;
 		padding: 0;
+		top: 12px;
+		left: 12px;
+		right: 12px;
+		bottom: 12px;
 	}
 
 	.logger .picker {
@@ -219,6 +222,10 @@
 		line-height: 30px;
 		font-size: 12px;
 		width: 90px;
+	}
+
+	.log-container {
+		height: calc(100% - 30px);
 	}
 
 	.log-container .content-line {

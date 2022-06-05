@@ -17,7 +17,7 @@ const template = `<header class="nav-view">
 	</div>
 </header>`;
 
-const { defineComponent, ref, watch } = Vue;
+const { defineComponent, ref, watch, inject } = Vue;
 const { useRouter, useRoute } = VueRouter;
 
 export default defineComponent( {
@@ -33,6 +33,7 @@ export default defineComponent( {
 	setup( props, { emit } ) {
 		const router = useRouter();
 		const route = useRoute();
+		const { USER_LOGOUT } = inject( "user" );
 		
 		// 面包屑数组
 		const breadcrumbs = ref( [] );
@@ -56,8 +57,9 @@ export default defineComponent( {
 		
 		/* 退出登录 */
 		function accountLogout() {
-			localStorage.removeItem( "token" );
-			router.push( "login" );
+			USER_LOGOUT().then( () => {
+				router.push( "/login" );
+			} )
 		}
 		
 		/* 切换开关状态 */
