@@ -32,6 +32,10 @@ a, a:focus, a:hover {
 	text-decoration: none;
 }
 
+ul {
+	list-style: none;
+}
+
 /* el-scrollbar */
 .scrollbar-wrapper {
 	overflow-x: hidden !important;
@@ -42,11 +46,11 @@ a, a:focus, a:hover {
 }
 
 .el-scrollbar__bar.is-vertical {
-	 right: 0;
+	right: 0;
 }
 
 .el-scrollbar__bar.is-horizontal {
-	 display: none;
+	display: none;
 }
 
 /* el-table */

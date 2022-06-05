@@ -28,7 +28,7 @@ const template = `<div class="user-page">
 			</el-table-column>
 			<el-table-column prop="setting" label="操作" align="center" min-width="60px">
 				<template #default="{row}">
-    	      		<el-button type="text" @click="editUser(row)">编辑</el-button>
+    	      		<el-button type="text" @click="openUserModal(row)">编辑</el-button>
 				</template>
 			</el-table-column>
 		</el-table>
@@ -38,11 +38,15 @@ const template = `<div class="user-page">
 			:page-size="pageSize"
 			:pager-count="7"
 			:total="totalUser"
-			@current-change="pageChange"></el-pagination>
+			@current-change="getUserData"></el-pagination>
 	</div>
+    <el-dialog v-model="showUserModal" @closed="closeUserModal" draggable>
+    	<user-detail :user-info="selectUser" :cmdKeys="cmdKeys" :auth-level="authLevel" @close-dialog="closeUserModal" @reload-data="getUserData"></user-detail>
+    </el-dialog>
 </div>`;
 
 import $http from "../../api/index.js";
+import UserDetail from "./userDetail.js"
 
 const { defineComponent, reactive, onMounted, computed, toRefs, inject } = Vue;
 const { ElMessage } = ElementPlus;
@@ -50,13 +54,19 @@ const { ElMessage } = ElementPlus;
 export default defineComponent( {
 	name: "User",
 	template,
+	components: {
+		UserDetail
+	},
 	setup() {
 		const state = reactive( {
 			userList: [],
+			cmdKeys: [],
 			currentPage: 1,
 			pageSize: 10,
 			totalUser: 0,
-			tableLoading: false
+			tableLoading: false,
+			showUserModal: false,
+			selectUser: {}
 		} );
 		
 		const { device, deviceWidth, deviceHeight } = inject( "app" );
@@ -84,7 +94,7 @@ export default defineComponent( {
 		}, ];
 		
 		const tableHeight = computed( () => {
-			return `${ deviceHeight.value - ( device.value === "mobile" ? 234 : 276 ) }px`;
+			return `${ deviceHeight.value - ( device.value === "mobile" ? 236 : 278 ) }px`;
 		} );
 		
 		onMounted( () => {
@@ -108,13 +118,14 @@ export default defineComponent( {
 			} );
 		}
 		
-		function editUser( row ) {
-			console.log( row );
+		function openUserModal( row ) {
+			state.showUserModal = true;
+			state.selectUser = JSON.parse( JSON.stringify( row ) );
 		}
 		
-		/* 分页 */
-		function pageChange() {
-			getUserData();
+		function closeUserModal() {
+			state.showUserModal = false;
+			state.selectUser = {};
 		}
 		
 		/* 设置行首index */
@@ -129,10 +140,10 @@ export default defineComponent( {
 			deviceHeight,
 			listQuery,
 			authLevel,
-			pageChange,
 			getUserData,
 			setRowIndex,
-			editUser
+			openUserModal,
+			closeUserModal
 		};
 	}
 } );

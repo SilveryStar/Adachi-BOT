@@ -72,7 +72,7 @@
 	margin-bottom: 1.25rem;
 }
 
-.login-base > .login-main > .login-main-content > .login-main-form .el-input__inner,
+.login-base > .login-main > .login-main-content > .login-main-form .el-input__wrapper,
 .login-base > .login-main > .login-main-content > .login-main-form > .el-button {
 	width: 100%;
 	height: 2.5rem;
@@ -80,7 +80,7 @@
 	box-sizing: border-box;
 }
 
-.login-base > .login-main > .login-main-content > .login-main-form .el-input__inner {
+.login-base > .login-main > .login-main-content > .login-main-form .el-input__wrapper {
 	padding: 0 1.5rem;
 }
 
