@@ -4,10 +4,10 @@
 	left: 30px;
 	right: 30px;
 	bottom: 12px;
-	padding: var( --box-padding );
+	padding: var(--box-padding);
 	background-color: #ffffff;
 	border-radius: 4px;
-	box-shadow: var( --box-shadow );
+	box-shadow: var(--box-shadow);
 	box-sizing: border-box;
 }
 
@@ -44,8 +44,14 @@
 	color: #ffffff;
 }
 
-.el-input--prefix .el-input__inner {
+.logger .picker .el-input--prefix .el-input__inner {
 	padding-left: 38px;
+}
+
+.logger .picker .el-input__prefix {
+	position: absolute;
+	left: 12px;
+	z-index: 1000;
 }
 
 .logger .picker .el-input__prefix-inner i.el-icon {
@@ -73,7 +79,7 @@
 }
 
 .picker .el-switch {
-	margin: 9px 8px;
+	margin: 3px 8px;
 }
 
 .picker .copy-button {
@@ -100,7 +106,7 @@
 	display: inline-block;
 	background-color: #000;
 	width: 100%;
-	height: calc( 100% - 38px );
+	height: calc(100% - 38px);
 	font-family: Consolas, "宋体", monospace;
 }
 
@@ -133,13 +139,13 @@
 }
 
 .log-scroll-container {
-	height: calc( 100% - 32px );
+	height: calc(100% - 32px);
 }
 
 .log-window {
 	position: relative;
-	width: calc( 100% - 28px );
-	height: calc( 100% - 10px );
+	width: calc(100% - 28px);
+	height: calc(100% - 10px);
 	margin: 10px 14px 0;
 }
 
@@ -180,7 +186,7 @@
 	min-width: 0;
 }
 
-.log-window .el-pager li.active {
+.log-window .el-pager li.is-active {
 	color: #20a53a;
 }
 
@@ -214,7 +220,7 @@
 	}
 
 	.picker .el-switch {
-		margin: 5px 8px;
+		margin: 0 8px;
 	}
 
 	.picker .copy-button {

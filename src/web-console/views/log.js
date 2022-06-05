@@ -150,7 +150,7 @@ export default defineComponent( {
 		/* 切换分页 */
 		async function pageChange( page, isBottom ) {
 			if ( !isBottom ) {
-				scrollbarRef.value.wrap.scrollTop = 0;
+				scrollbarRef.value.wrap$.scrollTop = 0;
 			}
 			await getLogsData();
 		}
@@ -162,7 +162,7 @@ export default defineComponent( {
 				state.currentPage = pageNum.value;
 				await pageChange( null, true );
 			}
-			setTimeout( () => scrollbarRef.value.wrap.scrollTop = scrollbarRef.value.wrap.scrollHeight, 10 );
+			setTimeout( () => scrollbarRef.value.wrap$.scrollTop = scrollbarRef.value.wrap$.scrollHeight, 10 );
 		}
 		
 		/* 禁选未来时间 */
