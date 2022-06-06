@@ -5,5 +5,4 @@ import "./permission.js"
 const app = Vue.createApp( App );
 app.use( ElementPlus )
 	.use( router )
-	.component( "v-chart", VueECharts )
 	.mount( "#app" );
