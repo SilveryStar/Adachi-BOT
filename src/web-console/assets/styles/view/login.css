@@ -1,0 +1,122 @@
+.login-base {
+	min-width: 240px;
+	min-height: 542px;
+	height: var(--app-height);
+	display: flex;
+	flex-direction: column;
+	position: relative;
+	background-color: #fff;
+	user-select: none;
+	overflow: hidden;
+}
+
+.login-base::before {
+	content: "";
+	position: absolute;
+	width: 100%;
+	height: 160%;
+	top: 50%;
+	left: 0;
+	transform: translate(-50%, -50%);
+	border-radius: 50%;
+	background-color: #f6f7fc;
+	box-shadow: -.4rem 0 1.25rem #e5e9ff inset;
+}
+
+.login-base > .login-header {
+	position: relative;
+	--header-height: 10vh;
+	height: var(--header-height);
+}
+
+.login-base > .login-header > h3 {
+	padding: 0 3rem;
+	font-size: 2rem;
+	font-weight: 700;
+	line-height: var(--header-height);
+	color: #0390fe;
+}
+
+.login-base > .login-main {
+	position: relative;
+	flex: 1;
+}
+
+.login-base > .login-main > .login-main-content {
+	width: 27rem;
+	position: absolute;
+	top: 45%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+}
+
+.login-base > .login-main > .login-main-content > .login-main-title {
+	margin-bottom: 2rem;
+	text-align: center;
+}
+
+.login-base > .login-main > .login-main-content > .login-main-title .login-logo {
+	display: inline-block;
+	width: 11rem;
+	height: 11rem;
+	margin-bottom: 1.2rem;
+	border-radius: 50%;
+}
+
+.login-base > .login-main > .login-main-content > .login-main-title .login-title {
+	font-size: 1.6rem;
+	font-weight: 500;
+}
+
+.login-base > .login-main > .login-main-content > .login-main-form .el-input {
+	margin-bottom: 1.25rem;
+}
+
+.login-base > .login-main > .login-main-content > .login-main-form .el-input__wrapper,
+.login-base > .login-main > .login-main-content > .login-main-form > .el-button {
+	width: 100%;
+	height: 2.5rem;
+	border-radius: 1.25rem;
+	box-sizing: border-box;
+}
+
+.login-base > .login-main > .login-main-content > .login-main-form .el-input__wrapper {
+	padding: 0 1.5rem;
+}
+
+.login-base > .login-main > .login-main-content > .login-main-form .el-button {
+	margin-top: 1.25rem;
+}
+
+.login-base > .login-footer {
+	position: relative;
+	height: 2.6rem;
+	line-height: 2.6rem;
+	font-size: 0.85rem;
+	text-align: center;
+	color: #999;
+}
+
+@media (max-width: 768px) {
+	.login-base::before {
+
+	}
+
+	.login-base > .login-header > h3 {
+		padding: 0 2rem;
+		font-size: 1.4rem;
+	}
+
+	.login-base > .login-main > .login-main-content > .login-main-title .login-logo {
+		width: 9rem;
+		height: 9rem;
+	}
+
+	.login-base > .login-main > .login-main-content > .login-main-title .login-title {
+		font-size: 1.4rem;
+	}
+
+	.login-base > .login-main > .login-main-content {
+		width: 75%;
+	}
+}

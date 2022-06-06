@@ -1,0 +1,308 @@
+.user-detail {
+	position: relative;
+	padding: 0 50px;
+	color: #666;
+	font-family: "微软雅黑", Consolas, monospace;
+}
+
+.user-detail > .section-info {
+	position: relative;
+	padding: 15px 0;
+	border-bottom: 1px solid #cccccc;
+}
+
+.user-detail > .section-info:last-child {
+	border-bottom: none;
+}
+
+.user-detail > .section-info > .title {
+	margin-bottom: 15px;
+	height: 28px;
+	text-align: center;
+	line-height: 28px;
+	font-size: 18px;
+	font-weight: 700;
+	color: #333;
+}
+
+.user-detail .user-base-info {
+	display: flex;
+}
+
+.user-detail .user-base-info > .avatar {
+	flex-shrink: 0;
+	width: 108px;
+	height: 108px;
+	border-radius: 4px;
+}
+
+.user-detail .user-base-info > .public-info {
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	flex: 1;
+	position: relative;
+	margin-left: 28px;
+}
+
+.user-detail .user-base-info > .public-info .label {
+	margin-right: 16px;
+	font-weight: 700;
+	color: #333;
+}
+
+/* 使用分布 */
+.user-detail .group-info {
+	height: 80px;
+}
+
+.user-detail .group-info p {
+	line-height: 24px;
+	font-size: 15px;
+	padding-left: 20px;
+}
+
+/* 禁用指令列表 */
+.user-detail .limit-info {
+	height: 80px;
+}
+
+.user-detail .limit-info .limit-list {
+	display: flex;
+	flex-wrap: wrap;
+	padding: 0 20px;
+}
+
+.user-detail .limit-info .limit-list > li {
+	width: 50%;
+	line-height: 24px;
+	font-size: 15px;
+}
+
+.user-detail .limit-info .limit-list > li:not(.limit-empty) {
+	cursor: pointer;
+}
+
+.user-detail .limit-info .limit-list > li:not(.limit-empty):hover {
+	color: var(--el-color-primary);
+}
+
+/* 管理面板 */
+.user-detail .management-info > .article-item {
+	display: flex;
+	align-items: center;
+	margin: 6px;
+	height: 36px;
+}
+
+.user-detail .management-info > .article-item > .label {
+	font-size: 16px;
+	height: 36px;
+	line-height: 36px;
+	font-weight: 700;
+	margin-right: 20px;
+	color: #333;
+	flex-shrink: 0;
+}
+
+.user-detail .management-info .article-item > .content {
+	display: flex;
+	align-items: center;
+	flex: 1;
+}
+
+/* 权限设置 */
+.user-detail .management-info > .auth-management .el-radio-group .el-radio-button {
+	opacity: .3;
+	transition: opacity .2s;
+}
+
+.user-detail .management-info > .auth-management .el-radio-group .el-radio-button:first-child {
+	border-radius: 4px 0 0 4px;
+}
+
+.user-detail .management-info > .auth-management .el-radio-group .el-radio-button:last-child {
+	border-radius: 0 4px 4px 0;
+}
+
+.user-detail .management-info > .auth-management .el-radio-group .el-radio-button.is-active {
+	opacity: 1;
+}
+
+.user-detail .management-info > .auth-management .el-radio-group .el-radio-button .el-radio-button__inner {
+	background-color: transparent;
+}
+
+.user-detail .management-info > .auth-management .el-radio-button__inner {
+	box-sizing: border-box;
+	font-size: 16px;
+	padding: 7px 14px;
+	color: #ffffff;
+	border: none;
+	box-shadow: none !important;
+}
+
+/* 操作冷却 */
+.user-detail .management-info > .int-management .el-input {
+	position: relative;
+	width: 86px;
+}
+
+.user-detail .management-info > .int-management .el-input .el-input__wrapper {
+	padding: 0 20px 0 5px;
+	height: inherit;
+	background-color: transparent;
+	border: none;
+	border-radius: 0;
+	border-bottom: 1px solid #424242;
+	text-align: center;
+	box-shadow: none;
+}
+
+.user-detail .management-info > .int-management .el-input .el-input__suffix {
+	color: #424242;
+	width: 16px;
+	height: inherit;
+	line-height: var(--el-input-height);
+}
+
+/* 指令权限 */
+.user-detail .management-info > .limit-management .el-select {
+	width: 186px;
+}
+
+.user-detail .management-info > .limit-management .el-select .el-input {
+	height: var(--el-input-height);
+	line-height: var(--el-input-height);
+	font-size: 14px;
+}
+
+.user-detail .management-info > .limit-management .el-select .el-input__wrapper {
+	border: none;
+	background-color: transparent;
+	color: #424242;
+	padding: 0;
+	box-shadow: none !important;
+}
+
+.user-detail .management-info > .limit-management .el-select .el-input__inner::placeholder {
+	color: #424242;
+	font-size: 14px;
+}
+
+.user-detail .management-info > .limit-management .el-radio-group {
+	margin-left: 32px;
+}
+
+.user-detail .management-info > .limit-management .el-radio-button__inner {
+	padding: 0 10px;
+	width: 50px;
+	height: 28px;
+	background-color: #f1f1f1;
+	border-color: #616161;
+	color: #333;
+	font-size: 14px;
+	line-height: 28px;
+}
+
+.user-detail .management-info > .limit-management .is-active .el-radio-button__inner {
+	background-color: #b1b1b1;
+	box-shadow: none;
+	color: #fff;
+}
+
+.limit-key-dropdown-item {
+	font-size: 14px;
+	line-height: 26px;
+	height: 26px;
+	color: #424242;
+}
+
+/* 保存 */
+.user-detail .save {
+	display: block;
+	margin: 20px auto 10px;
+	width: 100px;
+	font-size: 14px;
+}
+
+@media (max-width: 768px) {
+	.user-detail {
+		padding: 0 20px;
+		font-size: 12px;
+	}
+
+	.user-detail > .section-info {
+		padding: 8px 0;
+	}
+
+	.user-detail > .section-info > .title {
+		margin-bottom: 8px;
+		height: 20px;
+		font-size: 14px;
+		line-height: 20px;
+	}
+
+	.user-detail .user-base-info > .avatar {
+		width: 46px;
+		height: 46px;
+		align-self: center;
+	}
+
+	.user-detail .group-info,
+	.user-detail .limit-info {
+		height: 40px;
+	}
+
+	.user-detail .group-info p,
+	.user-detail .limit-info .limit-list > li {
+		font-size: 12px;
+	}
+
+	.user-detail .management-info > .article-item {
+		margin: 4px;
+		height: 24px;
+	}
+
+	.user-detail .management-info > .article-item > .label {
+		height: 24px;
+		line-height: 24px;
+		margin-right: 10px;
+		font-size: 12px;
+	}
+
+	.user-detail .management-info > .int-management .el-input,
+	.user-detail .management-info > .limit-management .el-select .el-input {
+		--el-input-height: 24px;
+		height: var(--el-input-height);
+		font-size: 12px;
+	}
+
+	.user-detail .management-info > .limit-management .el-select {
+		width: 140px;
+	}
+
+	.user-detail .management-info > .auth-management .el-radio-group .el-radio-button .el-radio-button__inner {
+		padding: 4px 6px;
+		font-size: 12px;
+	}
+
+	.user-detail .management-info > .limit-management .el-radio-group {
+		margin-left: 16px;
+	}
+
+	.user-detail .management-info > .limit-management .el-radio-button__inner {
+		padding: 0 5px;
+		width: 38px;
+		height: 22px;
+		line-height: 20px;
+		font-size: 12px;
+	}
+
+	.user-detail .save {
+		height: 24px;
+		width: 80px;
+		padding: 2px 8px;
+		font-size: 12px;
+	}
+}

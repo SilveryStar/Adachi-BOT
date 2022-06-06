@@ -33,7 +33,7 @@ export default class WebConsole {
 		this.app.use( bodyParser.urlencoded( { extended: false } ) );
 		
 		/* 创建接口 */
-		this.useApi( "/check", CheckRouter, false );
+		this.useApi( "/api/check", CheckRouter, false );
 		this.useApi( "/api/login", LoginRouter, false );
 		this.useApi( "/api/log", LogRouter );
 		this.useApi( "/api/user", UserRouter );
@@ -56,7 +56,10 @@ export default class WebConsole {
 				const cron: string = "*/2 * * * * ?";
 				const job = scheduleJob( cron, () => {
 					if ( messageCache.length !== 0 ) {
-						ws.send( messageCache );
+						const data = messageCache.split( "__ADACHI__" )
+							.filter( el => el.length !== 0 )
+							.map( el => JSON.parse( el ) );
+						ws.send( JSON.stringify( data ) );
 						messageCache = "";
 					}
 				} );
@@ -82,6 +85,7 @@ export default class WebConsole {
 	}
 	
 	/* 此处没有用 app.use+jwt.unless 进行全局隔离 */
+	
 	/* WebSocket 疑似无法被过滤 所有 ws 连接被拦截 */
 	private static JWT( secret: string ) {
 		return jwt( {

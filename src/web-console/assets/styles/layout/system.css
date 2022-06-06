@@ -1,0 +1,207 @@
+/* 布局 */
+.user-layout {
+	height: var(--app-height);
+	font-family: "微软雅黑", sans-serif;
+	color: #333;
+}
+
+.user-layout > .aside-view {
+	position: fixed;
+	left: 0;
+	top: 0;
+	width: var(--aside-width);
+	height: var(--app-height);
+	transition: transform .3s;
+	z-index: 200;
+}
+
+.user-layout:not( .open ) > .aside-view {
+	pointer-events: none;
+	transform: translateX( calc( -1 * var( --aside-width ) ) );
+}
+
+.user-layout > .content {
+	padding-left: var(--aside-width);
+	width: 100vw;
+	height: 100%;
+	box-sizing: border-box;
+	transition: padding-left .3s;
+}
+
+.user-layout:not( .open ) > .content {
+	padding-left: 0;
+}
+
+.user-layout > .content > .nav-view {
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 0 18px;
+	height: var(--nav-height);
+	flex-shrink: 0;
+	box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.15);
+	z-index: 100;
+}
+
+.user-layout > .content > .el-scrollbar {
+	--content-height: calc(var(--app-height) - var(--nav-height));
+	height: var(--content-height);
+	background-color: #f9f9f9;
+}
+
+.user-layout > .content > .el-scrollbar .main-view {
+	position: relative;
+	padding: 30px 30px 12px;
+	min-height: calc(var(--content-height) - var( --footer-height ));
+	box-sizing: border-box;
+	overflow: hidden;
+}
+
+.user-layout > .content > .el-scrollbar .footer-view {
+	padding: 0 30px;
+	height: var( --footer-height );
+}
+
+/* 头部 */
+.nav-view > .nav-left {
+	display: flex;
+	align-items: center;
+}
+
+.nav-view > .nav-left > .el-breadcrumb {
+	margin-left: 18px;
+}
+
+.nav-view > .nav-left > .el-breadcrumb .el-breadcrumb__inner span,
+.nav-view > .nav-left > .el-breadcrumb .el-breadcrumb__inner a {
+	font-size: 16px;
+	line-height: 20px;
+	font-weight: 500;
+	color: #999;
+}
+
+/* 头部按钮样式 */
+.nav-view .nav-btn {
+	padding: 7px;
+	border-radius: 4px;
+	cursor: pointer;
+	transition: background-color .3s;
+}
+
+.nav-view .nav-btn:hover {
+	background-color: #f9f9f9;
+}
+
+.nav-view .nav-btn > i {
+	font-size: 26px;
+	font-weight: 300;
+}
+
+/* 侧边栏 */
+.aside-view .el-scrollbar {
+	height: 100%;
+}
+
+.aside-view .el-menu {
+	width: 100%;
+	min-height: var(--app-height);
+}
+
+.aside-view .el-menu > .logo-box {
+	display: flex;
+	align-items: center;
+	padding: 0 10px;
+	height: 60px;
+	box-sizing: border-box;
+}
+
+.aside-view .el-menu > .logo-box > img {
+	margin-right: 6px;
+	width: 25px;
+	height: 25px;
+}
+
+.aside-view .el-menu > .logo-box .login-title {
+	margin-right: 3px;
+	font-weight: 700;
+	font-size: 22px;
+}
+
+.aside-view .el-menu > .logo-box .login-desc {
+	font-size: 16px;
+	color: #999;
+}
+
+.aside-view .el-menu > .routes-group {
+	margin-top: 17px;
+}
+
+.aside-view .el-menu > .routes-group > .group-title {
+	padding: 6px 21px;
+	font-weight: 500;
+	font-size: 14px;
+	line-height: 17px;
+	color: #ccc;
+}
+
+.aside-view .el-menu .el-menu-item,
+.aside-view .el-menu .el-sub-menu__title {
+	display: flex;
+	align-items: center;
+	color: #333;
+	font-weight: 700;
+	font-size: 14px;
+	border-left: 4px solid transparent;
+}
+
+.aside-view .el-menu .el-menu-item i[class^="icon-"],
+.aside-view .el-menu .el-sub-menu__title i[class^="icon-"]{
+	margin-right: 14px;
+	font-size: 26px;
+	font-weight: 300;
+}
+
+.aside-view .el-menu .el-menu-item.is-active {
+	border-left-color: var(--base-color);
+}
+
+.aside-view .el-menu .el-menu-item:hover {
+	background-color: #f9f9f9;
+}
+
+/* 阴影 */
+.open.mask {
+	position: fixed;
+	left: 0;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	z-index: 100;
+	background-color: rgba( 0, 0, 0, 0.28 );
+}
+
+/* 底部标注 */
+.user-layout > .content > .el-scrollbar .footer-view > .footer-content {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	height: 100%;
+	border-top: 1px solid #c6c6c6;
+	font-family: Consolas, Liberation Mono, sans-serif;
+	text-align: center;
+	font-size: 0.9rem;
+	box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+	.user-layout > .content {
+		padding-left: 0;
+	}
+	.user-layout > .content > .el-scrollbar .main-view {
+		padding: 12px;
+	}
+	.user-layout > .content > .el-scrollbar .footer-view {
+		padding: 0 12px;
+	}
+}
