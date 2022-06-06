@@ -1,0 +1,241 @@
+.logger {
+	position: absolute;
+	top: 30px;
+	left: 30px;
+	right: 30px;
+	bottom: 12px;
+	padding: var(--box-padding);
+	background-color: #ffffff;
+	border-radius: 4px;
+	box-shadow: var(--box-shadow);
+	box-sizing: border-box;
+}
+
+.logger .picker {
+	position: relative;
+	display: inline-block;
+	height: 38px;
+	width: 100%;
+	background-color: #f1f1f1;
+}
+
+.logger .picker .el-input {
+	position: relative;
+	display: inline-flex;
+	height: 38px;
+	width: 15%;
+	max-width: 180px;
+	min-width: 108px;
+	vertical-align: middle;
+}
+
+.logger .picker .el-input__inner {
+	position: absolute;
+	border: none;
+	border-radius: unset;
+	top: 0;
+	height: 38px;
+	color: #ffffff;
+	font-size: 14px;
+	background-color: #424242;
+}
+
+.logger .picker .el-input__inner::placeholder {
+	color: #ffffff;
+}
+
+.logger .picker .el-input--prefix .el-input__inner {
+	padding-left: 38px;
+}
+
+.logger .picker .el-input__prefix {
+	position: absolute;
+	left: 12px;
+	z-index: 1000;
+}
+
+.logger .picker .el-input__prefix-inner i.el-icon {
+	color: #10952a;
+}
+
+.picker .auto-bottom-switch {
+	position: relative;
+	display: inline-flex;
+	width: 20%;
+	max-width: 135px;
+	min-width: 108px;
+	height: 38px;
+	color: #ffffff;
+	background-color: #424242;
+	vertical-align: middle;
+}
+
+.picker .content {
+	height: 38px;
+	line-height: 38px;
+	background-color: #424242;
+	color: #ffffff;
+	font-size: 14px;
+}
+
+.picker .el-switch {
+	margin: 3px 8px;
+}
+
+.picker .copy-button {
+	position: absolute;
+	display: inline-block;
+	vertical-align: middle;
+	right: 0;
+	top: 0;
+	height: 38px;
+	line-height: 38px;
+	text-align: center;
+	color: #424242;
+	font-size: 13px;
+	width: 95px;
+	flex-direction: row-reverse;
+}
+
+.picker .copy-button:hover {
+	color: #10952a;
+}
+
+.log-container {
+	position: relative;
+	display: inline-block;
+	background-color: #000;
+	width: 100%;
+	height: calc(100% - 38px);
+	font-family: Consolas, "宋体", monospace;
+}
+
+.log-container .empty-promote {
+	color: #ffffff;
+	margin: 10px 14px;
+}
+
+.log-container .el-scrollbar__view {
+	position: relative;
+	width: 100%;
+	height: 100%;
+}
+
+.log-container .content-line::selection,
+.log-container .content-line span::selection {
+	background-color: #4d4d4d;
+}
+
+.log-container .content-line {
+	user-select: text;
+	line-height: 20px;
+	font-size: 0.875rem;
+	color: #ffffff;
+}
+
+.log-container .content-line span {
+	user-select: inherit;
+	white-space: pre-wrap;
+}
+
+.log-scroll-container {
+	height: calc(100% - 32px);
+}
+
+.log-window {
+	position: relative;
+	width: calc(100% - 28px);
+	height: calc(100% - 10px);
+	margin: 10px 14px 0;
+}
+
+.log-window .el-pagination {
+	position: absolute;
+	width: 100%;
+	background-color: #000000;
+	bottom: 0;
+	text-align: center;
+}
+
+.log-window .btn-prev,
+.log-window .btn-next,
+.el-pagination button:disabled {
+	background-color: transparent;
+	color: #ffffff;
+
+}
+
+.el-pagination button:hover {
+	color: #20a53a;
+}
+
+.log-window .btn-prev {
+	padding-right: 3px;
+}
+
+.log-window .btn-next {
+	padding-left: 3px;
+}
+
+.log-window .el-pager > li {
+	background: transparent;
+	color: #ffffff;
+	margin: 0;
+	padding: 0;
+	width: 25px;
+	min-width: 0;
+}
+
+.log-window .el-pager li.is-active {
+	color: #20a53a;
+}
+
+@media (max-width: 768px) {
+	.logger {
+		padding: 0;
+		top: 12px;
+		left: 12px;
+		right: 12px;
+		bottom: 12px;
+	}
+
+	.logger .picker {
+		background-color: #e8e8e8;
+		height: 30px;
+	}
+
+	.logger .picker .el-input {
+		height: 30px;
+	}
+
+	.logger .picker .el-input__inner,
+	.picker .content {
+		font-size: 13px;
+		height: 30px;
+		line-height: 30px;
+	}
+
+	.picker .auto-bottom-switch {
+		height: 30px;
+	}
+
+	.picker .el-switch {
+		margin: 0 8px;
+	}
+
+	.picker .copy-button {
+		height: 30px;
+		line-height: 30px;
+		font-size: 12px;
+		width: 90px;
+	}
+
+	.log-container {
+		height: calc(100% - 30px);
+	}
+
+	.log-container .content-line {
+		font-size: 0.78125rem;
+		line-height: 18px;
+	}
+}

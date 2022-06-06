@@ -1,0 +1,58 @@
+{
+  "id": "3436988",
+  "name": "adachi-bot-admin",
+  "font_family": "iconfont",
+  "css_prefix_text": "icon-",
+  "description": "",
+  "glyphs": [
+    {
+      "icon_id": "30057105",
+      "name": "收起",
+      "font_class": "close",
+      "unicode": "e600",
+      "unicode_decimal": 58880
+    },
+    {
+      "icon_id": "30056998",
+      "name": "展开",
+      "font_class": "open",
+      "unicode": "eabd",
+      "unicode_decimal": 60093
+    },
+    {
+      "icon_id": "30056400",
+      "name": "主页",
+      "font_class": "home",
+      "unicode": "eab5",
+      "unicode_decimal": 60085
+    },
+    {
+      "icon_id": "30056404",
+      "name": "日志",
+      "font_class": "logs",
+      "unicode": "eab8",
+      "unicode_decimal": 60088
+    },
+    {
+      "icon_id": "30056406",
+      "name": "仪表盘",
+      "font_class": "dashboard",
+      "unicode": "eaba",
+      "unicode_decimal": 60090
+    },
+    {
+      "icon_id": "30056408",
+      "name": "用户",
+      "font_class": "user",
+      "unicode": "eabb",
+      "unicode_decimal": 60091
+    },
+    {
+      "icon_id": "30056409",
+      "name": "退出 ",
+      "font_class": "exit",
+      "unicode": "eabc",
+      "unicode_decimal": 60092
+    }
+  ]
+}
