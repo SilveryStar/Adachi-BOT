@@ -74,7 +74,7 @@ const template = `<div class="user-detail">
 					<el-select v-model="currentKey" placeholder="选择指令Key" :disabled="management.auth === 3" @change="changeCurrentKey" >
 					    <el-option class="limit-key-dropdown-item" v-for="(c, cKey) of cmdKeys" :key="cKey" :value="c" />
 					</el-select>
-			    	<el-radio-group v-model="keyStatus" :disabled="!currentKey" @change="changeKeyStatus" >
+			    	<el-radio-group v-model="keyStatus" :disabled="!currentKey || management.auth === 3" @change="changeKeyStatus" >
 						<el-radio-button :label="1">ON</el-radio-button>
 						<el-radio-button :label="2">OFF</el-radio-button>
 					</el-radio-group>
@@ -116,7 +116,7 @@ export default defineComponent( {
 				limits: []
 			},
 			currentKey: "",
-			keyStatus: 0,
+			keyStatus: 0
 		} );
 		
 		const userInfo = props.userInfo;
@@ -124,9 +124,11 @@ export default defineComponent( {
 		/* 填充管理字段对象 */
 		watch( () => props.userInfo, ( val ) => {
 			if ( Object.keys( val ).length !== 0 ) {
+				state.currentKey = "";
+				state.keyStatus = 0;
 				state.management.auth = val.botAuth;
 				state.management.int = val.interval;
-				state.management.limits = val.limits || [];
+				state.management.limits = val.limits ? JSON.parse(JSON.stringify(val.limits)) : [];
 			}
 		}, { immediate: true, deep: true } )
 		
