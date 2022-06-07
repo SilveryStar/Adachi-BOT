@@ -80,8 +80,8 @@ export default defineComponent( {
 			if ( ws ) ws.close();
 		} );
 		
-		onMounted( async () => {
-			state.currentDate = new Date();
+		onMounted( () => {
+			state.currentDate = getCurrentDate();
 			dateChange( state.currentDate );
 		} )
 		
@@ -131,6 +131,12 @@ export default defineComponent( {
 					resolve();
 				} );
 			} )
+		}
+		
+		/* 获取当前 年月日 整日期 */
+		function getCurrentDate() {
+			const date = new Date()
+			return new Date( date.getFullYear(), date.getMonth(), date.getDate() )
 		}
 		
 		/* 日期切换 */

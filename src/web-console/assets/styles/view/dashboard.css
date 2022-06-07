@@ -36,7 +36,7 @@
 	height: 60px;
 	border-radius: 50%;
 	background-color: var(--base-color);
-	font-size: 26px;
+	font-size: 32px;
 	color: #fff;
 	flex-shrink: 0;
 }
@@ -127,6 +127,7 @@
 	.dashboard > .app-info-container > .app-info-item > .info-item-content > .item-icon {
 		width: 52px;
 		height: 52px;
+		font-size: 28px;
 	}
 
 	.dashboard > .chart-container {
@@ -157,7 +158,7 @@
 		margin-left: 10px;
 		width: 36px;
 		height: 36px;
-		font-size: 16px;
+		font-size: 20px;
 	}
 
 	.dashboard > .app-info-container > .app-info-item > .info-item-content > .item-info > .item-label {

@@ -4,7 +4,8 @@ import bot from "ROOT";
 export default express.Router().get( "/", ( req, res ) => {
 	const page = parseInt( <string>req.query.page ); // 当前第几页
 	const length = parseInt( <string>req.query.length ); // 页长度
-	const date = new Date( parseInt( <string>req.query.date ) ).toJSON();  // 日期时间戳
+	const utcDiffer = 8 * 60 * 60 * 1000;
+	const date = new Date( parseInt( <string>req.query.date ) + utcDiffer ).toJSON();  // 日期时间戳
 	
 	if ( !page || !length || !date ) {
 		res.status( 400 ).send( { code: 400, data: {}, msg: "Error Params" } );
