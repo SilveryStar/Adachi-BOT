@@ -124,11 +124,11 @@ export default defineComponent( {
 		function setAppData( { cpuUsed, memories, userCount, groupCount } ) {
 			state.appInfo = [ {
 				label: "CPU利用率",
-				icon: "icon-user",
+				icon: "icon-cpu",
 				value: cpuUsed
 			}, {
 				label: "内存使用率",
-				icon: "icon-user",
+				icon: "icon-memories",
 				value: `${ memories.usedMem }/${ memories.totalMem }`,
 				special: true
 			}, {
@@ -137,7 +137,7 @@ export default defineComponent( {
 				value: userCount
 			}, {
 				label: "群组数量",
-				icon: "icon-user",
+				icon: "icon-group",
 				value: groupCount
 			} ]
 		}

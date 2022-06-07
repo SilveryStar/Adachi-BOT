@@ -6,6 +6,27 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "30226169",
+      "name": "群组",
+      "font_class": "group",
+      "unicode": "e601",
+      "unicode_decimal": 58881
+    },
+    {
+      "icon_id": "30225989",
+      "name": "内存",
+      "font_class": "memories",
+      "unicode": "eabe",
+      "unicode_decimal": 60094
+    },
+    {
+      "icon_id": "30226077",
+      "name": "cpu",
+      "font_class": "cpu",
+      "unicode": "eabf",
+      "unicode_decimal": 60095
+    },
+    {
       "icon_id": "30057105",
       "name": "收起",
       "font_class": "close",
