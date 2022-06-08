@@ -1,5 +1,5 @@
 import router from "../router/index.js";
-import { getToken } from "../utils/session.js";
+import { tokenSession } from "../utils/session.js";
 
 const server = axios.create( {
 	baseURL: "/api",
@@ -11,7 +11,7 @@ const server = axios.create( {
 } )
 
 server.interceptors.request.use( config => {
-	const token = getToken();
+	const token = tokenSession.get();
 	if ( token ) {
 		config.headers.authorization = `Bearer ${ token }`;
 	}

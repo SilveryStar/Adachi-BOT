@@ -1,6 +1,6 @@
 import router from "./router/index.js";
 import $http from "./api/index.js"
-import { getToken, removeToken } from "./utils/session.js";
+import { tokenSession } from "./utils/session.js";
 
 /* 设置当前网站标题 */
 function getPageTitle( pageTitle ) {
@@ -15,10 +15,10 @@ function getPageTitle( pageTitle ) {
 async function checkToken() {
 	return new Promise( resolve => {
 		$http.TOKEN_CHECK( {}, "GET" ).then( () => {
-			const token = getToken();
+			const token = tokenSession.get();
 			resolve( token );
 		} ).catch( () => {
-			removeToken();
+			tokenSession.remove();
 			resolve( "" );
 		} );
 	} );

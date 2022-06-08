@@ -16,7 +16,10 @@ const template =
 			<div class="login-main-form">
 				<el-input v-model.number="number" placeholder="BOT 账号" maxlength="13" clearable @input="val => number = val.replace(/[^\\d]/g, '')" @keyup.enter="loginByPassword" />
 				<el-input v-model.trim="password" placeholder="BOT 密码" maxlength="20" clearable show-password @keyup.enter="loginByPassword" />
-				<el-button type="primary" @click="loginByPassword" round>账号登入</el-button>
+          		<p class="remember-account">
+          			<el-checkbox v-model="rememberAccount">记住账号</el-checkbox>
+          		</p>
+				<el-button type="primary" :loading="loading" @click="loginByPassword" round>账号登入</el-button>
 			</div>
 		</div>
 	</main>
@@ -27,27 +30,49 @@ const template =
 </div>`;
 
 import router from "../router/index.js";
+import { loginInfoSession } from "../utils/session.js";
 
 const { ElNotification } = ElementPlus;
 
-const { defineComponent, ref, computed, inject } = Vue;
+const { defineComponent, reactive, toRefs, computed, onMounted, inject } = Vue;
 const { useRoute } = VueRouter;
 
 export default defineComponent( {
 	name: "Login",
 	template,
 	setup() {
-		const number = ref( "" );
-		const password = ref( "" );
-		
 		const route = useRoute();
 		const { device } = inject( "app" );
 		const { USER_LOGIN } = inject( "user" );
 		
+		const state = reactive( {
+			number: "",
+			password: "",
+			loading: false,
+			rememberAccount: true
+		} )
+		
 		const isMobile = computed( () => device.value === "mobile" );
 		
+		onMounted( () => {
+			const loginInfo = loginInfoSession.get();
+			state.number = loginInfo?.number;
+			state.rememberAccount = loginInfo?.rememberAccount;
+			console.log( loginInfo )
+		} )
+		
 		function loginByPassword() {
-			USER_LOGIN( number.value, password.value ).then( () => {
+			state.loading = true
+			USER_LOGIN( state.number, state.password ).then( () => {
+				if ( state.rememberAccount ) {
+					loginInfoSession.set( {
+						number: state.number,
+						rememberAccount: state.rememberAccount
+					} )
+				} else {
+					loginInfoSession.remove()
+				}
+				state.loading = false
 				router.push( { path: route.query?.redirect || "/system/home" } );
 			} ).catch( err => {
 				ElNotification( {
@@ -56,12 +81,12 @@ export default defineComponent( {
 					type: "error",
 					duration: 2500
 				} );
+				state.loading = false
 			} )
 		}
 		
 		return {
-			number,
-			password,
+			...toRefs( state ),
 			isMobile,
 			loginByPassword
 		}
