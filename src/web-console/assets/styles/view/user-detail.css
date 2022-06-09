@@ -53,7 +53,7 @@
 
 /* 使用分布 */
 .user-detail .group-info {
-	height: 80px;
+	height: 60px;
 }
 
 .user-detail .group-info p {
@@ -64,7 +64,7 @@
 
 /* 禁用指令列表 */
 .user-detail .limit-info {
-	height: 80px;
+	height: 60px;
 }
 
 .user-detail .limit-info .limit-list {
@@ -85,6 +85,23 @@
 
 .user-detail .limit-info .limit-list > li:not(.limit-empty):hover {
 	color: var(--el-color-primary);
+}
+
+/* 订阅列表 */
+.user-detail .sub-info {
+	height: 60px;
+}
+
+.user-detail .sub-info .sub-list {
+	display: flex;
+	flex-wrap: wrap;
+	padding: 0 20px;
+}
+
+.user-detail .sub-info .sub-list > li {
+	width: 50%;
+	line-height: 24px;
+	font-size: 15px;
 }
 
 /* 管理面板 */
@@ -250,12 +267,14 @@
 	}
 
 	.user-detail .group-info,
-	.user-detail .limit-info {
+	.user-detail .limit-info,
+	.user-detail .sub-info {
 		height: 40px;
 	}
 
 	.user-detail .group-info p,
-	.user-detail .limit-info .limit-list > li {
+	.user-detail .limit-info .limit-list > li,
+	.user-detail .sub-info .sub-list > li {
 		font-size: 12px;
 	}
 

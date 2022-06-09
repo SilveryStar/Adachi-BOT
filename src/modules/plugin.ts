@@ -4,10 +4,20 @@ import { BOT } from "@modules/bot";
 
 declare function require( moduleName: string ): any;
 
+type ReSub = ( userId: number, bot: BOT ) => Promise<void>;
+
+export type SubInfo = {
+	name: string;
+	users: number[];
+};
+
 export interface PluginSetting {
 	pluginName: string;
 	cfgList: cmd.ConfigType[];
+	reSub?: ReSub;
 }
+
+export const PluginReSubs: Record<string, ReSub> = {};
 
 export const PluginRawConfigs: Record<string, cmd.ConfigType[]> = {};
 
@@ -21,8 +31,11 @@ export default class Plugin {
 			const path: string = bot.file.getFilePath( `${ plugin }/init`, "plugin" );
 			const { init } = require( path );
 			try {
-				const { pluginName, cfgList }: PluginSetting = await init( bot )
+				const { pluginName, cfgList, reSub }: PluginSetting = await init( bot )
 				const commands = Plugin.parse( bot, cfgList, pluginName );
+				if ( reSub ) {
+					PluginReSubs[pluginName] = reSub;
+				}
 				PluginRawConfigs[pluginName] = cfgList;
 				registerCmd.push( ...commands );
 				bot.logger.info( `插件 ${ pluginName } 加载完成` );
@@ -68,13 +81,16 @@ export default class Plugin {
 				switch ( config.type ) {
 					case "order":
 						if ( loaded ) cmd.Order.read( config, loaded );
-						command = new cmd.Order( config, bot.config ); break;
+						command = new cmd.Order( config, bot.config );
+						break;
 					case "switch":
 						if ( loaded ) cmd.Switch.read( config, loaded );
-						command = new cmd.Switch( config, bot.config ); break;
+						command = new cmd.Switch( config, bot.config );
+						break;
 					case "enquire":
 						if ( loaded ) cmd.Enquire.read( config, loaded );
-						command = new cmd.Enquire( config, bot.config ); break;
+						command = new cmd.Enquire( config, bot.config );
+						break;
 				}
 				data[key] = command.write();
 				commands.push( command );

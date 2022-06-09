@@ -67,7 +67,9 @@ export default class WebConsole {
 			} );
 			if ( this.isFirstListen ) {
 				this.isFirstListen = false;
-				this.app.listen( port );
+				this.app.listen( port, () => {
+					console.log( `网页控制台已启动，请浏览器打开 http://127.0.0.1:${ port } 查看，若为云服务器，请将 127.0.0.1 替换为服务器的公网ip。` )
+				} );
 			}
 		} ).listen( tcp );
 	}
