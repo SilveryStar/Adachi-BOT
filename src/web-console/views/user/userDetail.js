@@ -41,6 +41,17 @@ const template = `<div class="user-detail">
 		</el-scrollbar>
 	</div>
 	<div class="section-info">
+		<p class="title">订阅列表</p>
+		<el-scrollbar class="sub-info" wrap-class="scrollbar-wrapper">
+			<ul class="sub-list">
+				<template v-if="userInfo.subInfo?.length" >
+					<li v-for="(s, sKey) of userInfo.subInfo" :key="sKey">{{ s }}</li>
+				</template>
+				<li class="sub-empty" v-else>该用户暂未使用订阅服务</li>
+			</ul>
+		</el-scrollbar>
+	</div>
+	<div class="section-info">
 		<p class="title">管理面板</p>
 		<ul class="management-info">
 			<li class="auth-management article-item">
@@ -128,7 +139,7 @@ export default defineComponent( {
 				state.keyStatus = 0;
 				state.management.auth = val.botAuth;
 				state.management.int = val.interval;
-				state.management.limits = val.limits ? JSON.parse(JSON.stringify(val.limits)) : [];
+				state.management.limits = val.limits ? JSON.parse( JSON.stringify( val.limits ) ) : [];
 			}
 		}, { immediate: true, deep: true } )
 		

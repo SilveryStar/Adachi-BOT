@@ -88,9 +88,18 @@
 	justify-content: flex-end;
 }
 
+/* 按钮 */
+.user-page > .table-view > .el-table .el-button {
+	font-size: 12px;
+}
+
+.user-page > .table-view > .el-table .el-button + .el-button {
+	margin-left: 6px;
+}
+
 /* 弹窗 */
 .user-page .el-dialog {
-	--dialog-height: 765px;
+	--dialog-height: 859px;
 	margin: calc((var(--app-height) - var(--dialog-height)) / 2) auto 0;
 	width: 600px;
 	height: var(--dialog-height);
@@ -115,6 +124,6 @@
 
 	.user-page .el-dialog {
 		width: 90%;
-		--dialog-height: 478px;
+		--dialog-height: 563px;
 	}
 }

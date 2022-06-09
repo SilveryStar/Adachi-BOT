@@ -5,7 +5,7 @@ import BotConfig from "./config";
 import Database from "./database";
 import Interval from "./management/interval";
 import FileManagement from "./file";
-import Plugin from "./plugin";
+import Plugin, { PluginReSubs } from "./plugin";
 import WebConfiguration from "./logger";
 import WebConsole from "@web-console/backend";
 import RefreshConfig from "./management/refresh";
@@ -101,6 +101,7 @@ export default class Adachi {
 			this.bot.client.on( "request.group", this.acceptInvite( this ) );
 			this.bot.client.on( "request.friend", this.acceptFriend( this ) );
 			this.bot.client.on( "system.online", this.botOnline( this ) );
+			this.bot.client.on( "notice.friend.decrease", this.friendDecrease( this ) );
 			this.bot.logger.info( "事件监听启动成功" );
 		} );
 		
@@ -423,6 +424,23 @@ export default class Adachi {
 				`Adachi-BOT 已启动成功，请输入 ${ HELP.getHeaders()[0] } 查看命令帮助\n` +
 				"如有问题请前往 github.com/SilveryStar/Adachi-BOT 进行反馈"
 			await that.bot.message.sendMaster( message );
+		}
+	}
+	
+	/* 删除好友事件 */
+	private friendDecrease( that: Adachi ) {
+		const bot = that.bot
+		return async function ( friendDate: sdk.FriendDecreaseEventData ) {
+			if ( bot.config.addFriend ) {
+				const userId = friendDate.user_id;
+				for ( const plugin in PluginReSubs ) {
+					try {
+						await PluginReSubs[plugin].reSub( userId, bot );
+					} catch ( error ) {
+						bot.logger.error( `插件${ plugin }取消订阅事件执行异常：${ <string>error }` )
+					}
+				}
+			}
 		}
 	}
 	
