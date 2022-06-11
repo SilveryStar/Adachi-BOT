@@ -4,10 +4,22 @@ import { BOT } from "@modules/bot";
 
 declare function require( moduleName: string ): any;
 
+export type SubInfo = {
+	name: string;
+	users: number[];
+};
+
+export type PluginSubSetting = {
+	subs: ( bot: BOT ) => Promise<SubInfo[]>;
+	reSub: ( userId: number, bot: BOT ) => Promise<void>;
+}
+
 export interface PluginSetting {
 	pluginName: string;
 	cfgList: cmd.ConfigType[];
 }
+
+export const PluginReSubs: Record<string, PluginSubSetting> = {};
 
 export const PluginRawConfigs: Record<string, cmd.ConfigType[]> = {};
 
@@ -19,9 +31,13 @@ export default class Plugin {
 		/* 从 plugins 文件夹从导入 init.ts 进行插件初始化 */
 		for ( let plugin of plugins ) {
 			const path: string = bot.file.getFilePath( `${ plugin }/init`, "plugin" );
-			const { init } = require( path );
+			const { init, subInfo } = require( path );
 			try {
-				const { pluginName, cfgList }: PluginSetting = await init( bot )
+				const { pluginName, cfgList }: PluginSetting = await init( bot );
+				if ( subInfo ) {
+					const { reSub, subs }: PluginSubSetting = await subInfo( bot );
+					PluginReSubs[pluginName] = { reSub, subs };
+				}
 				const commands = Plugin.parse( bot, cfgList, pluginName );
 				PluginRawConfigs[pluginName] = cfgList;
 				registerCmd.push( ...commands );
@@ -68,13 +84,16 @@ export default class Plugin {
 				switch ( config.type ) {
 					case "order":
 						if ( loaded ) cmd.Order.read( config, loaded );
-						command = new cmd.Order( config, bot.config ); break;
+						command = new cmd.Order( config, bot.config );
+						break;
 					case "switch":
 						if ( loaded ) cmd.Switch.read( config, loaded );
-						command = new cmd.Switch( config, bot.config ); break;
+						command = new cmd.Switch( config, bot.config );
+						break;
 					case "enquire":
 						if ( loaded ) cmd.Enquire.read( config, loaded );
-						command = new cmd.Enquire( config, bot.config ); break;
+						command = new cmd.Enquire( config, bot.config );
+						break;
 				}
 				data[key] = command.write();
 				commands.push( command );

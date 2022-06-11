@@ -174,6 +174,11 @@ export class PrivateClass {
 		} );
 	}
 	
+	public getUserIDList(): number[] {
+		const userIdList = this.list.map(el => el.setting.userID);
+		return Array.from(new Set(userIdList));
+	}
+	
 	public getUserPrivateList( userID: number ): Private[] {
 		return this.list
 			.filter( el => el.setting.userID === userID )

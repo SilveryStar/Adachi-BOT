@@ -1,7 +1,9 @@
-import { MemberBaseInfo } from "oicq";
-import { AuthLevel } from "@modules/management/auth";
-import express from "express";
 import bot from "ROOT";
+import express from "express";
+import { AuthLevel } from "@modules/management/auth";
+import { MemberBaseInfo } from "oicq";
+import { BOT } from "@modules/bot";
+import { PluginReSubs, SubInfo } from "@modules/plugin";
 
 type UserInfo = {
 	userID: number;
@@ -12,6 +14,7 @@ type UserInfo = {
 	interval: number;
 	limits: string[];
 	groupInfoList: ( string | MemberBaseInfo )[];
+	subInfo?: string[]
 }
 
 export default express.Router()
@@ -25,14 +28,27 @@ export default express.Router()
 		}
 		
 		const userId = <string>req.query.userId || "";
+		/* 是否存在订阅，1 有 2 无 */
+		const sub = parseInt( <string>req.query.sub );
 		
 		try {
+			/* 用户订阅信息 */
+			const userSubData: Record<string, string[]> = await formatSubUsers( bot );
+			
 			let userData: string[] = await bot.redis.getKeysByPrefix( "adachi.user-used-groups-" );
+			userData = userData.map( ( userKey: string ) => <string>userKey.split( "-" ).pop() )
+			
 			const cmdKeys: string[] = bot.command.cmdKeys;
 			
 			// 过滤条件：id
 			if ( userId ) {
 				userData = userData.filter( ( userKey: string ) => userKey.includes( userId ) );
+			}
+			/* 过滤条件：订阅 */
+			if ( sub === 1 ) {
+				userData = userData.filter( ( userKey: string ) => Object.keys( userSubData ).includes( userKey ) );
+			} else if ( sub === 2 ) {
+				userData = userData.filter( ( userKey: string ) => !Object.keys( userSubData ).includes( userKey ) );
 			}
 			
 			const filterUserKeys = userData.slice( ( page - 1 ) * length, page * length );
@@ -40,9 +56,8 @@ export default express.Router()
 			let userInfos: UserInfo[] = []
 			
 			for ( const userKey of filterUserKeys ) {
-				const userID: string = <string>userKey.split( "-" ).pop();
-				const userInfo: UserInfo = await getUserInfo( parseInt( userID ) );
-				userInfos.push( userInfo )
+				const userInfo: UserInfo = await getUserInfo( parseInt( userKey ) );
+				userInfos.push( { ...userInfo, subInfo: userSubData[userKey] || [] } );
 			}
 			
 			userInfos = userInfos.sort( ( prev, next ) => next.botAuth - prev.botAuth );
@@ -75,9 +90,28 @@ export default express.Router()
 		}
 		
 		res.status( 200 ).send( "success" );
-	} );
+	} )
+	.delete( "/sub/remove", async ( req, res ) => {
+		const userId = parseInt( <string>req.query.userId );
+		
+		try {
+			if ( !userId ) {
+				res.status( 400 ).send( { code: 400, data: [], msg: "Error Params" } );
+				return;
+			}
+			for ( const plugin in PluginReSubs ) {
+				try {
+					await PluginReSubs[plugin].reSub( userId, bot );
+				} catch ( error ) {
+					bot.logger.error( `插件${ plugin }取消订阅事件执行异常：${ <string>error }` )
+				}
+			}
+			res.status( 200 ).send( { code: 200, data: {}, msg: "Success" } );
+		} catch ( error ) {
+			res.status( 500 ).send( { code: 500, data: [], msg: "Server Error" } );
+		}
+	} )
 
-/* 获取用户信息 */
 async function getUserInfo( userID: number ): Promise<UserInfo> {
 	const avatar = `https://q1.qlogo.cn/g?b=qq&s=640&nk=${ userID }`;
 	const publicInfo = await bot.client.getStrangerInfo( userID );
@@ -106,4 +140,31 @@ async function getUserInfo( userID: number ): Promise<UserInfo> {
 		}
 	}
 	return { userID, avatar, nickname, isFriend, botAuth, interval, limits, groupInfoList }
+}
+
+/* 生成订阅用户id列表 */
+async function formatSubUsers( bot: BOT ): Promise<Record<string, string[]>> {
+	const userSubs: Record<string, string[]> = {};
+	
+	for ( const pluginName in PluginReSubs ) {
+		const { subs } = PluginReSubs[pluginName];
+		try {
+			const subList: SubInfo[] = await subs( bot );
+			if ( subList ) {
+				for ( const subItem of subList ) {
+					for ( const user of subItem.users ) {
+						if ( userSubs[user] ) {
+							userSubs[user].push( `${ pluginName }-${ subItem.name }` );
+						} else {
+							userSubs[user] = [ `${ pluginName }-${ subItem.name }` ];
+						}
+					}
+				}
+			}
+		} catch ( error ) {
+			bot.logger.error( `获取插件订阅信息异常: ${ <string>error }` );
+		}
+	}
+	
+	return userSubs;
 }
