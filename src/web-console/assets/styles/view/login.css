@@ -72,6 +72,10 @@
 	margin-bottom: 1.25rem;
 }
 
+.login-base > .login-main > .login-main-content > .login-main-form .remember-account {
+	padding: 0 10px;
+}
+
 .login-base > .login-main > .login-main-content > .login-main-form .el-input__wrapper,
 .login-base > .login-main > .login-main-content > .login-main-form > .el-button {
 	width: 100%;

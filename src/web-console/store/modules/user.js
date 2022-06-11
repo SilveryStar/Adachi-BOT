@@ -1,5 +1,5 @@
 import $http from "../../api/index.js"
-import { removeToken, setToken } from "../../utils/session.js";
+import { tokenSession } from "../../utils/session.js";
 
 export function useUserStore() {
 	async function USER_LOGIN( number, password ) {
@@ -9,7 +9,7 @@ export function useUserStore() {
 			}
 			const pwd = md5( password );
 			$http.USER_LOGIN( { num: number, pwd: pwd } ).then( res => {
-				setToken( res.token );
+				tokenSession.set( res.token );
 				resolve( res );
 			} ).catch( () => {
 				reject( new Error( "账号或密码不正确" ) );
@@ -19,7 +19,7 @@ export function useUserStore() {
 	
 	async function USER_LOGOUT() {
 		return new Promise( resolve => {
-			removeToken();
+			tokenSession.remove();
 			resolve();
 		} )
 	}
