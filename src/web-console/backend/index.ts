@@ -23,6 +23,11 @@ export default class WebConsole {
 		const cfg = config.webConsole;
 		
 		this.secret = cfg.jwtSecret;
+		if ( !this.secret ) {
+			console.log( "请检查 setting.yml 中是否正确填写 jwtSecret 验证秘钥（6~16 位的字母或数字）" );
+			process.exit( 0 );
+		}
+		
 		this.app = express();
 		this.createConsole( cfg.consolePort, cfg.tcpLoggerPort );
 	}
