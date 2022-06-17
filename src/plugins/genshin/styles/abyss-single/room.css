@@ -52,7 +52,6 @@
 .room > .room-content > .chara-list > li {
 	display: flex;
 	padding: 5px 0;
-	justify-content: space-between;
 	align-items: center;
 	height: 50%;
 	box-sizing: border-box;
@@ -73,10 +72,11 @@
 	left: 0;
 	bottom: 0;
 	background-color: rgba(255, 255, 255, .1);
-	box-shadow: 1px 1px 1px 1px rgb(0, 0, 0, .15);
+	box-shadow: 1px 1px 1px 1px rgba(0, 0, 0, .15);
 }
 
 .room > .room-content > .chara-list > li:first-child > .chara-box {
+	width: 25%;
 	position: relative;
 	left: 6px;
 }

@@ -123,8 +123,12 @@ export default defineComponent( {
 					page: state.currentPage,
 					length: state.pageSize
 				}, "GET" ).then( resp => {
-					state.list = resp.data;
-					state.totalLog = resp.total;
+					if ( resp.data.length ) {
+						state.list = resp.data;
+						state.totalLog = resp.total;
+					} else {
+						state.error = true;
+					}
 					resolve();
 				} ).catch( () => {
 					state.error = true;
@@ -144,7 +148,7 @@ export default defineComponent( {
 			resetData();
 			getLogsData( date ).then( () => {
 				state.today = isToday( date );
-				if ( state.today ) {
+				if ( state.today && !state.error ) {
 					runWS();
 					setTimeout( () => scrollToBottom(), 50 );
 				} else if ( ws ) {
