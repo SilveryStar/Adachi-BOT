@@ -274,7 +274,7 @@ export default class Adachi {
 		}
 		
 		/* 如果 @消息 私聊 没有匹配到指令，触发自动回复 */
-		if ( !unionRegExp.test( content ) &&
+		if ( this.bot.config.autoChat && !unionRegExp.test( content ) &&
 			( this.bot.config.atBOT || isPrivate || this.checkAtBOT( <sdk.GroupMessageEventData>messageData ) ) ) {
 			await autoChat( messageData, sendMessage );
 			return;
