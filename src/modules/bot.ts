@@ -20,6 +20,8 @@ import { trim } from "lodash";
 import fs, { readFileSync, unlinkSync } from "fs";
 import axios, { AxiosError } from "axios";
 import { resolve } from "path";
+import { autoChat } from "./chat";
+
 
 /**
  * @interface
@@ -262,12 +264,19 @@ export default class Adachi {
 	): Promise<void> {
 		const content: string = messageData.raw_message;
 		
-		if ( this.bot.refresh.isRefreshing || !unionRegExp.test( content ) ) {
+		if ( this.bot.refresh.isRefreshing ) {
 			return;
 		}
 		
 		if ( isPrivate && this.bot.config.addFriend && messageData.sub_type !== "friend" ) {
 			await this.bot.client.sendPrivateMsg( messageData.user_id, "请先添加 BOT 为好友再尝试发送指令" );
+			return;
+		}
+		
+		/* 如果 @消息 私聊 没有匹配到指令，触发自动回复 */
+		if ( !unionRegExp.test( content ) &&
+			( this.bot.config.atBOT || isPrivate || this.checkAtBOT( <sdk.GroupMessageEventData>messageData ) ) ) {
+			await autoChat( messageData, sendMessage );
 			return;
 		}
 		
