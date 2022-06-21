@@ -11,6 +11,7 @@ export default class BotConfig {
 	public readonly atUser: boolean;
 	public readonly atBOT: boolean;
 	public readonly addFriend: boolean;
+	public readonly autoChat: boolean;
 	public readonly dbPort: number;
 	public readonly dbPassword: string;
 	public readonly inviteAuth: AuthLevel;
@@ -19,7 +20,7 @@ export default class BotConfig {
 	public readonly privateIntervalTime: number;
 	public readonly helpMessageStyle: string;
 	public readonly logLevel: "trace" | "debug" | "info" | "warn" |
-							  "error" | "fatal" | "mark" | "off";
+		"error" | "fatal" | "mark" | "off";
 	
 	public readonly webConsole: {
 		readonly enable: boolean;
@@ -39,6 +40,7 @@ export default class BotConfig {
 		atUser: false,
 		atBOT: false,
 		addFriend: true,
+		autoChat: false,
 		inviteAuth: "master",
 		countThreshold: 60,
 		groupIntervalTime: 1500,
@@ -75,6 +77,7 @@ export default class BotConfig {
 		this.dbPassword = config.dbPassword;
 		this.atUser = config.atUser;
 		this.addFriend = config.addFriend;
+		this.autoChat = config.autoChat;
 		this.platform = config.platform;
 		this.password = config.password;
 		this.groupIntervalTime = config.groupIntervalTime;
