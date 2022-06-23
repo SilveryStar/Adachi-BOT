@@ -377,7 +377,7 @@ export default class Adachi {
 	
 	private checkAtBOT( msg: sdk.GroupMessageEventData ): boolean {
 		const { number } = this.bot.config;
-		const atBOTReg: RegExp = new RegExp( `^ *\\[CQ:at,qq=${ number }.*]` );
+		const atBOTReg: RegExp = new RegExp( `^ *\\[CQ:at,qq=${ number }.*?]` );
 		const content: string = msg.raw_message;
 		
 		if ( atBOTReg.test( content ) ) {

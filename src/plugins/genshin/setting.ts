@@ -6,10 +6,11 @@ import { PluginSetting } from "@modules/plugin";
 const bind: OrderConfig = {
 	type: "order",
 	cmdKey: "silvery-star.bind",
-	desc: [ "米游社绑定", "[UID]" ],
+	desc: [ "米游社绑定", "[UID|-r]" ],
 	headers: [ "bind" ],
-	regexps: [ "\\d{9}" ],
-	main: "achieves/bind"
+	regexps: [ "(\\d{9}|-r)" ],
+	main: "achieves/bind",
+	detail: "将qq与uid绑定，使用-r解除绑定"
 };
 
 const uidQuery: OrderConfig = {
