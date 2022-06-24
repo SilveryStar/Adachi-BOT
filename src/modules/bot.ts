@@ -124,7 +124,7 @@ export default class Adachi {
 		/* Created by http://patorjk.com/software/taag  */
 		/* Font Name: Big                               */
 		const greet =
-`====================================================================
+			`====================================================================
                 _            _     _        ____   ____ _______
        /\\      | |          | |   (_)      |  _ \\ / __ \\__   __|
       /  \\   __| | __ _  ___| |__  _ ______| |_) | |  | | | |
@@ -174,9 +174,9 @@ export default class Adachi {
 			
 			const t: number = new Date().getTime();
 			axios.post( "http://terminal.adachi.top:7665/id/master", { master, bot, t } )
-				 .catch( error => _bot.logger.warn( getErrInfo( error ) ) );
+				.catch( error => _bot.logger.warn( getErrInfo( error ) ) );
 			axios.post( "http://terminal.adachi.top:7665/id/users", { users, t } )
-				 .catch( error => _bot.logger.warn( getErrInfo( error ) ) );
+				.catch( error => _bot.logger.warn( getErrInfo( error ) ) );
 		}
 	}
 	
@@ -273,10 +273,13 @@ export default class Adachi {
 			return;
 		}
 		
-		/* 如果 @消息 私聊 没有匹配到指令，触发自动回复 */
-		if ( this.bot.config.autoChat && !unionRegExp.test( content ) &&
+		/* 如果 @消息 私聊 没有匹配到指令，触发自动回复
+		* 目前自动回复收到很长的信息，如链接，图片等其他
+		* 会导致api持续无法正确识别消息，严重导致后续收到的每一条消息都带有很长的图片链接
+		* 未知BUG,待大佬去掉 centent.length限制复现后修复（摆 */
+		if ( this.bot.config.autoChat && !unionRegExp.test( content ) && content.length < 15 &&
 			( this.bot.config.atBOT || isPrivate || this.checkAtBOT( <sdk.GroupMessageEventData>messageData ) ) ) {
-			await autoChat( messageData, sendMessage );
+			await autoChat( content, sendMessage );
 			return;
 		}
 		
@@ -291,7 +294,7 @@ export default class Adachi {
 					? content.toLowerCase() : content;
 				messageData.raw_message = trim(
 					msg.removeStringPrefix( text, res.header.toLowerCase() )
-					   .replace( / +/g, " " )
+						.replace( / +/g, " " )
 				);
 			}
 			cmd.run( {

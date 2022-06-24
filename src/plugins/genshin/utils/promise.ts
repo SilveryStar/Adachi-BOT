@@ -12,6 +12,21 @@ export enum ErrorMsg {
 	FORM_MESSAGE = "米游社接口报错: "
 }
 
+/* 当前cookie查询次数上限，切换下一个cookie */
+async function checkQueryTimes( message: string ): Promise<string> {
+	const timesOut = /up to 30 other people/;
+	if ( timesOut.test( message ) ) {
+		cookies.increaseIndex();
+		if ( cookies.getIndex() === 0 ) {
+			await bot.logger.warn( "所有cookie查询次数已用尽，请增加可用cookie到config/cookie.yaml" );
+			return "所有cookie查询次数已用尽，请联系BOT主人添加";
+		}
+		await bot.logger.warn( "当前cookie查询次数已用尽，已切换下一个" );
+		return "当前cookie查询次数已用尽，已切换下一个";
+	}
+	return message;
+}
+
 export async function baseInfoPromise(
 	userID: number,
 	mysID: number,
@@ -29,7 +44,7 @@ export async function baseInfoPromise(
 			reject( Cookies.checkExpired( cookie ) );
 			return;
 		} else if ( retcode !== 0 ) {
-			reject( ErrorMsg.FORM_MESSAGE + message );
+			reject( await checkQueryTimes( ErrorMsg.FORM_MESSAGE + message ) );
 			return;
 		} else if ( !data.list || data.list.length === 0 ) {
 			reject( ErrorMsg.NOT_FOUND );
@@ -73,7 +88,7 @@ export async function detailInfoPromise(
 	
 	if ( cookie.length === 0 ) {
 		cookie = cookies.get();
-		cookies.increaseIndex();
+		// cookies.increaseIndex();
 	}
 	const { retcode, message, data } = await api.getDetailInfo( uid, server, cookie );
 	const allHomes = await api.getUidHome();
@@ -87,7 +102,7 @@ export async function detailInfoPromise(
 			reject( Cookies.checkExpired( cookie ) );
 			return;
 		} else if ( retcode !== 0 ) {
-			reject( ErrorMsg.FORM_MESSAGE + message );
+			reject( await checkQueryTimes( ErrorMsg.FORM_MESSAGE + message ) );
 			return;
 		} else if ( data.avatars.length === 0 ) {
 			reject( `玩家 UID${ uid } 的信息有误` );
@@ -122,6 +137,9 @@ export async function characterInfoPromise(
 	const { retcode, message, data } = await api.getCharactersInfo( uid, server, charIDs, cookie );
 	if ( !ApiType.isCharacter( data ) ) {
 		return Promise.reject( ErrorMsg.UNKNOWN );
+	}
+	if ( retcode !== 0 ) {
+		return Promise.reject( await checkQueryTimes( ErrorMsg.FORM_MESSAGE + message ) );
 	}
 	
 	return new Promise( async ( resolve, reject ) => {
@@ -265,7 +283,7 @@ export async function abyssInfoPromise(
 	
 	if ( cookie.length === 0 ) {
 		cookie = cookies.get();
-		cookies.increaseIndex();
+		// cookies.increaseIndex();
 	}
 	let { retcode, message, data } = await api.getSpiralAbyssInfo( uid, server, period, cookie );
 	if ( !ApiType.isAbyss( data ) ) {
@@ -301,7 +319,7 @@ export async function abyssInfoPromise(
 			reject( Cookies.checkExpired( cookie ) );
 			return;
 		} else if ( retcode !== 0 ) {
-			reject( ErrorMsg.FORM_MESSAGE + message );
+			reject( await checkQueryTimes( ErrorMsg.FORM_MESSAGE + message ) );
 			return;
 		}
 		
@@ -331,7 +349,7 @@ export async function ledgerPromise(
 	
 	if ( cookie.length === 0 ) {
 		cookie = cookies.get();
-		cookies.increaseIndex();
+		// cookies.increaseIndex();
 	}
 	const { retcode, message, data } = await api.getLedger( uid, server, month, cookie );
 	if ( !ApiType.isLedger( data ) ) {
@@ -343,7 +361,7 @@ export async function ledgerPromise(
 			reject( Cookies.checkExpired( cookie ) );
 			return;
 		} else if ( retcode !== 0 ) {
-			reject( ErrorMsg.FORM_MESSAGE + message );
+			reject( await checkQueryTimes( ErrorMsg.FORM_MESSAGE + message ) );
 			return;
 		}
 		

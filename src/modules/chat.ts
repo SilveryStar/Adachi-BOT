@@ -22,15 +22,14 @@ export interface MSG {
 
 
 /* 自动回复插件方法 */
-export async function autoChat( messageData: msg.Message, sendMessage: msg.SendFunc ) {
-	const mesg: string = messageData.raw_message;
+export async function autoChat( messageData: string, sendMessage: msg.SendFunc ) {
 	//开始匹配回答
-	if ( mesg.length <= 0 ) {
+	if ( messageData.length <= 0 ) {
 		//随即回复一个表情包
 		await sendMessage( "找我有和贵干？" );
 		await sendMessage( getEmoji() );
 	} else {
-		await sendMessage( await getReplyMessage( mesg ) );
+		await sendMessage( await getReplyMessage( messageData ) );
 	}
 }
 
