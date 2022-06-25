@@ -273,10 +273,7 @@ export default class Adachi {
 			return;
 		}
 		
-		/* 如果 @消息 私聊 没有匹配到指令，触发自动回复
-		* 目前自动回复收到很长的信息，如链接，图片等其他
-		* 会导致api持续无法正确识别消息，严重导致后续收到的每一条消息都带有很长的图片链接
-		* 未知BUG,待大佬去掉 centent.length限制复现后修复（摆 */
+		/* 已修复之前数据错误的问题 */
 		if ( this.bot.config.autoChat && !unionRegExp.test( content ) && content.length < 15 &&
 			( this.bot.config.atBOT || isPrivate || this.checkAtBOT( <sdk.GroupMessageEventData>messageData ) ) ) {
 			await autoChat( content, sendMessage );

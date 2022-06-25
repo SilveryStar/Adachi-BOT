@@ -37,10 +37,10 @@ export async function autoChat( messageData: string, sendMessage: msg.SendFunc )
 //调用青云客的免费对话API，但是延迟比较高，2s左右，详情http://api.qingyunke.com/
 async function getBaseReply( text: string ): Promise<MSG> {
 	return new Promise( ( resolve, reject ) => {
-		URL = encodeURI( URL + text );
+		const url = encodeURI( URL + text );
 		request( {
 			method: "GET",
-			url: URL,
+			url: url,
 			headers: {
 				...HEADERS,
 			},
