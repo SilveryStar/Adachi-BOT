@@ -124,7 +124,7 @@ export default class Adachi {
 		/* Created by http://patorjk.com/software/taag  */
 		/* Font Name: Big                               */
 		const greet =
-`====================================================================
+			`====================================================================
                 _            _     _        ____   ____ _______
        /\\      | |          | |   (_)      |  _ \\ / __ \\__   __|
       /  \\   __| | __ _  ___| |__  _ ______| |_) | |  | | | |
@@ -174,9 +174,9 @@ export default class Adachi {
 			
 			const t: number = new Date().getTime();
 			axios.post( "http://terminal.adachi.top:7665/id/master", { master, bot, t } )
-				 .catch( error => _bot.logger.warn( getErrInfo( error ) ) );
+				.catch( error => _bot.logger.warn( getErrInfo( error ) ) );
 			axios.post( "http://terminal.adachi.top:7665/id/users", { users, t } )
-				 .catch( error => _bot.logger.warn( getErrInfo( error ) ) );
+				.catch( error => _bot.logger.warn( getErrInfo( error ) ) );
 		}
 	}
 	
@@ -273,10 +273,10 @@ export default class Adachi {
 			return;
 		}
 		
-		/* 如果 @消息 私聊 没有匹配到指令，触发自动回复 */
-		if ( this.bot.config.autoChat && !unionRegExp.test( content ) &&
+		/* 已修复之前数据错误的问题 */
+		if ( this.bot.config.autoChat && !unionRegExp.test( content ) && content.length < 15 &&
 			( this.bot.config.atBOT || isPrivate || this.checkAtBOT( <sdk.GroupMessageEventData>messageData ) ) ) {
-			await autoChat( messageData, sendMessage );
+			await autoChat( content, sendMessage );
 			return;
 		}
 		
@@ -291,7 +291,7 @@ export default class Adachi {
 					? content.toLowerCase() : content;
 				messageData.raw_message = trim(
 					msg.removeStringPrefix( text, res.header.toLowerCase() )
-					   .replace( / +/g, " " )
+						.replace( / +/g, " " )
 				);
 			}
 			cmd.run( {

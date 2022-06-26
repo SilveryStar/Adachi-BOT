@@ -27,6 +27,9 @@ export class Cookies {
 	public get(): string {
 		return this.cookies[this.index];
 	}
+	public getIndex(): number {
+		return this.index;
+	}
 	
 	public async refresh( config ): Promise<string> {
 		try {
