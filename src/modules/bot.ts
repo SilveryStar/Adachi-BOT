@@ -274,8 +274,8 @@ export default class Adachi {
 		}
 		
 		/* 已修复之前数据错误的问题 */
-		if ( this.bot.config.autoChat && !unionRegExp.test( content ) && content.length < 15 &&
-			( this.bot.config.atBOT || isPrivate || this.checkAtBOT( <sdk.GroupMessageEventData>messageData ) ) ) {
+		if ( this.bot.config.autoChat && !unionRegExp.test( content )  &&
+			(( this.bot.config.atBOT || isPrivate || this.checkAtBOT( <sdk.GroupMessageEventData>messageData ) )) ) {
 			await autoChat( content, sendMessage );
 			return;
 		}
