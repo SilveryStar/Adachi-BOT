@@ -57,7 +57,9 @@ export default class WebConfiguration {
 			categories: {
 				default: Default,
 				[this.deviceName]: Device
-			}
+			},
+			pm2: true,
+			disableClustering: true
 		};
 	}
 }
