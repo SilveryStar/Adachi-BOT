@@ -2,7 +2,6 @@ import fetch from "node-fetch";
 import { exec } from "child_process";
 import { InputParameter } from "@modules/command";
 import { restart } from "pm2";
-import * as os from "os";
 
 /* 超时检查 */
 function waitWithTimeout( promise: Promise<any>, timeout: number ) {
@@ -71,10 +70,6 @@ async function updateBot( { messageData, sendMessage, logger }: InputParameter )
 }
 
 export async function main( i: InputParameter ): Promise<void> {
-	if ( os.platform() === "win32" ) {
-		await i.sendMessage( "Windows平台暂不支持指令更新" );
-		return;
-	}
 	const dbKey: string = "adachi.update-time";
 	
 	let commits: any[] = []
