@@ -28,8 +28,8 @@ export class Switch extends BasicConfig {
 	private readonly mode: "single" | "divided";
 	private readonly header: string;
 	
-	constructor( config: SwitchConfig, botCfg: BotConfig ) {
-		super( config );
+	constructor( config: SwitchConfig, botCfg: BotConfig, pluginName: string ) {
+		super( config, pluginName );
 		
 		if ( config.onKey === config.offKey ) {
 			throw `指令 ${ config.cmdKey } 配置错误: onKey 与 offKey 不可相同`;

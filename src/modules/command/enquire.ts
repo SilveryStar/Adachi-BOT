@@ -36,8 +36,8 @@ export class Enquire extends BasicConfig {
 	private readonly units: MatchKeyword[] = [];
 	private readonly rawSentences: string[];
 	
-	constructor( config: EnquireConfig, botCfg: BotConfig ) {
-		super( config );
+	constructor( config: EnquireConfig, botCfg: BotConfig, pluginName: string ) {
+		super( config, pluginName );
 		const definedKeys: string[] = Object.keys( config.definedPair );
 		
 		if ( config.sentences.length === 0 ) {

@@ -25,8 +25,8 @@ export class Order extends BasicConfig {
 	public readonly type = "order";
 	public readonly regPairs: RegPair[] = [];
 	
-	constructor( config: OrderConfig, botCfg: BotConfig ) {
-		super( config );
+	constructor( config: OrderConfig, botCfg: BotConfig, pluginName: string ) {
+		super( config, pluginName );
 		
 		const globalHeader: string = botCfg.header;
 		const headers: string[] = config.headers.map( el => Order.header( el, globalHeader ) );
