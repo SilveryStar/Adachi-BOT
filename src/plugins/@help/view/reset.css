@@ -1,0 +1,22 @@
+* {
+	margin: 0;
+	padding: 0;
+}
+
+img {
+	display: block;
+}
+
+ul {
+	list-style: none;
+}
+
+html {
+	height: 100%;
+	font-family: GenshinUsedFont, monospace;
+}
+
+@font-face {
+	font-family: GenshinUsedFont;
+	src: url( "../public/fonts/HYWenHei-85W.ttf" );
+}

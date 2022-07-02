@@ -18,6 +18,7 @@ export default class BotConfig {
 	public readonly countThreshold: number;
 	public readonly groupIntervalTime: number;
 	public readonly privateIntervalTime: number;
+	public readonly helpPort: number;
 	public readonly helpMessageStyle: string;
 	public readonly logLevel: "trace" | "debug" | "info" | "warn" |
 		"error" | "fatal" | "mark" | "off";
@@ -45,6 +46,7 @@ export default class BotConfig {
 		countThreshold: 60,
 		groupIntervalTime: 1500,
 		privateIntervalTime: 2000,
+		helpPort: 54919,
 		helpMessageStyle: "message",
 		logLevel: "info",
 		dbPort: 56379,
@@ -59,7 +61,7 @@ export default class BotConfig {
 	
 	constructor( file: FileManagement ) {
 		const config: any = file.loadYAML( "setting" );
-		const checkFields: Array<keyof BotConfig> = [ "atBOT", "addFriend", "dbPassword" ];
+		const checkFields: Array<keyof BotConfig> = [ "atBOT", "addFriend", "dbPassword", "helpPort", "autoChat" ];
 		
 		for ( let key of checkFields ) {
 			if ( config[key] === undefined ) {
@@ -80,6 +82,7 @@ export default class BotConfig {
 		this.autoChat = config.autoChat;
 		this.platform = config.platform;
 		this.password = config.password;
+		this.helpPort = config.helpPort;
 		this.groupIntervalTime = config.groupIntervalTime;
 		this.privateIntervalTime = config.privateIntervalTime;
 		this.countThreshold = config.countThreshold;
@@ -93,7 +96,7 @@ export default class BotConfig {
 		this.inviteAuth = config.inviteAuth === "manager"
 			? AuthLevel.Manager : AuthLevel.Master;
 		
-		const helpList: string[] = [ "message", "forward", "xml" ];
+		const helpList: string[] = [ "message", "forward", "xml", "card" ];
 		this.helpMessageStyle = helpList.includes( config.helpMessageStyle )
 			? config.helpMessageStyle : "message";
 		

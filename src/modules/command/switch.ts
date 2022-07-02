@@ -149,8 +149,8 @@ export class Switch extends BasicConfig {
 		return { type: "unmatch" };
 	}
 	
-	public getDesc(): string {
-		const [ func, param ] = this.desc;
+	public getFollow(): string {
+		const param = this.desc[1];
 		const [ onKey, offKey ] = this.keys;
 		
 		let header: string, follow: string;
@@ -162,12 +162,17 @@ export class Switch extends BasicConfig {
 		} else {
 			header = `${ onKey }|${ offKey }`;
 			follow = param.replace( /#{OPT}/, "" )
-						  .trim()
-						  .replace( /\s+/g, " " );
+				.trim()
+				.replace( /\s+/g, " " );
 		}
+		return `${ header } ${ follow }`;
+	}
+	
+	public getDesc(): string {
+		const follow = this.getFollow();
 		
 		return Switch.addLineFeedChar(
-			func, `${ header } ${ follow }`,
+			this.desc[0], follow,
 			bot.config.helpMessageStyle
 		);
 	}

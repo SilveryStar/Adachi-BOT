@@ -57,6 +57,7 @@ export abstract class BasicConfig {
 	
 	abstract match( content: string ): MatchResult;
 	abstract write(): any;
+	abstract getFollow(): string;
 	abstract getDesc(): string;
 	
 	protected static header( raw: string, h: string ): string {

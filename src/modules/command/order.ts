@@ -83,13 +83,18 @@ export class Order extends BasicConfig {
 		return { type: "unmatch" };
 	}
 	
-	public getDesc(): string {
+	public getFollow(): string {
 		const headers: string = this.regPairs
-									.map( el => el.header )
-									.join( "|" );
-		const [ func, param ] = this.desc;
+			.map( el => el.header )
+			.join( "|" );
+		const param = this.desc[1];
+		return `${ headers } ${ param }`;
+	}
+	
+	public getDesc(): string {
+		const follow = this.getFollow();
 		return Order.addLineFeedChar(
-			func, `${ headers } ${ param }`,
+			this.desc[0], follow,
 			bot.config.helpMessageStyle
 		);
 	}
