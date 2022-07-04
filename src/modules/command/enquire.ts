@@ -36,8 +36,8 @@ export class Enquire extends BasicConfig {
 	private readonly units: MatchKeyword[] = [];
 	private readonly rawSentences: string[];
 	
-	constructor( config: EnquireConfig, botCfg: BotConfig ) {
-		super( config );
+	constructor( config: EnquireConfig, botCfg: BotConfig, pluginName: string ) {
+		super( config, pluginName );
 		const definedKeys: string[] = Object.keys( config.definedPair );
 		
 		if ( config.sentences.length === 0 ) {
@@ -132,7 +132,7 @@ export class Enquire extends BasicConfig {
 		return { type: "unmatch" };
 	}
 	
-	public getDesc(): string {
+	public getFollow(): string {
 		const sentences: string[] = [];
 		this.rawSentences.forEach( sen => {
 			let str: string = sen;
@@ -142,11 +142,15 @@ export class Enquire extends BasicConfig {
 			sentences.push( str );
 		} );
 		
-		const [ func ] = this.desc;
 		if ( sentences.length === 1 ) {
-			return func + " " + sentences[0];
+			return " " + sentences[0];
 		} else {
-			return func + [ "", ...sentences ].join( "\n" );
+			return [ "", ...sentences ].join( "\n" );
 		}
+	}
+	
+	public getDesc(): string {
+		const follow = this.getFollow();
+		return this.desc[0] + follow;
 	}
 }

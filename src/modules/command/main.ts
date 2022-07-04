@@ -53,9 +53,11 @@ export abstract class BasicConfig {
 	readonly raw: ConfigType;
 	readonly run: CommandFunc;
 	readonly desc: [ string, string ];
+	readonly pluginName: string;
 	
 	abstract match( content: string ): MatchResult;
 	abstract write(): any;
+	abstract getFollow(): string;
 	abstract getDesc(): string;
 	
 	protected static header( raw: string, h: string ): string {
@@ -96,7 +98,7 @@ export abstract class BasicConfig {
 		return `${ func } -- ${ this.cmdKey }`;
 	}
 	
-	protected constructor( config: ConfigType ) {
+	protected constructor( config: ConfigType, pluginName: string ) {
 		this.cmdKey = config.cmdKey;
 		this.desc = config.desc;
 		this.auth = config.auth || AuthLevel.User;
@@ -105,6 +107,7 @@ export abstract class BasicConfig {
 		this.ignoreCase = config.ignoreCase !== false;
 		this.display = config.display !== false;
 		this.run = <CommandFunc>config.run;
+		this.pluginName = pluginName;
 		
 		this.raw = config;
 	}

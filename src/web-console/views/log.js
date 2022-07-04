@@ -108,7 +108,7 @@ export default defineComponent( {
 		/* 向列表添加 ws 通讯所得数据，若出现新一页，跳转最新页 */
 		async function addMsgToList( msg ) {
 			const newPage = state.list.length + msg.length > state.pageSize;
-			if ( newPage ) {
+			if ( newPage && state.autoBottom ) {
 				await scrollToBottom();
 			} else {
 				state.list.push( ...msg );
@@ -117,24 +117,21 @@ export default defineComponent( {
 		
 		/* 获取日志列表 */
 		async function getLogsData( date = state.currentDate ) {
-			return new Promise( ( resolve ) => {
-				$http.LOG_INFO( {
+			try {
+				const resp = await $http.LOG_INFO( {
 					date: date.getTime(),
 					page: state.currentPage,
 					length: state.pageSize
-				}, "GET" ).then( resp => {
-					if ( resp.data.length ) {
-						state.list = resp.data;
-						state.totalLog = resp.total;
-					} else {
-						state.error = true;
-					}
-					resolve();
-				} ).catch( () => {
+				}, "GET" )
+				if ( resp.data.length ) {
+					state.list = resp.data;
+					state.totalLog = resp.total;
+				} else {
 					state.error = true;
-					resolve();
-				} );
-			} )
+				}
+			} catch ( error ) {
+				state.error = true;
+			}
 		}
 		
 		/* 获取当前 年月日 整日期 */

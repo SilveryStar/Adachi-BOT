@@ -1,0 +1,179 @@
+.help {
+	background-color: #f3f4f7;
+	box-shadow: inset 0 0 200px rgba(198, 215, 243, 0.4);
+}
+
+.help > header {
+	position: relative;
+	display: flex;
+	justify-content: space-between;
+	padding: 0 26px;
+	height: 178px;
+	color: #fff;
+	font-weight: 400;
+	text-shadow: 1px 1px 4px #000;
+}
+
+.help > header > img {
+	position: absolute;
+	left: 0;
+	top: 0;
+	width: 100%;
+	height: 100%;
+	filter: drop-shadow(0 2px 0 #fff) drop-shadow(0 4px 4px rgba(0, 0, 0, 0.3));
+}
+
+.help > header > .left-header,
+.help > header > .right-header {
+	position: relative;
+	z-index: 100;
+}
+
+.help > header > .left-header {
+	margin-top: 38px;
+}
+
+.help > header > .left-header > p:nth-of-type(1) {
+	font-size: 28px;
+	line-height: 34px;
+}
+
+.help > header > .left-header > p:nth-of-type(2) {
+	margin-top: 5px;
+	font-size: 24px;
+	line-height: 29px;
+}
+
+.help > header > .right-header {
+	margin-top: 40px;
+	text-align: right;
+}
+
+.help > header > .right-header > .version {
+	margin-bottom: 11px;
+	font-size: 20px;
+	line-height: 24px;
+}
+
+.help > header > .right-header > .desc {
+	margin-top: 5px;
+	font-size: 14px;
+	line-height: 17px;
+}
+
+.help > main {
+	padding: 0 26px;
+}
+
+.help > main > section {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	margin-top: 20px;
+}
+
+.help > main > section:first-child {
+	margin-top: -18px;
+}
+
+.help > main > section > h3 {
+	margin-bottom: 10px;
+	padding: 5px 20px;
+	min-width: 300px;
+	height: 30px;
+	background-color: #ebeff3;
+	box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.25);
+	border-radius: 16px;
+	font-weight: 400;
+	font-size: 16px;
+	line-height: 22px;
+	text-align: center;
+	color: #6A8AC9;
+	box-sizing: border-box;
+}
+
+.help > main > section > ul {
+	width: 100%;
+	display: flex;
+	justify-content: space-between;
+	flex-wrap: wrap;
+}
+
+.help > main .cmd-content {
+	display: flex;
+	align-items: center;
+	margin: 5px 0;
+	padding: 8px;
+	width: 337px;
+	min-height: 36px;
+	background-color: #F5F8FD;
+	box-shadow: 2px 2px 6px rgba(97, 111, 158, 0.25);
+	border-radius: 8px;
+	box-sizing: border-box;
+}
+
+.help > main .cmd-content > .cmd-index {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 18px;
+	height: 18px;
+	background: #fff;
+	box-shadow: inset 1px 1px 2px rgba(0, 0, 0, 0.25);
+	border-radius: 9px;
+	flex: 0 0 auto;
+}
+
+.help > main .cmd-content > .cmd-index > span {
+	font-weight: 400;
+	font-size: 12px;
+	line-height: 15px;
+	color: #7B9FF2;
+}
+
+.help > main .cmd-content > .cmd-header {
+	margin-left: 9px;
+	font-weight: 400;
+	font-size: 14px;
+	line-height: 17px;
+	color: #000;
+	flex: 0 0 auto;
+}
+
+.help > main .cmd-content > .cmd-desc {
+	margin-left: 9px;
+	font-weight: 400;
+	font-size: 12px;
+	line-height: 15px;
+	color: #3D67BC;
+	word-break: break-all;
+	flex: 1;
+}
+
+.help > footer {
+	position: relative;
+	margin-top: 16px;
+	padding: 9px 0;
+	height: 38px;
+	text-align: center;
+	box-sizing: border-box;
+}
+
+.help > footer::before {
+	content: "";
+	position: absolute;
+	top: 0;
+	left: 26px;
+	right: 26px;
+	border: 2px solid #F2F6FC;
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.help > footer > .sign {
+	font-weight: 400;
+	font-size: 14px;
+	line-height: 20px;
+	text-align: center;
+	color: #fff;
+	text-shadow: 1px 1px 2px #000;
+}
