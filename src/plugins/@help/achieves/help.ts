@@ -86,7 +86,8 @@ function xmlStyle( title: string, list: string[], command: Command ): Sendable {
 	return xmlHead + xmlBody + xmlFoot;
 }
 
-async function cardStyle( i: InputParameter, commands: BasicConfig[], version: string, showKeys: boolean ) {
+/* 使用图片帮助 */
+async function cardStyle( i: InputParameter, commands: BasicConfig[], version: string ) {
 	const dbKey = "adachi.help-data";
 	
 	const cmdList: HelpCommand[] = commands.map( ( cmd, cKey ) => {
@@ -113,10 +114,8 @@ async function cardStyle( i: InputParameter, commands: BasicConfig[], version: s
 		commands: cmdData
 	} ) );
 	
-	const model = showKeys ? "keys" : "normal";
-	
 	const res: RenderResult = await renderer.asCqCode(
-		"/index.html", { model } );
+		"/index.html" );
 	if ( res.code === "ok" ) {
 		return res.data;
 	} else {
@@ -126,7 +125,8 @@ async function cardStyle( i: InputParameter, commands: BasicConfig[], version: s
 }
 
 async function getHelpMessage(
-	title: string, list: string[],
+	title: string, version: string,
+	commands: BasicConfig[], list: string[],
 	i: InputParameter
 ): Promise<Sendable> {
 	switch ( i.config.helpMessageStyle ) {
@@ -136,6 +136,8 @@ async function getHelpMessage(
 			return await forwardStyle( title, list, i );
 		case "xml":
 			return xmlStyle( title, list, i.command );
+		case "card":
+			return await cardStyle( i, commands, version );
 		default:
 			return "";
 	}
@@ -150,13 +152,6 @@ export async function main( i: InputParameter ): Promise<void> {
 		return;
 	}
 	
-	/* 使用图片帮助 */
-	if ( i.config.helpMessageStyle === "card" ) {
-		const message = await cardStyle( i, commands, version, showKeys );
-		await i.sendMessage( message, false );
-		return;
-	}
-	
 	const title: string = `Adachi-BOT v${ version }~`;
 	let ID: number = 0;
 	if ( showKeys ) {
@@ -166,6 +161,6 @@ export async function main( i: InputParameter ): Promise<void> {
 		await i.sendMessage( title + keys );
 	} else {
 		const msgList: string[] = commands.map( el => `${ ++ID }. ${ el.getDesc() }` );
-		await i.sendMessage( await getHelpMessage( title, msgList, i ), false );
+		await i.sendMessage( await getHelpMessage( title, version, commands, msgList, i ), false );
 	}
 }

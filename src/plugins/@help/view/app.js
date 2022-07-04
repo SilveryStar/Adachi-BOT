@@ -3,7 +3,7 @@ const template = `<div class="help">
 		<img src="https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/help/top-bg.png" alt="top-bg">
 		<div class="left-header">
 			<p>Adachi-BOT</p>
-			<p>{{ model === "normal" ? "使用文档" : "指令key值表" }}</p>
+			<p>{{ model === "keys" ? "指令key值表" : "使用文档" }}</p>
 		</div>
 		<div class="right-header">
 			<p class="version">ver{{ data.version }}</p>
@@ -20,7 +20,7 @@ const template = `<div class="help">
 						<span>{{ cmd.id }}</span>
 					</p>
 					<p class="cmd-header">{{ cmd.header }}</p>
-					<p class="cmd-desc">{{ model === "normal" ? cmd.body : cmd.cmdKey }}</p>
+					<p class="cmd-desc">{{ model === "keys" ? cmd.cmdKey : cmd.body }}</p>
 				</li>
 			</ul>
 		</section>
