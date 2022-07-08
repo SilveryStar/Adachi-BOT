@@ -4,7 +4,8 @@ import bot from "ROOT";
 import { Cookies } from "#genshin/module";
 import { omit, pick } from "lodash";
 import { characterID, cookies } from "../init";
-import { CharacterCon, Abyss } from "../types";
+import { CharacterCon } from "../types";
+import { getCalendarDetail, getCalendarList } from "./api";
 
 export enum ErrorMsg {
 	NOT_FOUND = "未查询到角色数据，请检查米哈游通行证（非UID）是否有误或是否设置角色信息公开",
@@ -110,10 +111,10 @@ export async function detailInfoPromise(
 		}
 		
 		await bot.redis.setHash( `silvery-star.card-data-${ uid }`, {
-			explorations:   JSON.stringify( data.worldExplorations ),
-			stats:          JSON.stringify( data.stats ),
-			homes:          JSON.stringify( data.homes ),
-			allHomes:       JSON.stringify( allHomes )
+			explorations: JSON.stringify( data.worldExplorations ),
+			stats: JSON.stringify( data.stats ),
+			homes: JSON.stringify( data.homes ),
+			allHomes: JSON.stringify( allHomes )
 		} );
 		await bot.redis.setTimeout( `silvery-star.card-data-${ uid }`, 3600 );
 		bot.logger.info( `用户 ${ uid } 查询成功，数据已缓存` );
@@ -306,12 +307,12 @@ export async function abyssInfoPromise(
 	
 	data = {
 		...data,
-		revealRank: getRankWithName(data.revealRank),
-		defeatRank: getRankWithName(data.defeatRank),
-		takeDamageRank: getRankWithName(data.takeDamageRank),
-		normalSkillRank: getRankWithName(data.normalSkillRank),
-		energySkillRank: getRankWithName(data.energySkillRank),
-		damageRank: getRankWithName(data.damageRank),
+		revealRank: getRankWithName( data.revealRank ),
+		defeatRank: getRankWithName( data.defeatRank ),
+		takeDamageRank: getRankWithName( data.takeDamageRank ),
+		normalSkillRank: getRankWithName( data.normalSkillRank ),
+		energySkillRank: getRankWithName( data.energySkillRank ),
+		damageRank: getRankWithName( data.damageRank ),
 	}
 	
 	return new Promise( async ( resolve, reject ) => {
@@ -448,4 +449,67 @@ export async function signInResultPromise(
 		bot.logger.info( `用户 ${ uid } 今日米游社签到成功` );
 		resolve( data );
 	} );
+}
+
+export async function calendarPromise(): Promise<ApiType.CalendarData[]> {
+	const { data: detail, retcode: dRetCode, message: dMessage } = await getCalendarDetail();
+	const { data: list, retcode: lRetCode, message: lMessage } = await getCalendarList();
+	if ( !ApiType.isCalendarDetail( detail ) || !ApiType.isCalendarList( list ) ) {
+		throw ErrorMsg.UNKNOWN;
+	}
+	
+	if ( dRetCode !== 0 ) {
+		throw ErrorMsg.FORM_MESSAGE + dMessage;
+	}
+	
+	if ( lRetCode !== 0 ) {
+		throw ErrorMsg.FORM_MESSAGE + lMessage;
+	}
+	
+	const ignoredReg = /(修复|社区|有奖活动|预下载|内容专题页|米游社|调研|专项意见|防沉迷|问卷|公平运营|更新|邀约事件|周边|新剧情|先行展示页)/;
+	
+	const detailInfo: Record<number, ApiType.CalendarDetailItem> = {};
+	for ( const d of detail.list ) {
+		detailInfo[d.annId] = d;
+	}
+	
+	/* 日历数据 */
+	const calcDataList: ApiType.CalendarData[] = [];
+	
+	for ( const listData of list.list ) {
+		for ( const data of listData.list ) {
+			/* 过滤非活动公告 */
+			if ( ignoredReg.test( data.title ) ) {
+				continue;
+			}
+			
+			let start = new Date( data.startTime );
+			let end = new Date( data.endTime );
+			
+			/* 若存在详情，修正列表数据的开始结束时间 */
+			const detailItem = detailInfo[data.annId];
+			if ( detailItem ) {
+				const content = detailItem.content.replace( /(<|&lt;).+?(>|&gt;)/g, "" );
+				const dateList = content.match( /(\d+\/\d+\/\d+\s\d+:\d+:\d+)~?(\d+\/\d+\/\d+\s\d+:\d+:\d+)?/i );
+				/* 修正开始时间 */
+				if ( dateList && dateList[1] ) {
+					start = new Date( dateList[1] );
+				}
+				/* 修正结束时间 */
+				if ( dateList && dateList[2] ) {
+					end = new Date( dateList[2] );
+				}
+			}
+			
+			calcDataList.push( {
+				banner: data.banner,
+				title: data.title,
+				subTitle: data.subtitle,
+				startTime: start.getTime(),
+				endTime: end.getTime()
+			} );
+		}
+	}
+	bot.logger.info( "活动数据查询成功" );
+	return calcDataList;
 }

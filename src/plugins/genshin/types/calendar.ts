@@ -76,3 +76,21 @@ export interface CalendarDetailItem {
 	subtitle: string;
 	title: string;
 }
+
+
+/**
+ * @interface
+ * 公告最终存储数据
+ * @banner 头图地址
+ * @title 标题
+ * @subtitle 副标题
+ * @startTime 起始时间
+ * @endTime 结束时间
+ */
+export interface CalendarData {
+	banner: string;
+	title: string;
+	subTitle: string;
+	startTime: number;
+	endTime: number;
+}
