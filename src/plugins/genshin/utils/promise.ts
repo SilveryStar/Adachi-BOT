@@ -466,7 +466,7 @@ export async function calendarPromise(): Promise<ApiType.CalendarData[]> {
 		throw ErrorMsg.FORM_MESSAGE + lMessage;
 	}
 	
-	const ignoredReg = /(修复|社区|有奖活动|预下载|内容专题页|米游社|调研|专项意见|防沉迷|问卷|公平运营|更新|邀约事件|周边|新剧情|先行展示页)/;
+	const ignoredReg = /(修复|社区|周边|礼包|问卷|调研|米游社|pv|有奖活动|内容专题页|专项意见|更新|防沉迷|公平运营|先行展示页|预下载|新剧情|邀约事件|传说任务)/i;
 	
 	const detailInfo: Record<number, ApiType.CalendarDetailItem> = {};
 	for ( const d of detail.list ) {
@@ -476,39 +476,89 @@ export async function calendarPromise(): Promise<ApiType.CalendarData[]> {
 	/* 日历数据 */
 	const calcDataList: ApiType.CalendarData[] = [];
 	
-	for ( const listData of list.list ) {
-		for ( const data of listData.list ) {
-			/* 过滤非活动公告 */
-			if ( ignoredReg.test( data.title ) ) {
-				continue;
-			}
-			
-			let start = new Date( data.startTime );
-			let end = new Date( data.endTime );
-			
-			/* 若存在详情，修正列表数据的开始结束时间 */
-			const detailItem = detailInfo[data.annId];
-			if ( detailItem ) {
-				const content = detailItem.content.replace( /(<|&lt;).+?(>|&gt;)/g, "" );
-				const dateList = content.match( /(\d+\/\d+\/\d+\s\d+:\d+:\d+)~?(\d+\/\d+\/\d+\s\d+:\d+:\d+)?/i );
-				/* 修正开始时间 */
-				if ( dateList && dateList[1] ) {
-					start = new Date( dateList[1] );
-				}
-				/* 修正结束时间 */
-				if ( dateList && dateList[2] ) {
-					end = new Date( dateList[2] );
-				}
-			}
-			
-			calcDataList.push( {
-				banner: data.banner,
-				title: data.title,
-				subTitle: data.subtitle,
-				startTime: start.getTime(),
-				endTime: end.getTime()
-			} );
+	/* 整理列表数据为一个数组 */
+	const postList: ApiType.CalendarListItem[] = [];
+	for ( const l of list.list ) {
+		postList.push( ...l.list );
+	}
+	
+	const verReg = /(\d\.\d)版本更新/;
+	const verTimeReg = /更新时间\s*〓((\d+\/){2}\d+\s+(\d+:){2}\d+)/;
+	
+	/* 清除字段内 html 标签 */
+	const remHtmlTags = ( content: string ) => content.replace( /(<|&lt;).+?(>|&gt;)/g, "" );
+	
+	/* 记录版本更新时间 */
+	const verDbKey = "silvery-star.calendar-version-time";
+	const verTimeInfo: Record<string, number> = await bot.redis.getHash( verDbKey );
+	const verLength = Object.keys( verTimeInfo ).length;
+	
+	/* 获取与版本更新有关的文章 */
+	const updatePosts = postList.filter( l => verReg.test( l.title ) );
+	for ( const post of updatePosts ) {
+		const detailItem = detailInfo[post.annId];
+		if ( !detailItem ) continue;
+		
+		/* 查找新版本开始时间 */
+		const verRet = verReg.exec( post.title );
+		if ( !verRet || !verRet[1] ) continue;
+		
+		const content = remHtmlTags( detailItem.content );
+		const verTimeRet = verTimeReg.exec( content );
+		
+		if ( !verTimeRet || !verTimeRet[1] ) continue;
+		
+		const time = new Date( verTimeRet[1] ).getTime()
+		if ( !Number.isNaN( time ) ) {
+			verTimeInfo[verRet[1]] = time;
 		}
+	}
+	/* 版本号数据存在变动，更新 */
+	if ( Object.keys( verTimeInfo ).length !== verLength ) {
+		await bot.redis.setHash( verDbKey, verTimeInfo );
+	}
+	
+	for ( const post of postList ) {
+		/* 过滤非活动公告 */
+		if ( ignoredReg.test( post.title ) ) {
+			continue;
+		}
+		
+		let start = new Date( post.startTime ).getTime();
+		const end = new Date( post.endTime ).getTime();
+		
+		/* 若存在详情，修正列表数据的开始时间 */
+		const detailItem = detailInfo[post.annId];
+		if ( detailItem ) {
+			/* 修正开始时间 */
+			const content = remHtmlTags( detailItem.content );
+			const vRet = /(\d\.\d)版本更新后/.exec( content );
+			if ( vRet && vRet[1] ) {
+				/* 版本更新活动 */
+				const cTime = verTimeInfo[vRet[1]];
+				if ( cTime ) {
+					start = cTime;
+				}
+			} else {
+				/* 普通活动 */
+				const dateList = content.match( /(\d+\/){2}\d+\s+(\d+:){2}\d+/ );
+				const cDateStr = dateList && dateList[0];
+				if ( cDateStr ) {
+					const cTime = new Date( cDateStr ).getTime();
+					if ( cTime > start && cTime < end ) {
+						start = cTime;
+					}
+				}
+			}
+		}
+		
+		calcDataList.push( {
+			banner: post.banner,
+			title: post.title,
+			subTitle: post.subtitle,
+			startTime: start,
+			endTime: end
+		} );
 	}
 	bot.logger.info( "活动数据查询成功" );
 	return calcDataList;

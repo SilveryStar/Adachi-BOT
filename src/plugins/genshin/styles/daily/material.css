@@ -1,0 +1,101 @@
+.material {
+	display: flex;
+	padding: 0 12px;
+	background-color: var(--primary-base);
+}
+
+.material > .container {
+	display: flex;
+	flex-direction: column;
+	gap: 22px;
+	flex: 1;
+	padding: 35px 28px 59px;
+	border: 4px solid var(--primary-dark);
+	border-top: none;
+	border-bottom: none;
+}
+
+.material .material-list {
+	display: flex;
+	justify-content: space-between;
+}
+
+.material .material-list > .material-item {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.material .material-list > .material-item.character {
+	width: 440px;
+}
+
+.material .material-list > .material-item.weapon {
+	width: 620px;
+}
+
+.material .material-item > .title {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	height: 46px;
+}
+
+.material .material-item > .title > .title-icons {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	margin-top: 8px;
+}
+
+.material .material-item > .title > .title-icons > img {
+	width: 32px;
+	height: 32px;
+	border: 1px solid #fff;
+	filter: drop-shadow(0 2px 2px var(--shadow-base));
+	border-radius: 4px;
+	box-sizing: border-box;
+}
+
+.material .material-item > .br {
+	height: 2px;
+	background-color: #fff;
+	box-shadow: 0 2px 2px var(--shadow-base);
+}
+
+.material .material-item > .thumb-list {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 10px;
+	min-height: 80px;
+}
+
+.material .material-item > .thumb-list > .thumb-box {
+	position: relative;
+	width: 80px;
+	height: 80px;
+	filter: drop-shadow(1px 4px 6px rgba(0, 0, 0, 0.2));
+	border-radius: 4px;
+	overflow: hidden;
+}
+
+.material .material-item > .thumb-list > .thumb-box > img {
+	width: inherit;
+	height: inherit;
+}
+
+.material .material-item > .thumb-list > .thumb-box > p {
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	height: 16px;
+	background-color: rgba(0, 0, 0, 0.5);
+	font-size: 12px;
+	color: #fff;
+	text-align: center;
+}
