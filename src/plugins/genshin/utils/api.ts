@@ -1,4 +1,4 @@
-import request from "./requests";
+import request, { formatGetURL } from "./requests";
 import { parse } from "yaml";
 import { toCamelCase } from "./camel-case";
 import { set } from "lodash";
@@ -31,7 +31,9 @@ const __API = {
 	FETCH_UID_HOME: "https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/home/home.yml",
 	FETCH_SIGN_IN: "https://api-takumi.mihoyo.com/event/bbs_sign_reward/sign",
 	FETCH_SIGN_INFO: "https://api-takumi.mihoyo.com/event/bbs_sign_reward/info",
-	FETCH_LEDGER: "https://hk4e-api.mihoyo.com/event/ys_ledger/monthInfo"
+	FETCH_LEDGER: "https://hk4e-api.mihoyo.com/event/ys_ledger/monthInfo",
+	FETCH_CALENDAR_LIST: "https://hk4e-api.mihoyo.com/common/hk4e_cn/announcement/api/getAnnList",
+	FETCH_CALENDAR_DETAIL: "https://hk4e-api.mihoyo.com/common/hk4e_cn/announcement/api/getAnnContent"
 };
 
 const HEADERS = {
@@ -269,6 +271,36 @@ export async function getWishDetail( wishID: string ): Promise<any> {
 				reject( reason );
 			} );
 	} );
+}
+
+/* calender API */
+const calc_query = {
+	game: "hk4e",
+	game_biz: "hk4e_cn",
+	lang: "zh-cn",
+	bundle_id: "hk4e_cn",
+	platform: "pc",
+	region: "cn_gf01",
+	level: "55",
+	uid: "100000000"
+};
+
+export async function getCalendarList(): Promise<ResponseBody> {
+	const url = formatGetURL( __API.FETCH_CALENDAR_LIST, calc_query );
+	const result: Response = await fetch( url );
+	
+	const resp = toCamelCase( await result.json() );
+	const data: ResponseBody = set( resp, "data.type", "calendar-list" )
+	return data;
+}
+
+export async function getCalendarDetail(): Promise<ResponseBody> {
+	const url = formatGetURL( __API.FETCH_CALENDAR_DETAIL, calc_query );
+	const result: Response = await fetch( url );
+	
+	const resp = toCamelCase( await result.json() );
+	const data: ResponseBody = set( resp, "data.type", "calendar-detail" )
+	return data;
 }
 
 /* OSS API */

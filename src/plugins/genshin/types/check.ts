@@ -8,6 +8,7 @@ import { Note } from "./note";
 import { SignInInfo, SignInResult } from "./sign-in";
 import { Ledger } from "#genshin/types/ledger";
 import { AvatarDetailRaw } from "#genshin/types/avatar";
+import { CalendarList, CalendarDetail } from "#genshin/types/calendar";
 
 /* 对于米游社 API 返回数据的类型检查 */
 export function isAbyss( obj: ResponseDataType ): obj is Abyss {
@@ -44,6 +45,14 @@ export function isLedger( obj: ResponseDataType ): obj is Ledger {
 
 export function isAvatarDetail( obj: ResponseDataType ): obj is AvatarDetailRaw {
 	return obj.type === "avatar";
+}
+
+export function isCalendarList( obj: ResponseDataType ): obj is CalendarList {
+	return obj.type === "calendar-list";
+}
+
+export function isCalendarDetail( obj: ResponseDataType ): obj is CalendarDetail {
+	return obj.type === "calendar-detail";
 }
 
 /* 对于 OSS 返回数据的类型检查 */

@@ -1,12 +1,13 @@
 import bot from "ROOT"
 import { getRealName, NameResult } from "../utils/name";
 import { scheduleJob } from "node-schedule";
-import { isCharacterInfo, isWeaponInfo, InfoResponse } from "../types";
+import { isCharacterInfo, isWeaponInfo, InfoResponse, CalendarData } from "../types";
 import { randomInt } from "../utils/random";
 import { getDailyMaterial, getInfo } from "../utils/api";
 import { take } from "lodash";
 import { RenderResult } from "@modules/renderer";
 import { renderer } from "#genshin/init";
+import { calendarPromise } from "#genshin/utils/promise";
 
 export interface DailyMaterial {
 	"Mon&Thu": string[];
@@ -22,10 +23,12 @@ interface DailyInfo {
 export class DailySet {
 	private readonly weaponSet: Record<string, DailyInfo[]>;
 	private readonly characterSet: Record<string, DailyInfo[]>;
+	private readonly eventData: CalendarData[];
 	
-	constructor( data: InfoResponse[] ) {
+	constructor( data: InfoResponse[], events: CalendarData[] ) {
 		this.weaponSet = {};
 		this.characterSet = {};
+		this.eventData = events;
 		
 		for ( let d of data ) {
 			const { name, rarity }: { name: string, rarity: number } = d;
@@ -54,7 +57,8 @@ export class DailySet {
 		await bot.redis.setHash(
 			`silvery-star.daily-temp-${ id }`, {
 				weapon: JSON.stringify( this.weaponSet ),
-				character: JSON.stringify( this.characterSet )
+				character: JSON.stringify( this.characterSet ),
+				event: JSON.stringify( this.eventData )
 			} );
 	}
 }
@@ -66,12 +70,25 @@ async function getRenderResult( id: number ): Promise<RenderResult> {
 export class DailyClass {
 	private detail: DailyMaterial;
 	private allData: InfoResponse[] = [];
+	private eventData: CalendarData[] = [];
 	
 	constructor() {
 		this.detail = { "Mon&Thu": [], "Tue&Fri": [], "Wed&Sat": [] };
 		getDailyMaterial().then( ( result: DailyMaterial ) => {
 			this.detail = result;
 		} );
+		calendarPromise().then( ( result: CalendarData[] ) => {
+			this.eventData = result;
+		} )
+		
+		scheduleJob( "0 2 12 * * *", async () => {
+			this.eventData = await calendarPromise();
+		} );
+		
+		scheduleJob( "0 2 16 * * *", async () => {
+			this.eventData = await calendarPromise();
+		} );
+		
 		scheduleJob( "0 0 0 * * *", async () => {
 			this.detail = await getDailyMaterial();
 		} );
@@ -90,7 +107,7 @@ export class DailyClass {
 			/* 群发订阅信息 */
 			const groupIDs: string[] = await bot.redis.getList( "silvery-star.daily-sub-group" );
 			
-			const groupData = new DailySet( this.allData );
+			const groupData = new DailySet( this.allData, this.eventData );
 			let subMessage: string = "";
 			if ( week === 0 ) {
 				subMessage = "周日所有材料都可以刷取哦~";
@@ -164,7 +181,7 @@ export class DailyClass {
 					this.allData.push( data );
 				}
 			} catch ( e ) {
-				bot.logger.error( `「${targetName}」信息获取失败: ${ e }` );
+				bot.logger.error( `「${ targetName }」信息获取失败: ${ e }` );
 				continue;
 			}
 		}
@@ -196,7 +213,7 @@ export class DailyClass {
 			return undefined;
 		}
 		
-		return new DailySet( privateSub );
+		return new DailySet( privateSub, this.eventData );
 	}
 	
 	public async getUserSubscription( userID: number ): Promise<string> {
@@ -209,7 +226,7 @@ export class DailyClass {
 		}
 		
 		const data: DailySet | undefined = await this.getUserSubList( userID );
-		const set = data === undefined ? new DailySet( this.allData ) : data;
+		const set = data === undefined ? new DailySet( this.allData, this.eventData ) : data;
 		
 		await set.save( userID );
 		const res: RenderResult = await getRenderResult( userID );
