@@ -1,9 +1,9 @@
-const template = `<div class="daily-event">
-	<div class="title">
+const template = `<div class="daily-event" :class="{ hidden: !showEvent }">
+	<div v-if="showEvent" class="title">
 		<common-title :data="{ title: '活动日历' }"></common-title>
 	</div>
 	<div class="container">
-		<div class="event-container">
+		<div v-if="showEvent" class="event-container">
 			<div class="title-list">
 				<div v-for="(d, dKey) of dateList" :key="dKey" class="title-item" :class="{ today: dKey === 2 }">
 					<p>{{ d.format('dddd M.DD') }}</p>
@@ -26,6 +26,7 @@ const template = `<div class="daily-event">
 				<p v-else class="event-empty">暂无举办中的活动</p>
 			</div>
 		</div>
+		<p v-else class="author">Create by Adachi-BOT</p>
 	</div>
 </div>`
 
@@ -40,6 +41,10 @@ export default defineComponent( {
 		CommonTitle
 	},
 	props: {
+		showEvent: {
+			type: Boolean,
+			default: true
+		},
 		events: {
 			type: Array,
 			default: () => []
