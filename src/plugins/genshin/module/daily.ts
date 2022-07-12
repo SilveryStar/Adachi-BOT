@@ -15,6 +15,10 @@ export interface DailyMaterial {
 	"Wed&Sat": string[];
 }
 
+export type DailyDataMaterial = {
+	[K in keyof DailyMaterial]: InfoResponse[]
+}
+
 interface DailyInfo {
 	name: string;
 	rarity: number;
@@ -63,17 +67,21 @@ export class DailySet {
 	}
 }
 
-async function getRenderResult( id: number ): Promise<RenderResult> {
-	return await renderer.asCqCode( "/daily.html", { id } );
+async function getRenderResult( id: number, week?: number ): Promise<RenderResult> {
+	return await renderer.asCqCode( "/daily.html", {
+		id,
+		week: week || "today"
+	} );
 }
 
 export class DailyClass {
 	private detail: DailyMaterial;
-	private allData: InfoResponse[] = [];
+	private allData: DailyDataMaterial;
 	private eventData: CalendarData[] = [];
 	
 	constructor() {
 		this.detail = { "Mon&Thu": [], "Tue&Fri": [], "Wed&Sat": [] };
+		this.allData = { "Mon&Thu": [], "Tue&Fri": [], "Wed&Sat": [] };
 		getDailyMaterial().then( ( result: DailyMaterial ) => {
 			this.detail = result;
 		} );
@@ -99,15 +107,15 @@ export class DailyClass {
 			/* 获取当日副本对应的角色和武器 */
 			let week: number = date.getDay();
 			week = date.getHours() < 4 ? week === 0 ? 6 : week - 1 : week;
-			const todayInfoSet: string[] = this.getDailySet( week );
+			const todayInfoSet: string[] = this.getDetailSet( week );
 			
 			/* 获取所有角色和武器的信息 */
-			await this.getAllData( week, todayInfoSet );
+			await this.getAllData( week, todayInfoSet, true );
 			
 			/* 群发订阅信息 */
 			const groupIDs: string[] = await bot.redis.getList( "silvery-star.daily-sub-group" );
 			
-			const groupData = new DailySet( this.allData, this.eventData );
+			const groupData = new DailySet( this.getDataSet( week ), this.eventData );
 			let subMessage: string = "";
 			if ( week === 0 ) {
 				subMessage = "周日所有材料都可以刷取哦~";
@@ -157,20 +165,32 @@ export class DailyClass {
 		} );
 	}
 	
-	private getDailySet( week: number ): string[] {
+	private getDateStr( week: number ): string | null {
 		if ( week === 1 || week === 4 ) {
-			return this.detail["Mon&Thu"];
+			return "Mon&Thu";
 		} else if ( week === 2 || week === 5 ) {
-			return this.detail["Tue&Fri"];
+			return "Tue&Fri";
 		} else if ( week === 3 || week === 6 ) {
-			return this.detail["Wed&Sat"];
+			return "Wed&Sat";
 		} else {
-			return [];
+			return null;
 		}
 	}
 	
-	private async getAllData( week: number, set: string[] ): Promise<void> {
-		this.allData = [];
+	private getDetailSet( week: number ): string[] {
+		const param = this.getDateStr( week );
+		return param ? this.detail[param] : [];
+	}
+	
+	private getDataSet( week: number ): InfoResponse[] {
+		const param = this.getDateStr( week );
+		return param ? this.allData[param] : [];
+	}
+	
+	private async getAllData( week: number, set: string[], clear: boolean ): Promise<void> {
+		if ( clear ) {
+			this.allData = { "Mon&Thu": [], "Tue&Fri": [], "Wed&Sat": [] };
+		}
 		if ( week === 0 ) {
 			return;
 		}
@@ -178,7 +198,7 @@ export class DailyClass {
 			try {
 				const data = await getInfo( targetName );
 				if ( typeof data !== "string" ) {
-					this.allData.push( data );
+					this.getDataSet( week ).push( data );
 				}
 			} catch ( e ) {
 				bot.logger.error( `「${ targetName }」信息获取失败: ${ e }` );
@@ -187,23 +207,35 @@ export class DailyClass {
 		}
 	}
 	
-	private async getUserSubList( userID: number ): Promise<DailySet | undefined> {
+	private getWeek( initWeek?: number ): number {
+		let week: number;
+		if ( initWeek ) {
+			week = initWeek === 7 ? 0 : initWeek;
+		} else {
+			const date = new Date();
+			week = date.getDay();
+			week = date.getHours() < 4 ? week === 0 ? 6 : week - 1 : week;
+		}
+		return week;
+	}
+	
+	private async getUserSubList( userID: number, initWeek?: number ): Promise<DailySet | undefined> {
 		const dbKey: string = `silvery-star.daily-sub-${ userID }`;
 		const subList: string[] = await bot.redis.getList( dbKey );
-		if ( this.allData.length === 0 ) {
-			const date = new Date();
-			let week: number = date.getDay();
-			week = date.getHours() < 4 ? week === 0 ? 6 : week - 1 : week;
-			const set: string[] = this.getDailySet( week );
-			await this.getAllData( week, set );
+		
+		const week: number = this.getWeek( initWeek );
+		if ( this.getDataSet( week ).length === 0 ) {
+			const set: string[] = this.getDetailSet( week );
+			await this.getAllData( week, set, false );
 		}
+		
 		if ( subList.length === 0 ) {
 			return undefined;
 		}
 		
 		const privateSub: InfoResponse[] = [];
 		for ( let item of subList ) {
-			const find: InfoResponse | undefined = this.allData.find( el => el.name === item );
+			const find: InfoResponse | undefined = this.getDataSet( week ).find( el => el.name === item );
 			if ( find === undefined ) {
 				continue;
 			}
@@ -216,20 +248,18 @@ export class DailyClass {
 		return new DailySet( privateSub, this.eventData );
 	}
 	
-	public async getUserSubscription( userID: number ): Promise<string> {
-		const date: Date = new Date();
+	public async getUserSubscription( userID: number, initWeek?: number ): Promise<string> {
+		const week: number = this.getWeek( initWeek );
 		
-		let week: number = date.getDay();
-		week = date.getHours() < 4 ? week === 0 ? 6 : week - 1 : week;
 		if ( week === 0 ) {
 			return "周日所有材料都可以刷取哦~";
 		}
 		
-		const data: DailySet | undefined = await this.getUserSubList( userID );
-		const set = data === undefined ? new DailySet( this.allData, this.eventData ) : data;
+		const data: DailySet | undefined = await this.getUserSubList( userID, initWeek ? week : undefined );
+		const set = data === undefined ? new DailySet( this.getDataSet( week ), this.eventData ) : data;
 		
 		await set.save( userID );
-		const res: RenderResult = await getRenderResult( userID );
+		const res: RenderResult = await getRenderResult( userID, initWeek ? week : undefined );
 		if ( res.code === "ok" ) {
 			return res.data;
 		} else {

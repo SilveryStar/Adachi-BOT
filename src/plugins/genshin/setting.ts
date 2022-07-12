@@ -139,10 +139,11 @@ const daily: SwitchConfig = {
 const today: OrderConfig = {
 	type: "order",
 	cmdKey: "silvery-star.today",
-	desc: [ "今日素材", "" ],
+	desc: [ "今日素材/活动", "(星期)" ],
 	headers: [ "today" ],
-	regexps: [],
-	main: "achieves/today"
+	regexps: [ "[1-7]?" ],
+	main: "achieves/today",
+	detail: "跟随数字 1-7 来查询指定日的素材"
 };
 
 const guide: OrderConfig = {
