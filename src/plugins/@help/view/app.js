@@ -7,7 +7,7 @@ const template = `<div class="help">
 		</div>
 		<div class="right-header">
 			<p class="version">ver{{ data.version }}</p>
-			<p class="desc">使用 {{ data.detailCmd }}+指令序号 查看更多信息</p>
+			<p v-if="data.detailCmd" class="desc">使用 {{ data.detailCmd }}+指令序号 查看更多信息</p>
 			<p class="desc">[]表示必填，()表示选填，|表示选择</p>
 		</div>
 	</header>

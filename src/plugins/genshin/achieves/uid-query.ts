@@ -1,9 +1,10 @@
 import Database from "@modules/database";
-import { InputParameter } from "@modules/command";
+import { InputParameter, Order } from "@modules/command";
 import { RenderResult } from "@modules/renderer";
 import { characterInfoPromise, detailInfoPromise } from "../utils/promise";
 import { getRegion } from "../utils/region";
 import { config, renderer } from "#genshin/init";
+import bot from "ROOT";
 
 interface UIDResult {
 	info: number | string;
@@ -32,7 +33,7 @@ async function getUID(
 }
 
 export async function main(
-	{ sendMessage, messageData, redis, logger, client }: InputParameter
+	{ sendMessage, messageData, redis, logger, client, auth }: InputParameter
 ): Promise<void> {
 	const data: string = messageData.raw_message;
 	const atID: string | undefined = isAt( data );
@@ -77,6 +78,8 @@ export async function main(
 		await sendMessage( res.data );
 	} else {
 		logger.error( res.error );
-		await sendMessage( "图片渲染异常，请联系持有者进行反馈" );
+		const CALL = <Order>bot.command.getSingle( "adachi.call", await auth.get( userID ) );
+		const appendMsg = CALL ? `私聊使用 ${ CALL.getHeaders()[0] } ` : "";
+		await sendMessage( `图片渲染异常，请${ appendMsg }联系持有者进行反馈` );
 	}
 }
