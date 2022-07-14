@@ -1,6 +1,6 @@
 {
   "name": "adachi-bot",
-  "version": "2.4.6-feat1",
+  "version": "2.4.6-feat2",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -49,6 +49,7 @@
     "puppeteer": "^10.0.0",
     "redis": "^3.1.2",
     "request": "^2.88.2",
+    "tencentcloud-sdk-nodejs": "^4.0.380",
     "ts-node": "^9.1.1",
     "tsconfig-paths": "^3.11.0",
     "typescript": "~4.2.4",
