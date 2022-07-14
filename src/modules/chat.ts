@@ -48,10 +48,11 @@ async function getReplyMessage( text: string ): Promise<string> {
 		msg = await getTencentReply( text );
 	} else {
 		msg = await getQYKReply( text );
-		//API默认的名字是 “菲菲”，你可以改成你喜欢的名字
-		//修改可能导致部分返回错误，比如 “菲菲公主” ---> “七七公主”
-		const reg = new RegExp( '菲菲', "g" );
-		msg.replace( reg, 'BOT' ).trim();
+		/** API默认的名字是 “菲菲”，你可以改成你喜欢的名字
+		 * 修改可能导致部分返回错误，比如 “菲菲公主” ---> “七七公主”
+		 * 比较鸡肋的修改，暂时注释掉吧 */
+		// const reg = new RegExp( '菲菲', "g" );
+		// msg.replace( reg, 'BOT' ).trim();
 	}
 	if ( msg.length <= 0 ) {
 		return `接口挂掉啦~~`;
