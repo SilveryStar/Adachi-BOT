@@ -2,24 +2,12 @@
 Author: Ethereal
 CreateTime: 2022/6/21
  */
+import bot from "ROOT";
+import * as msg from "./message";
 import request from "#genshin/utils/requests";
-import MsgManagement, * as msg from "./message";
+import * as tencentcloud from "tencentcloud-sdk-nodejs";
 
-let URL: string = `http://api.qingyunke.com/api.php?key=free&appid=0&msg=`;
-
-const HEADERS = {
-	"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.74 Safari/537.36 Edg/99.0.1150.46",
-	"Accept-Encoding": "gzip, deflate",
-	"Connection": "keep-alive",
-	"Accept": "*/*"
-};
-
-
-export interface MSG {
-	result: number;
-	content: string;
-};
-
+const URL: string = `http://api.qingyunke.com/api.php?key=free&appid=0&msg=`;
 
 /* 自动回复插件方法 */
 export async function autoChat( messageData: string, sendMessage: msg.SendFunc ) {
@@ -33,22 +21,18 @@ export async function autoChat( messageData: string, sendMessage: msg.SendFunc )
 	}
 }
 
-
-//调用青云客的免费对话API，但是延迟比较高，2s左右，详情http://api.qingyunke.com/
-async function getBaseReply( text: string ): Promise<MSG> {
+//调用青云客的免费对话API，有时候不太稳定，详情http://api.qingyunke.com/
+async function getQYKReply( text: string ): Promise<string> {
 	return new Promise( ( resolve, reject ) => {
 		const url = encodeURI( URL + text );
 		request( {
 			method: "GET",
 			url: url,
-			headers: {
-				...HEADERS,
-			},
 			timeout: 6000
 		} )
 			.then( ( result ) => {
-				const date: MSG = JSON.parse( result );
-				resolve( date );
+				const date = JSON.parse( result );
+				resolve( date.content );
 			} )
 			.catch( ( reason ) => {
 				reject( reason );
@@ -56,15 +40,24 @@ async function getBaseReply( text: string ): Promise<MSG> {
 	} );
 }
 
+
 async function getReplyMessage( text: string ): Promise<string> {
-	const msg: MSG = await getBaseReply( text );
-	if ( msg.result !== 0 ) {
+	let msg = "";
+	if ( bot.config.autoChat.type === 2 ) {
+		//调用腾讯NLP接口回复
+		msg = await getTencentReply( text );
+	} else {
+		msg = await getQYKReply( text );
+		/** API默认的名字是 “菲菲”，你可以改成你喜欢的名字
+		 * 修改可能导致部分返回错误，比如 “菲菲公主” ---> “七七公主”
+		 * 比较鸡肋的修改，暂时注释掉吧 */
+		// const reg = new RegExp( '菲菲', "g" );
+		// msg.replace( reg, 'BOT' ).trim();
+	}
+	if ( msg.length <= 0 ) {
 		return `接口挂掉啦~~`;
 	}
-	//API默认的名字是 “菲菲”，你可以改成你喜欢的名字
-	//修改可能导致部分返回错误，比如 “菲菲公主” ---> “七七公主”
-	var reg = new RegExp( '菲菲', "g" );
-	return msg.content.replace( reg, 'BOT' ).trim();
+	return msg;
 }
 
 //获取随机表情包
@@ -78,3 +71,28 @@ function getEmoji(): string {
 	//Math.random()返回0-1之间随机一个数，确保text数组长度不要为1，可能会报空指针异常
 	return text[Math.round( Math.random() * text.length - 1 )];
 }
+
+async function getTencentReply( text: string ): Promise<string> {
+	
+	//实例化Nlp需要的参数
+	const NlpClient = tencentcloud.nlp.v20190408.Client;
+	const clientConfig = {
+		credential: {
+			secretId: bot.config.autoChat.secretId,
+			secretKey: bot.config.autoChat.secretKey,
+		},
+		region: "ap-guangzhou",
+		profile: {
+			httpProfile: {
+				endpoint: "nlp.tencentcloudapi.com",
+			},
+		},
+	};
+	//实例化NLP对象
+	const client = new NlpClient( clientConfig );
+	const params = { "Query": text };
+	const reply = await client.ChatBot( params );
+	return reply.Reply ? reply.Reply : "请求出错了";
+}
+
+

@@ -11,7 +11,6 @@ export default class BotConfig {
 	public readonly atUser: boolean;
 	public readonly atBOT: boolean;
 	public readonly addFriend: boolean;
-	public readonly autoChat: boolean;
 	public readonly dbPort: number;
 	public readonly dbPassword: string;
 	public readonly inviteAuth: AuthLevel;
@@ -31,6 +30,13 @@ export default class BotConfig {
 		readonly jwtSecret: string;
 	};
 	
+	public readonly autoChat: {
+		readonly enable: boolean;
+		readonly type: number;
+		readonly secretId: string;
+		readonly secretKey: string;
+	}
+	
 	static initObject = {
 		tip: "前往 https://docs.adachi.top/config 查看配置详情",
 		qrcode: false,
@@ -42,7 +48,6 @@ export default class BotConfig {
 		atUser: false,
 		atBOT: false,
 		addFriend: true,
-		autoChat: false,
 		inviteAuth: "master",
 		countThreshold: 60,
 		groupIntervalTime: 1500,
@@ -58,6 +63,14 @@ export default class BotConfig {
 			consolePort: 80,
 			tcpLoggerPort: 54921,
 			jwtSecret: ""
+		},
+		autoChat: {
+			tip1: "type参数说明：1为青云客，不用配置后面的两个secret，",
+			tip2: "2为腾讯自然语言处理，需要前往腾讯云开通NLP并获取到你的secret（听说超级智能）",
+			enable: false,
+			type: 1,
+			secretId: "",
+			secretKey: ""
 		}
 	};
 	
