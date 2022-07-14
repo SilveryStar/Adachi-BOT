@@ -8,6 +8,7 @@ import { take } from "lodash";
 import { RenderResult } from "@modules/renderer";
 import { renderer } from "#genshin/init";
 import { calendarPromise } from "#genshin/utils/promise";
+import { Order } from "@modules/command";
 
 export interface DailyMaterial {
 	"Mon&Thu": string[];
@@ -264,7 +265,9 @@ export class DailyClass {
 			return res.data;
 		} else {
 			bot.logger.error( res.error );
-			return "图片渲染异常，请联系持有者进行反馈";
+			const CALL = <Order>bot.command.getSingle( "adachi.call", await bot.auth.get( userID ) );
+			const appendMsg = CALL ? `私聊使用 ${ CALL.getHeaders()[0] } ` : "";
+			return `图片渲染异常，请${ appendMsg }联系持有者进行反馈`;
 		}
 	}
 	

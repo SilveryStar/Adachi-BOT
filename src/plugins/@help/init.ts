@@ -27,7 +27,7 @@ const detail: OrderConfig = {
 const call: OrderConfig = {
 	type: "order",
 	cmdKey: "adachi.call",
-	desc: [ "向持有者反馈", "[内容]" ],
+	desc: [ "联系BOT持有者", "[内容]" ],
 	headers: [ "call" ],
 	regexps: [ "[\\W\\w]+" ],
 	scope: 2,

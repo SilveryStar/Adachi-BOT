@@ -1,14 +1,15 @@
-import { InputParameter } from "@modules/command";
+import { InputParameter, Order } from "@modules/command";
 import { WishResult, WishTotalSet } from "../module/wish";
 import { RenderResult } from "@modules/renderer";
 import { wishClass, renderer, config } from "../init";
+import bot from "ROOT";
 
 type WishStatistic = WishResult & {
 	count: number;
 };
 
 export async function main(
-	{ sendMessage, messageData, redis, logger }: InputParameter
+	{ sendMessage, messageData, redis, logger, auth }: InputParameter
 ): Promise<void> {
 	const userID: number = messageData.user_id;
 	const nickname: string = messageData.sender.nickname;
@@ -45,7 +46,9 @@ export async function main(
 		return;
 	}
 	if ( data.result.filter( el => el.rank >= 4 ).length === 0 ) {
-		await sendMessage( "卡池数据获取错误，请联系持有者重启BOT" );
+		const CALL = <Order>bot.command.getSingle( "adachi.call", await auth.get( userID ) );
+		const appendMsg = CALL ? `私聊使用 ${ CALL.getHeaders()[0] } ` : "";
+		await sendMessage( `卡池数据获取错误，请${ appendMsg }联系持有者重启BOT` );
 		return;
 	}
 	
@@ -64,7 +67,9 @@ export async function main(
 			await sendMessage( res.data );
 		} else {
 			logger.error( res.error );
-			await sendMessage( "图片渲染异常，请联系持有者进行反馈" );
+			const CALL = <Order>bot.command.getSingle( "adachi.call", await auth.get( userID ) );
+			const appendMsg = CALL ? `私聊使用 ${ CALL.getHeaders()[0] } ` : "";
+			await sendMessage( `图片渲染异常，请${ appendMsg }联系持有者进行反馈` );
 		}
 		return;
 	}
@@ -106,6 +111,8 @@ export async function main(
 		await sendMessage( res.data );
 	} else {
 		logger.error( res.error );
-		await sendMessage( "图片渲染异常，请联系持有者进行反馈" );
+		const CALL = <Order>bot.command.getSingle( "adachi.call", await auth.get( userID ) );
+		const appendMsg = CALL ? `私聊使用 ${ CALL.getHeaders()[0] } ` : "";
+		await sendMessage( `图片渲染异常，请${ appendMsg }联系持有者进行反馈` );
 	}
 }

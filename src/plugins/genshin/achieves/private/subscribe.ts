@@ -83,6 +83,10 @@ export async function main(
 	const CONFIRM   = <Order>command.getSingle( "silvery-star.private-confirm", a );
 	const SUBSCRIBE = <Order>command.getSingle( "silvery-star.private-subscribe", a );
 	
+	if ( !CONFIRM || !SUBSCRIBE ) {
+		await sendMessage( "BOT 持有者已关闭私人服务订阅功能" );
+	}
+	
 	if ( SUBSCRIBE.getHeaders().includes( header ) ) {
 		const msg: string = subscribe( userID, sendMessage, a, CONFIRM );
 		await sendMessage( msg );

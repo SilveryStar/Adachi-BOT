@@ -1,4 +1,4 @@
-import { InputParameter, SwitchMatchResult } from "@modules/command";
+import { InputParameter, Order, SwitchMatchResult } from "@modules/command";
 import { Private } from "#genshin/module/private/main";
 import { Abyss } from "#genshin/types";
 import { FakeMessage } from "oicq";
@@ -7,6 +7,7 @@ import { getPrivateAccount } from "#genshin/utils/private";
 import { getRegion } from "#genshin/utils/region";
 import { abyssInfoPromise } from "#genshin/utils/promise";
 import { renderer } from "#genshin/init";
+import bot from "ROOT";
 
 /* 回复深渊多图消息 */
 async function forwardAchieves( abyss: Abyss, uid: string, userID: number, {
@@ -72,7 +73,9 @@ async function forwardAchieves( abyss: Abyss, uid: string, userID: number, {
 	if ( replyMessage.status === "ok" ) {
 		await sendMessage( replyMessage.data, false );
 	} else {
-		await sendMessage( "转发消息生成错误，请联系BOT主人进行错误反馈" );
+		const CALL = <Order>bot.command.getSingle( "adachi.call", await bot.auth.get( userID ) );
+		const appendMsg = CALL ? `私聊使用 ${ CALL.getHeaders()[0] } ` : "";
+		await sendMessage( `转发消息生成错误，请${ appendMsg }联系持有者进行反馈` );
 	}
 }
 
@@ -105,7 +108,9 @@ async function singleAchieves( abyss: Abyss, uid: string, userID: number, {
 		await sendMessage( res.data );
 	} else {
 		logger.error( res.error );
-		await sendMessage( "图片渲染异常，请联系持有者进行反馈" );
+		const CALL = <Order>bot.command.getSingle( "adachi.call", await bot.auth.get( userID ) );
+		const appendMsg = CALL ? `私聊使用 ${ CALL.getHeaders()[0] } ` : "";
+		await sendMessage( `图片渲染异常，请${ appendMsg }联系持有者进行反馈` );
 	}
 }
 

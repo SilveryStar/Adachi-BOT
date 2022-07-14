@@ -1,6 +1,6 @@
 import { InputParameter } from "@modules/command/main";
 
-export async function main( { sendMessage, messageData, message, redis, config }: InputParameter ): Promise<void> {
+export async function main( { sendMessage, messageData, message, redis, config, command }: InputParameter ): Promise<void> {
 	const user = messageData.user_id;
 	const content = messageData.raw_message;
 	
@@ -14,7 +14,7 @@ export async function main( { sendMessage, messageData, message, redis, config }
 	let limit: number = parseInt( await redis.getString( dbKey ) );
 	
 	if ( limit <= 0 ) {
-		await sendMessage( "今日已反馈次数已用尽" )
+		await sendMessage( "今日反馈次数已用尽" )
 		return;
 	}
 	
