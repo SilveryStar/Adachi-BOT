@@ -16,7 +16,7 @@ export class SignInService implements Service {
 	
 	constructor( p: Private ) {
 		const options: Record<string, any> =
-			p.options[ SignInService.FixedField ] || {};
+			p.options[SignInService.FixedField] || {};
 		
 		this.parent = p;
 		this.enable = options.enable === undefined
@@ -40,7 +40,8 @@ export class SignInService implements Service {
 	
 	public async initTest(): Promise<string> {
 		const TOGGLE_SIGN = <Order>bot.command.getSingle( "silvery-star.private-toggle-sign" );
-		return `米游社签到功能已放行，请使用「${ TOGGLE_SIGN.getHeaders()[0] }+账户序号」开启本功能`;
+		const appendMsg = TOGGLE_SIGN ? `，请使用「${ TOGGLE_SIGN.getHeaders()[0] }+账户序号」开启本功能` : "";
+		return `米游社签到功能已放行${ appendMsg }`;
 	}
 	
 	public async toggleEnableStatus( status?: boolean, message: boolean = true ): Promise<void> {

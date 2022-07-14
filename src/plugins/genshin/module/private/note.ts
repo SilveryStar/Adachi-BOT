@@ -60,11 +60,14 @@ export class NoteService implements Service {
 			const SET_TIME = <Order>bot.command.getSingle( "silvery-star.note-set-time", auth );
 			const TOGGLE_NOTE = <Order>bot.command.getSingle( "silvery-star.private-toggle-note", auth );
 			
+			const appendSetTime = SET_TIME ? `也可以通过「${ SET_TIME.getHeaders()[0] }+账户序号+树脂量」来设置\n` : "";
+			const appendToggleNote = TOGGLE_NOTE ? `如果你希望关闭定时提醒功能，可以使用「${ TOGGLE_NOTE.getHeaders()[0] }+账户序号」` : "";
+			
 			return "实时便笺功能已开启：\n" +
 				"默认情况下，树脂数量达到 120 和 155 时会发送进行私聊推送\n" +
-				`也可以通过「${ SET_TIME.getHeaders()[0] }+账户序号+树脂量」来设置\n` +
+				appendSetTime +
 				"当冒险探索结束时，BOT 也会进行提醒\n" +
-				`如果你希望关闭定时提醒功能，可以使用「${ TOGGLE_NOTE.getHeaders()[0] }+账户序号」`;
+				appendToggleNote;
 		}
 	}
 	

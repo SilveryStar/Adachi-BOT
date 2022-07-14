@@ -6,6 +6,7 @@ import { omit, pick } from "lodash";
 import { characterID, cookies } from "../init";
 import { CharacterCon } from "../types";
 import { getCalendarDetail, getCalendarList } from "./api";
+import { Order } from "@modules/command";
 
 export enum ErrorMsg {
 	NOT_FOUND = "未查询到角色数据，请检查米哈游通行证（非UID）是否有误或是否设置角色信息公开",
@@ -20,7 +21,9 @@ async function checkQueryTimes( message: string ): Promise<string> {
 		cookies.increaseIndex();
 		if ( cookies.getIndex() === 0 ) {
 			await bot.logger.warn( "所有cookie查询次数已用尽，请增加可用cookie到config/cookie.yaml" );
-			return "所有cookie查询次数已用尽，请联系BOT主人添加";
+			const CALL = <Order>bot.command.getSingle( "adachi.call" );
+			const appendMsg = CALL ? `私聊使用 ${ CALL.getHeaders()[0] } ` : "";
+			return `所有cookie查询次数已用尽，请${ appendMsg }联系BOT主人添加`;
 		}
 		await bot.logger.warn( "当前cookie查询次数已用尽，已切换下一个" );
 		return "当前cookie查询次数已用尽，已切换下一个";
@@ -398,7 +401,9 @@ export async function dailyNotePromise(
 			bot.logger.info( `用户 ${ uid } 的实时便笺数据查询成功` );
 			resolve( data );
 		} catch ( error ) {
-			reject( "便笺数据查询错误，可能服务器出现了网络波动或米游社API故障，请联系持有者进行反馈" );
+			const CALL = <Order>bot.command.getSingle( "adachi.call" );
+			const appendMsg = CALL ? `私聊使用 ${ CALL.getHeaders()[0] } ` : "";
+			reject( `便笺数据查询错误，可能服务器出现了网络波动或米游社API故障，请${ appendMsg }联系持有者进行反馈` );
 		}
 	} );
 }
@@ -466,7 +471,7 @@ export async function calendarPromise(): Promise<ApiType.CalendarData[]> {
 		throw ErrorMsg.FORM_MESSAGE + lMessage;
 	}
 	
-	const ignoredReg = /(修复|社区|周边|礼包|问卷|调研|米游社|pv|有奖活动|内容专题页|专项意见|更新|防沉迷|公平运营|先行展示页|预下载|新剧情|邀约事件|传说任务)/i;
+	const ignoredReg = /(修复|社区|周边|礼包|问卷|调研|版本|创作者|米游社|pv|问题处理|有奖活动|内容专题页|专项意见|更新|防沉迷|公平运营|先行展示页|预下载|新剧情|邀约事件|传说任务)/i;
 	
 	const detailInfo: Record<number, ApiType.CalendarDetailItem> = {};
 	for ( const d of detail.list ) {

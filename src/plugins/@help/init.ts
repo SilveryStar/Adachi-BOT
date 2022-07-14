@@ -10,7 +10,8 @@ const help: OrderConfig = {
 	desc: [ "指令帮助", "(-k)" ],
 	headers: [ "help" ],
 	regexps: [ "(-k)?" ],
-	main: "achieves/help"
+	main: "achieves/help",
+	detail: "追加 -k 来查看指令 key 值"
 };
 
 const detail: OrderConfig = {
@@ -21,7 +22,20 @@ const detail: OrderConfig = {
 	regexps: [ "\\d+" ],
 	main: "achieves/detail",
 	display: false
-}
+};
+
+const call: OrderConfig = {
+	type: "order",
+	cmdKey: "adachi.call",
+	desc: [ "联系BOT持有者", "[内容]" ],
+	headers: [ "call" ],
+	regexps: [ "[\\W\\w]+" ],
+	scope: 2,
+	ignoreCase: false,
+	main: "achieves/call",
+	detail: "向 bot 持有者反馈信息\n" +
+			"仅允许发送包含文字/图片的内容"
+};
 
 export let renderer: Renderer;
 
@@ -40,6 +54,6 @@ export async function init( bot: BOT ): Promise<PluginSetting> {
 	
 	return {
 		pluginName: "@help",
-		cfgList: [ help, detail ]
+		cfgList: [ help, detail, call ]
 	};
 }

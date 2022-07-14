@@ -5,6 +5,7 @@ import FileManagement from "@modules/file";
 import { filterUserUsableCommand } from "../utils/filter";
 import { RenderResult } from "@modules/renderer";
 import { renderer } from "../init";
+import bot from "ROOT";
 
 interface HelpCommand {
 	id: number;
@@ -23,7 +24,9 @@ function getVersion( file: FileManagement ): string {
 
 function messageStyle( title: string, list: string[], command: Command ): Sendable {
 	const DETAIL = <Order>command.getSingle( "adachi.detail" );
-	list.push( "", `使用 ${ DETAIL.getHeaders()[0] }+指令序号 获取更多信息`, );
+	if ( DETAIL ) {
+		list.push( "", `使用 ${ DETAIL.getHeaders()[0] }+指令序号 获取更多信息`, );
+	}
 	list.push( "[] 表示必填, () 表示选填, | 表示选择" );
 	return [ title, ...list ].join( "\n" );
 }
@@ -35,7 +38,9 @@ async function forwardStyle(
 	const content: FakeMessage[] = [];
 	
 	const DETAIL = <Order>command.getSingle( "adachi.detail" );
-	list.push( `使用 ${ DETAIL.getHeaders()[0] }+指令序号 获取更多信息` );
+	if ( DETAIL ) {
+		list.push( `使用 ${ DETAIL.getHeaders()[0] }+指令序号 获取更多信息` );
+	}
 	list.push( "[] 表示必填, () 表示选填, | 表示选择" );
 	list.forEach( el => content.push( {
 		user_id: config.number,
@@ -72,10 +77,12 @@ function xmlStyle( title: string, list: string[], command: Command ): Sendable {
 	} ).join( "\n" );
 	
 	const DETAIL = <Order>command.getSingle( "adachi.detail" );
+	const detailInfo = DETAIL ? `使用 ${ DETAIL.getHeaders()[0] }+指令序号 获取更多信息\n` : "";
+	
 	const xmlFoot: string = "</summary>" +
 		'<hr hidden="false" style="0" />' +
 		'<summary size="26">' +
-		`使用 ${ DETAIL.getHeaders()[0] }+指令序号 获取更多信息\n` +
+		detailInfo +
 		"&#91;&#93; 表示必填&#44; () 表示选填&#44; | 表示选择" +
 		"</summary>" +
 		"</item>" +
@@ -109,7 +116,7 @@ async function cardStyle( i: InputParameter, commands: BasicConfig[], version: s
 	const DETAIL = <Order>i.command.getSingle( "adachi.detail" );
 	
 	await i.redis.setString( dbKey, JSON.stringify( {
-		detailCmd: DETAIL.getHeaders()[0],
+		detailCmd: DETAIL ? DETAIL.getHeaders()[0] : "",
 		version: version,
 		commands: cmdData
 	} ) );
@@ -120,7 +127,9 @@ async function cardStyle( i: InputParameter, commands: BasicConfig[], version: s
 		return res.data;
 	} else {
 		i.logger.error( res.error );
-		return "图片渲染异常，请联系持有者进行反馈";
+		const CALL = <Order>bot.command.getSingle( "adachi.call", await i.auth.get( i.messageData.user_id ) );
+		const appendMsg = CALL ? `私聊使用 ${ CALL.getHeaders()[0] } ` : "";
+		return `图片渲染异常，请${ appendMsg }联系持有者进行反馈`;
 	}
 }
 

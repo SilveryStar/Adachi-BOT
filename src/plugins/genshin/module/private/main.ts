@@ -192,7 +192,8 @@ export class PrivateClass {
 			const PRIVATE_LIST = <Order>bot.command.getSingle(
 				"silvery-star.private-list", auth
 			);
-			return `无效的序号，请使用 ${ PRIVATE_LIST.getHeaders()[0] } 检查`;
+			const appendMsg = PRIVATE_LIST ? `，请使用 ${ PRIVATE_LIST.getHeaders()[0] } 检查` : "";
+			return `无效的序号${ appendMsg }`;
 		} else {
 			return list[privateID - 1];
 		}

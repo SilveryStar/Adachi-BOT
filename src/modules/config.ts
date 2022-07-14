@@ -20,6 +20,7 @@ export default class BotConfig {
 	public readonly privateIntervalTime: number;
 	public readonly helpPort: number;
 	public readonly helpMessageStyle: string;
+	public readonly callTimes: number;
 	public readonly logLevel: "trace" | "debug" | "info" | "warn" |
 		"error" | "fatal" | "mark" | "off";
 	
@@ -48,6 +49,7 @@ export default class BotConfig {
 		privateIntervalTime: 2000,
 		helpPort: 54919,
 		helpMessageStyle: "message",
+		callTimes: 3,
 		logLevel: "info",
 		dbPort: 56379,
 		dbPassword: "",
@@ -61,7 +63,10 @@ export default class BotConfig {
 	
 	constructor( file: FileManagement ) {
 		const config: any = file.loadYAML( "setting" );
-		const checkFields: Array<keyof BotConfig> = [ "atBOT", "addFriend", "dbPassword", "helpPort", "autoChat" ];
+		const checkFields: Array<keyof BotConfig> = [
+			"atBOT", "addFriend", "dbPassword",
+			"helpPort", "autoChat", "callTimes"
+		];
 		
 		for ( let key of checkFields ) {
 			if ( config[key] === undefined ) {
@@ -83,6 +88,7 @@ export default class BotConfig {
 		this.platform = config.platform;
 		this.password = config.password;
 		this.helpPort = config.helpPort;
+		this.callTimes = config.callTimes;
 		this.groupIntervalTime = config.groupIntervalTime;
 		this.privateIntervalTime = config.privateIntervalTime;
 		this.countThreshold = config.countThreshold;

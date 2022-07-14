@@ -274,8 +274,8 @@ export default class Adachi {
 		}
 		
 		/* 已修复之前数据错误的问题 */
-		if ( this.bot.config.autoChat && !unionRegExp.test( content )  &&
-			(( this.bot.config.atBOT || isPrivate || this.checkAtBOT( <sdk.GroupMessageEventData>messageData ) )) ) {
+		if ( this.bot.config.autoChat && !unionRegExp.test( content ) &&
+			( ( this.bot.config.atBOT || isPrivate || this.checkAtBOT( <sdk.GroupMessageEventData>messageData ) ) ) ) {
 			await autoChat( content, sendMessage );
 			return;
 		}
@@ -429,9 +429,9 @@ export default class Adachi {
 			}
 			that.isOnline = true;
 			const HELP = <Order>bot.command.getSingle( "adachi.help", AuthLevel.Master );
+			const appendMsg = HELP ? `请输入 ${ HELP.getHeaders()[0] } 查看命令帮助\n` : "";
 			const message: string =
-				`Adachi-BOT 已启动成功，请输入 ${ HELP.getHeaders()[0] } 查看命令帮助\n` +
-				"如有问题请前往 github.com/SilveryStar/Adachi-BOT 进行反馈"
+				`Adachi-BOT 已启动成功，${ appendMsg }如有问题请前往 github.com/SilveryStar/Adachi-BOT 进行反馈`
 			await that.bot.message.sendMaster( message );
 		}
 	}

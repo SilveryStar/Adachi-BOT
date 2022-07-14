@@ -1,4 +1,4 @@
-import { InputParameter } from "@modules/command";
+import { InputParameter, Order } from "@modules/command";
 import { Private } from "#genshin/module/private/main";
 import { RenderResult } from "@modules/renderer";
 import { CharacterInformation, Skills } from "#genshin/types";
@@ -6,6 +6,7 @@ import { getRealName, NameResult } from "#genshin/utils/name";
 import { mysAvatarDetailInfoPromise, mysInfoPromise } from "#genshin/utils/promise";
 import { getPrivateAccount } from "#genshin/utils/private";
 import { characterID, config, renderer } from "#genshin/init";
+import bot from "ROOT";
 
 interface ScoreItem {
 	label: string;
@@ -124,6 +125,8 @@ export async function main(
 		await sendMessage( res.data );
 	} else {
 		logger.error( res.error );
-		await sendMessage( "图片渲染异常，请联系持有者进行反馈" );
+		const CALL = <Order>bot.command.getSingle( "adachi.call", await auth.get( userID ) );
+		const appendMsg = CALL ? `私聊使用 ${ CALL.getHeaders()[0] } ` : "";
+		await sendMessage( `图片渲染异常，请${ appendMsg }联系持有者进行反馈` );
 	}
 }
