@@ -90,7 +90,7 @@ export default defineComponent( {
 					return d.month() === curr.month() && d.date() === curr.date();
 				} );
 				return index === -1
-					? startDate.valueOf() < dateList.value[0].valueOf()
+					? curr.valueOf() < dateList.value[0].valueOf()
 						? 0
 						: dateList.value.length - 1
 					: index
