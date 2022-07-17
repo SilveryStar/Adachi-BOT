@@ -5,7 +5,8 @@ CreateTime: 2022/6/21
 import bot from "ROOT";
 import * as msg from "./message";
 import request from "#genshin/utils/requests";
-import * as tencentcloud from "tencentcloud-sdk-nodejs";
+
+const tencentCloud = require( "tencentcloud-sdk-nodejs-nlp" );
 
 const URL: string = `http://api.qingyunke.com/api.php?key=free&appid=0&msg=`;
 
@@ -75,7 +76,7 @@ function getEmoji(): string {
 async function getTencentReply( text: string ): Promise<string> {
 	
 	//实例化Nlp需要的参数
-	const NlpClient = tencentcloud.nlp.v20190408.Client;
+	const NlpClient = tencentCloud.nlp.v20190408.Client;
 	const clientConfig = {
 		credential: {
 			secretId: bot.config.autoChat.secretId,
