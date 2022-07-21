@@ -68,10 +68,11 @@ export class DailySet {
 	}
 }
 
-async function getRenderResult( id: number, week?: number ): Promise<RenderResult> {
+async function getRenderResult( id: number, subState: boolean, week?: number ): Promise<RenderResult> {
 	return await renderer.asCqCode( "/daily.html", {
 		id,
-		week: week || "today"
+		type: subState ? "sub" : "all",
+		week: week ?? "today"
 	} );
 }
 
@@ -118,27 +119,18 @@ export class DailyClass {
 			
 			const groupData = new DailySet( this.getDataSet( week ), this.eventData );
 			let subMessage: string = "";
-			if ( week === 0 ) {
-				subMessage = "周日所有材料都可以刷取哦~";
+			await groupData.save( 0 );
+			const res: RenderResult = await getRenderResult( 0, false );
+			if ( res.code === "ok" ) {
+				subMessage = res.data;
 			} else {
-				await groupData.save( 0 );
-				const res: RenderResult = await getRenderResult( 0 );
-				if ( res.code === "ok" ) {
-					subMessage = res.data;
-				} else {
-					bot.logger.error( res.error );
-					await bot.message.sendMaster( "每日素材订阅图片渲染异常，请查看日志进行检查" );
-				}
+				bot.logger.error( res.error );
+				await bot.message.sendMaster( "每日素材订阅图片渲染异常，请查看日志进行检查" );
 			}
 			if ( subMessage.length !== 0 ) {
 				for ( let id of groupIDs ) {
 					await bot.client.sendGroupMsg( parseInt( id ), subMessage );
 				}
-			}
-			
-			/* 周日不对订阅信息的用户进行私发 */
-			if ( week === 0 ) {
-				return;
 			}
 			
 			/* 私发订阅信息 */
@@ -151,7 +143,7 @@ export class DailyClass {
 					continue;
 				}
 				await data.save( userID );
-				const res: RenderResult = await getRenderResult( userID );
+				const res: RenderResult = await getRenderResult( userID, true );
 				if ( res.code === "error" ) {
 					await bot.message.sendMaster( "每日素材订阅图片渲染异常，请查看日志进行检查" );
 					continue;
@@ -166,7 +158,7 @@ export class DailyClass {
 		} );
 	}
 	
-	private getDateStr( week: number ): string | null {
+	private static getDateStr( week: number ): string | null {
 		if ( week === 1 || week === 4 ) {
 			return "Mon&Thu";
 		} else if ( week === 2 || week === 5 ) {
@@ -179,12 +171,12 @@ export class DailyClass {
 	}
 	
 	private getDetailSet( week: number ): string[] {
-		const param = this.getDateStr( week );
+		const param = DailyClass.getDateStr( week );
 		return param ? this.detail[param] : [];
 	}
 	
 	private getDataSet( week: number ): InfoResponse[] {
-		const param = this.getDateStr( week );
+		const param = DailyClass.getDateStr( week );
 		return param ? this.allData[param] : [];
 	}
 	
@@ -203,12 +195,11 @@ export class DailyClass {
 				}
 			} catch ( e ) {
 				bot.logger.error( `「${ targetName }」信息获取失败: ${ e }` );
-				continue;
 			}
 		}
 	}
 	
-	private getWeek( initWeek?: number ): number {
+	private static getWeek( initWeek?: number ): number {
 		let week: number;
 		if ( initWeek ) {
 			week = initWeek === 7 ? 0 : initWeek;
@@ -224,43 +215,51 @@ export class DailyClass {
 		const dbKey: string = `silvery-star.daily-sub-${ userID }`;
 		const subList: string[] = await bot.redis.getList( dbKey );
 		
-		const week: number = this.getWeek( initWeek );
+		/* 排除活动日历订阅 */
+		const itemSubList: string[] = subList.filter( s => s !== "活动" );
+		
+		/* 是否存在活动订阅 */
+		const hasEventSub: Boolean = itemSubList.length !== subList.length;
+		
+		const week: number = DailyClass.getWeek( initWeek );
 		if ( this.getDataSet( week ).length === 0 ) {
 			const set: string[] = this.getDetailSet( week );
 			await this.getAllData( week, set, false );
 		}
 		
-		if ( subList.length === 0 ) {
+		if ( initWeek ?? subList.length === 0 ) {
 			return undefined;
 		}
 		
 		const privateSub: InfoResponse[] = [];
-		for ( let item of subList ) {
+		for ( let item of itemSubList ) {
 			const find: InfoResponse | undefined = this.getDataSet( week ).find( el => el.name === item );
 			if ( find === undefined ) {
 				continue;
 			}
 			privateSub.push( find );
 		}
-		if ( privateSub.length === 0 ) {
+		if ( privateSub.length === 0 && !hasEventSub ) {
 			return undefined;
 		}
 		
-		return new DailySet( privateSub, this.eventData );
+		return new DailySet( privateSub, hasEventSub ? this.eventData : [] );
 	}
 	
 	public async getUserSubscription( userID: number, initWeek?: number ): Promise<string> {
-		const week: number = this.getWeek( initWeek );
-		
-		if ( week === 0 ) {
+		if ( initWeek === 7 ) {
 			return "周日所有材料都可以刷取哦~";
 		}
 		
-		const data: DailySet | undefined = await this.getUserSubList( userID, initWeek ? week : undefined );
+		const week: number = DailyClass.getWeek( initWeek );
+		
+		const data: DailySet | undefined = await this.getUserSubList( userID, initWeek === undefined ? undefined : week );
+		/* 是否是订阅数据 */
+		const subState = data !== undefined;
 		const set = data === undefined ? new DailySet( this.getDataSet( week ), this.eventData ) : data;
 		
 		await set.save( userID );
-		const res: RenderResult = await getRenderResult( userID, initWeek ? week : undefined );
+		const res: RenderResult = await getRenderResult( userID, subState, initWeek === undefined ? undefined : week );
 		if ( res.code === "ok" ) {
 			return res.data;
 		} else {
@@ -288,11 +287,14 @@ export class DailyClass {
 			return `群聊订阅${ operation ? "添加" : "取消" }成功`;
 		}
 		
+		/* 是否为活动日历 */
+		const isEvent: Boolean = name === "活动";
+		
 		/* 添加/删除私聊订阅 */
 		const result: NameResult = getRealName( name );
 		
-		if ( result.definite ) {
-			const realName: string = <string>result.info;
+		if ( result.definite || isEvent ) {
+			const realName: string = isEvent ? name : <string>result.info;
 			const dbKey: string = `silvery-star.daily-sub-${ userID }`;
 			const exist: boolean = await bot.redis.existListElement( dbKey, realName );
 			

@@ -125,13 +125,13 @@ const daily: SwitchConfig = {
 	type: "switch",
 	mode: "single",
 	cmdKey: "silvery-star.daily",
-	desc: [ "材料订阅", "#{OPT} [角色|武器名|群号]" ],
+	desc: [ "材料订阅", "#{OPT} [角色|武器|群号|活动]" ],
 	header: "sub",
 	regexp: [ "#{OPT}", "[\\w\\u4e00-\\u9fa5]+" ],
 	main: "achieves/daily",
 	onKey: "add",
 	offKey: "rem",
-	detail: "为自己添加/删除角色天赋/武器的突破材料\n" +
+	detail: "为自己添加/删除角色天赋/武器的突破材料以及当前进行中的活动订阅\n" +
 			"每天的 6:00~7:00 随机时间进行推送\n" +
 			"若使用群号，则将在 6:00 向该群发送所有信息"
 };
@@ -143,7 +143,7 @@ const today: OrderConfig = {
 	headers: [ "today" ],
 	regexps: [ "[1-7]?" ],
 	main: "achieves/today",
-	detail: "跟随数字 1-7 来查询指定日的素材"
+	detail: "跟随数字 1-7 来查询指定日的全部素材"
 };
 
 const guide: OrderConfig = {
