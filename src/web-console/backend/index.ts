@@ -13,6 +13,7 @@ import LoginRouter from "./routes/login";
 import LogRouter from "./routes/log";
 import UserRouter from "./routes/user";
 import StatRouter from "./routes/stat";
+import MessageRouter from "./routes/message";
 
 export default class WebConsole {
 	private readonly app: Express;
@@ -43,6 +44,7 @@ export default class WebConsole {
 		this.useApi( "/api/log", LogRouter );
 		this.useApi( "/api/user", UserRouter );
 		this.useApi( "/api/stat", StatRouter );
+		this.useApi( "/api/message", MessageRouter );
 		
 		/* 捕获错误 */
 		this.app.use( WebConsole.ApiErrorCatch );

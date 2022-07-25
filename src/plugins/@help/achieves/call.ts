@@ -1,6 +1,6 @@
 import { InputParameter } from "@modules/command/main";
 
-export async function main( { sendMessage, messageData, message, redis, config, command }: InputParameter ): Promise<void> {
+export async function main( { sendMessage, messageData, message, redis, config }: InputParameter ): Promise<void> {
 	const user = messageData.user_id;
 	const content = messageData.raw_message;
 	
@@ -26,6 +26,9 @@ export async function main( { sendMessage, messageData, message, redis, config, 
 	
 	await message.sendMaster( `来自用户「${ user }」：${ content }` );
 	await sendMessage( `发送成功，今日剩余反馈次数：${ limit }` );
+	
+	const setData = { user, content, date: new Date().getTime() };
+	await redis.addListElement( "adachi.call-list", JSON.stringify( setData ) );
 	
 	/* 获取过期时间 */
 	const todayEndTime = new Date( new Date().toLocaleDateString() ).getTime() + 24 * 60 * 60 * 1000;
