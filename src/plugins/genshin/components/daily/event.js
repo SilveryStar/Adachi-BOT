@@ -1,5 +1,5 @@
 const template = `<div class="daily-event" :class="{ hidden: !showEvent }">
-	<div v-if="showEvent" class="title">
+	<div v-if="showEvent && showMaterial" class="title">
 		<common-title :data="{ title: '活动日历' }"></common-title>
 	</div>
 	<div class="container">
@@ -42,6 +42,10 @@ export default defineComponent( {
 	},
 	props: {
 		showEvent: {
+			type: Boolean,
+			default: true
+		},
+		showMaterial: {
 			type: Boolean,
 			default: true
 		},

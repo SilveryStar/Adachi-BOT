@@ -307,16 +307,13 @@ export async function getCalendarDetail(): Promise<ResponseBody> {
 export async function getInfo( name: string ): Promise<InfoResponse | string> {
 	const charLinkWithName: string = __API.FETCH_INFO.replace( "$", encodeURI( name ) );
 	
-	return new Promise( ( resolve, reject ) => {
-		fetch( charLinkWithName )
-			.then( ( result: Response ) => {
-				if ( result.status === 404 ) {
-					reject( "" );
-				} else {
-					resolve( <InfoResponse><unknown>result.json() );
-				}
-			} );
-	} );
+	const result: Response = await fetch( charLinkWithName )
+	
+	if ( result.status === 404 ) {
+		throw "";
+	} else {
+		return <InfoResponse><unknown>await result.json();
+	}
 }
 
 export async function checkGuideExist( name: string ): Promise<boolean | string> {

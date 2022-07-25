@@ -26,11 +26,12 @@
 	display: flex;
 	align-items: center;
 	margin-bottom: 18px;
-	padding: 0 20px;
-	height: 40px;
-	background: #fff;
-	box-shadow: 0px 0 6px 0 var(--shadow-color);
+	padding: 6px 16px;
+	min-height: 40px;
+	background-color: #fff;
+	box-shadow: 0 0 6px 0 var(--shadow-color);
 	border-radius: 6px;
+	box-sizing: border-box;
 }
 
 .info-line > .line-content > li:last-child {
@@ -38,8 +39,9 @@
 }
 
 .info-line > .line-content > li > .item-data {
+	display: flex;
+	align-items: center;
 	flex: 1;
-	white-space: nowrap;
 }
 
 .info-line > .line-content > li > .item-data > span {
@@ -48,6 +50,7 @@
 }
 
 .info-line > .line-content > li > .item-data > span:first-child {
+	flex: 0 0 auto;
 	margin-right: 14px;
 }
 
