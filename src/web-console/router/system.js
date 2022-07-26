@@ -28,6 +28,12 @@ const systemRoutes = [
 		name: "User",
 		component: () => import("../views/user/index.js"),
 		meta: { title: "用户", icon: "icon-user", layout: "system", group: "Components" }
+	},
+	{
+		path: "/system/message",
+		name: "Message",
+		component: () => import("../views/message/index.js"),
+		meta: { title: "消息", icon: "icon-chat", layout: "system", group: "Components" }
 	}
 ];
 
