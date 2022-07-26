@@ -14,6 +14,7 @@ export default express.Router()
 		const page = parseInt( <string>req.query.page ); // 当前第几页
 		const length = parseInt( <string>req.query.length ); // 页长度
 		const sort = <"desc" | "asc">( req.query.sort || "desc" ); // 页长度
+		const userId = parseInt( <string>req.query.userId ); // 用户
 		
 		if ( !page || !length ) {
 			res.status( 400 ).send( { code: 400, data: {}, msg: "Error Params" } );
@@ -22,9 +23,12 @@ export default express.Router()
 		
 		const list: string[] = await bot.redis.getList( dbKey );
 		
-		const messageList: IMessage[] = list.map( d => <IMessage>JSON.parse( d ) ).sort( ( prev, next ) => {
-			return sort === "desc" ? next.date - prev.date : prev.date - next.date;
-		} );
+		const messageList: IMessage[] = list
+			.map( d => <IMessage>JSON.parse( d ) )
+			.filter( d => userId ? d.user === userId : true )
+			.sort( ( prev, next ) => {
+				return sort === "desc" ? next.date - prev.date : prev.date - next.date;
+			} );
 		const resList = messageList.slice( ( page - 1 ) * length, page * length );
 		res.status( 200 ).send( { code: 200, data: resList, total: messageList.length } );
 	} )
@@ -41,7 +45,7 @@ export default express.Router()
 		const delData: IMessage = { user, content, date };
 		await bot.redis.delListElement( dbKey, JSON.stringify( delData ) );
 		
-		await bot.client.sendPrivateMsg( user, message );
+		await bot.client.sendPrivateMsg( user, `BOT持有者回复：${ message }` );
 		
 		res.status( 200 ).send( { code: 200, data: delData, msg: "Success" } );
 	} )

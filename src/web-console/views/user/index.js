@@ -1,4 +1,4 @@
-const template = `<div class="user-page">
+const template = `<div class="table-container user-page">
     <div class="nav-btn-box">
       	<el-input v-model="listQuery.userId" placeholder="请输入qq号" @clear="getUserData" @keyup.enter="getUserData" :disabled="tableLoading" clearable />
       	<el-select v-model="listQuery.sub" class="m-2" placeholder="请选择是否存在订阅" @change="getUserData" @clear="getUserData" :disabled="tableLoading" clearable>
@@ -7,7 +7,7 @@ const template = `<div class="user-page">
   		</el-select>
     </div>
     <div class="table-view">
-		<el-table v-loading="tableLoading" :data="userList" header-row-class-name="users-table-header" :height="tableHeight" stripe border>
+		<el-table v-loading="tableLoading" :data="userList" header-row-class-name="table-header" :height="tableHeight" stripe border>
 			<el-table-column v-if="deviceWidth > 510" prop="index" type="index" :index="setRowIndex" align="center" min-width="50px"></el-table-column>
 			<el-table-column v-if="deviceWidth > 1070" prop="userID" label="QQ" align="center" min-width="110px"></el-table-column>
 			<el-table-column prop="avatar" label="用户" align="center" min-width="170px">
@@ -50,7 +50,7 @@ const template = `<div class="user-page">
 			:total="totalUser"
 			@current-change="getUserData"></el-pagination>
 	</div>
-    <el-dialog v-model="showUserModal" @closed="closeUserModal" draggable>
+    <el-dialog v-model="showUserModal" custom-class="no-header" @closed="closeUserModal" draggable>
     	<user-detail :user-info="selectUser" :cmdKeys="cmdKeys" :auth-level="authLevel" @close-dialog="closeUserModal" @reload-data="getUserData"></user-detail>
     </el-dialog>
 </div>`;

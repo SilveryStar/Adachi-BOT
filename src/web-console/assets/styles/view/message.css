@@ -1,0 +1,21 @@
+/* 弹窗 */
+.message-page .el-dialog {
+	--dialog-height: 423px;
+	width: 600px;
+}
+
+/* 发送消息弹窗 */
+.send-message .message-box {
+	height: 100px;
+}
+
+.send-message .message-box a {
+	color: var(--el-color-primary);
+}
+
+@media (max-width: 768px) {
+	.message-page .el-dialog {
+		width: 90%;
+		--dialog-height: 362px;
+	}
+}
