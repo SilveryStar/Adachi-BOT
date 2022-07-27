@@ -24,12 +24,17 @@ interface RegPair {
 export class Order extends BasicConfig {
 	public readonly type = "order";
 	public readonly regPairs: RegPair[] = [];
+	public readonly globalHeader: string;
 	
 	constructor( config: OrderConfig, botCfg: BotConfig, pluginName: string ) {
 		super( config, pluginName );
 		
-		const globalHeader: string = botCfg.header;
-		const headers: string[] = config.headers.map( el => Order.header( el, globalHeader ) );
+		this.globalHeader = botCfg.header;
+		const headers: string[] = [];
+		if ( this.desc[0].length > 0 ) {
+			headers.push( Order.header( this.desc[0], this.globalHeader ) ); //添加中文指令名作为识别
+		}
+		headers.push( ...config.headers.map( el => Order.header( el, this.globalHeader ) ) );
 		
 		let rawRegs = <string[][]>config.regexps;
 		const isDeep: boolean = config.regexps.some( el => el instanceof Array );
@@ -75,16 +80,22 @@ export class Order extends BasicConfig {
 			this.regPairs.forEach( pair => pair.genRegExps.forEach( reg => {
 				if ( reg.test( content ) ) {
 					throw { type: "order", header: pair.header };
+				} else if ( new RegExp( pair.header ).test( content ) ) {
+					throw { type: "unmatch", missParam: true, header: pair.header };
 				}
 			} ) );
 		} catch ( data ) {
 			return <OrderMatchResult | Unmatch>data;
 		}
-		return { type: "unmatch" };
+		return { type: "unmatch", missParam: false };
 	}
 	
 	public getFollow(): string {
-		const headers: string = this.regPairs
+		const pairs = this.regPairs.concat();
+		if ( pairs[0].header === Order.header( this.desc[0], this.globalHeader ) ) {
+			pairs.shift();
+		}
+		const headers: string = pairs
 			.map( el => el.header )
 			.join( "|" );
 		const param = this.desc[1];

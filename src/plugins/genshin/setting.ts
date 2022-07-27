@@ -6,7 +6,7 @@ import { PluginSetting } from "@modules/plugin";
 const bind: OrderConfig = {
 	type: "order",
 	cmdKey: "silvery-star.bind",
-	desc: [ "米游社绑定", "[UID|-r]" ],
+	desc: [ "绑定", "[UID|-r]" ],
 	headers: [ "bind" ],
 	regexps: [ "(\\d{9}|-r)" ],
 	main: "achieves/bind",

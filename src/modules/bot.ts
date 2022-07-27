@@ -20,6 +20,7 @@ import { trim } from "lodash";
 import fs, { readFileSync, unlinkSync } from "fs";
 import axios, { AxiosError } from "axios";
 import { resolve } from "path";
+import { autoChat } from "@modules/chat";
 
 /**
  * @interface
@@ -260,7 +261,7 @@ export default class Adachi {
 		unionRegExp: RegExp,
 		isPrivate: boolean
 	): Promise<void> {
-		const content: string = messageData.raw_message;
+		const content: string = messageData.raw_message.trim() || '';
 		
 		if ( this.bot.refresh.isRefreshing ) {
 			return;
@@ -271,19 +272,23 @@ export default class Adachi {
 			return;
 		}
 		
-		/* 已修复之前数据错误的问题 */
-		if ( this.bot.config.autoChat.enable && !unionRegExp.test( content ) ) {
-			if ( isPrivate || this.bot.config.atBOT || this.checkAtBOT( <sdk.GroupMessageEventData>messageData ) ) {
-				const { autoChat } = require( "./chat" );
-				await autoChat( messageData.raw_message, sendMessage );
-				return;
-			}
-		}
-		
 		const usable: BasicConfig[] = cmdSet.filter( el => !limits.includes( el.cmdKey ) );
 		for ( let cmd of usable ) {
 			const res: MatchResult = cmd.match( content );
 			if ( res.type === "unmatch" ) {
+				if ( res.missParam && res.header ) {
+					const text: string = cmd.ignoreCase ? content.toLowerCase() : content;
+					messageData.raw_message = trim(
+						msg.removeStringPrefix( text, res.header.toLowerCase() )
+							.replace( / +/g, " " )
+					);
+					await sendMessage( `指令参数错误 ~ \n` +
+						`你的参数：${ messageData.raw_message }\n` +
+						`参数格式：${ cmd.desc[1] }\n` +
+						`参数说明：${ cmd.detail }`
+					);
+					return;
+				}
 				continue;
 			}
 			if ( res.type === "order" ) {
@@ -306,6 +311,15 @@ export default class Adachi {
 			await this.bot.redis.incHash( "adachi.hour-stat", userID.toString(), 1 );
 			await this.bot.redis.incHash( "adachi.command-stat", cmd.cmdKey, 1 );
 			return;
+		}
+		/* 已修复之前数据错误的问题 */
+		// console.log( unionRegExp.test( content ) ); 不知为什么这里他会匹配到非指令的消息，离谱，求大佬看看
+		if ( this.bot.config.autoChat.enable ) {
+			if ( isPrivate || this.bot.config.atBOT || this.checkAtBOT( <sdk.GroupMessageEventData>messageData ) ) {
+				const { autoChat } = require( "./chat" );
+				await autoChat( messageData.raw_message, sendMessage );
+				return;
+			}
 		}
 	}
 	
