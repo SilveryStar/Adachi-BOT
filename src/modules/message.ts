@@ -37,13 +37,17 @@ export default class MsgManagement implements MsgManagementMethod {
 		const client = this.client;
 		const atUser = this.atUser;
 		if ( type === MessageType.Private ) {
-			return async function( content ): Promise<void> {
+			return async function ( content ): Promise<void> {
 				await client.sendPrivateMsg( userID, content );
 			}
 		} else {
-			return async function( content, allowAt ): Promise<void> {
+			return async function ( content, allowAt ): Promise<void> {
 				if ( atUser && allowAt !== false ) {
-					content = sdk.cqcode.at( userID ) + " " + content;
+					if ( typeof content === "string" && content.length < 60 ) {
+						content = sdk.cqcode.at( userID ) + " " + content;
+					} else {
+						content = sdk.cqcode.at( userID ) + "\n" + content;
+					}
 				}
 				await client.sendGroupMsg( <number>groupID, content );
 			}

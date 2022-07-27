@@ -1,4 +1,4 @@
-const template = `<div class="user-detail">
+const template = `<div class="dialog-body user-detail">
 	<div class="section-info">
 		<p class="title">信息面板</p>
 		<div class="user-base-info">
