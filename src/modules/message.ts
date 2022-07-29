@@ -1,5 +1,6 @@
 import * as sdk from "oicq";
 import BotConfig from "@modules/config";
+import { MessageElem } from "oicq";
 
 export enum MessageScope {
 	Neither,
@@ -22,6 +23,10 @@ interface MsgManagementMethod {
 	sendMaster( content: string ): Promise<void>;
 }
 
+function checkIterator( obj: MessageElem | Iterable<MessageElem | string> ): obj is Iterable<MessageElem | string> {
+	return typeof obj[Symbol.iterator] === "function";
+}
+
 export default class MsgManagement implements MsgManagementMethod {
 	private readonly master: number;
 	private readonly atUser: boolean;
@@ -42,11 +47,18 @@ export default class MsgManagement implements MsgManagementMethod {
 			}
 		} else {
 			return async function ( content, allowAt ): Promise<void> {
+				const at = sdk.segment.at( userID )
+				const space = sdk.segment.text(" ");
 				if ( atUser && allowAt !== false ) {
-					if ( typeof content === "string" && content.length < 60 ) {
-						content = sdk.cqcode.at( userID ) + " " + content;
+					if ( typeof content === "string" ) {
+						const split = content.length < 60 ? " " : "\n";
+						content = sdk.cqcode.at( userID ) + split + content;
+					} else if ( checkIterator( content ) ) {
+						// @ts-ignore
+						content = [ at, space, ...content ];
 					} else {
-						content = sdk.cqcode.at( userID ) + "\n" + content;
+						const data = ( "data" in content && content.data ) ? Object.values( content.data ) : []
+						content = [ at, space, sdk.segment[content.type]( ...data ) ];
 					}
 				}
 				await client.sendGroupMsg( <number>groupID, content );
