@@ -1,3 +1,4 @@
+import bot from "ROOT";
 import * as sdk from "oicq";
 import BotConfig from "@modules/config";
 import { MessageElem } from "oicq";
@@ -48,7 +49,7 @@ export default class MsgManagement implements MsgManagementMethod {
 		} else {
 			return async function ( content, allowAt ): Promise<void> {
 				const at = sdk.segment.at( userID )
-				const space = sdk.segment.text(" ");
+				const space = sdk.segment.text( " " );
 				if ( atUser && allowAt !== false ) {
 					if ( typeof content === "string" ) {
 						const split = content.length < 60 ? " " : "\n";
@@ -72,7 +73,10 @@ export default class MsgManagement implements MsgManagementMethod {
 }
 
 export function removeStringPrefix( string: string, prefix: string ): string {
-	return string.replace( prefix, "" );
+	if ( prefix.charAt( 0 ) === bot.config.header )
+		return string.replace( new RegExp( `${ prefix.charAt(0) }?${ prefix.slice(1) }`, "g" ), '' );
+	else
+		return string.replace( new RegExp( prefix ), '' );
 }
 
 export function isPrivateMessage( data: Message ): data is sdk.PrivateMessageEventData {

@@ -272,6 +272,15 @@ export default class Adachi {
 			return;
 		}
 		
+		/* 已修复之前数据错误的问题 */
+		if ( this.bot.config.autoChat.enable && !unionRegExp.test( content ) ) {
+			if ( isPrivate || this.bot.config.atBOT || this.checkAtBOT( <sdk.GroupMessageEventData>messageData ) ) {
+				const { autoChat } = require( "./chat" );
+				await autoChat( messageData.raw_message, sendMessage );
+				return;
+			}
+		}
+		
 		const usable: BasicConfig[] = cmdSet.filter( el => !limits.includes( el.cmdKey ) );
 		for ( let cmd of usable ) {
 			const res: MatchResult = cmd.match( content );
@@ -311,15 +320,6 @@ export default class Adachi {
 			await this.bot.redis.incHash( "adachi.hour-stat", userID.toString(), 1 );
 			await this.bot.redis.incHash( "adachi.command-stat", cmd.cmdKey, 1 );
 			return;
-		}
-		/* 已修复之前数据错误的问题 */
-		// console.log( unionRegExp.test( content ) ); 不知为什么这里他会匹配到非指令的消息，离谱，求大佬看看
-		if ( this.bot.config.autoChat.enable ) {
-			if ( isPrivate || this.bot.config.atBOT || this.checkAtBOT( <sdk.GroupMessageEventData>messageData ) ) {
-				const { autoChat } = require( "./chat" );
-				await autoChat( messageData.raw_message, sendMessage );
-				return;
-			}
 		}
 	}
 	

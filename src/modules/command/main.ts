@@ -190,7 +190,8 @@ export default class Command {
 						list.push(
 							...el.genRegExps.map( r => `(${ r.source })` )
 						);
-						list.push( `(${ el.header })` );
+						/* 适配缺少参数的unmatch, 适配中文指令模糊识别 */
+						list.push( /[\u4e00-\u9fa5]/.test( el.header ) ? `(${ el.header.replace( bot.config.header, '' ) })` : `(${ el.header })` );
 					} );
 				} else if ( cmd.type === "switch" ) {
 					list.push( ...cmd.regexps.map( r => `(${ r.source })` ) );
