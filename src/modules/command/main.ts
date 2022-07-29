@@ -10,14 +10,16 @@ import { BOT } from "../bot";
 import { trimStart, without } from "lodash";
 
 type Optional<T> = {
-	-readonly [ key in keyof T ]?: T[key];
+	-readonly [key in keyof T]?: T[key];
 };
 type Required<T, K extends keyof T> = T & {
-	[ key in K ]-?: T[key];
+	[key in K]-?: T[key];
 };
 
 export interface Unmatch {
 	type: "unmatch";
+	missParam: boolean;
+	header?: string;
 }
 
 export type MatchResult = cmd.OrderMatchResult |
@@ -37,10 +39,8 @@ export type InputParameter = {
 
 export type CommandFunc = ( input: InputParameter ) => void | Promise<void>;
 export type CommandList = Record<AuthLevel, BasicConfig[]>;
-export type CommandInfo = Required<
-	Optional<BasicConfig>,
-	"cmdKey" | "desc"
-> & { main?: string | CommandFunc };
+export type CommandInfo = Required<Optional<BasicConfig>,
+	"cmdKey" | "desc"> & { main?: string | CommandFunc };
 export type CommandType = Order | Switch | Enquire;
 
 export abstract class BasicConfig {
@@ -56,8 +56,11 @@ export abstract class BasicConfig {
 	readonly pluginName: string;
 	
 	abstract match( content: string ): MatchResult;
+	
 	abstract write(): any;
+	
 	abstract getFollow(): string;
+	
 	abstract getDesc(): string;
 	
 	protected static header( raw: string, h: string ): string {
@@ -123,7 +126,7 @@ export default class Command {
 	
 	constructor( file: FileManagement ) {
 		this.privates = Command.initAuthObject();
-		this.groups   = Command.initAuthObject();
+		this.groups = Command.initAuthObject();
 		this.pUnionReg = Command.initAuthObject();
 		this.gUnionReg = Command.initAuthObject();
 		
@@ -131,7 +134,7 @@ export default class Command {
 	}
 	
 	private static initAuthObject(): Record<AuthLevel, any> {
-		return  {
+		return {
 			[AuthLevel.Banned]: [], [AuthLevel.User]: [],
 			[AuthLevel.Master]: [], [AuthLevel.Manager]: []
 		};
@@ -140,14 +143,14 @@ export default class Command {
 	public async refresh(): Promise<string> {
 		try {
 			this.privates = Command.initAuthObject();
-			this.groups   = Command.initAuthObject();
+			this.groups = Command.initAuthObject();
 			this.pUnionReg = Command.initAuthObject();
 			this.gUnionReg = Command.initAuthObject();
 			
 			const commands: BasicConfig[] = [];
 			for ( let name of Object.keys( PluginRawConfigs ) ) {
 				const raws: ConfigType[] = PluginRawConfigs[name];
-				const cmd: BasicConfig[] = await Plugin.parse( bot, raws, name );
+				const cmd: BasicConfig[] = Plugin.parse( bot, raws, name );
 				commands.push( ...cmd );
 			}
 			this.add( commands );
@@ -173,24 +176,29 @@ export default class Command {
 				}
 			}
 		} );
-
+		
 		for ( let auth = AuthLevel.Banned; auth <= AuthLevel.Master; auth++ ) {
 			this.pUnionReg[auth] = convertAllRegToUnion( <CommandType[]>this.privates[auth] );
 			this.gUnionReg[auth] = convertAllRegToUnion( <CommandType[]>this.groups[auth] );
 		}
+		
 		function convertAllRegToUnion( cmdSet: CommandType[] ): RegExp {
 			const list: string[] = [];
 			cmdSet.forEach( cmd => {
 				if ( cmd.type === "order" ) {
-					cmd.regPairs.forEach( el => list.push(
-						...el.genRegExps.map( r => `(${ r.source })` )
-					) );
+					cmd.regPairs.forEach( el => {
+						list.push(
+							...el.genRegExps.map( r => `(${ r.source })` )
+						);
+						/* 适配缺少参数的unmatch, 适配中文指令模糊识别 */
+						list.push( /[\u4e00-\u9fa5]/.test( el.header ) ? `(${ el.header.replace( bot.config.header, '' ) })` : `(${ el.header })` );
+					} );
 				} else if ( cmd.type === "switch" ) {
 					list.push( ...cmd.regexps.map( r => `(${ r.source })` ) );
 				} else if ( cmd.type === "enquire" ) {
 					list.push( ...cmd.sentences.map( s => `(${ s.reg.source })` ) );
 				}
-  			} );
+			} );
 			return new RegExp( `(${ list.join( "|" ) })`, "i" );
 		}
 	}

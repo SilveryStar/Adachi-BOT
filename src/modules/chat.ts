@@ -9,6 +9,22 @@ import request from "#genshin/utils/requests";
 const tencentCloud = require( "tencentcloud-sdk-nodejs-nlp" );
 
 const URL: string = `http://api.qingyunke.com/api.php?key=free&appid=0&msg=`;
+//实例化Nlp需要的参数
+const NlpClient = tencentCloud.nlp.v20190408.Client;
+const clientConfig = {
+	credential: {
+		secretId: bot.config.autoChat.secretId,
+		secretKey: bot.config.autoChat.secretKey,
+	},
+	region: "ap-guangzhou",
+	profile: {
+		httpProfile: {
+			endpoint: "nlp.tencentcloudapi.com",
+		},
+	},
+};
+//实例化NLP对象
+const client = new NlpClient( clientConfig );
 
 /* 自动回复插件方法 */
 export async function autoChat( messageData: string, sendMessage: msg.SendFunc ) {
@@ -74,23 +90,6 @@ function getEmoji(): string {
 }
 
 async function getTencentReply( text: string ): Promise<string> {
-	
-	//实例化Nlp需要的参数
-	const NlpClient = tencentCloud.nlp.v20190408.Client;
-	const clientConfig = {
-		credential: {
-			secretId: bot.config.autoChat.secretId,
-			secretKey: bot.config.autoChat.secretKey,
-		},
-		region: "ap-guangzhou",
-		profile: {
-			httpProfile: {
-				endpoint: "nlp.tencentcloudapi.com",
-			},
-		},
-	};
-	//实例化NLP对象
-	const client = new NlpClient( clientConfig );
 	const params = { "Query": text };
 	const reply = await client.ChatBot( params );
 	return reply.Reply ? reply.Reply : "请求出错了";

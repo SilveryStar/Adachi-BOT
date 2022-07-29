@@ -24,18 +24,23 @@ interface RegPair {
 export class Order extends BasicConfig {
 	public readonly type = "order";
 	public readonly regPairs: RegPair[] = [];
+	public readonly regParam: string[][];
 	
 	constructor( config: OrderConfig, botCfg: BotConfig, pluginName: string ) {
 		super( config, pluginName );
 		
-		const globalHeader: string = botCfg.header;
-		const headers: string[] = config.headers.map( el => Order.header( el, globalHeader ) );
+		const headers: string[] = [];
+		headers.push( ...config.headers.map( el => Order.header( el, botCfg.header ) ) );
+		if ( this.desc[0].length > 0 ) {
+			headers.push( Order.header( this.desc[0], botCfg.header ) ); //添加中文指令名作为识别
+		}
 		
 		let rawRegs = <string[][]>config.regexps;
 		const isDeep: boolean = config.regexps.some( el => el instanceof Array );
 		if ( !isDeep ) {
 			rawRegs = [ <string[]>config.regexps ];
 		}
+		this.regParam = rawRegs;
 		
 		for ( let header of headers ) {
 			const pair: RegPair = { header, genRegExps: [] };
@@ -75,16 +80,39 @@ export class Order extends BasicConfig {
 			this.regPairs.forEach( pair => pair.genRegExps.forEach( reg => {
 				if ( reg.test( content ) ) {
 					throw { type: "order", header: pair.header };
+				} else {
+					/* 直接匹配失败，中文header支持模糊识别 */
+					const rawHeader = pair.header.replace( bot.config.header, "" );
+					const header = /[\u4e00-\u9fa5]/.test( rawHeader ) ?
+						`${ bot.config.header }?${ rawHeader }` : pair.header;
+					const fogReg = new RegExp( header, "g" );
+					/* 判断是否参数不符合要求 */
+					if ( fogReg.test( content ) ) {
+						content = content.replace( fogReg, "" );
+						for ( let params of this.regParam ) {
+							const matchParam = params.every( param => {
+								return new RegExp( param ).test( content );
+							} );
+							if ( matchParam ) {
+								throw { type: "order", header: pair.header };
+							}
+						}
+						throw { type: "unmatch", missParam: true, header: pair.header };
+					}
 				}
 			} ) );
 		} catch ( data ) {
 			return <OrderMatchResult | Unmatch>data;
 		}
-		return { type: "unmatch" };
+		return { type: "unmatch", missParam: false };
 	}
 	
 	public getFollow(): string {
-		const headers: string = this.regPairs
+		const pairs = this.regPairs.concat();
+		if ( pairs[pairs.length - 1].header === Order.header( this.desc[0], bot.config.header ) ) {
+			pairs.pop();
+		}
+		const headers: string = pairs
 			.map( el => el.header )
 			.join( "|" );
 		const param = this.desc[1];

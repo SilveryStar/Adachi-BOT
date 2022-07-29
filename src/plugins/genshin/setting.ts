@@ -6,7 +6,7 @@ import { PluginSetting } from "@modules/plugin";
 const bind: OrderConfig = {
 	type: "order",
 	cmdKey: "silvery-star.bind",
-	desc: [ "米游社绑定", "[UID|-r]" ],
+	desc: [ "绑定", "[UID|-r]" ],
 	headers: [ "bind" ],
 	regexps: [ "(\\d{9}|-r)" ],
 	main: "achieves/bind",
@@ -56,12 +56,12 @@ const domain: OrderConfig = {
 const wish: OrderConfig = {
 	type: "order",
 	cmdKey: "silvery-star.wish",
-	desc: [ "祈愿抽卡", "[十连次数|until]" ],
+	desc: [ "祈愿", "[十连次数|until]" ],
 	headers: [ "wish", "w" ],
 	regexps: [ "(\\d{1,2}|until)?" ],
 	main: "achieves/wish",
 	detail: "抽卡次数可以填写 1~99，表示十连抽的次数，默认为 1\n" +
-			"使用 until 的时候会一直抽到 UP 武器或角色"
+		"使用 until 的时候会一直抽到 UP 武器或角色"
 };
 
 const epitomizedPath: OrderConfig = {
@@ -72,7 +72,7 @@ const epitomizedPath: OrderConfig = {
 	regexps: [ "(0|1|2)?" ],
 	main: "achieves/epitomized",
 	detail: "神器定轨，不添加参数查看当前 UP 的武器\n" +
-			"添加 1 或 2 定规武器，0 取消定轨"
+		"添加 1 或 2 定规武器，0 取消定轨"
 };
 
 const choosePool: OrderConfig = {
@@ -87,12 +87,12 @@ const choosePool: OrderConfig = {
 const information: OrderConfig = {
 	type: "order",
 	cmdKey: "silvery-star.information",
-	desc: [ "信息查询", "[角色|武器名|圣遗物] (-skill)" ],
+	desc: [ "信息", "[角色|武器名|圣遗物] (-skill)" ],
 	headers: [ "info" ],
 	regexps: [ "[\\w\\u4e00-\\u9fa5]+", "(-skill)?" ],
 	main: "achieves/info",
 	detail: "使用 -skill 来查看角色元素战技与元素爆发详情\n" +
-			"武器与圣遗物不可使用该配置项"
+		"武器与圣遗物不可使用该配置项"
 };
 
 const slip: OrderConfig = {
@@ -110,15 +110,15 @@ const alias: SwitchConfig = {
 	cmdKey: "silvery-star.alias-customize",
 	desc: [ "修改别名", "#{OPT} [本名] [别名]" ],
 	header: "alias",
-	regexp:[ "#{OPT}", "[\\u4e00-\\u9fa5]+", "[\\w\\u4e00-\\u9fa5]+" ],
+	regexp: [ "#{OPT}", "[\\u4e00-\\u9fa5]+", "[\\w\\u4e00-\\u9fa5]+" ],
 	main: "achieves/alias",
 	auth: AuthLevel.Manager,
 	onKey: "add",
 	offKey: "rem",
 	detail: "本指令用于修改角色或武器名的别名\n" +
-			"如当你为「枫原万叶」设置别名「天帝」后\n" +
-			"使用角色信息、信息查询等功能时\n" +
-			"「天帝」会被自动识别为「枫原万叶」"
+		"如当你为「枫原万叶」设置别名「天帝」后\n" +
+		"使用角色信息、信息查询等功能时\n" +
+		"「天帝」会被自动识别为「枫原万叶」"
 };
 
 const daily: SwitchConfig = {
@@ -132,8 +132,8 @@ const daily: SwitchConfig = {
 	onKey: "add",
 	offKey: "rem",
 	detail: "为自己添加/删除角色天赋/武器的突破材料以及当前进行中的活动订阅\n" +
-			"每天的 6:00~7:00 随机时间进行推送\n" +
-			"若使用群号，则将在 6:00 向该群发送所有信息"
+		"每天的 6:00~7:00 随机时间进行推送\n" +
+		"若使用群号，则将在 6:00 向该群发送所有信息"
 };
 
 const today: OrderConfig = {
@@ -149,7 +149,7 @@ const today: OrderConfig = {
 const guide: OrderConfig = {
 	type: "order",
 	cmdKey: "silvery-star.guide",
-	desc: [ "角色攻略", "[角色名]" ],
+	desc: [ "攻略", "[角色名]" ],
 	headers: [ "guide" ],
 	regexps: [ "[\\w\\u4e00-\\u9fa5]+" ],
 	main: "achieves/guide"
@@ -174,7 +174,7 @@ const privateSubscribe: OrderConfig = {
 	main: "achieves/private/subscribe",
 	scope: MessageScope.Private,
 	detail: "私人服务，一类通过使用个人 cookie 获取私密信息\n" +
-			"目前包含实时便笺订阅功能，未来可能会添加新功能"
+		"目前包含实时便笺订阅功能，未来可能会添加新功能"
 };
 
 const privateConfirm: OrderConfig = {
@@ -232,7 +232,7 @@ const privateReplace: OrderConfig = {
 	main: "achieves/private/replace",
 	scope: MessageScope.Private,
 	detail: "账户序号在私人服务列表中查看\n" +
-			"该指令用于更换私人服务所绑定的 cookie"
+		"该指令用于更换私人服务所绑定的 cookie"
 };
 
 const privateReorder: OrderConfig = {
@@ -244,7 +244,7 @@ const privateReorder: OrderConfig = {
 	main: "achieves/private/reorder",
 	scope: MessageScope.Private,
 	detail: "对当前的私人服务列表的顺序重新调整\n" +
-			"例如用户有 5 个订阅的私人服务账号，则新排序列表的格式为：5 2 3 1 4"
+		"例如用户有 5 个订阅的私人服务账号，则新排序列表的格式为：5 2 3 1 4"
 };
 
 const privateNowNote: OrderConfig = {
@@ -265,7 +265,7 @@ const privateNoteEvent: OrderConfig = {
 	main: "achieves/private/note/set-time",
 	scope: MessageScope.Private,
 	detail: "用于设置 BOT 自动提醒时间点，树脂量可设置多个\n" +
-			"如: 60 90 120 160，数字间用空格隔开"
+		"如: 60 90 120 160，数字间用空格隔开"
 };
 
 const privateMysSetAppoint: OrderConfig = {
@@ -300,7 +300,7 @@ const privateAbyssQuery: SwitchConfig = {
 	onKey: "caby",
 	offKey: "laby",
 	detail: "分别为查询上期与本期的深渊数据\n" +
-			"使用 -l 以转发消息方式显示每层详细图片"
+		"使用 -l 以转发消息方式显示每层详细图片"
 };
 
 const privateCharQuery: OrderConfig = {
@@ -311,7 +311,7 @@ const privateCharQuery: OrderConfig = {
 	regexps: [ "(\\d+)?", "[\\w\\u4e00-\\u9fa5]+" ],
 	main: "achieves/private/query/character",
 	detail: "查询对应的私人服务的账户的游戏内角色信息\n" +
-			"默认查询查询 1 号私人服务账户"
+		"默认查询查询 1 号私人服务账户"
 };
 
 const privateToggleSign: OrderConfig = {
@@ -344,20 +344,20 @@ const privateLedger: OrderConfig = {
 	regexps: [ "(\\d+)?", "(\\d+)?" ],
 	main: "achieves/private/query/ledger",
 	detail: "查看旅行者札记数据\n" +
-			"只填写一个参数时将被视为月份"
+		"只填写一个参数时将被视为月份"
 };
 
 export default <PluginSetting>{
 	pluginName: "genshin",
 	cfgList: [
-		bind, today, guide, getArtifact, almanac,
-		wish, daily, alias, impArtifact, domain, choosePool,
-		slip, uidQuery, epitomizedPath, information,
-		privateNowNote, privateNoteEvent, privateSubList,
-		privateConfirm, privateSubscribe, privateReplace,
-		privateAbyssQuery, privateCancel, privateRemove,
-		privateReorder, privateToggleSign, privateLedger,
-		privateCharQuery, privateToggleNote, privateMysQuery,
-		privateMysSetAppoint
+		bind, today, privateCharQuery, daily,
+		guide, information, alias, domain,
+		getArtifact, impArtifact, wish, choosePool,
+		epitomizedPath, slip, uidQuery, privateMysQuery,
+		almanac, privateMysSetAppoint, privateSubscribe, privateReplace,
+		privateConfirm, privateCancel, privateRemove,
+		privateSubList, privateReorder, privateToggleSign,
+		privateToggleNote, privateNoteEvent, privateNowNote,
+		privateAbyssQuery, privateLedger,
 	]
 };

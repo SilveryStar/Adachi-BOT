@@ -26,7 +26,7 @@ async function checkQueryTimes( message: string ): Promise<string> {
 			return `所有cookie查询次数已用尽，请${ appendMsg }联系BOT主人添加`;
 		}
 		await bot.logger.warn( "当前cookie查询次数已用尽，已切换下一个" );
-		return "当前cookie查询次数已用尽，已切换下一个";
+		return "当前cookie查询次数已用尽，已切换下一个，请再次尝试";
 	}
 	return message;
 }

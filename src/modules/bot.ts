@@ -20,6 +20,7 @@ import { trim } from "lodash";
 import fs, { readFileSync, unlinkSync } from "fs";
 import axios, { AxiosError } from "axios";
 import { resolve } from "path";
+import { autoChat } from "@modules/chat";
 
 /**
  * @interface
@@ -260,7 +261,7 @@ export default class Adachi {
 		unionRegExp: RegExp,
 		isPrivate: boolean
 	): Promise<void> {
-		const content: string = messageData.raw_message;
+		const content: string = messageData.raw_message.trim() || '';
 		
 		if ( this.bot.refresh.isRefreshing ) {
 			return;
@@ -284,6 +285,19 @@ export default class Adachi {
 		for ( let cmd of usable ) {
 			const res: MatchResult = cmd.match( content );
 			if ( res.type === "unmatch" ) {
+				if ( res.missParam && res.header ) {
+					const text: string = cmd.ignoreCase ? content.toLowerCase() : content;
+					messageData.raw_message = trim(
+						msg.removeStringPrefix( text, res.header.toLowerCase() )
+							.replace( / +/g, " " )
+					);
+					await sendMessage( `指令参数错误 ~ \n` +
+						`你的参数：${ messageData.raw_message }\n` +
+						`参数格式：${ cmd.desc[1] }\n` +
+						`参数说明：${ cmd.detail }`
+					);
+					return;
+				}
 				continue;
 			}
 			if ( res.type === "order" ) {

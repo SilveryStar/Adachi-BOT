@@ -129,7 +129,7 @@ export class Enquire extends BasicConfig {
 			return { type: "enquire", matchPair };
 		}
 		
-		return { type: "unmatch" };
+		return { type: "unmatch", missParam: false };
 	}
 	
 	public getFollow(): string {
