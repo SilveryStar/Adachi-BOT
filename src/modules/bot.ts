@@ -272,15 +272,6 @@ export default class Adachi {
 			return;
 		}
 		
-		/* 已修复之前数据错误的问题 */
-		if ( this.bot.config.autoChat.enable && !unionRegExp.test( content ) ) {
-			if ( isPrivate || this.bot.config.atBOT || this.checkAtBOT( <sdk.GroupMessageEventData>messageData ) ) {
-				const { autoChat } = require( "./chat" );
-				await autoChat( messageData.raw_message, sendMessage );
-				return;
-			}
-		}
-		
 		const usable: BasicConfig[] = cmdSet.filter( el => !limits.includes( el.cmdKey ) );
 		for ( let cmd of usable ) {
 			const res: MatchResult = cmd.match( content );
@@ -320,6 +311,16 @@ export default class Adachi {
 			await this.bot.redis.incHash( "adachi.hour-stat", userID.toString(), 1 );
 			await this.bot.redis.incHash( "adachi.command-stat", cmd.cmdKey, 1 );
 			return;
+		}
+		
+		/* 不是很清楚这个unionRegExp哪儿有问题，只加了个 指令头（带#）和 纯中文指令描述 */
+		// console.log( unionRegExp.test( content ) );
+		if ( this.bot.config.autoChat.enable ) {
+			if ( isPrivate || this.bot.config.atBOT || this.checkAtBOT( <sdk.GroupMessageEventData>messageData ) ) {
+				const { autoChat } = require( "./chat" );
+				await autoChat( messageData.raw_message, sendMessage );
+				return;
+			}
 		}
 	}
 	
@@ -362,7 +363,7 @@ export default class Adachi {
 	private parseGroupMsg( that: Adachi ) {
 		const bot = that.bot;
 		return async function ( messageData: sdk.GroupMessageEventData ) {
-			if ( bot.config.atBOT && !that.checkAtBOT( messageData ) ) {
+			if ( !that.checkAtBOT( messageData ) && bot.config.atBOT ) {
 				return;
 			}
 			const { user_id: userID, group_id: groupID } = messageData;

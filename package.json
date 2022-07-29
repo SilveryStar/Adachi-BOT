@@ -1,6 +1,6 @@
 {
   "name" : "adachi-bot",
-  "version" : "2.4.12",
+  "version" : "2.4.12-fix",
   "description" : "",
   "main" : "index.js",
   "scripts" : {
