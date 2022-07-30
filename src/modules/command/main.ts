@@ -20,6 +20,7 @@ export interface Unmatch {
 	type: "unmatch";
 	missParam: boolean;
 	header?: string;
+	param?: string;
 }
 
 export type MatchResult = cmd.OrderMatchResult |
@@ -199,7 +200,7 @@ export default class Command {
 					list.push( ...cmd.sentences.map( s => `(${ s.reg.source })` ) );
 				}
 			} );
-			return new RegExp( `(${ list.join( "|" ) })`, "i" );
+			return new RegExp( `(${ list.join( "|" ) })`, "gi" );
 		}
 	}
 	

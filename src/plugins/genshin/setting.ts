@@ -180,7 +180,7 @@ const privateSubscribe: OrderConfig = {
 const privateConfirm: OrderConfig = {
 	type: "order",
 	cmdKey: "silvery-star.private-confirm",
-	desc: [ "", "" ],
+	desc: [ "验证私人服务", "" ],
 	headers: [ "confirm" ],
 	regexps: [ ".+" ],
 	display: false,

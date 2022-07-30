@@ -83,8 +83,10 @@ export class Order extends BasicConfig {
 				} else {
 					/* 直接匹配失败，中文header支持模糊识别 */
 					const rawHeader = pair.header.replace( bot.config.header, "" );
-					const header = /[\u4e00-\u9fa5]/.test( rawHeader ) ?
-						`${ bot.config.header }?${ rawHeader }` : pair.header;
+					let header = pair.header;
+					if ( /[\u4e00-\u9fa5]/.test( rawHeader ) && ( bot.config.header !== "" ) ) {
+						header = `${ bot.config.header }?${ rawHeader }`;
+					}
 					const fogReg = new RegExp( header, "g" );
 					/* 判断是否参数不符合要求 */
 					if ( fogReg.test( content ) ) {
@@ -97,7 +99,7 @@ export class Order extends BasicConfig {
 								throw { type: "order", header: pair.header };
 							}
 						}
-						throw { type: "unmatch", missParam: true, header: pair.header };
+						throw { type: "unmatch", missParam: true, header: pair.header, param: content };
 					}
 				}
 			} ) );
