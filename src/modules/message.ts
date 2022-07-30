@@ -73,10 +73,9 @@ export default class MsgManagement implements MsgManagementMethod {
 }
 
 export function removeStringPrefix( string: string, prefix: string ): string {
-	if ( prefix.charAt( 0 ) === bot.config.header )
-		return string.replace( new RegExp( `${ prefix.charAt(0) }?${ prefix.slice(1) }`, "g" ), '' );
-	else
-		return string.replace( new RegExp( prefix ), '' );
+	if ( bot.config.header !== "" )
+		return string.replace( new RegExp( `${ prefix.charAt(0) }|${ prefix.slice(1) }`, "g" ), '' );
+	return string.replace( new RegExp( prefix, "g" ), '' );
 }
 
 export function isPrivateMessage( data: Message ): data is sdk.PrivateMessageEventData {

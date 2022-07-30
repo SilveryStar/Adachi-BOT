@@ -78,27 +78,26 @@ export class Order extends BasicConfig {
 	public match( content: string ): OrderMatchResult | Unmatch {
 		try {
 			this.regPairs.forEach( pair => pair.genRegExps.forEach( reg => {
+				const rawHeader = pair.header.replace( bot.config.header, "" );
 				if ( reg.test( content ) ) {
 					throw { type: "order", header: pair.header };
-				} else {
-					/* 直接匹配失败，中文header支持模糊识别 */
-					const rawHeader = pair.header.replace( bot.config.header, "" );
-					const header = /[\u4e00-\u9fa5]/.test( rawHeader ) ?
-						`${ bot.config.header }?${ rawHeader }` : pair.header;
+				} else if ( new RegExp( bot.config.header ).test( content ) && new RegExp( rawHeader ).test( content ) ) {
+					/* 如果指令带有指令头，去掉指令头进行模糊匹配 */
+					let header = pair.header;
+					if ( bot.config.header !== "" )
+						header = `${ bot.config.header }|${ rawHeader }`;
 					const fogReg = new RegExp( header, "g" );
 					/* 判断是否参数不符合要求 */
-					if ( fogReg.test( content ) ) {
-						content = content.replace( fogReg, "" );
-						for ( let params of this.regParam ) {
-							const matchParam = params.every( param => {
-								return new RegExp( param ).test( content );
-							} );
-							if ( matchParam ) {
-								throw { type: "order", header: pair.header };
-							}
+					content = content.replace( fogReg, "" );
+					for ( let params of this.regParam ) {
+						const matchParam = params.every( param => {
+							return new RegExp( param ).test( content );
+						} );
+						if ( matchParam ) {
+							throw { type: "order", header: pair.header };
 						}
-						throw { type: "unmatch", missParam: true, header: pair.header };
 					}
+					throw { type: "unmatch", missParam: true, header: pair.header, param: content };
 				}
 			} ) );
 		} catch ( data ) {

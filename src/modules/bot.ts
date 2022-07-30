@@ -277,13 +277,8 @@ export default class Adachi {
 			const res: MatchResult = cmd.match( content );
 			if ( res.type === "unmatch" ) {
 				if ( res.missParam && res.header ) {
-					const text: string = cmd.ignoreCase ? content.toLowerCase() : content;
-					messageData.raw_message = trim(
-						msg.removeStringPrefix( text, res.header.toLowerCase() )
-							.replace( / +/g, " " )
-					);
 					await sendMessage( `指令参数错误 ~ \n` +
-						`你的参数：${ messageData.raw_message }\n` +
+						`你的参数：${ res.param ? res.param : "无" }\n` +
 						`参数格式：${ cmd.desc[1] }\n` +
 						`参数说明：${ cmd.detail }`
 					);
@@ -313,9 +308,9 @@ export default class Adachi {
 			return;
 		}
 		
-		/* 不是很清楚这个unionRegExp哪儿有问题，只加了个 指令头（带#）和 纯中文指令描述 */
-		// console.log( unionRegExp.test( content ) );
-		if ( this.bot.config.autoChat.enable ) {
+		// const temp = !unionRegExp.test( content );
+		// console.log( temp ); // true && false也会进入自动回复？？？？问题仍在
+		if ( this.bot.config.autoChat.enable && !unionRegExp.test( content ) ) {
 			if ( isPrivate || this.bot.config.atBOT || this.checkAtBOT( <sdk.GroupMessageEventData>messageData ) ) {
 				const { autoChat } = require( "./chat" );
 				await autoChat( messageData.raw_message, sendMessage );

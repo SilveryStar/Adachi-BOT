@@ -5,7 +5,7 @@ const dice: OrderConfig = {
 	type: "order",
 	cmdKey: "tools.dice",
 	desc: [ "掷骰", "r(次数)d[面数]k(前k大)" ],
-	headers: [ "__" ],
+	headers: [ "dice" ],
 	regexps: [ "(r\\d+)?(d\\d+)(k\\d)?" ],
 	main: "dice",
 	detail: "投掷一个或多个骰子\n" +
