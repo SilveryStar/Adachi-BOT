@@ -88,8 +88,6 @@ export default defineComponent( {
 			};
 		}
 		
-		console.log( materialList )
-		
 		return {
 			materialList,
 			getIcon,

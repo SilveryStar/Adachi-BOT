@@ -29,8 +29,7 @@ export class Order extends BasicConfig {
 	constructor( config: OrderConfig, botCfg: BotConfig, pluginName: string ) {
 		super( config, pluginName );
 		
-		const headers: string[] = [];
-		headers.push( ...config.headers.map( el => Order.header( el, botCfg.header ) ) );
+		const headers: string[] = config.headers.map( el => Order.header( el, botCfg.header ) );
 		if ( this.desc[0].length > 0 ) {
 			headers.push( Order.header( this.desc[0], botCfg.header ) ); //添加中文指令名作为识别
 		}
@@ -78,21 +77,31 @@ export class Order extends BasicConfig {
 	public match( content: string ): OrderMatchResult | Unmatch {
 		try {
 			this.regPairs.forEach( pair => pair.genRegExps.forEach( reg => {
+				/* 是否存在指令起始符 */
+				const hasHeader = bot.config.header ? pair.header.includes( bot.config.header ) : false;
 				const rawHeader = pair.header.replace( bot.config.header, "" );
+				
+				/* 消息是否同时包含指令起始符与指令头 */
+				const headerRegStr: string = rawHeader.length !== 0 && /[\u4e00-\u9fa5]/.test( rawHeader )
+					? `${ hasHeader ? "(?=.*" + bot.config.header + ")" : "" }(?=.*${ rawHeader })`
+					: bot.config.header
+						? pair.header
+						: "";
+				const headerReg: RegExp | null = headerRegStr.length !== 0 ? new RegExp( headerRegStr ) : null;
+				
+				/* 若直接匹配不成功，则匹配指令头，判断参数是否符合要求 */
 				if ( reg.test( content ) ) {
 					throw { type: "order", header: pair.header };
-				} else if ( new RegExp( bot.config.header ).test( content ) && new RegExp( rawHeader ).test( content ) ) {
-					/* 如果指令带有指令头，去掉指令头进行模糊匹配 */
-					let header = pair.header;
-					if ( bot.config.header !== "" )
-						header = `${ bot.config.header }|${ rawHeader }`;
+				} else if ( headerReg && headerReg.test( content ) ) {
+					const header = bot.config.header == "" ? pair.header : `${ bot.config.header }|${ rawHeader }`;
+					
 					const fogReg = new RegExp( header, "g" );
-					/* 判断是否参数不符合要求 */
+					/* 重组正则，判断是否参数不符合要求 */
 					content = content.replace( fogReg, "" );
 					for ( let params of this.regParam ) {
-						const matchParam = params.every( param => {
-							return new RegExp( param ).test( content );
-						} );
+						const paramRegStr = params.join( "\\s*" );
+						const paramReg = new RegExp( `^${ pair.header + paramRegStr }$` );
+						const matchParam = paramReg.test( pair.header + content );
 						if ( matchParam ) {
 							throw { type: "order", header: pair.header };
 						}
