@@ -58,7 +58,6 @@ export default defineComponent( {
 			const loginInfo = loginInfoSession.get();
 			state.number = loginInfo?.number;
 			state.rememberAccount = loginInfo?.rememberAccount;
-			console.log( loginInfo )
 		} )
 		
 		function loginByPassword() {

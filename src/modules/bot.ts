@@ -259,7 +259,8 @@ export default class Adachi {
 		cmdSet: BasicConfig[],
 		limits: string[],
 		unionRegExp: RegExp,
-		isPrivate: boolean
+		isPrivate: boolean,
+		isAt: boolean
 	): Promise<void> {
 		const content: string = messageData.raw_message.trim() || '';
 		
@@ -272,51 +273,75 @@ export default class Adachi {
 			return;
 		}
 		
+		/* 人工智障聊天 */
+		if ( !unionRegExp.test( content ) || ( this.bot.config.autoChat.enable && !this.bot.config.atBOT && isAt ) ) {
+			if ( this.bot.config.autoChat.enable && ( isPrivate || ( !this.bot.config.atBOT && isAt ) ) ) {
+				const { autoChat } = require( "./chat" );
+				await autoChat( messageData.raw_message, sendMessage );
+			}
+			return;
+		}
+		
 		const usable: BasicConfig[] = cmdSet.filter( el => !limits.includes( el.cmdKey ) );
+		const matchList: { matchResult: MatchResult; cmd: BasicConfig }[] = [];
+		
 		for ( let cmd of usable ) {
 			const res: MatchResult = cmd.match( content );
 			if ( res.type === "unmatch" ) {
 				if ( res.missParam && res.header ) {
-					await sendMessage( `指令参数错误 ~ \n` +
-						`你的参数：${ res.param ? res.param : "无" }\n` +
-						`参数格式：${ cmd.desc[1] }\n` +
-						`参数说明：${ cmd.detail }`
-					);
-					return;
+					matchList.push( { matchResult: res, cmd } );
 				}
 				continue;
 			}
-			if ( res.type === "order" ) {
-				const text: string = cmd.ignoreCase
-					? content.toLowerCase() : content;
-				messageData.raw_message = trim(
-					msg.removeStringPrefix( text, res.header.toLowerCase() )
-						.replace( / +/g, " " )
-				);
+			matchList.push( { matchResult: res, cmd } )
+		}
+		
+		if ( matchList.length === 0 ) return;
+		/* 选择最长的 header 作为成功匹配项 */
+		const { matchResult: res, cmd } = matchList.sort( ( prev, next ) => {
+			const getHeaderLength = ( { matchResult }: typeof prev ) => {
+				let length: number = 0;
+				if ( matchResult.type === "unmatch" || matchResult.type === "order" ) {
+					length = matchResult.header ? matchResult.header.length : 0;
+				} else if ( matchResult.type === "switch" ) {
+					length = matchResult.switch.length;
+				} else {
+					length = 233;
+				}
+				return length;
 			}
-			cmd.run( {
-				sendMessage, ...this.bot,
-				messageData, matchResult: res
-			} );
-			
-			/* 数据统计与收集 */
-			const userID: number = messageData.user_id;
-			const groupID: number = msg.isGroupMessage( messageData ) ? messageData.group_id : -1;
-			await this.bot.redis.addSetMember( `adachi.user-used-groups-${ userID }`, groupID );
-			await this.bot.redis.incHash( "adachi.hour-stat", userID.toString(), 1 );
-			await this.bot.redis.incHash( "adachi.command-stat", cmd.cmdKey, 1 );
+			return getHeaderLength( next ) - getHeaderLength( prev );
+		} )[0]
+		
+		if ( res.type === "unmatch" ) {
+			await sendMessage( `指令参数错误 ~ \n` +
+				`你的参数：${ res.param ? res.param : "无" }\n` +
+				`参数格式：${ cmd.desc[1] }\n` +
+				`参数说明：${ cmd.detail }`
+			);
 			return;
 		}
 		
-		// const temp = !unionRegExp.test( content );
-		// console.log( temp ); // true && false也会进入自动回复？？？？问题仍在
-		if ( this.bot.config.autoChat.enable && !unionRegExp.test( content ) ) {
-			if ( isPrivate || this.bot.config.atBOT || this.checkAtBOT( <sdk.GroupMessageEventData>messageData ) ) {
-				const { autoChat } = require( "./chat" );
-				await autoChat( messageData.raw_message, sendMessage );
-				return;
-			}
+		if ( res.type === "order" ) {
+			const text: string = cmd.ignoreCase
+				? content.toLowerCase() : content;
+			messageData.raw_message = trim(
+				msg.removeStringPrefix( text, res.header.toLowerCase() )
+					.replace( / +/g, " " )
+			);
 		}
+		cmd.run( {
+			sendMessage, ...this.bot,
+			messageData, matchResult: res
+		} );
+		
+		/* 数据统计与收集 */
+		const userID: number = messageData.user_id;
+		const groupID: number = msg.isGroupMessage( messageData ) ? messageData.group_id : -1;
+		await this.bot.redis.addSetMember( `adachi.user-used-groups-${ userID }`, groupID );
+		await this.bot.redis.incHash( "adachi.hour-stat", userID.toString(), 1 );
+		await this.bot.redis.incHash( "adachi.command-stat", cmd.cmdKey, 1 );
+		return;
 	}
 	
 	/* 清除缓存图片 */
@@ -350,7 +375,7 @@ export default class Adachi {
 			);
 			const cmdSet: BasicConfig[] = bot.command.get( auth, msg.MessageScope.Private );
 			const unionReg: RegExp = bot.command.getUnion( auth, msg.MessageScope.Private );
-			await that.execute( messageData, sendMessage, cmdSet, limit, unionReg, true );
+			await that.execute( messageData, sendMessage, cmdSet, limit, unionReg, true, false );
 		}
 	}
 	
@@ -358,7 +383,8 @@ export default class Adachi {
 	private parseGroupMsg( that: Adachi ) {
 		const bot = that.bot;
 		return async function ( messageData: sdk.GroupMessageEventData ) {
-			if ( !that.checkAtBOT( messageData ) && bot.config.atBOT ) {
+			const isAt = that.checkAtBOT( messageData );
+			if ( bot.config.atBOT && !isAt ) {
 				return;
 			}
 			const { user_id: userID, group_id: groupID } = messageData;
@@ -380,7 +406,7 @@ export default class Adachi {
 				);
 				const cmdSet: BasicConfig[] = bot.command.get( auth, msg.MessageScope.Group );
 				const unionReg: RegExp = bot.command.getUnion( auth, msg.MessageScope.Group );
-				await that.execute( messageData, sendMessage, cmdSet, [ ...gLim, ...uLim ], unionReg, false );
+				await that.execute( messageData, sendMessage, cmdSet, [ ...gLim, ...uLim ], unionReg, false, isAt );
 			}
 		}
 	}
