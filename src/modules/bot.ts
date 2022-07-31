@@ -314,11 +314,13 @@ export default class Adachi {
 		} )[0]
 		
 		if ( res.type === "unmatch" ) {
-			await sendMessage( `指令参数错误 ~ \n` +
-				`你的参数：${ res.param ? res.param : "无" }\n` +
-				`参数格式：${ cmd.desc[1] }\n` +
-				`参数说明：${ cmd.detail }`
-			);
+			if ( this.bot.config.matchPrompt ) {
+				await sendMessage( `指令参数错误 ~ \n` +
+					`你的参数：${ res.param ? res.param : "无" }\n` +
+					`参数格式：${ cmd.desc[1] }\n` +
+					`参数说明：${ cmd.detail }`
+				);
+			}
 			return;
 		}
 		
