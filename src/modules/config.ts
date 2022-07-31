@@ -11,6 +11,8 @@ export default class BotConfig {
 	public readonly atUser: boolean;
 	public readonly atBOT: boolean;
 	public readonly addFriend: boolean;
+	public readonly fuzzyMatch: boolean;
+	public readonly matchPrompt: boolean;
 	public readonly dbPort: number;
 	public readonly dbPassword: string;
 	public readonly inviteAuth: AuthLevel;
@@ -48,6 +50,8 @@ export default class BotConfig {
 		atUser: false,
 		atBOT: false,
 		addFriend: true,
+		fuzzyMatch: false,
+		matchPrompt: true,
 		inviteAuth: "master",
 		countThreshold: 60,
 		groupIntervalTime: 1500,
@@ -78,7 +82,8 @@ export default class BotConfig {
 		const config: any = file.loadYAML( "setting" );
 		const checkFields: Array<keyof BotConfig> = [
 			"atBOT", "addFriend", "dbPassword",
-			"helpPort", "autoChat", "callTimes"
+			"helpPort", "autoChat", "callTimes",
+			"fuzzyMatch", "matchPrompt"
 		];
 		
 		for ( let key of checkFields ) {
@@ -98,6 +103,8 @@ export default class BotConfig {
 		this.atUser = config.atUser;
 		this.addFriend = config.addFriend;
 		this.autoChat = config.autoChat;
+		this.fuzzyMatch = config.fuzzyMatch;
+		this.matchPrompt = config.matchPrompt;
 		this.platform = config.platform;
 		this.password = config.password;
 		this.helpPort = config.helpPort;

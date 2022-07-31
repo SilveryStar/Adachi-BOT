@@ -79,7 +79,7 @@ const upgrade: OrderConfig = {
 	auth: AuthLevel.Master,
 	main: "upgrade",
 	detail: "该指令用于检测并更新 bot 源码\n" +
-		"要求项目必须是通过 git clone 下载的\n" +
+		"要求项目必须是通过 git clone 下载的且不能为 win-start 启动\n" +
 		"若存在更新则会更新并重启 bot\n" +
 		"在指令后追加 -f 来覆盖本地修改强制更新"
 }

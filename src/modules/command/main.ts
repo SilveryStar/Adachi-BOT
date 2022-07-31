@@ -191,17 +191,20 @@ export default class Command {
 						list.push(
 							...el.genRegExps.map( r => `(${ r.source })` )
 						);
+						
 						/* 是否存在指令起始符 */
 						const hasHeader = bot.config.header ? el.header.includes( bot.config.header ) : false;
 						const rawHeader = el.header.replace( bot.config.header, "" );
 						
-						/* 当指令头包括中文时，同时匹配是否存在起始符与指令头，否则不处理 */
-						/* 当未设置起始符时，不再添加指令头至unionReg */
-						const unMatchHeader: string = rawHeader.length !== 0 && /[\u4e00-\u9fa5]/.test( rawHeader )
-							? `${ hasHeader ? "(?=.*" + bot.config.header + ")" : "" }(?=.*${ rawHeader })`
-							: bot.config.header
-								? el.header
-								: "";
+						let unMatchHeader: string = "";
+						
+						if ( bot.config.fuzzyMatch && rawHeader.length !== 0 && /[\u4e00-\u9fa5]/.test( rawHeader ) ) {
+							/* 当开启模糊匹配、指令头包括中文时，同时匹配是否存在起始符与指令头 */
+							unMatchHeader = `${ hasHeader ? "(?=^" + bot.config.header + ")" : "" }(?=.*${ rawHeader })`
+						} else if ( bot.config.matchPrompt && bot.config.header && el.header ) {
+							/* 当开启格式检查提示、存在起始符时，添加指令头至unionReg */
+							unMatchHeader = "^" + el.header;
+						}
 						
 						if ( unMatchHeader.length === 0 ) {
 							return;

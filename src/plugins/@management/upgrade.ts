@@ -4,7 +4,7 @@ import { InputParameter } from "@modules/command";
 import { restart } from "pm2";
 
 /* 超时检查 */
-function waitWithTimeout( promise: Promise<any>, timeout: number ) {
+function waitWithTimeout( promise: Promise<any>, timeout: number ): Promise<any> {
 	let timer;
 	const timeoutPromise = new Promise( ( _, reject ) => {
 		timer = setTimeout( () => reject( `timeout: ${ timeout }ms` ), timeout );
@@ -15,15 +15,8 @@ function waitWithTimeout( promise: Promise<any>, timeout: number ) {
 
 /* 检查更新 */
 async function getCommitsInfo(): Promise<any[]> {
-	return new Promise( ( resolve, reject ) => {
-		fetch( "https://api.github.com/repos/SilveryStar/Adachi-BOT/commits" )
-			.then( async ( result: Response ) => {
-				resolve( await result.json() );
-			} )
-			.catch( ( error: Error ) => {
-				reject( error );
-			} )
-	} )
+	const result: Response = await fetch( "https://api.github.com/repos/SilveryStar/Adachi-BOT/commits" );
+	return await result.json();
 }
 
 /* 命令执行 */
@@ -46,18 +39,22 @@ async function updateBot( { messageData, sendMessage, logger }: InputParameter )
 	
 	const execPromise = execHandle( command ).then( ( stdout: string ) => {
 		logger.info( stdout );
+		if ( /(Already up[ -]to[ -]date|已经是最新的)/.test( stdout ) ) {
+			throw "当前已经是最新版本了";
+		}
 	} );
 	
 	try {
 		await waitWithTimeout( execPromise, 30000 );
 	} catch ( error ) {
-		logger.error( `更新 BOT 失败: ${ error }` );
-		if ( typeof error === "string" && error.includes( "timeout" ) ) {
-			await sendMessage( "更新失败，网络请求超时" );
+		if ( typeof error === "string" ) {
+			const errMsg = error.includes( "timeout" ) ? "更新失败，网络请求超时" : error;
+			await sendMessage( errMsg );
 		} else {
 			await sendMessage( `更新失败，可能是网络出现问题${ !isForce ? "或存在代码冲突，若不需要保留改动代码可以追加 -f 使用强制更新" : "" }` );
 		}
-		return Promise.reject( error );
+		logger.error( `更新 BOT 失败: ${ typeof error === "string" ? error : error.message }` );
+		throw error;
 	}
 	
 	await sendMessage( "更新成功，BOT 正在自行重启，请稍后" );
@@ -65,7 +62,7 @@ async function updateBot( { messageData, sendMessage, logger }: InputParameter )
 	restart( "adachi-bot", async ( error ) => {
 		logger.error( error );
 		await sendMessage( `重启 BOT 出错: ${ error }` );
-		return Promise.reject( error );
+		throw error;
 	} );
 }
 

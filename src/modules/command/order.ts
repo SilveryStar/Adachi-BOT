@@ -30,7 +30,7 @@ export class Order extends BasicConfig {
 		super( config, pluginName );
 		
 		const headers: string[] = config.headers.map( el => Order.header( el, botCfg.header ) );
-		if ( this.desc[0].length > 0 ) {
+		if ( this.desc[0].length > 0 && botCfg.fuzzyMatch ) {
 			headers.push( Order.header( this.desc[0], botCfg.header ) ); //添加中文指令名作为识别
 		}
 		
@@ -81,12 +81,14 @@ export class Order extends BasicConfig {
 				const hasHeader = bot.config.header ? pair.header.includes( bot.config.header ) : false;
 				const rawHeader = pair.header.replace( bot.config.header, "" );
 				
-				/* 消息是否同时包含指令起始符与指令头 */
-				const headerRegStr: string = rawHeader.length !== 0 && /[\u4e00-\u9fa5]/.test( rawHeader )
-					? `${ hasHeader ? "(?=.*" + bot.config.header + ")" : "" }(?=.*${ rawHeader })`
-					: bot.config.header
-						? pair.header
-						: "";
+				let headerRegStr: string = "";
+				
+				if ( bot.config.fuzzyMatch && rawHeader.length !== 0 && /[\u4e00-\u9fa5]/.test( rawHeader ) ) {
+					headerRegStr = `${ hasHeader ? "(?=^" + bot.config.header + ")" : "" }(?=.*${ rawHeader })`;
+				} else if ( bot.config.matchPrompt && bot.config.header && pair.header ) {
+					headerRegStr = "^" + pair.header;
+				}
+				
 				const headerReg: RegExp | null = headerRegStr.length !== 0 ? new RegExp( headerRegStr ) : null;
 				
 				/* 若直接匹配不成功，则匹配指令头，判断参数是否符合要求 */
