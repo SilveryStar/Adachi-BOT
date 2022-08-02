@@ -108,6 +108,9 @@ export class NoteService implements Service {
 	
 	public async toJSON(): Promise<string> {
 		await this.getData();
+		if ( typeof this.globalData === "string" ) {
+			throw new Error( this.globalData );
+		}
 		return JSON.stringify( {
 			...<Note>this.globalData,
 			uid: this.parent.setting.uid
