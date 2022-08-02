@@ -13,7 +13,13 @@ async function getNowNote( userID: number ): Promise<string[]> {
 	
 	const imageList: string[] = [];
 	for ( let a of accounts ) {
-		const data: string = await a.services[ NoteService.FixedField ].toJSON();
+		let data: string;
+		try {
+			data = await a.services[NoteService.FixedField].toJSON();
+		} catch ( error ) {
+			imageList.push( error.message );
+			continue;
+		}
 		const uid: string = a.setting.uid;
 		
 		const dbKey: string = `silvery-star.note-temp-${ uid }`;
