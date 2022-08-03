@@ -92,7 +92,22 @@ const restart: OrderConfig = {
 	regexps: [],
 	auth: AuthLevel.Master,
 	main: "restart",
-	detail: "用于重启 bot，win 平台暂时无法使用"
+	detail: "用于重启 bot，使用win-start方式启动服务无法使用该指令"
+}
+
+const upgrade_plugins: OrderConfig = {
+	type: "order",
+	cmdKey: "adachi.hot-upgrade-plugins",
+	desc: [ "更新bot", "(-f) (插件名)" ],
+	headers: [ "upgrade_plugins" ],
+	regexps: [ "(-f)?", "([\u4E00-\u9FA5\\w\\-]+)?" ],
+	auth: AuthLevel.Master,
+	main: "upgrade-plugins",
+	detail: "该指令用于检测并更新 bot plugin 源码\n" +
+		"要求项目必须是通过 git clone 下载的且不能为 win-start 启动\n" +
+		"若存在更新则会更新插件并重启 bot\n" +
+		"在指令后追加 -f 来覆盖本地修改强制更新\n" +
+		"不指定插件名将更新全部支持热更新的插件"
 }
 
 export async function init(): Promise<PluginSetting> {
@@ -100,7 +115,7 @@ export async function init(): Promise<PluginSetting> {
 		pluginName: "@management",
 		cfgList: [
 			manager, ban, limit, interval,
-			refresh, upgrade, restart
+			refresh, upgrade, restart, upgrade_plugins
 		]
 	}
 }
