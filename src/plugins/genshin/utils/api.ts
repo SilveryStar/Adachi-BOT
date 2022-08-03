@@ -4,7 +4,7 @@ import { toCamelCase } from "./camel-case";
 import { set } from "lodash";
 import { guid } from "../utils/guid";
 import { getDS, getDS2 } from "./ds";
-import { ResponseBody, InfoResponse } from "#genshin/types";
+import { InfoResponse, ResponseBody } from "#genshin/types";
 import { SlipDetail } from "../module/slip";
 import { DailyMaterial } from "../module/daily";
 import { FortuneData } from "../module/almanac";
@@ -37,9 +37,9 @@ const __API = {
 };
 
 const HEADERS = {
-	"User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) miHoYoBBS/2.11.1",
+	"User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) miHoYoBBS/2.29.1",
 	"Referer": "https://webstatic.mihoyo.com/",
-	"x-rpc-app_version": "2.11.1",
+	"x-rpc-app_version": "2.29.1",
 	"x-rpc-client_type": 5,
 	"DS": "",
 	"Cookie": ""
