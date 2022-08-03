@@ -98,7 +98,7 @@ const restart: OrderConfig = {
 const upgrade_plugins: OrderConfig = {
 	type: "order",
 	cmdKey: "adachi.hot-upgrade-plugins",
-	desc: [ "更新bot", "(-f) (插件名)" ],
+	desc: [ "更新插件", "(-f) (插件名)" ],
 	headers: [ "upgrade_plugins" ],
 	regexps: [ "(-f)?", "([\u4E00-\u9FA5\\w\\-]+)?" ],
 	auth: AuthLevel.Master,
