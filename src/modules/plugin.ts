@@ -17,7 +17,11 @@ export type PluginSubSetting = {
 export interface PluginSetting {
 	pluginName: string;
 	cfgList: cmd.ConfigType[];
-	repo?: string; // 设置为非必须兼容低版本插件
+	repo?: string | {
+		owner: string;// 仓库拥有者名称
+		repoName: string;// 仓库名称
+		ref?: string;// 分支名称
+	}; // 设置为非必须兼容低版本插件
 }
 
 export const PluginReSubs: Record<string, PluginSubSetting> = {};
@@ -47,7 +51,15 @@ export default class Plugin {
 				const commands = Plugin.parse( bot, cfgList, pluginName );
 				PluginRawConfigs[pluginName] = cfgList;
 				if ( !not_support_upgrade_plugins.includes( pluginName ) ) {
-					PluginUpgradeServices[pluginName] = repo ? `https://api.github.com/repos/${ repo }/commits` : "";
+					if ( repo ) {
+						if ( typeof repo === "string" ) {
+							PluginUpgradeServices[pluginName] = repo ? `https://api.github.com/repos/${ repo }/commits` : "";
+						} else {
+							PluginUpgradeServices[pluginName] = repo.ref ? `https://api.github.com/repos/${ repo.owner }/${ repo.repoName }/commits/${ repo.ref }` : `https://api.github.com/repos/${ repo.owner }/${ repo.repoName }/commits`;
+						}
+					} else {
+						PluginUpgradeServices[pluginName] = "";
+					}
 				}
 				registerCmd.push( ...commands );
 				bot.logger.info( `插件 ${ pluginName } 加载完成` );

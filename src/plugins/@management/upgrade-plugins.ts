@@ -17,7 +17,11 @@ function waitWithTimeout( promise: Promise<any>, timeout: number ): Promise<any>
 /* 检查更新 */
 async function getCommitsInfo( repo: string ): Promise<any[]> {
 	const result: Response = await fetch( repo );
-	return await result.json();
+	const json = await result.json();
+	if ( typeof json === "object" ) {
+		return [ json ];
+	}
+	return json;
 }
 
 /* 命令执行 */
