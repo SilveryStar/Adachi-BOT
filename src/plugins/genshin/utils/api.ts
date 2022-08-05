@@ -416,9 +416,10 @@ const SIGN_HEADERS = {
 	"Accept": "application/json",
 	"Accept-Encoding": "gzip, deflate",
 	"X-Requested-With": "com.mihoyo.hyperion",
-	"x-rpc-app_version": "2.10.1",
+	"x-rpc-app_version": "2.28.1",
 	"x-rpc-client_type": 5,
-	"x-rpc-device_id": guid()
+	"x-rpc-device_id": guid(),
+	"DS": getDS2()
 };
 
 /* Sign In API */
@@ -437,7 +438,6 @@ export async function mihoyoBBSSignIn( uid: string, region: string, cookie: stri
 			headers: {
 				...SIGN_HEADERS,
 				"content-type": "application/json",
-				"DS": getDS2(),
 				"Cookie": cookie
 			}
 		} )
