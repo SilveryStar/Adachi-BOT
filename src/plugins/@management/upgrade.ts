@@ -53,7 +53,7 @@ async function updateBot( { messageData, sendMessage, logger }: InputParameter )
 		} else {
 			await sendMessage( `更新失败，可能是网络出现问题${ !isForce ? "或存在代码冲突，若不需要保留改动代码可以追加 -f 使用强制更新" : "" }` );
 		}
-		logger.error( `更新 BOT 失败: ${ typeof error === "string" ? error : error.message }` );
+		logger.error( `更新 BOT 失败: ${ typeof error === "string" ? error : (<Error>error).message }` );
 		throw error;
 	}
 	
