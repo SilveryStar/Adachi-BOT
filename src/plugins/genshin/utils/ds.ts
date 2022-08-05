@@ -23,7 +23,7 @@ export function getDS( query: any, body: string = "" ): string {
 }
 
 export function getDS2(): string {
-	const n: string = "4a8knnbk5pbjqsrudp3dq484m9axoc5g";
+	const n: string = "ulInCDohgEs557j0VsPDYnQaaz6KJcv5";
 	const i: number = Date.now() / 1000 | 0;
 	const r: string = randomString( 6 );
 	const c: string = Md5.init( `salt=${ n }&t=${ i }&r=${ r }` );
