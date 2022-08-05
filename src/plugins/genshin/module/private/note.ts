@@ -7,7 +7,7 @@ import { scheduleJob, Job } from "node-schedule";
 import { dailyNotePromise } from "#genshin/utils/promise";
 
 interface PushEvent {
-	type: "resin" | "expedition";
+	type: "resin" | "homeCoin" | "transformer" | "expedition";
 	job: Job;
 }
 
@@ -66,7 +66,7 @@ export class NoteService implements Service {
 			return "实时便笺功能已开启：\n" +
 				"默认情况下，树脂数量达到 120 和 155 时会发送进行私聊推送\n" +
 				appendSetTime +
-				"当冒险探索结束时，BOT 也会进行提醒\n" +
+				"当洞天宝钱已满、质变仪可用和冒险探索结束时，BOT 也会进行提醒\n" +
 				appendToggleNote;
 		}
 	}
@@ -152,6 +152,7 @@ export class NoteService implements Service {
 		/* 清空当前事件 */
 		this.clearEvents();
 		
+		/* 树脂提醒 */
 		for ( let t of this.timePoint ) {
 			/* 当前树脂量超过设定量则不处理 */
 			if ( this.globalData.currentResin >= t ) {
@@ -159,7 +160,7 @@ export class NoteService implements Service {
 			}
 			
 			const recovery: number = parseInt( this.globalData.resinRecoveryTime );
-			const remaining: number = recovery - ( 160 - t ) * 8 * 60;
+			const remaining: number = recovery - ( this.globalData.maxResin - t ) * 8 * 60;
 			const time = new Date( now + remaining * 1000 );
 			
 			const job: Job = scheduleJob( time, async () => {
@@ -168,6 +169,32 @@ export class NoteService implements Service {
 			this.events.push( { type: "resin", job } );
 		}
 		
+		/* 宝钱提醒 */
+		if ( this.globalData.maxHomeCoin !== 0 && this.globalData.currentHomeCoin < this.globalData.maxHomeCoin ) {
+			const recovery: number = parseInt( this.globalData.homeCoinRecoveryTime );
+			const time = new Date( now + recovery * 1000 );
+			
+			const job: Job = scheduleJob( time, async () => {
+				await this.parent.sendMessage( `[UID${ this.parent.setting.uid }] - 洞天宝钱已经满了哦~` );
+			} );
+			this.events.push( { type: "homeCoin", job } );
+		}
+		
+		/* 参变仪提醒 */
+		if ( this.globalData.transformer.obtained ) {
+			const { day, hour, minute, second, reached } = this.globalData.transformer.recoveryTime;
+			if ( !reached ) {
+				const recovery = ( ( day * 24 + hour ) * 60 + minute ) * 60 + second;
+				const time = new Date( now + recovery * 1000 );
+				
+				const job: Job = scheduleJob( time, async () => {
+					await this.parent.sendMessage( `[UID${ this.parent.setting.uid }] - 质量参变仪已就绪~` );
+				} );
+				this.events.push( { type: "homeCoin", job } );
+			}
+		}
+		
+		/* 派遣提醒 */
 		const expeditions: Expedition[] = this.globalData.expeditions
 			.filter( el => el.status === "Ongoing" )
 			.sort( ( x, y ) => {

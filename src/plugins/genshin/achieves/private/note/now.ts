@@ -17,7 +17,7 @@ async function getNowNote( userID: number ): Promise<string[]> {
 		try {
 			data = await a.services[NoteService.FixedField].toJSON();
 		} catch ( error ) {
-			imageList.push( error.message );
+			imageList.push( (<Error>error).message );
 			continue;
 		}
 		const uid: string = a.setting.uid;

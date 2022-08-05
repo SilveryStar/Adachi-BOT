@@ -410,13 +410,16 @@ export async function getUidHome(): Promise<any> {
 /* 参考 https://github.com/DGP-Studio/DGP.Genshin.MiHoYoAPI/blob/main/Sign/SignInProvider.cs */
 const activityID: string = "e202009291139501";
 const SIGN_HEADERS = {
-	"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) miHoYoBBS/2.28.1",
+	"User-Agent": "Mozilla/5.0 (Linux; Android 9; Unspecified Device) AppleWebKit/537.36 (KHTML, like Gecko) " +
+		"Version/4.0 Chrome/39.0.0.0 Mobile Safari/537.36 miHoYoBBS/2.3.0",
 	"Referer": "https://webstatic.mihoyo.com/bbs/event/signin-ys/index.html" +
 		`?bbs_auth_required=true&act_id=${ activityID }&utm_source=bbs&utm_medium=mys&utm_campaign=icon`,
-	"Accept": "application/json",
+	"Accept": "application/json, text/plain, */*",
 	"Accept-Encoding": "gzip, deflate",
+	"Accept-Language": "zh-CN,en-US;q=0.8",
+	"Origin": "https://webstatic.mihoyo.com",
 	"X-Requested-With": "com.mihoyo.hyperion",
-	"x-rpc-app_version": "2.28.1",
+	"x-rpc-app_version": "2.34.1",
 	"x-rpc-client_type": 5,
 	"x-rpc-device_id": guid(),
 	"DS": getDS2()

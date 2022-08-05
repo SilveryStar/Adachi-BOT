@@ -14,6 +14,7 @@
  * @homeCoinRecoveryTime 洞天宝钱回复时间
  * @currentHomeCoin 当前洞天宝钱
  * @maxHomeCoin 最大洞天宝钱
+ * @transformer 质量参变仪数据
  * */
 export interface Note {
 	type: "note";
@@ -31,6 +32,30 @@ export interface Note {
 	currentHomeCoin: number;
 	maxHomeCoin: number;
 	expeditions: Expedition[];
+	transformer: Transformer;
+}
+
+/**
+ * @interface
+ * 质量参变仪数据
+ * @latestJobId 未知
+ * @noticed 未知
+ * @obtained 是否持有参变仪
+ * @recoveryTime 剩余时间
+ * @wiki 参变仪介绍地址
+ * */
+export interface Transformer {
+	latestJobId: string;
+	noticed: boolean;
+	obtained: boolean;
+	recoveryTime: {
+		day: number;
+		hour: number;
+		minute: number;
+		second: number;
+		reached: boolean;
+	}
+	wiki: string;
 }
 
 /**

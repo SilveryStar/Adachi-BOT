@@ -38,12 +38,7 @@ async function execHandle( command: string, cwd: string ): Promise<string> {
 }
 
 /* 更新 plugin */
-async function updateBotPlugin( {
-	                                messageData,
-	                                sendMessage,
-	                                logger,
-	                                file
-                                }: InputParameter, pluginName: string, isForce: boolean = false ): Promise<void> {
+async function updateBotPlugin( { messageData, sendMessage, logger, file }: InputParameter, pluginName: string, isForce: boolean = false ): Promise<void> {
 	const command = !isForce ? "git pull --no-rebase" : "git reset --hard && git pull --no-rebase";
 	const cwd = file.getFilePath( pluginName, "plugin" );
 	const execPromise = execHandle( command, cwd ).then( ( stdout: string ) => {
@@ -62,7 +57,7 @@ async function updateBotPlugin( {
 		} else {
 			await sendMessage( `更新失败，可能是网络出现问题${ !isForce ? "或存在代码冲突，若不需要保留改动代码可以追加 -f 使用强制更新" : "" }` );
 		}
-		logger.error( `更新 BOT Plugin:[${ pluginName }] 失败: ${ typeof error === "string" ? error : error.message }` );
+		logger.error( `更新 BOT Plugin:[${ pluginName }] 失败: ${ typeof error === "string" ? error : <Error>error.message }` );
 		throw error;
 	}
 	
