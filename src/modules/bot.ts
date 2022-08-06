@@ -389,7 +389,9 @@ export default class Adachi {
 			if ( bot.config.atBOT && !isAt ) {
 				return;
 			}
+			
 			const { user_id: userID, group_id: groupID } = messageData;
+			
 			if ( !bot.interval.check( userID, groupID ) ) {
 				return;
 			}

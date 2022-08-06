@@ -30,6 +30,12 @@ const systemRoutes = [
 		meta: { title: "用户", icon: "icon-user", layout: "system", group: "Components" }
 	},
 	{
+		path: "/system/group",
+		name: "Group",
+		component: () => import("../views/group/index.js"),
+		meta: { title: "群组", icon: "icon-user", layout: "system", group: "Components" }
+	},
+	{
 		path: "/system/message",
 		name: "Message",
 		component: () => import("../views/message/index.js"),

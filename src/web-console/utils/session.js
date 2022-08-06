@@ -18,3 +18,11 @@ export const loginInfoSession = {
 	set: userInfo => localStorage.setItem( userInfoKey, JSON.stringify( userInfo ) ),
 	remove: () => localStorage.removeItem( userInfoKey )
 }
+
+/* 群发消息cd */
+const batchMsgKey = "batchMsg";
+export const batchMsgSession = {
+	get: () => localStorage.getItem( batchMsgKey ) || "",
+	set: time => localStorage.setItem( batchMsgKey, time ),
+	remove: () => localStorage.removeItem( batchMsgKey )
+}

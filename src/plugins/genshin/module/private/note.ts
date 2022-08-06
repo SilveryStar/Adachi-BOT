@@ -79,7 +79,7 @@ export class NoteService implements Service {
 			this.scheduleJobOff();
 			this.clearEvents();
 		}
-		message && await this.parent.sendMessage( `树脂及冒险探索定时提醒功能已${ this.enable ? "开启" : "关闭" }` );
+		message && await this.parent.sendMessage( `树脂、宝钱、参变仪及冒险探索定时提醒功能已${ this.enable ? "开启" : "关闭" }` );
 		/* 回传进行数据库更新 */
 		await this.parent.refreshDBContent( NoteService.FixedField );
 	}
@@ -190,7 +190,7 @@ export class NoteService implements Service {
 				const job: Job = scheduleJob( time, async () => {
 					await this.parent.sendMessage( `[UID${ this.parent.setting.uid }] - 质量参变仪已就绪~` );
 				} );
-				this.events.push( { type: "homeCoin", job } );
+				this.events.push( { type: "transformer", job } );
 			}
 		}
 		

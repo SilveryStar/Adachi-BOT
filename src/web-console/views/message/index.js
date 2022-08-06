@@ -1,7 +1,9 @@
 const template = `<div class="table-container message-page">
-    <div class="nav-btn-box">
-      	<el-input v-model="listQuery.userId" placeholder="请输入用户QQ" @clear="getMessageData" @keyup.enter="getMessageData" :disabled="tableLoading" clearable />
-    </div>
+	<div class="nav-btn-box">
+    	<el-scrollbar>
+			<nav-search :searchList="searchList" :searchData="listQuery" :showNum="1" :disabled="tableLoading" @change="getMessageData"></nav-search>
+    	</el-scrollbar>
+	</div>
     <div class="table-view">
 		<el-table v-loading="tableLoading" :data="messageList" header-row-class-name="table-header" :height="tableHeight" stripe border>
 			<el-table-column prop="index" type="index" :index="setRowIndex" align="center" width="50px"></el-table-column>
@@ -34,15 +36,17 @@ const template = `<div class="table-container message-page">
 
 import $http from "../../api/index.js";
 import { parseTime } from "../../utils/format.js";
+import NavSearch from "../../components/nav-search/index.js";
 import SendMessage from "./send-message.js"
 
-const { defineComponent, reactive, onMounted, computed, toRefs, inject } = Vue;
+const { defineComponent, reactive, onMounted, computed, ref, toRefs, inject } = Vue;
 const { ElMessageBox } = ElementPlus;
 
 export default defineComponent( {
 	name: "Message",
 	template,
 	components: {
+		NavSearch,
 		SendMessage
 	},
 	setup() {
@@ -57,6 +61,10 @@ export default defineComponent( {
 		} );
 		
 		const { device, deviceWidth, deviceHeight } = inject( "app" );
+		
+		const searchList = ref( [
+			{ id: 'userId', name: '用户QQ', type: 'input' }
+		] );
 		
 		const listQuery = reactive( {
 			userId: "",
@@ -91,18 +99,22 @@ export default defineComponent( {
 			} );
 		}
 		
-		function ignoreMessage( message ) {
-			ElMessageBox.confirm( "忽略后此消息将不再可见，是否继续？", '提示', {
-				confirmButtonText: '确定',
-				cancelButtonText: '取消',
-				type: 'warning'
-			} ).then( () => {
-				state.tableLoading = true;
-				$http.MESSAGE_REMOVE( message, "DELETE" ).then( async () => {
-					getMessageData()
-				} ).catch( () => {
-					state.tableLoading = false;
+		async function ignoreMessage( message ) {
+			try {
+				await ElMessageBox.confirm( "忽略后此消息将不再可见，是否继续？", '提示', {
+					confirmButtonText: "确定",
+					cancelButtonText: "取消",
+					type: "warning",
+					center: true
 				} )
+			} catch ( error ) {
+				return;
+			}
+			state.tableLoading = true;
+			$http.MESSAGE_REMOVE( message, "DELETE" ).then( async () => {
+				getMessageData()
+			} ).catch( () => {
+				state.tableLoading = false;
 			} )
 		}
 		
@@ -130,6 +142,7 @@ export default defineComponent( {
 			tableHeight,
 			deviceWidth,
 			deviceHeight,
+			searchList,
 			listQuery,
 			formatTime,
 			formatContent,

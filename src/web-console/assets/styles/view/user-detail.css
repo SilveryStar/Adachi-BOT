@@ -208,6 +208,40 @@
 	color: #424242;
 }
 
+/* 群组列表 */
+.send-msg .group-list-box {
+	height: 60px;
+}
+
+.send-msg .group-list-box .group-list {
+	display: flex;
+	flex-wrap: wrap;
+	row-gap: 10px;
+	column-gap: 20px;
+}
+
+.send-msg .group-list-box .group-list > li {
+	display: flex;
+	align-items: center;
+	line-height: 24px;
+	font-size: 15px;
+}
+
+.send-msg .group-list-box .group-list > li > img {
+	width: 32px;
+	height: 32px;
+	border-radius: 4px;
+}
+
+.send-msg .group-list-box .group-list > li > span {
+	width: 60px;
+	margin-left: 4px;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	font-size: 12px;
+}
+
 @media (max-width: 768px) {
 	.user-detail .user-base-info > .avatar {
 		width: 46px;

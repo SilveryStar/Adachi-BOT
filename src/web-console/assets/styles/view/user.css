@@ -1,56 +1,77 @@
 /* 用户 */
-.user-page > .table-view > .el-table .user-info {
+.user > .table-view > .el-table .user-info {
 	display: flex;
 	justify-content: center;
 	align-items: center;
 	padding: 0 10px;
 }
 
-.user-page > .table-view > .el-table .user-info .user-avatar {
+.user > .table-view > .el-table .user-info .user-avatar {
 	width: 38px;
 	height: 38px;
 	border-radius: 4px;
 }
 
-.user-page > .table-view > .el-table .user-info .user-nickname {
-	width: 120px;
+.user > .table-view > .el-table .user-info .user-nickname {
+	width: 220px;
 	margin-left: 18px;
 	text-align: left;
 }
 
-/* 权限 */
-.user-page > .table-view > .el-table .user-auth {
+/* 表格高亮块 */
+.user > .table-view > .el-table .lighter-block {
 	display: inline-block;
-	padding: 2px 10px;
-	width: 86px;
+	padding: 2px 8px;
+	width: 72px;
 	background-color: #727272;
 	border-radius: 4px;
 	color: #fff;
+	font-size: 12px;
 }
 
-.user-page > .table-view > .el-pagination {
+.user > .table-view > .el-pagination {
 	margin-top: 10px;
 	justify-content: flex-end;
 }
 
 /* 按钮 */
-.user-page > .table-view > .el-table .el-button {
+.user > .table-view > .el-table .el-button {
 	font-size: 12px;
 }
 
-.user-page > .table-view > .el-table .el-button + .el-button {
+.user > .table-view > .el-table .el-button + .el-button {
 	margin-left: 6px;
 }
 
 /* 弹窗 */
-.user-page .el-dialog {
+.user .user-detail-dialog {
 	--dialog-height: 859px;
 	width: 600px;
 }
 
+.user .group-detail-dialog {
+	--dialog-height: 600px;
+	width: 600px;
+}
+
+.user .send-msg-dialog {
+	--dialog-height: 430px;
+	width: 550px;
+}
+
 @media (max-width: 768px) {
-	.user-page .el-dialog {
+	.user .user-detail-dialog {
 		--dialog-height: 563px;
+		width: 90%;
+	}
+
+	.user .group-detail-dialog {
+		--dialog-height: 394px;
+		width: 90%;
+	}
+
+	.user .send-msg-dialog {
+		--dialog-height: 360px;
 		width: 90%;
 	}
 }
