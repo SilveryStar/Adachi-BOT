@@ -43,3 +43,16 @@ export const findFreePort: ( port?: number, logger?: Logger ) => Promise<number>
 		return port;
 	}
 }
+
+export function randomSecret( length: number ): string {
+	const charSet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ,.;></~?[]{}~!@#$%^&*()-=+1234567890";
+	const characterLen: number = charSet.length;
+	let result: string = "";
+	
+	for ( let i = 0; i < length; i++ ) {
+		const randNum: number = Math.floor( Math.random() * characterLen );
+		result += charSet.charAt( randNum );
+	}
+	
+	return result;
+}

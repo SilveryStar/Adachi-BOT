@@ -27,7 +27,7 @@ export async function filterUserUsableCommand( i: InputParameter ): Promise<Basi
 	}
 	
 	const auth: AuthLevel = await i.auth.get( userID );
-	let commands: BasicConfig[] = await i.command
+	let commands: BasicConfig[] = i.command
 		.get( auth, type === m.MessageType.Group
 			? m.MessageScope.Group : m.MessageScope.Private )
 		.filter( el => el.display );

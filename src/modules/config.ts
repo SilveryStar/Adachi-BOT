@@ -1,5 +1,6 @@
 import { AuthLevel } from "./management/auth";
 import FileManagement from "@modules/file";
+import { randomSecret } from "@modules/utils";
 
 export default class BotConfig {
 	public readonly qrcode: boolean;
@@ -66,7 +67,7 @@ export default class BotConfig {
 			enable: true,
 			consolePort: 80,
 			tcpLoggerPort: 54921,
-			jwtSecret: ""
+			jwtSecret: randomSecret( 16 )
 		},
 		autoChat: {
 			tip1: "type参数说明：1为青云客，不用配置后面的两个secret，",
@@ -112,6 +113,10 @@ export default class BotConfig {
 		this.groupIntervalTime = config.groupIntervalTime;
 		this.privateIntervalTime = config.privateIntervalTime;
 		this.countThreshold = config.countThreshold;
+		if ( !config.webConsole.jwtSecret ) {
+			config.webConsole.jwtSecret = randomSecret( 16 );
+			file.writeYAML( "setting", config );
+		}
 		this.webConsole = {
 			enable: config.webConsole.enable,
 			consolePort: config.webConsole.consolePort,
