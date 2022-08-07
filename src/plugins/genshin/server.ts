@@ -1,9 +1,8 @@
 import { Logger } from "log4js";
-import GenshinConfig from "./module/config";
 import express from "express";
 import * as r from "./routes"
 
-export function createServer( config: GenshinConfig, logger: Logger ): void {
+export function createServer( port: number, logger: Logger ): void {
 	const app = express();
 	app.use( express.static( __dirname ) );
 	
@@ -18,7 +17,7 @@ export function createServer( config: GenshinConfig, logger: Logger ): void {
 	app.use( "/api/almanac", r.AlmanacRouter );
 	app.use( "/api/ledger", r.LedgerRouter );
 	
-	app.listen( config.serverPort, () => {
-		logger.info( "Express 服务器已启动" );
+	app.listen( port, () => {
+		logger.info( `[genshin]插件的 Express 服务器已启动, 端口为: ${ port }` );
 	} );
 }

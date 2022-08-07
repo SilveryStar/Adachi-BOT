@@ -14,6 +14,6 @@ export function createServer( port: number, logger: Logger ): void {
 	app.use( "/api/help", HelpRoute );
 	
 	app.listen( port, () => {
-		logger.info( "@help Express服务已启动" );
+		logger.info( `[@help]插件的 Express 服务已启动, 端口为: ${ port }` );
 	} );
 }
