@@ -92,7 +92,7 @@ export default defineComponent( {
 		const groupDetailRef = ref( null );
 		const sendMsgRef = ref( null );
 		
-		const { device, deviceWidth, deviceHeight } = inject( "app" );
+		const { device, deviceWidth, deviceHeight, showTab } = inject( "app" );
 		
 		const searchList = ref( [
 			{ id: "groupId", name: "群号", type: "input" }
@@ -113,7 +113,7 @@ export default defineComponent( {
 		} ];
 		
 		const tableHeight = computed( () => {
-			return `${ deviceHeight.value - ( device.value === "mobile" ? 236 : 278 ) }px`;
+			return `${ deviceHeight.value - ( device.value === "mobile" ? 236 : 278 ) - ( showTab.value ? 40 : 0 ) }px`;
 		} );
 		
 		onMounted( () => {

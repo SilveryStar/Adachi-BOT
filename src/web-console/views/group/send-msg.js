@@ -27,6 +27,7 @@ const template = `
 
 import $http from "../../api/index.js";
 import { batchMsgSession } from "../../utils/session.js";
+
 const { ElNotification, ElMessage, ElMessageBox } = ElementPlus;
 
 const { defineComponent, toRefs, reactive, onMounted } = Vue;
@@ -97,18 +98,18 @@ export default defineComponent( {
 				const cdTime = res.data.cdTime;
 				batchMsgSession.set( res.data.cdTime );
 				setCdTimeShow( cdTime );
-				ElNotification({
+				ElNotification( {
 					title: "成功",
 					message: "发送成功，消息将在3分钟内推送给所选群聊。",
 					type: "success",
-				});
+				} );
 				state.showModal = false;
 			} ).catch( error => {
-				ElNotification({
+				ElNotification( {
 					title: "失败",
 					message: error.message || "发送失败",
 					type: "error",
-				});
+				} );
 			} );
 		}
 		

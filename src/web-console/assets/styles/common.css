@@ -50,6 +50,11 @@
 	background-color: transparent;
 }
 
+.table-container > .table-view > .el-pagination {
+	margin-top: 10px;
+	justify-content: flex-end;
+}
+
 /* 弹窗 */
 .table-container .el-dialog {
 	--dialog-height: 500px;

@@ -29,11 +29,6 @@
 	font-size: 12px;
 }
 
-.user > .table-view > .el-pagination {
-	margin-top: 10px;
-	justify-content: flex-end;
-}
-
 /* 按钮 */
 .user > .table-view > .el-table .el-button {
 	font-size: 12px;

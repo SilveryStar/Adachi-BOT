@@ -86,7 +86,7 @@ export default defineComponent( {
 		
 		const userDetailRef = ref( null );
 		
-		const { device, deviceWidth, deviceHeight } = inject( "app" );
+		const { device, deviceWidth, deviceHeight, showTab } = inject( "app" );
 		
 		const subOptions = [
 			{ label: "已订阅", value: 1 },
@@ -128,7 +128,7 @@ export default defineComponent( {
 		} ];
 		
 		const tableHeight = computed( () => {
-			return `${ deviceHeight.value - ( device.value === "mobile" ? 236 : 278 ) }px`;
+			return `${ deviceHeight.value - ( device.value === "mobile" ? 236 : 278 ) - ( showTab.value ? 40 : 0 ) }px`;
 		} );
 		
 		onMounted( () => {

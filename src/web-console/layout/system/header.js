@@ -1,21 +1,26 @@
-const template = `<header class="nav-view">
-	<div class="nav-left">
-		<div class="nav-btn" @click="toggle">
-			<i :class="isOpen ? 'icon-close' : 'icon-open'"></i>
+const template = `<header class="header-view">
+	<div class="header-menu">
+		<div class="nav-left">
+			<div class="nav-btn" @click="toggle">
+				<i :class="isOpen ? 'icon-close' : 'icon-open'"></i>
+			</div>
+			<el-breadcrumb separator="/">
+    			<transition-group name="breadcrumb-transform">
+    		  		<el-breadcrumb-item v-for="(b, bKey) of breadcrumbs" :key="bKey">
+    		    		<span v-if="bKey === breadcrumbs.length - 1">{{ b.meta?.title }}</span>
+    		    		<a v-else @click="toLink(b)">{{ b.meta?.title }}</a>
+    		  		</el-breadcrumb-item>
+    			</transition-group>
+  			</el-breadcrumb>
 		</div>
-		<el-breadcrumb separator="/">
-    		<transition-group name="breadcrumb-transform">
-    	  		<el-breadcrumb-item v-for="(b, bKey) of breadcrumbs" :key="bKey">
-    	    		<span v-if="bKey === breadcrumbs.length - 1">{{ b.meta?.title }}</span>
-    	    		<a v-else @click="toLink(b)">{{ b.meta?.title }}</a>
-    	  		</el-breadcrumb-item>
-    		</transition-group>
-  		</el-breadcrumb>
+		<div class="nav-btn" @click="accountLogout">
+			<i class="icon-exit"></i>
+		</div>
 	</div>
-	<div class="nav-btn" @click="accountLogout">
-		<i class="icon-exit"></i>
-	</div>
+	<Tabs />
 </header>`;
+
+import Tabs from "./tabs.js";
 
 const { defineComponent, ref, watch, inject } = Vue;
 const { useRouter, useRoute } = VueRouter;
@@ -23,6 +28,9 @@ const { useRouter, useRoute } = VueRouter;
 export default defineComponent( {
 	name: "NavView",
 	template,
+	components: {
+		Tabs
+	},
 	emits: [ "toggle" ],
 	props: {
 		isOpen: {
