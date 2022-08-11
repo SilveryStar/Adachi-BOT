@@ -65,7 +65,7 @@ import GroupDetail from "./group-detail.js";
 import SendMsg from "./send-msg.js";
 
 const { defineComponent, reactive, onMounted, computed, ref, toRefs, inject } = Vue;
-const { ElMessage, ElMessageBox } = ElementPlus;
+const { ElNotification, ElMessageBox } = ElementPlus;
 
 export default defineComponent( {
 	name: "Group",
@@ -146,12 +146,30 @@ export default defineComponent( {
 		
 		async function exitGroup( groupId ) {
 			try {
-				await ElMessageBox.confirm( "确定退出此群聊？", "提示", {
+				await ElMessageBox.confirm( "确定退出/解散此群聊？", "提示", {
 					confirmButtonText: "确定",
 					cancelButtonText: "取消",
 					type: "warning",
 					center: true
 				} )
+			} catch ( error ) {
+				return;
+			}
+			try {
+				const { value } = await ElMessageBox.prompt( "敏感操作，请输入 BOT 密码验证身份", '验证', {
+					confirmButtonText: "确认",
+					cancelButtonText: '取消',
+					inputType: "password",
+					inputPattern: /\w+/,
+					inputErrorMessage: "请输入密码",
+					center: true
+				} )
+				try {
+					await $http.CHECK_PASSWORD( { pwd: value }, "POST" );
+				} catch ( error ) {
+					ElNotification( { title: "失败", message: "验证失败：密码错误", type: "error", } );
+					return;
+				}
 			} catch ( error ) {
 				return;
 			}

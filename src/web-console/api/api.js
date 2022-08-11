@@ -19,5 +19,7 @@ export default {
 	/* 反馈消息 */
 	MESSAGE_LIST: "/message/list",
 	MESSAGE_SEND: "/message/send",
-	MESSAGE_REMOVE: "/message/remove"
+	MESSAGE_REMOVE: "/message/remove",
+	/* 检测 */
+	CHECK_PASSWORD: "/check/password"
 }
