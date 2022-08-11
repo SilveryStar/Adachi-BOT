@@ -38,41 +38,42 @@ async function execHandle( command: string, cwd: string ): Promise<string> {
 }
 
 /* 更新 plugin */
-async function updateBotPlugin( { messageData, sendMessage, logger, file }: InputParameter, pluginName: string, isForce: boolean = false ): Promise<void> {
+async function updateBotPlugin( {
+	                                messageData,
+	                                sendMessage,
+	                                logger,
+	                                file
+                                }: InputParameter, pluginName: string, isForce: boolean = false ): Promise<void> {
 	const command = !isForce ? "git pull --no-rebase" : "git reset --hard && git pull --no-rebase";
 	const cwd = file.getFilePath( pluginName, "plugin" );
 	const execPromise = execHandle( command, cwd ).then( ( stdout: string ) => {
 		logger.info( stdout );
 		if ( /(Already up[ -]to[ -]date|已经是最新的)/.test( stdout ) ) {
-			throw "当前已经是最新版本了";
+			throw `[${ pluginName }]当前已经是最新版本了`;
 		}
 	} );
 	
 	try {
 		await waitWithTimeout( execPromise, 30000 );
 	} catch ( error ) {
-		if ( typeof error === "string" ) {
-			const errMsg = error.includes( "timeout" ) ? "更新失败，网络请求超时" : error;
-			await sendMessage( errMsg );
-		} else {
-			await sendMessage( `更新失败，可能是网络出现问题${ !isForce ? "或存在代码冲突，若不需要保留改动代码可以追加 -f 使用强制更新" : "" }` );
-		}
 		logger.error( `更新 BOT Plugin:[${ pluginName }] 失败: ${ typeof error === "string" ? error : <Error>error.message }` );
-		throw error;
+		if ( typeof error === "string" ) {
+			throw error.includes( "timeout" ) ? `[${ pluginName }]更新失败，网络请求超时` : error;
+		} else {
+			throw `[${ pluginName }]更新失败，可能是网络出现问题${ !isForce ? "或存在代码冲突，若不需要保留改动代码可以追加 -f 使用强制更新" : "" }`;
+		}
 	}
-	
-	await sendMessage( "更新成功，BOT 正在自行重启，请稍后" );
 }
 
-async function checkGitCommit( dbKey: string, i: InputParameter, repo: string ): Promise<{ check: boolean; newDate?: string }> {
+async function checkGitCommit( dbKey: string, i: InputParameter, repo: string ): Promise<{ check: boolean; newDate?: string, error?: string }> {
 	const pluginName = dbKey.split( "." )[1];
-	const result: { check: boolean; newDate?: string } = { check: false };
+	const result: { check: boolean; newDate?: string, error?: string } = { check: false };
 	let commits: any[] = []
 	try {
 		commits = await getCommitsInfo( repo );
 	} catch ( error ) {
 		i.logger.error( error );
-		await i.sendMessage( `[${ pluginName }]插件检查更新出错，可能是网络波动，请重试` );
+		result.error = `[${ pluginName }]插件检查更新出错，可能是网络波动，请重试`;
 		return result;
 	}
 	
@@ -92,7 +93,7 @@ async function checkGitCommit( dbKey: string, i: InputParameter, repo: string ):
 	} );
 	
 	if ( commitsNew.length === 0 ) {
-		await i.sendMessage( `[${ pluginName }]插件当前已经是最新版本了` );
+		result.error = `[${ pluginName }]插件当前已经是最新版本了`;
 		return result;
 	}
 	
@@ -119,10 +120,13 @@ export async function main( i: InputParameter ): Promise<void> {
 		}
 		
 		dbKey = `adachi.${ pluginName }.update-time`;
-		const checkResult: { check: boolean; newDate?: string } = await checkGitCommit( dbKey, i, repo );
+		const checkResult: { check: boolean; newDate?: string, error?: string } = await checkGitCommit( dbKey, i, repo );
 		if ( !checkResult.check ) {
 			if ( checkResult.newDate ) {
 				await i.redis.setString( dbKey, checkResult.newDate );
+			}
+			if ( checkResult.error ) {
+				await i.sendMessage( checkResult.error );
 			}
 			return;
 		}
@@ -136,8 +140,12 @@ export async function main( i: InputParameter ): Promise<void> {
 			} );
 			
 			await i.redis.setString( dbKey, checkResult.newDate );
-		} catch ( e ) {
-			i.logger.error( e );
+		} catch ( e: any ) {
+			if ( typeof e === "string" ) {
+				await i.sendMessage( e );
+			} else {
+				await i.sendMessage( ( <Error>e ).message );
+			}
 		}
 		return;
 	}
@@ -145,14 +153,18 @@ export async function main( i: InputParameter ): Promise<void> {
 	// 更新全部的插件
 	const upgrade_plugins: string[] = [];
 	const not_support_upgrade_plugins: string[] = [];
+	const upgrade_errors: string[] = [];
 	for ( let key in PluginUpgradeServices ) {
 		const repo: string = PluginUpgradeServices[key];
 		if ( repo ) {
 			dbKey = `adachi.${ key }.update-time`;
-			const checkResult: { check: boolean; newDate?: string } = await checkGitCommit( dbKey, i, repo );
+			const checkResult: { check: boolean; newDate?: string, error?: string } = await checkGitCommit( dbKey, i, repo );
 			if ( !checkResult.check ) {
 				if ( checkResult.newDate ) {
 					await i.redis.setString( dbKey, checkResult.newDate );
+				}
+				if ( checkResult.error ) {
+					upgrade_errors.push( checkResult.error );
 				}
 				continue;
 			}
@@ -161,7 +173,11 @@ export async function main( i: InputParameter ): Promise<void> {
 				upgrade_plugins.push( key );
 				await i.redis.setString( dbKey, checkResult.newDate );
 			} catch ( e ) {
-				i.logger.error( e );
+				if ( typeof e === "string" ) {
+					upgrade_errors.push( e );
+				} else {
+					upgrade_errors.push( ( <Error>e ).message );
+				}
 			}
 		} else {
 			not_support_upgrade_plugins.push( key );
@@ -170,6 +186,10 @@ export async function main( i: InputParameter ): Promise<void> {
 	
 	if ( not_support_upgrade_plugins.length > 0 ) {
 		await i.sendMessage( `${ not_support_upgrade_plugins.join( "、" ) }不支持热更新` );
+	}
+	
+	if ( upgrade_errors.length > 0 ) {
+		await i.sendMessage( upgrade_errors.join( "\n\n" ) );
 	}
 	
 	if ( upgrade_plugins.length === 0 ) {
