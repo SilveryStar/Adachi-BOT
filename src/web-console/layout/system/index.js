@@ -10,7 +10,7 @@ const template = `<div class="user-layout" :class="{ open: isOpen }">
 	</main>
 </div>`;
 
-import NavView from "./nav.js";
+import NavView from "./header.js";
 import AsideView from "./aside.js";
 import MainView from "./main.js";
 import FooterView from "./footer.js";

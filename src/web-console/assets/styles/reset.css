@@ -52,6 +52,10 @@ ul {
 	display: none;
 }
 
+.el-table .el-scrollbar__bar.is-horizontal {
+	display: block;
+}
+
 /* el-table */
 .el-table .el-table__header-wrapper tr .el-table__cell {
 	padding: 0;

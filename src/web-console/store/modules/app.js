@@ -4,7 +4,8 @@ export function useAppStore() {
 	const state = reactive( {
 		device: "desktop",
 		deviceWidth: 0,
-		deviceHeight: 0
+		deviceHeight: 0,
+		showTab: false
 	} );
 	
 	function SET_DEVICE( device ) {
@@ -19,10 +20,15 @@ export function useAppStore() {
 		state.deviceHeight = height;
 	}
 	
+	function SET_SHOW_TAB( showTab ) {
+		state.showTab = showTab;
+	}
+	
 	return {
 		...toRefs( state ),
 		SET_DEVICE,
 		SET_DEVICE_WIDTH,
-		SET_DEVICE_HEIGHT
+		SET_DEVICE_HEIGHT,
+		SET_SHOW_TAB
 	};
 }

@@ -12,6 +12,7 @@ export default class BotConfig {
 	public readonly atUser: boolean;
 	public readonly atBOT: boolean;
 	public readonly addFriend: boolean;
+	public readonly useWhitelist: boolean;
 	public readonly fuzzyMatch: boolean;
 	public readonly matchPrompt: boolean;
 	public readonly dbPort: number;
@@ -51,6 +52,7 @@ export default class BotConfig {
 		atUser: false,
 		atBOT: false,
 		addFriend: true,
+		useWhitelist: false,
 		fuzzyMatch: false,
 		matchPrompt: true,
 		inviteAuth: "master",
@@ -84,7 +86,7 @@ export default class BotConfig {
 		const checkFields: Array<keyof BotConfig> = [
 			"atBOT", "addFriend", "dbPassword",
 			"helpPort", "autoChat", "callTimes",
-			"fuzzyMatch", "matchPrompt"
+			"fuzzyMatch", "matchPrompt", "useWhitelist"
 		];
 		
 		for ( let key of checkFields ) {
@@ -103,6 +105,7 @@ export default class BotConfig {
 		this.dbPassword = config.dbPassword;
 		this.atUser = config.atUser;
 		this.addFriend = config.addFriend;
+		this.useWhitelist = config.useWhitelist;
 		this.autoChat = config.autoChat;
 		this.fuzzyMatch = config.fuzzyMatch;
 		this.matchPrompt = config.matchPrompt;

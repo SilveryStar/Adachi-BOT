@@ -4,6 +4,8 @@ import { AuthLevel } from "@modules/management/auth";
 import { MemberBaseInfo } from "oicq";
 import { BOT } from "@modules/bot";
 import { PluginReSubs, SubInfo } from "@modules/plugin";
+import { Md5 } from "md5-typescript";
+import getToken from "@web-console/backend/jwt";
 
 type UserInfo = {
 	userID: number;
@@ -70,6 +72,11 @@ export default express.Router()
 	} )
 	.get( "/info", async ( req, res ) => {
 		const userID: number = parseInt( <string>req.query.id );
+		if ( userID ) {
+			res.status( 400 ).send( { code: 400, data: {}, msg: "Error Params" } );
+			return;
+		}
+		
 		const userInfo = await getUserInfo( userID );
 		
 		res.status( 200 ).send( JSON.stringify( userInfo ) );

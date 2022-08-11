@@ -18,7 +18,7 @@
 
 .user-layout:not( .open ) > .aside-view {
 	pointer-events: none;
-	transform: translateX( calc( -1 * var( --aside-width ) ) );
+	transform: translateX(calc(-1 * var(--aside-width)));
 }
 
 .user-layout > .content {
@@ -33,21 +33,31 @@
 	padding-left: 0;
 }
 
-.user-layout > .content > .nav-view {
+.user-layout > .content > .header-view {
 	position: relative;
+	user-select: none;
+	flex-shrink: 0;
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+	z-index: 100;
+}
+
+.user-layout > .content > .header-view > .header-menu {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
 	padding: 0 18px;
+	height: var(--header-height);
+}
+
+.user-layout > .content > .header-view > .header-tab {
+	padding: 0 18px;
 	height: var(--nav-height);
-	user-select: none;
-	flex-shrink: 0;
-	box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.15);
-	z-index: 100;
+	border-top: 1px solid #e6e6e6;
+	box-sizing: border-box;
 }
 
 .user-layout > .content > .el-scrollbar {
-	--content-height: calc(var(--app-height) - var(--nav-height));
+	--content-height: calc(var(--app-height) - var(--header-height) - var(--extra-header));
 	height: var(--content-height);
 	background-color: #f9f9f9;
 }
@@ -55,28 +65,28 @@
 .user-layout > .content > .el-scrollbar .main-view {
 	position: relative;
 	padding: 30px 30px 12px;
-	min-height: calc(var(--content-height) - var( --footer-height ));
+	min-height: calc(var(--content-height) - var(--footer-height));
 	box-sizing: border-box;
 	overflow: hidden;
 }
 
 .user-layout > .content > .el-scrollbar .footer-view {
 	padding: 0 30px;
-	height: var( --footer-height );
+	height: var(--footer-height);
 }
 
 /* 头部 */
-.nav-view > .nav-left {
+.header-view > .header-menu > .nav-left {
 	display: flex;
 	align-items: center;
 }
 
-.nav-view > .nav-left > .el-breadcrumb {
+.header-view > .header-menu > .nav-left > .el-breadcrumb {
 	margin-left: 18px;
 }
 
-.nav-view > .nav-left > .el-breadcrumb .el-breadcrumb__inner span,
-.nav-view > .nav-left > .el-breadcrumb .el-breadcrumb__inner a {
+.header-view > .header-menu > .nav-left > .el-breadcrumb .el-breadcrumb__inner span,
+.header-view > .header-menu > .nav-left > .el-breadcrumb .el-breadcrumb__inner a {
 	font-size: 16px;
 	line-height: 20px;
 	font-weight: 500;
@@ -84,20 +94,65 @@
 }
 
 /* 头部按钮样式 */
-.nav-view .nav-btn {
+.header-view > .header-menu .nav-btn {
 	padding: 7px;
 	border-radius: 4px;
 	cursor: pointer;
 	transition: background-color .3s;
 }
 
-.nav-view .nav-btn:hover {
+.header-view > .header-menu .nav-btn:hover {
 	background-color: #f9f9f9;
 }
 
-.nav-view .nav-btn > i {
+.header-view > .header-menu .nav-btn > i {
 	font-size: 26px;
 	font-weight: 300;
+}
+
+/* 头部标签栏 */
+.header-view > .header-tab > .el-scrollbar {
+	height: 100%;
+}
+
+.header-view > .header-tab .tab-list {
+	display: flex;
+	align-items: center;
+	column-gap: 10px;
+	height: var(--nav-height);
+}
+
+.header-view > .header-tab .tab-list > a {
+	position: relative;
+	display: block;
+	padding: 11px 10px;
+	font-size: 14px;
+	color: #999;
+	transition: color .2s ease-out;
+}
+
+.header-view > .header-tab .tab-list > a.active,
+.header-view > .header-tab .tab-list > a:hover {
+	color: #333;
+}
+
+.header-view > .header-tab .tab-list > a::after {
+	content: "";
+	position: absolute;
+	bottom: 2px;
+	left: 0;
+	right: 0;
+	height: 2px;
+	background-color: #409EFF;
+	transform: scaleX(0);
+	opacity: 0;
+	transition: transform .2s ease-out, opacity .2s ease-out;
+}
+
+.header-view > .header-tab .tab-list > a.active::after,
+.header-view > .header-tab .tab-list > a:hover::after {
+	opacity: 1;
+	transform: scaleX(1);
 }
 
 /* 侧边栏 */
@@ -158,7 +213,7 @@
 }
 
 .aside-view .el-menu .el-menu-item i[class^="icon-"],
-.aside-view .el-menu .el-sub-menu__title i[class^="icon-"]{
+.aside-view .el-menu .el-sub-menu__title i[class^="icon-"] {
 	margin-right: 14px;
 	font-size: 26px;
 	font-weight: 300;
@@ -180,7 +235,7 @@
 	right: 0;
 	bottom: 0;
 	z-index: 100;
-	background-color: rgba( 0, 0, 0, 0.28 );
+	background-color: rgba(0, 0, 0, 0.28);
 }
 
 /* 底部标注 */
@@ -200,9 +255,11 @@
 	.user-layout > .content {
 		padding-left: 0;
 	}
+
 	.user-layout > .content > .el-scrollbar .main-view {
 		padding: 12px;
 	}
+
 	.user-layout > .content > .el-scrollbar .footer-view {
 		padding: 0 12px;
 	}

@@ -1,3 +1,5 @@
+import DefaultLayout from  "../layout/default/index.js";
+
 const systemRoutes = [
 	{
 		path: "/system",
@@ -25,9 +27,24 @@ const systemRoutes = [
 	},
 	{
 		path: "/system/user",
+		redirect: "/system/user/user",
 		name: "User",
-		component: () => import("../views/user/index.js"),
-		meta: { title: "用户", icon: "icon-user", layout: "system", group: "Components" }
+		component: DefaultLayout,
+		meta: { title: "用户", icon: "icon-user", layout: "system", group: "Components" },
+		children: [
+			{
+				path: "/system/user/user",
+				name: "UserList",
+				component: () => import("../views/user/index.js"),
+				meta: { title: "用户列表", nav: true },
+			},
+			{
+				path: "/system/user/group",
+				name: "GroupList",
+				component: () => import("../views/group/index.js"),
+				meta: { title: "群组列表", nav: true }
+			}
+		]
 	},
 	{
 		path: "/system/message",

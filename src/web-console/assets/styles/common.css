@@ -6,31 +6,27 @@
 }
 
 .table-container > .nav-btn-box {
-	display: flex;
+	position: relative;
 	margin-bottom: 10px;
-	align-items: center;
-	flex-shrink: 0;
-	height: 60px;
-	padding: var(--box-padding);
-	box-sizing: border-box;
 	background-color: #fff;
 	border-radius: 4px;
 	box-shadow: var(--box-shadow);
 }
 
-.table-container > .nav-btn-box .el-input {
-	margin-left: 10px;
-	width: 220px;
+.table-container > .nav-btn-box > .el-scrollbar {
+	position: static;
 }
 
-.table-container > .nav-btn-box .el-input .el-input__wrapper {
-	height: 32px;
-	border-radius: 16px;
-	box-sizing: border-box;
+.table-container > .nav-btn-box > .el-scrollbar > .el-scrollbar__wrap {
+	overflow-y: hidden;
 }
 
-.table-container > .nav-btn-box .el-input .el-input_suffix {
-	margin-right: 5px;
+.table-container > .nav-btn-box > .el-scrollbar > .el-scrollbar__bar.is-horizontal {
+	display: block;
+}
+
+.table-container > .nav-btn-box > .el-scrollbar > .el-scrollbar__bar.is-vertical {
+	display: none;
 }
 
 .table-container > .table-view {
@@ -52,6 +48,11 @@
 
 .table-container > .table-view > .el-table .table-header th {
 	background-color: transparent;
+}
+
+.table-container > .table-view > .el-pagination {
+	margin-top: 10px;
+	justify-content: flex-end;
 }
 
 /* 弹窗 */
@@ -103,6 +104,10 @@
 	font-size: 18px;
 	font-weight: 700;
 	color: #333;
+}
+
+.dialog-body > .section-info > .desc {
+	margin-top: 10px;
 }
 
 /* 保存 */

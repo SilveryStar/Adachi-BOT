@@ -11,7 +11,7 @@ const template = `<aside class="aside-view">
       		<div v-for="group in Object.keys(userRoutes)" :key="group" class="routes-group">
       			<h3 class="group-title">{{ group }}</h3>
       			<div v-for="routes of userRoutes[group]" :key="routes.path">
-      	  			<el-sub-menu v-if="routes.children && routes.children.length > 1" :class="{'is-active': route.path === routes.path}" :index="routes.path">
+      	  			<el-sub-menu v-if="routes.children && routes.children.length > 1" :index="routes.path">
       	    			<template #title>
       	    				<i :class="routes.meta?.icon"></i>
       	    				<span>{{ routes.meta?.title }}</span>
@@ -52,13 +52,13 @@ export default defineComponent( {
 		/* 获取实际route列表 */
 		function formatRoutes( routes, children = [] ) {
 			for ( const route of routes ) {
-				if ( route.meta?.hidden ) continue;
+				if ( route.meta?.nav || route.meta?.hidden ) continue;
 				if ( !route.children ) {
 					children.push( route );
 					continue;
 				}
 				// 过滤隐藏子项
-				const childShow = route.children.filter( item => !item.meta?.hidden );
+				const childShow = route.children.filter( item => !item.meta?.nav && !item.meta?.hidden );
 				// 若仅有一个非隐藏子项，使用子项路由，否则使用路由本身
 				const trueRoute = childShow.length === 1 ? childShow[0] : route;
 				const trueCloneRoute = JSON.parse( JSON.stringify( trueRoute ) );
@@ -66,7 +66,7 @@ export default defineComponent( {
 				
 				// 递归整理子路由
 				if ( trueRoute.children ) {
-					getRouteList( trueRoute.children, trueCloneRoute.children );
+					formatRoutes( trueRoute.children, trueCloneRoute.children );
 				}
 				children.push( trueCloneRoute );
 			}

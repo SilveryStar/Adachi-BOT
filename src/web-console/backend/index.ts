@@ -12,6 +12,7 @@ import CheckRouter from "./routes/check";
 import LoginRouter from "./routes/login";
 import LogRouter from "./routes/log";
 import UserRouter from "./routes/user";
+import GroupRouter from "./routes/group";
 import StatRouter from "./routes/stat";
 import MessageRouter from "./routes/message";
 
@@ -43,6 +44,7 @@ export default class WebConsole {
 		this.useApi( "/api/login", LoginRouter, false );
 		this.useApi( "/api/log", LogRouter );
 		this.useApi( "/api/user", UserRouter );
+		this.useApi( "/api/group", GroupRouter );
 		this.useApi( "/api/stat", StatRouter );
 		this.useApi( "/api/message", MessageRouter );
 		
