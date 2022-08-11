@@ -88,8 +88,6 @@ export default defineComponent( {
 		
 		const userRoutes = groupRoutes( formatRoutes( systemRoutes ) );
 		
-		console.log(userRoutes)
-		
 		return {
 			userRoutes,
 			cancelToggle

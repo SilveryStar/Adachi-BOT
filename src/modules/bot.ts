@@ -21,6 +21,7 @@ import fs, { readFileSync, unlinkSync } from "fs";
 import axios, { AxiosError } from "axios";
 import { resolve } from "path";
 import { autoChat } from "@modules/chat";
+import { WhiteList } from "@modules/whitelist";
 
 /**
  * @interface
@@ -47,6 +48,7 @@ export interface BOT {
 	readonly auth: Authorization;
 	readonly message: MsgManagement;
 	readonly command: Command;
+	readonly whitelist: WhiteList;
 	readonly refresh: RefreshConfig;
 	readonly renderer: BasicRenderer;
 }
@@ -82,13 +84,15 @@ export default class Adachi {
 		const message = new MsgManagement( config, client );
 		const command = new Command( file );
 		const refresh = new RefreshConfig( file, command );
+		const whitelist = new WhiteList( file );
 		const renderer = new BasicRenderer();
 		
 		this.bot = {
 			client, command, file, redis,
 			logger, message, auth, interval,
-			config, refresh, renderer
+			config, refresh, renderer, whitelist
 		};
+		refresh.registerRefreshableFile( "whitelist", whitelist );
 		refresh.registerRefreshableFunc( renderer );
 	}
 	
@@ -141,6 +145,7 @@ export default class Adachi {
 			"cookies",
 			{ cookies: [ "米游社Cookies(允许设置多个)" ] }
 		);
+		
 		file.createYAML(
 			"commands",
 			{ tips: "此文件修改后需重启应用" }
@@ -269,7 +274,9 @@ export default class Adachi {
 		}
 		
 		if ( isPrivate && this.bot.config.addFriend && messageData.sub_type !== "friend" ) {
-			await this.bot.client.sendPrivateMsg( messageData.user_id, "请先添加 BOT 为好友再尝试发送指令" );
+			if ( unionRegExp.test( content ) ) {
+				await this.bot.client.sendPrivateMsg( messageData.user_id, "请先添加 BOT 为好友再尝试发送指令" );
+			}
 			return;
 		}
 		
@@ -366,6 +373,13 @@ export default class Adachi {
 		const bot = that.bot;
 		return async function ( messageData: sdk.PrivateMessageEventData ) {
 			const userID: number = messageData.user_id;
+			const isMaster = userID === bot.config.master;
+			
+			/* 白名单校验 */
+			if ( !isMaster && bot.config.useWhitelist && !bot.whitelist.userValid( userID ) ) {
+				return;
+			}
+			
 			if ( !bot.interval.check( userID, -1 ) ) {
 				return;
 			}
@@ -391,6 +405,12 @@ export default class Adachi {
 			}
 			
 			const { user_id: userID, group_id: groupID } = messageData;
+			const isMaster = userID === bot.config.master;
+			
+			/* 白名单校验 */
+			if ( !isMaster && bot.config.useWhitelist && !bot.whitelist.groupValid( groupID, userID ) ) {
+				return;
+			}
 			
 			if ( !bot.interval.check( userID, groupID ) ) {
 				return;

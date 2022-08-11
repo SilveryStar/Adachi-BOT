@@ -21,7 +21,6 @@ export function useAppStore() {
 	}
 	
 	function SET_SHOW_TAB( showTab ) {
-		console.log(showTab)
 		state.showTab = showTab;
 	}
 	
