@@ -14,7 +14,7 @@
  * @homeCoinRecoveryTime 洞天宝钱回复时间
  * @currentHomeCoin 当前洞天宝钱
  * @maxHomeCoin 最大洞天宝钱
- * @transformer 质量参变仪数据
+ * @transformer 参量质变仪数据
  * */
 export interface Note {
 	type: "note";
@@ -37,7 +37,7 @@ export interface Note {
 
 /**
  * @interface
- * 质量参变仪数据
+ * 参量质变仪数据
  * @latestJobId 未知
  * @noticed 未知
  * @obtained 是否持有参变仪

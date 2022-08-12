@@ -1,6 +1,6 @@
 const template = `<div class="table-container user group-page">
 	<div class="nav-btn-box">
-    	<el-scrollbar>
+    	<el-scrollbar class="horizontal-wrap">
 			<nav-search :searchList="searchList" :searchData="listQuery" :showNum="1" :disabled="tableLoading" @change="getGroupData">
 				<send-msg ref="sendMsgRef" :disabled="tableLoading" :selection-list="selectionList"></send-msg>
 			</nav-search>
@@ -58,9 +58,9 @@ const template = `<div class="table-container user group-page">
 	></group-detail>
 </div>`;
 
-import $http from "../../api/index.js";
-import { formatRole } from "../../utils/format.js";
-import NavSearch from "../../components/nav-search/index.js";
+import $http from "../../../api/index.js";
+import { formatRole } from "../../../utils/format.js";
+import NavSearch from "../../../components/nav-search/index.js";
 import GroupDetail from "./group-detail.js";
 import SendMsg from "./send-msg.js";
 

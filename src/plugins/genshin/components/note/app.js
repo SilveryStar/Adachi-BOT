@@ -59,7 +59,7 @@ export default defineComponent( {
 			return `${ data.currentHomeCoin }/${ data.maxHomeCoin }`;
 		} )
 		
-		/* 获取质量参变仪显示值 */
+		/* 获取参量质变仪显示值 */
 		const getTransformerValue = computed( () => {
 			const { recoveryTime, obtained } = data.transformer;
 			if ( !obtained ) return "尚未获得";

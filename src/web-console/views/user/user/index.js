@@ -1,6 +1,6 @@
 const template = `<div class="table-container user user-page">
 	<div class="nav-btn-box">
-    	<el-scrollbar>
+    	<el-scrollbar class="horizontal-wrap">
 			<nav-search :searchList="searchList" :searchData="listQuery" :showNum="1" :disabled="tableLoading" @change="getUserData"></nav-search>
     	</el-scrollbar>
 	</div>
@@ -58,8 +58,8 @@ const template = `<div class="table-container user user-page">
 	></user-detail>
 </div>`;
 
-import $http from "../../api/index.js";
-import NavSearch from "../../components/nav-search/index.js";
+import $http from "../../../api/index.js";
+import NavSearch from "../../../components/nav-search/index.js";
 import UserDetail from "./user-detail.js";
 
 const { defineComponent, reactive, onMounted, computed, ref, toRefs, inject } = Vue;

@@ -87,7 +87,7 @@ export class NoteService implements Service {
 	private scheduleJobOn(): void {
 		this.refreshPushEvent()
 			.catch( this.feedbackCatch );
-		this.globalEvent = scheduleJob( "0 0 */1 * * *", () => {
+		this.globalEvent = scheduleJob( "0 */55 * * * *", () => {
 			this.refreshPushEvent().catch( this.feedbackCatch );
 		} );
 	}
@@ -188,7 +188,7 @@ export class NoteService implements Service {
 				const time = new Date( now + recovery * 1000 );
 				
 				const job: Job = scheduleJob( time, async () => {
-					await this.parent.sendMessage( `[UID${ this.parent.setting.uid }] - 质量参变仪已就绪~` );
+					await this.parent.sendMessage( `[UID${ this.parent.setting.uid }] - 参量质变仪已就绪~` );
 				} );
 				this.events.push( { type: "transformer", job } );
 			}

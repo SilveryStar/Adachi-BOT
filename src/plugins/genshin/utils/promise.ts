@@ -11,7 +11,8 @@ import { Order } from "@modules/command";
 export enum ErrorMsg {
 	NOT_FOUND = "未查询到角色数据，请检查米哈游通行证（非UID）是否有误或是否设置角色信息公开",
 	UNKNOWN = "发生未知错误",
-	FORM_MESSAGE = "米游社接口报错: "
+	FORM_MESSAGE = "米游社接口报错: ",
+	VERIFICATION_CODE = "遇到验证码拦截，签到失败，请自行手动签到"
 }
 
 /* 当前cookie查询次数上限，切换下一个cookie */
@@ -448,6 +449,9 @@ export async function signInResultPromise(
 			return;
 		} else if ( retcode !== 0 ) {
 			reject( ErrorMsg.FORM_MESSAGE + message );
+			return;
+		} else if ( data.gt || data.success !== 0 ) {
+			reject( ErrorMsg.VERIFICATION_CODE );
 			return;
 		}
 		

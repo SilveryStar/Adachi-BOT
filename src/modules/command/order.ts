@@ -44,7 +44,7 @@ export class Order extends BasicConfig {
 		for ( let header of headers ) {
 			const pair: RegPair = { header, genRegExps: [] };
 			for ( let reg of rawRegs ) {
-				const r: string = [ "", ...reg ].join( " *" );
+				const r: string = [ "", ...reg ].join( "\\s*" );
 				const h: string = escapeRegExp( header );
 				const pattern: string = Order.addStartStopChar(
 					h + r,
@@ -101,8 +101,8 @@ export class Order extends BasicConfig {
 					/* 重组正则，判断是否参数不符合要求 */
 					content = content.replace( fogReg, "" );
 					for ( let params of this.regParam ) {
-						const paramRegStr = params.join( "\\s*" );
-						const paramReg = new RegExp( `^${ pair.header + paramRegStr }$` );
+						params = [pair.header, ...params];
+						const paramReg = new RegExp( `^${ params.join( "\\s*" ) }$` );
 						const matchParam = paramReg.test( pair.header + content );
 						if ( matchParam ) {
 							throw { type: "order", header: pair.header };

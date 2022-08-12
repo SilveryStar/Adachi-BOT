@@ -162,8 +162,8 @@ async function getGroupInfo( info: GroupInfo ): Promise<GroupData> {
 /* 向群聊发送消息 */
 function sendToGroupMsg( groupId: number, content: string ) {
 	const date = new Date();
-	const randomSeconds: number = Math.floor( Math.random() * ( 300 - 60 ) + 60 );
-	date.setSeconds( randomSeconds );
+	const randomSeconds: number = Math.floor( Math.random() * 300 );
+	date.setSeconds( date.getSeconds() + randomSeconds );
 	
 	scheduleJob( date, async () => {
 		await bot.client.sendGroupMsg( groupId, content );

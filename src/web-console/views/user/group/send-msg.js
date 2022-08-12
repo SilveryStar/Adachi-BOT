@@ -25,8 +25,8 @@ const template = `
 	</div>
 </el-dialog>`
 
-import $http from "../../api/index.js";
-import { batchMsgSession } from "../../utils/session.js";
+import $http from "../../../api/index.js";
+import { batchMsgSession } from "../../../utils/session.js";
 
 const { ElNotification, ElMessage, ElMessageBox } = ElementPlus;
 

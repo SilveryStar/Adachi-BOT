@@ -1,6 +1,6 @@
 const template = `<div class="table-container message-page">
 	<div class="nav-btn-box">
-    	<el-scrollbar>
+    	<el-scrollbar class="horizontal-wrap">
 			<nav-search :searchList="searchList" :searchData="listQuery" :showNum="1" :disabled="tableLoading" @change="getMessageData"></nav-search>
     	</el-scrollbar>
 	</div>

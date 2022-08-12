@@ -17,18 +17,6 @@
 	position: static;
 }
 
-.table-container > .nav-btn-box > .el-scrollbar > .el-scrollbar__wrap {
-	overflow-y: hidden;
-}
-
-.table-container > .nav-btn-box > .el-scrollbar > .el-scrollbar__bar.is-horizontal {
-	display: block;
-}
-
-.table-container > .nav-btn-box > .el-scrollbar > .el-scrollbar__bar.is-vertical {
-	display: none;
-}
-
 .table-container > .table-view {
 	flex: 1;
 	padding: var(--box-padding);
@@ -116,6 +104,19 @@
 	margin: 20px auto 10px;
 	width: 100px;
 	font-size: 14px;
+}
+
+/* 横向滚动组件 */
+.el-scrollbar.horizontal-wrap > .el-scrollbar__wrap {
+	overflow-y: hidden;
+}
+
+.el-scrollbar.horizontal-wrap > .el-scrollbar__bar.is-horizontal {
+	display: block;
+}
+
+.el-scrollbar.horizontal-wrap > .el-scrollbar__bar.is-vertical {
+	display: none;
 }
 
 @media (max-width: 768px) {

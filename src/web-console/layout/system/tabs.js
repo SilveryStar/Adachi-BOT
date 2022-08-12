@@ -1,5 +1,5 @@
 const template = `<div v-if="showTab" class="header-tab">
-	<el-scrollbar>
+	<el-scrollbar class="horizontal-wrap">
 		<div class="tab-list">
 			<router-link
 				v-for="(r, rKey) of routeList"
