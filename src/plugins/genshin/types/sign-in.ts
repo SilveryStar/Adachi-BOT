@@ -12,4 +12,8 @@ export interface SignInInfo {
 export interface SignInResult {
 	type: "sign-in-result";
 	code: string;
+	riskCode: number;
+	gt: string;
+	challenge: string;
+	success: number;
 }

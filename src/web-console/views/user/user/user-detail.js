@@ -98,10 +98,10 @@ const template = `<el-dialog v-model="showModal" custom-class="user-detail-dialo
 	</div>
 </el-dialog>`;
 
-import $http from "../../api/index.js";
-import { formatRole } from "../../utils/format.js";
+import $http from "../../../api/index.js";
+import { formatRole } from "../../../utils/format.js";
 
-const { defineComponent, reactive, toRefs, watch, computed } = Vue;
+const { defineComponent, reactive, toRefs, watch } = Vue;
 const { ElMessage } = ElementPlus;
 
 export default defineComponent( {

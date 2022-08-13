@@ -35,13 +35,13 @@ const systemRoutes = [
 			{
 				path: "/system/user/user",
 				name: "UserList",
-				component: () => import("../views/user/index.js"),
+				component: () => import("../views/user/user/index.js"),
 				meta: { title: "用户列表", nav: true },
 			},
 			{
 				path: "/system/user/group",
 				name: "GroupList",
-				component: () => import("../views/group/index.js"),
+				component: () => import("../views/user/group/index.js"),
 				meta: { title: "群组列表", nav: true }
 			}
 		]

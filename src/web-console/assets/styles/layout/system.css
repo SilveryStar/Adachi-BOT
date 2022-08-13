@@ -128,6 +128,7 @@
 	padding: 11px 10px;
 	font-size: 14px;
 	color: #999;
+	white-space: nowrap;
 	transition: color .2s ease-out;
 }
 
