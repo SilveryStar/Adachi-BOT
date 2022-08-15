@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Genshin Express Api | Adachi-Docs</title>
+    <meta name="generator" content="VuePress 1.8.2">
+    <link rel="icon" href="/favicon.ico">
+    <meta name="description" content="Adachi-BOT 文档">
+    
+    <link rel="preload" href="/assets/css/0.styles.e4d8b86b.css" as="style"><link rel="preload" href="/assets/js/app.26375a0d.js" as="script"><link rel="preload" href="/assets/js/2.44b34a9f.js" as="script"><link rel="preload" href="/assets/js/12.cfcc5932.js" as="script"><link rel="prefetch" href="/assets/js/10.124ddafc.js"><link rel="prefetch" href="/assets/js/11.489d8bfd.js"><link rel="prefetch" href="/assets/js/13.cba0291f.js"><link rel="prefetch" href="/assets/js/14.0a3077a9.js"><link rel="prefetch" href="/assets/js/15.7cfcc237.js"><link rel="prefetch" href="/assets/js/16.6ba74c38.js"><link rel="prefetch" href="/assets/js/17.0c07174c.js"><link rel="prefetch" href="/assets/js/18.27af8439.js"><link rel="prefetch" href="/assets/js/3.89b75435.js"><link rel="prefetch" href="/assets/js/4.9c0d3927.js"><link rel="prefetch" href="/assets/js/5.8fb2962b.js"><link rel="prefetch" href="/assets/js/6.7a505dc8.js"><link rel="prefetch" href="/assets/js/7.1ebac3c6.js"><link rel="prefetch" href="/assets/js/8.3a979435.js"><link rel="prefetch" href="/assets/js/9.ac98b8ea.js">
+    <link rel="stylesheet" href="/assets/css/0.styles.e4d8b86b.css">
+  </head>
+  <body>
+    <div id="app" data-server-rendered="true"><div class="theme-container"><header class="navbar"><div class="sidebar-button"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" viewBox="0 0 448 512" class="icon"><path fill="currentColor" d="M436 124H12c-6.627 0-12-5.373-12-12V80c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12z"></path></svg></div> <a href="/" class="home-link router-link-active"><!----> <span class="site-name">Adachi-Docs</span></a> <div class="links"><div class="search-box"><input aria-label="Search" autocomplete="off" spellcheck="false" value=""> <!----></div> <nav class="nav-links can-hide"><div class="nav-item"><a href="/deploy/" class="nav-link">
+  部署
+</a></div><div class="nav-item"><a href="/config/" class="nav-link">
+  配置
+</a></div><div class="nav-item"><a href="/thank/" class="nav-link">
+  致谢
+</a></div><div class="nav-item"><a href="/picture/" class="nav-link">
+  图片
+</a></div><div class="nav-item"><a href="/statement/" class="nav-link">
+  声明
+</a></div><div class="nav-item"><a href="/developer/" class="nav-link router-link-active">
+  开发者
+</a></div><div class="nav-item"><a href="/web-console/" class="nav-link">
+  控制台
+</a></div><div class="nav-item"><a href="/faq/" class="nav-link">
+  FAQ
+</a></div><div class="nav-item"><a href="https://github.com/SilveryStar/Adachi-BOT" target="_blank" rel="noopener noreferrer" class="nav-link external">
+  GitHub
+  <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></div> <!----></nav></div></header> <div class="sidebar-mask"></div> <aside class="sidebar"><nav class="nav-links"><div class="nav-item"><a href="/deploy/" class="nav-link">
+  部署
+</a></div><div class="nav-item"><a href="/config/" class="nav-link">
+  配置
+</a></div><div class="nav-item"><a href="/thank/" class="nav-link">
+  致谢
+</a></div><div class="nav-item"><a href="/picture/" class="nav-link">
+  图片
+</a></div><div class="nav-item"><a href="/statement/" class="nav-link">
+  声明
+</a></div><div class="nav-item"><a href="/developer/" class="nav-link router-link-active">
+  开发者
+</a></div><div class="nav-item"><a href="/web-console/" class="nav-link">
+  控制台
+</a></div><div class="nav-item"><a href="/faq/" class="nav-link">
+  FAQ
+</a></div><div class="nav-item"><a href="https://github.com/SilveryStar/Adachi-BOT" target="_blank" rel="noopener noreferrer" class="nav-link external">
+  GitHub
+  <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></div> <!----></nav>  <ul class="sidebar-links"><li><section class="sidebar-group depth-0"><p class="sidebar-heading open"><span>Genshin Express Api</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="/developer/express.html#api-card" class="sidebar-link">/api/card</a><ul class="sidebar-sub-headers"></ul></li><li><a href="/developer/express.html#api-artifact" class="sidebar-link">/api/artifact</a><ul class="sidebar-sub-headers"></ul></li><li><a href="/developer/express.html#api-wish" class="sidebar-link">/api/wish</a><ul class="sidebar-sub-headers"><li class="sidebar-sub-header"><a href="/developer/express.html#result" class="sidebar-link">/result</a></li><li class="sidebar-sub-header"><a href="/developer/express.html#statistic" class="sidebar-link">/statistic</a></li><li class="sidebar-sub-header"><a href="/developer/express.html#config" class="sidebar-link">/config</a></li></ul></li><li><a href="/developer/express.html#api-info" class="sidebar-link">/api/info</a><ul class="sidebar-sub-headers"></ul></li><li><a href="/developer/express.html#api-note" class="sidebar-link">/api/note</a><ul class="sidebar-sub-headers"></ul></li><li><a href="/developer/express.html#api-char" class="sidebar-link">/api/char</a><ul class="sidebar-sub-headers"></ul></li><li><a href="/developer/express.html#api-abyss" class="sidebar-link">/api/abyss</a><ul class="sidebar-sub-headers"></ul></li><li><a href="/developer/express.html#api-daily" class="sidebar-link">/api/daily</a><ul class="sidebar-sub-headers"></ul></li><li><a href="/developer/express.html#api-almanac" class="sidebar-link">/api/almanac</a><ul class="sidebar-sub-headers"></ul></li></ul></section></li></ul> </aside> <main class="page"> <div class="theme-default-content content__default"><h1 id="genshin-express-api"><a href="#genshin-express-api" class="header-anchor">#</a> Genshin Express Api</h1> <h2 id="api-card"><a href="#api-card" class="header-anchor">#</a> <code>/api/card</code></h2> <p>玩家信息卡片数据。</p> <p><strong>请求参数</strong></p> <ul><li><code>qq</code> 用户的 QQ 号</li></ul> <p><strong>返回结果</strong></p> <div class="language-ts extra-class"><pre class="language-ts"><code><span class="token keyword">type</span> <span class="token class-name">Response</span> <span class="token operator">=</span> UserInfo <span class="token operator">&amp;</span> <span class="token punctuation">{</span>
+    nickanme<span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">;</span>
+    level<span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">;</span>
+    uid<span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
+<span class="token comment">// UserInfo 见 /genshin/types/user-info.ts</span>
+<span class="token comment">// worldExplorations 更名为 explorations 返回</span>
+</code></pre></div><h2 id="api-artifact"><a href="#api-artifact" class="header-anchor">#</a> <code>/api/artifact</code></h2> <p>圣遗物抽取及强化数据。</p> <p><strong>请求参数</strong></p> <ul><li><code>qq</code> 用户的 QQ 号</li> <li><code>type</code> 圣遗物类型
+<ul><li><code>init</code> 表示未强化的圣遗物</li> <li><code>rein</code> 表示强化至满级的圣遗物</li></ul></li></ul> <p><strong>返回结果</strong></p> <div class="language-ts extra-class"><pre class="language-ts"><code><span class="token keyword">type</span> <span class="token class-name">Response</span> <span class="token operator">=</span> Artifact<span class="token punctuation">;</span>
+<span class="token comment">// Artifact 见 /genshin/module/artifact.ts</span>
+</code></pre></div><h2 id="api-wish"><a href="#api-wish" class="header-anchor">#</a> <code>/api/wish</code></h2> <h3 id="result"><a href="#result" class="header-anchor">#</a> <code>/result</code></h3> <p>模拟祈愿十连数据。</p> <p><strong>请求参数</strong></p> <ul><li><code>qq</code> 用户的 QQ 号</li></ul> <p><strong>返回结果</strong></p> <div class="language-ts extra-class"><pre class="language-ts"><code><span class="token keyword">type</span> <span class="token class-name">Response</span> <span class="token operator">=</span> <span class="token punctuation">{</span>
+    type<span class="token operator">:</span> <span class="token string">&quot;角色&quot;</span> <span class="token operator">|</span> <span class="token string">&quot;常驻&quot;</span> <span class="token operator">|</span> <span class="token string">&quot;武器&quot;</span> <span class="token operator">|</span> <span class="token string">&quot;角色2&quot;</span><span class="token punctuation">;</span>
+    data<span class="token operator">:</span> WishResult<span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+    name<span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">;</span>       <span class="token comment">// 用户昵称</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
+<span class="token comment">// WishResult 见 /genshin/module/wish.ts</span>
+</code></pre></div><h3 id="statistic"><a href="#statistic" class="header-anchor">#</a> <code>/statistic</code></h3> <p>非十连祈愿统计数据。</p> <p><strong>请求参数</strong></p> <ul><li><code>qq</code> 用户的 QQ 号</li></ul> <p><strong>返回结果</strong></p> <div class="language-ts extra-class"><pre class="language-ts"><code><span class="token keyword">type</span> <span class="token class-name">Response</span> <span class="token operator">=</span> <span class="token punctuation">{</span>
+    character<span class="token operator">:</span> WishStatistic<span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+    weapon<span class="token operator">:</span> WishStatistic<span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+    total<span class="token operator">:</span> <span class="token builtin">number</span><span class="token punctuation">;</span>              <span class="token comment">// 总计祈愿次数</span>
+    nickname<span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
+<span class="token comment">// WishStatistic 见 /genshin/achieves/wish.ts</span>
+</code></pre></div><h3 id="config"><a href="#config" class="header-anchor">#</a> <code>/config</code></h3> <p>获取角色或武器的类型，用于 <code>icon</code> 显示。</p> <p><strong>请求参数</strong></p> <ul><li><code>type</code> 类型，<code>character</code> 或 <code>weapon</code></li></ul> <p><strong>返回结果</strong></p> <div class="language-ts extra-class"><pre class="language-ts"><code><span class="token keyword">type</span> <span class="token class-name">CharacterElement</span> <span class="token operator">=</span> <span class="token string">&quot;pyro&quot;</span> <span class="token operator">|</span> <span class="token string">&quot;anemo&quot;</span> <span class="token operator">|</span> 
+    <span class="token string">&quot;electro&quot;</span> <span class="token operator">|</span> <span class="token string">&quot;geo&quot;</span> <span class="token operator">|</span> <span class="token string">&quot;hydro&quot;</span> <span class="token operator">|</span> <span class="token string">&quot;cryo&quot;</span><span class="token punctuation">;</span>
+<span class="token keyword">type</span> <span class="token class-name">WeaponType</span> <span class="token operator">=</span> <span class="token string">&quot;sword&quot;</span> <span class="token operator">|</span> <span class="token string">&quot;claymore&quot;</span> <span class="token operator">|</span>
+    <span class="token string">&quot;polearm&quot;</span> <span class="token operator">|</span> <span class="token string">&quot;catalyst&quot;</span> <span class="token operator">|</span> <span class="token string">&quot;bow&quot;</span><span class="token punctuation">;</span>
+<span class="token keyword">type</span> <span class="token class-name">Name</span> <span class="token operator">=</span> <span class="token builtin">string</span><span class="token punctuation">;</span>
+
+<span class="token keyword">type</span> <span class="token class-name">Response</span> <span class="token operator">=</span> Record<span class="token operator">&lt;</span>Name<span class="token punctuation">,</span> CharacterElement <span class="token operator">|</span> WeaponType<span class="token operator">&gt;</span><span class="token punctuation">;</span>
+</code></pre></div><h2 id="api-info"><a href="#api-info" class="header-anchor">#</a> <code>/api/info</code></h2> <p>角色或武器的详细数据（命座信息、突破材料等）。</p> <p><strong>请求参数</strong></p> <ul><li><code>name</code> 角色或武器名。简体中文完整名称。</li></ul> <p><strong>返回结果</strong></p> <div class="language-ts extra-class"><pre class="language-ts"><code><span class="token keyword">type</span> <span class="token class-name">BasicInfo</span> <span class="token operator">=</span> <span class="token punctuation">{</span>
+    title<span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">;</span>      <span class="token comment">// 对于角色：该值表示头衔?（如循循守月）</span>
+                        <span class="token comment">// 对于武器：该值表示类型（如长柄武器）</span>
+    name<span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">;</span>
+    introduce<span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">;</span>
+    rarity<span class="token operator">:</span> <span class="token builtin">number</span><span class="token punctuation">;</span>
+    mainStat<span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">;</span>   <span class="token comment">// 突破属性</span>
+    mainValue<span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">;</span>  <span class="token comment">// 满级时突破属性值</span>
+    baseATK<span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">;</span>    <span class="token comment">// 满级时基础攻击力</span>
+    time<span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">;</span>       <span class="token comment">// 可获得天赋升级材料或武器突破材料的时间（如【周一/四/日】）</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
+
+<span class="token keyword">type</span> <span class="token class-name">CharacterInfo</span> <span class="token operator">=</span> BasicInfo <span class="token operator">&amp;</span> <span class="token punctuation">{</span>
+    type<span class="token operator">:</span> <span class="token string">&quot;角色&quot;</span><span class="token punctuation">;</span>
+    id<span class="token operator">:</span> <span class="token builtin">number</span><span class="token punctuation">;</span>
+    birthday<span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">;</span>
+    element<span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">;</span>
+    cv<span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">;</span>
+    constellationName<span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">;</span>
+    ascensionMaterials<span class="token operator">:</span> <span class="token punctuation">[</span>
+        <span class="token builtin">string</span><span class="token punctuation">,</span> <span class="token builtin">string</span><span class="token punctuation">,</span> <span class="token builtin">string</span><span class="token punctuation">,</span> <span class="token builtin">string</span><span class="token punctuation">,</span> <span class="token builtin">string</span>
+    <span class="token punctuation">]</span><span class="token punctuation">;</span>                  <span class="token comment">// 突破素材</span>
+                        <span class="token comment">// 前四个元素表示突破水晶（如哀叙冰玉）</span>
+                        <span class="token comment">// 第五个表示世界 BOSS 特殊掉落物（如晶凝之华）</span>
+    levelUpMaterials<span class="token operator">:</span> <span class="token punctuation">[</span>
+        <span class="token builtin">string</span><span class="token punctuation">,</span> <span class="token builtin">string</span><span class="token punctuation">,</span> <span class="token builtin">string</span><span class="token punctuation">,</span> <span class="token builtin">string</span>
+    <span class="token punctuation">]</span><span class="token punctuation">;</span>                  <span class="token comment">// 天赋升级或角色突破所需的其他材料</span>
+                        <span class="token comment">// 第一个表示特产，第二到四个表示普通怪掉落物（如 导能绘卷-封魔绘卷-禁咒绘卷）</span>
+    talentMaterials<span class="token operator">:</span> <span class="token punctuation">[</span>
+        <span class="token builtin">string</span><span class="token punctuation">,</span> <span class="token builtin">string</span><span class="token punctuation">,</span> <span class="token builtin">string</span><span class="token punctuation">,</span> <span class="token builtin">string</span>
+    <span class="token punctuation">]</span><span class="token punctuation">;</span>                  <span class="token comment">// 天赋升级材料</span>
+                        <span class="token comment">// 第一到三个表示天赋书，第四个表示周本材料</span>
+    constellations<span class="token operator">:</span> <span class="token punctuation">[</span>
+        <span class="token builtin">string</span><span class="token punctuation">,</span> <span class="token builtin">string</span><span class="token punctuation">,</span> <span class="token builtin">string</span><span class="token punctuation">,</span> <span class="token builtin">string</span>
+    <span class="token punctuation">]</span><span class="token punctuation">;</span>                  <span class="token comment">// 命座信息（一、二、四、六）</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
+
+<span class="token keyword">type</span> <span class="token class-name">WeaponInfo</span> <span class="token operator">=</span> BasicInfo <span class="token operator">&amp;</span> <span class="token punctuation">{</span>
+    title<span class="token operator">:</span> <span class="token string">&quot;武器&quot;</span><span class="token punctuation">;</span>
+    access<span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">;</span>     <span class="token comment">// 获取途径</span>
+    ascensionMaterials<span class="token operator">:</span> <span class="token punctuation">[</span>
+        <span class="token punctuation">[</span> <span class="token builtin">string</span><span class="token punctuation">,</span> <span class="token builtin">string</span><span class="token punctuation">,</span> <span class="token builtin">string</span><span class="token punctuation">,</span> <span class="token builtin">string</span> <span class="token punctuation">]</span><span class="token punctuation">,</span>
+        <span class="token punctuation">[</span> <span class="token builtin">string</span><span class="token punctuation">,</span> <span class="token builtin">string</span><span class="token punctuation">,</span> <span class="token builtin">string</span><span class="token punctuation">,</span> <span class="token builtin">string</span><span class="token punctuation">,</span> <span class="token builtin">string</span><span class="token punctuation">,</span> <span class="token builtin">string</span> <span class="token punctuation">]</span>
+    <span class="token punctuation">]</span><span class="token punctuation">;</span>                  <span class="token comment">// 突破素材</span>
+                        <span class="token comment">// 第一个元组表示武器副本掉落的突破材料（如狮牙斗士的枷锁）</span>
+                        <span class="token comment">// 第二个元组表示大世界怪物掉落物</span>
+                        <span class="token comment">//   - 其中前三个为精英怪掉落物（如 混沌装置-混沌回路-混沌炉心）</span>
+                        <span class="token comment">//   - 第四到六个为普通怪掉落物（如 导能绘卷-封魔绘卷-禁咒绘卷）</span>
+    skillName<span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">;</span>
+    skillContent<span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
+
+<span class="token keyword">type</span> <span class="token class-name">Response</span> <span class="token operator">=</span> CharacterInfo <span class="token operator">|</span> WeaponInfo<span class="token punctuation">;</span>
+</code></pre></div><h2 id="api-note"><a href="#api-note" class="header-anchor">#</a> <code>/api/note</code></h2> <p>实时便笺数据。</p> <p><strong>请求参数</strong></p> <ul><li><code>uid</code> 玩家 UID</li></ul> <p><strong>返回结果</strong></p> <div class="language-ts extra-class"><pre class="language-ts"><code><span class="token keyword">type</span> <span class="token class-name">Response</span> <span class="token operator">=</span> Note <span class="token operator">&amp;</span> <span class="token punctuation">{</span>
+    uid<span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
+<span class="token comment">// Note 见 /genshin/types/note.ts</span>
+</code></pre></div><h2 id="api-char"><a href="#api-char" class="header-anchor">#</a> <code>/api/char</code></h2> <p>用户查询单个角色数据。</p> <p><strong>请求参数</strong></p> <ul><li><code>qq</code> 用户的 QQ 号</li></ul> <p><strong>返回结果</strong></p> <div class="language-ts extra-class"><pre class="language-ts"><code><span class="token keyword">type</span> <span class="token class-name">Response</span> <span class="token operator">=</span> Omit<span class="token operator">&lt;</span>Avatar<span class="token punctuation">,</span> <span class="token string">&quot;reliquaries&quot;</span><span class="token operator">&gt;</span> <span class="token operator">&amp;</span> <span class="token punctuation">{</span> 
+    reliquaries<span class="token operator">:</span> Omit<span class="token operator">&lt;</span>Artifact<span class="token punctuation">,</span> <span class="token string">&quot;set&quot;</span><span class="token operator">&gt;</span><span class="token punctuation">;</span>
+    uid<span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
+<span class="token comment">// Avatar, Artifact 见 /genshin/types/character.ts</span>
+</code></pre></div><h2 id="api-abyss"><a href="#api-abyss" class="header-anchor">#</a> <code>/api/abyss</code></h2> <p>用户深渊数据。</p> <p><strong>请求参数</strong></p> <ul><li><code>qq</code> 用户的 QQ 号</li> <li><code>floor</code> 深渊层数</li></ul> <p><strong>返回结果</strong></p> <div class="language-ts extra-class"><pre class="language-ts"><code><span class="token keyword">type</span> <span class="token class-name">AbyssOverview</span> <span class="token operator">=</span> <span class="token punctuation">{</span>
+    floor<span class="token operator">:</span> <span class="token number">0</span><span class="token punctuation">;</span>
+    info<span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">;</span>           <span class="token comment">// UID-xxxxxxxxx</span>
+    totalStar<span class="token operator">:</span> <span class="token builtin">number</span><span class="token punctuation">;</span>
+    maxFloor<span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">;</span>
+    totalBattleTimes<span class="token operator">:</span> <span class="token builtin">number</span><span class="token punctuation">;</span>
+    revealRank<span class="token operator">:</span> AbyssCharacter<span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+    defeatRank<span class="token operator">:</span> AbyssCharacter<span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+    damageRank<span class="token operator">:</span> AbyssCharacter<span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+    takeDamageRank<span class="token operator">:</span> AbyssCharacter<span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+    normalSkillRank<span class="token operator">:</span> AbyssCharacter<span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+    energySkillRank<span class="token operator">:</span> AbyssCharacter<span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
+
+<span class="token keyword">type</span> <span class="token class-name">AbyssFloorData</span> <span class="token operator">=</span> <span class="token punctuation">{</span>
+    floor<span class="token operator">:</span> <span class="token builtin">number</span><span class="token punctuation">;</span>
+    info<span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">;</span>           <span class="token comment">// UID-xxxxxxxxx</span>
+    data<span class="token operator">:</span> AbyssFloor<span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
+
+<span class="token keyword">type</span> <span class="token class-name">Response</span> <span class="token operator">=</span> AbyssOverview <span class="token operator">|</span> AbyssFloorData<span class="token punctuation">;</span>
+<span class="token comment">// AbyssFloor, AbyssCharacter 见 /genshin/types/abyss.ts</span>
+</code></pre></div><h2 id="api-daily"><a href="#api-daily" class="header-anchor">#</a> <code>/api/daily</code></h2> <p>每日素材数据。</p> <p><strong>请求参数</strong></p> <ul><li><code>id</code> 请求 ID，用户为 QQ 号，0 表示群号（全体数据）</li></ul> <p><strong>返回结果</strong></p> <div class="language-ts extra-class"><pre class="language-ts"><code><span class="token keyword">type</span> <span class="token class-name">Response</span> <span class="token operator">=</span> <span class="token punctuation">{</span>
+    weapon<span class="token operator">:</span> Record<span class="token operator">&lt;</span><span class="token builtin">string</span><span class="token punctuation">,</span> DailyInfo<span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token operator">&gt;</span><span class="token punctuation">;</span>
+    character<span class="token operator">:</span> Record<span class="token operator">&lt;</span><span class="token builtin">string</span><span class="token punctuation">,</span> DailyInfo<span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token operator">&gt;</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
+<span class="token comment">// DailyInfo 见 /genshin/modules/daily.ts</span>
+<span class="token comment">// 处于历史遗留因素，该数据被压缩为如下的形式:</span>
+<span class="token comment">// { &quot;鸣神御灵&quot;: [ { name: 赤角石溃杵, rarity: 5 } ] }</span>
+</code></pre></div><h2 id="api-almanac"><a href="#api-almanac" class="header-anchor">#</a> <code>/api/almanac</code></h2> <p>黄历数据。</p> <p><strong>返回结果</strong></p> <div class="language-ts extra-class"><pre class="language-ts"><code><span class="token keyword">type</span> <span class="token class-name">Response</span> <span class="token operator">=</span> <span class="token punctuation">{</span>
+    auspicious<span class="token operator">:</span> FortuneUnit<span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+    inauspicious<span class="token operator">:</span> FortuneUnit<span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+    direction<span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
+<span class="token comment">// FortuneUnit 见 /genshin/module/almanac.ts</span>
+</code></pre></div></div> <footer class="page-edit"><!----> <!----></footer> <!----> </main></div><div class="global-ui"></div></div>
+    <script src="/assets/js/app.26375a0d.js" defer></script><script src="/assets/js/2.44b34a9f.js" defer></script><script src="/assets/js/12.cfcc5932.js" defer></script>
+  </body>
+</html>
