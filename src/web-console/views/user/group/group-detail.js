@@ -31,7 +31,7 @@ const template = `<el-dialog v-model="showModal" custom-class="group-detail-dial
 					<template v-if="management.limits?.length" >
 						<li v-for="(l, lKey) of management.limits" :key="lKey" @click="changeCurrentKey(l)">{{ l }}</li>
 					</template>
-					<li class="limit-empty" v-else>该用户可以使用全部指令</li>
+					<li class="limit-empty" v-else>该群组可以使用全部指令</li>
 				</ul>
 			</el-scrollbar>
 		</div>

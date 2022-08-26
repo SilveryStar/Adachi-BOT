@@ -110,17 +110,22 @@ export default express.Router()
 			return;
 		}
 		
+		// 递增发送延迟，发送次数
+		let delayTimer: number = 0, sendCount: number = 0;
+		/* 向选中列表发送，否则向全部群聊发送 */
 		if ( groupIds && groupIds.length !== 0 ) {
 			groupIds.forEach( groupId => {
-				sendToGroupMsg( groupId, content );
+				sendCount++
+				delayTimer = sendToGroupMsg( groupId, content, delayTimer, sendCount );
 			} )
 		} else {
 			const groupList = bot.client.gl;
 			groupList.forEach( ( _, groupId ) => {
-				sendToGroupMsg( groupId, content );
+				sendCount++
+				delayTimer = sendToGroupMsg( groupId, content, delayTimer, sendCount );
 			} )
 		}
-		const cdTime = new Date().getTime() + 3 * 60 * 1000;
+		const cdTime = new Date().getTime() + delayTimer;
 		await bot.redis.setString( timoutDbKey, cdTime );
 		res.status( 200 ).send( { code: 200, data: { cdTime }, msg: "Success" } );
 	} )
@@ -159,13 +164,15 @@ async function getGroupInfo( info: GroupInfo ): Promise<GroupData> {
 	return { groupId, groupName, groupAvatar, groupAuth, groupRole, interval, limits }
 }
 
-/* 向群聊发送消息 */
-function sendToGroupMsg( groupId: number, content: string ) {
-	const date = new Date();
-	const randomSeconds: number = Math.floor( Math.random() * 300 );
-	date.setSeconds( date.getSeconds() + randomSeconds );
-	
-	scheduleJob( date, async () => {
+/* 向随机间隔1-4s向群聊发送消息，每发送8-12次，下一次间隔改为6-20s */
+function sendToGroupMsg( groupId: number, content: string, delay: number, count: number ): number {
+	const splitRandom = Math.floor( Math.random() * ( 12 - 8 ) + 8 );
+	const maxSec = count % splitRandom === 0 ? 20 : 4;
+	const minSec = count % splitRandom === 0 ? 6 : 1;
+	const randomSeconds: number = Math.floor( ( Math.random() * ( maxSec - minSec ) + minSec ) * 1000 ) + delay;
+	setTimeout( async () => {
 		await bot.client.sendGroupMsg( groupId, content );
-	} );
+	}, randomSeconds );
+	
+	return randomSeconds;
 }

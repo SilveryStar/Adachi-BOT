@@ -18,7 +18,9 @@ const template = `
 			<p class="title">群发消息</p>
 			<el-input v-model="content" type="textarea" maxlength="120" resize="none" rows="4" show-word-limit></el-input>
 			<p class="desc">
-				为防止同时群发消息导致风控，消息发送后，将在3分钟内随机推送至各个群聊。
+				<span>为防止同时群发消息导致风控，消息发送后，将依照以下机制在一定时间后随机推送至各个群聊：</span><br />
+				<span>- 每次间隔随机1-4s后发送;</span><br />
+				<span>- 发送8-12次后，下一次随机6-20s后发送。</span>
 			</p>
 			<el-button class="save" @click="msgSendBatch" round>发送</el-button>
 		</div>

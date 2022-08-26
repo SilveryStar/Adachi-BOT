@@ -19,7 +19,25 @@ export interface PageFunction {
 
 export type RenderResult = RenderSuccess | RenderError;
 
-export class Renderer {
+export interface ScreenshotRendererMethods {
+	asBase64( route: string, params?: Record<string, any>, viewPort?: puppeteer.Viewport | null, selector?: string ): Promise<RenderResult>;
+	asCqCode( route: string, params?: Record<string, any>, viewPort?: puppeteer.Viewport | null, selector?: string ): Promise<RenderResult>;
+	asForFunction( route: string, pageFunction: PageFunction, viewPort?: puppeteer.Viewport | null, params?: Record<string, any> ): Promise<RenderResult>;
+}
+
+export interface RenderMethods {
+	register(name: string, route: string, port: number, defaultSelector: string): Renderer;
+	/* 浏览器相关 */
+	closeBrowser(): Promise<void>;
+	launchBrowser(): Promise<puppeteer.Browser>;
+	restartBrowser(): Promise<void>;
+	refresh(): Promise<string>;
+	/* 截图 */
+	screenshot( url: string, viewPort: puppeteer.Viewport | null, selector: string ): Promise<string>;
+	screenshotForFunction( url: string, viewPort: puppeteer.Viewport | null, pageFunction: PageFunction ): Promise<string>
+}
+
+export class Renderer implements ScreenshotRendererMethods {
 	private readonly httpBase: string;
 	
 	constructor(
@@ -92,7 +110,7 @@ export class Renderer {
 	}
 }
 
-export class BasicRenderer {
+export class BasicRenderer implements RenderMethods {
 	private browser?: puppeteer.Browser;
 	private screenshotCount: number = 0;
 	

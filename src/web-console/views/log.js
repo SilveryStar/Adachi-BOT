@@ -1,25 +1,40 @@
 const template = `<div class="logger">
-	<div class="picker">
-		<el-date-picker
-			v-model="currentDate"
-			type="date"
-			placeholder="选择日期"
-			format="MM-DD"
-			:clearable="false"
-			:editable="false"
-			:disabled-date="disabledDate"
-			@change="dateChange"
-		/>
-		<div v-if="today" class="auto-bottom-switch">
-			<span class="content">自动置底</span>
-			<el-switch
-				v-model="autoBottom"
-				active-color="#20a53a"
-				inactive-color="#f1f1f1"
+	<el-scrollbar class="horizontal-wrap">
+		<div class="picker">
+			<el-date-picker
+				v-model="currentDate"
+				type="date"
+				placeholder="选择日期"
+				format="MM-DD"
+				:clearable="false"
+				:editable="false"
+				:disabled-date="disabledDate"
+				@change="dateChange"
 			/>
+			<div v-if="today" class="log-nav-item">
+				<span class="content">自动置底</span>
+				<el-switch
+					v-model="autoBottom"
+					active-color="#20a53a"
+					inactive-color="#f1f1f1"
+				/>
+			</div>
+			<div class="log-nav-item">
+				<el-select v-model="queryParams.logLevel" placeholder="日志等级" @change="pageChange" @clear="pageChange" clearable>
+    				<el-option v-for="(l, lKey) of logLevel" :key="lKey" :label="l" :value="l"/>
+  				</el-select>
+			</div>
+			<div class="log-nav-item">
+				<el-select v-model="queryParams.msgType" placeholder="类型" @change="msgTypeChange" @clear="msgTypeChange" clearable>
+    				<el-option v-for="(t, tKey) of msgType" :key="tKey" :label="t.label" :value="t.value"/>
+  				</el-select>
+			</div>
+			<div v-show="queryParams.msgType === 2" class="log-nav-item">
+				<el-input v-model="queryParams.groupId" placeholder="请输入群号" @keydown.enter="pageChange" @clear="pageChange" clearable></el-input>
+			</div>
+			<div class="copy-button" @click="copyAsReportFormat">去隐私复制</div>
 		</div>
-		<div class="copy-button" @click="copyAsReportFormat">去隐私复制</div>
-	</div>
+	</el-scrollbar>
 	<div class="log-container">
 		<p v-if="currentDate === ''" class="empty-promote">
 			请选择日期以查看日志...
@@ -69,6 +84,26 @@ export default defineComponent( {
 			pageSize: 750,
 			totalLog: 0
 		} );
+		
+		const logLevel = [ "TRACE", "DEBUG", "INFO", "WARN", "ERROR", "FATAL", "MARK" ];
+		
+		const msgType = [ {
+			label: "系统",
+			value: 0
+		}, {
+			label: "私聊",
+			value: 1
+		}, {
+			label: "群聊",
+			value: 2
+		} ]
+		
+		const queryParams = ref( {
+			logLevel: "",
+			msgType: null,
+			groupId: ""
+		} )
+		
 		const scrollbarRef = ref( null );
 		
 		/* 获取当前最大分页 */
@@ -121,11 +156,13 @@ export default defineComponent( {
 				const resp = await $http.LOG_INFO( {
 					date: date.getTime(),
 					page: state.currentPage,
-					length: state.pageSize
+					length: state.pageSize,
+					...queryParams.value
 				}, "GET" )
 				if ( resp.data.length ) {
 					state.list = resp.data;
 					state.totalLog = resp.total;
+					state.error = false;
 				} else {
 					state.error = true;
 				}
@@ -156,10 +193,17 @@ export default defineComponent( {
 		
 		/* 切换分页 */
 		async function pageChange( page, isBottom ) {
-			if ( !isBottom ) {
+			console.log( '????' )
+			if ( !isBottom && scrollbarRef.value ) {
 				scrollbarRef.value.wrap$.scrollTop = 0;
 			}
 			await getLogsData();
+		}
+		
+		/* 切换消息类型 */
+		async function msgTypeChange() {
+			queryParams.value.groupId = "";
+			await pageChange();
 		}
 		
 		/* 滚动至底部 */
@@ -235,9 +279,13 @@ export default defineComponent( {
 		
 		return {
 			...toRefs( state ),
+			logLevel,
+			msgType,
+			queryParams,
 			scrollbarRef,
 			dateChange,
 			pageChange,
+			msgTypeChange,
 			disabledDate,
 			copyAsReportFormat
 		};

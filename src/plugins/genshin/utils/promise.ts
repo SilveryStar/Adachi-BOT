@@ -282,7 +282,7 @@ export async function abyssInfoPromise(
 		const data: any = JSON.parse( detail );
 		if ( data.uid === uid && data.period === period ) {
 			bot.logger.info( `用户 ${ uid } 在一小时内进行过深渊查询操作，将返回上次数据` );
-			return Promise.reject( "gotten" );
+			throw "gotten";
 		}
 	}
 	
@@ -291,8 +291,15 @@ export async function abyssInfoPromise(
 		// cookies.increaseIndex();
 	}
 	let { retcode, message, data } = await api.getSpiralAbyssInfo( uid, server, period, cookie );
+	
 	if ( !ApiType.isAbyss( data ) ) {
-		return Promise.reject( ErrorMsg.UNKNOWN );
+		throw ErrorMsg.UNKNOWN;
+	}
+	
+	if ( retcode === 10001 ) {
+		throw Cookies.checkExpired( cookie );
+	} else if ( retcode !== 0 ) {
+		throw await checkQueryTimes( ErrorMsg.FORM_MESSAGE + message );
 	}
 	
 	const idMap: Record<number, string> = {};
@@ -319,20 +326,9 @@ export async function abyssInfoPromise(
 		damageRank: getRankWithName( data.damageRank ),
 	}
 	
-	return new Promise( async ( resolve, reject ) => {
-		if ( retcode === 10001 ) {
-			reject( Cookies.checkExpired( cookie ) );
-			return;
-		} else if ( retcode !== 0 ) {
-			reject( await checkQueryTimes( ErrorMsg.FORM_MESSAGE + message ) );
-			return;
-		}
-		
-		await bot.redis.setString( dbKey, JSON.stringify( { ...data, uid, period } ) );
-		await bot.redis.setTimeout( dbKey, 3600 );
-		bot.logger.info( `用户 ${ uid } 的深渊数据查询成功，数据已缓存` );
-		resolve();
-	} );
+	await bot.redis.setString( dbKey, JSON.stringify( { ...data, uid, period } ) );
+	await bot.redis.setTimeout( dbKey, 3600 );
+	bot.logger.info( `用户 ${ uid } 的深渊数据查询成功，数据已缓存` );
 }
 
 export async function ledgerPromise(

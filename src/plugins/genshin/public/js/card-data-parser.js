@@ -56,6 +56,10 @@ export function cardDataParser( data ) {
 			icon: "https://adachi-bot.oss-cn-beijing.aliyuncs.com/images/culus/Electroculus.png",
 			label: "雷神瞳数",
 			value: stats.electroculusNumber
+		}, {
+			icon: "https://adachi-bot.oss-cn-beijing.aliyuncs.com/images/culus/Dendroculus.png",
+			label: "草神瞳数",
+			value: stats.dendroculusNumber
 		} ]
 	};
 	
