@@ -12,11 +12,17 @@
 	box-sizing: border-box;
 }
 
+.logger > .horizontal-wrap,
+.logger .picker .select-trigger {
+	height: 38px;
+}
+
 .logger .picker {
 	position: relative;
-	display: inline-block;
+	display: flex;
+	align-items: center;
+	flex-wrap: nowrap;
 	height: 38px;
-	width: 100%;
 	background-color: #f1f1f1;
 }
 
@@ -30,19 +36,41 @@
 	vertical-align: middle;
 }
 
-.logger .picker .el-input__inner {
-	position: absolute;
-	border: none;
-	border-radius: unset;
-	top: 0;
-	height: 38px;
-	color: #ffffff;
-	font-size: 14px;
+.logger .picker .el-input__wrapper {
+	position: relative;
+	padding: 0;
+	box-shadow: none !important;
+	border-radius: 0;
 	background-color: #424242;
 }
 
+.logger .picker .el-select .el-input .el-input__wrapper {
+	box-shadow: none !important;
+}
+
+.logger .picker .log-nav-item > .el-input .el-input__inner::placeholder {
+	color: #999;
+}
+
+.logger .picker .log-nav-item > .el-input .el-input__wrapper::after {
+	content: "";
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: 6px;
+	height: 1px;
+	background-color: #fff;
+}
+
+.logger .picker .el-input__inner {
+	border-radius: unset;
+	height: 38px;
+	color: #fff;
+	font-size: 14px;
+}
+
 .logger .picker .el-input__inner::placeholder {
-	color: #ffffff;
+	color: #fff;
 }
 
 .logger .picker .el-input--prefix .el-input__inner {
@@ -59,7 +87,7 @@
 	color: #10952a;
 }
 
-.picker .auto-bottom-switch {
+.picker .log-nav-item {
 	position: relative;
 	display: inline-flex;
 	width: 20%;
@@ -201,13 +229,27 @@
 		bottom: 12px;
 	}
 
+	.logger .horizontal-wrap,
+	.logger .picker .select-trigger {
+		height: 30px;
+		line-height: 26px;
+	}
+
 	.logger .picker {
 		background-color: #e8e8e8;
 		height: 30px;
 	}
 
+	.logger .picker .log-nav-item > .el-input .el-input__wrapper::after {
+		bottom: 4px;
+	}
+
 	.logger .picker .el-input {
 		height: 30px;
+	}
+
+	.logger .picker .el-input__wrapper {
+		padding: 0 5px;
 	}
 
 	.logger .picker .el-input__inner,
@@ -217,7 +259,7 @@
 		line-height: 30px;
 	}
 
-	.picker .auto-bottom-switch {
+	.picker .log-nav-item {
 		height: 30px;
 	}
 

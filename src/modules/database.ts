@@ -12,6 +12,8 @@ interface DatabaseMethod {
 	delHash( key: string, ...fields: string[] ): Promise<void>;
 	incHash( key: string, field: string, increment: number ): Promise<void>;
 	existHashKey( key: string, field: string ): Promise<boolean>;
+	setHashField(key: string, field: string, value: string): Promise<void>
+	getHashField(key: string, field: string): Promise<any>;
 	/* String */
 	setString( key: string, value: any, timeout?: number ): Promise<void>;
 	getString( key: string ): Promise<string | null>;

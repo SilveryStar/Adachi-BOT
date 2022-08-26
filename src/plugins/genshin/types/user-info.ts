@@ -58,6 +58,7 @@ export interface UserCharacter {
  * @commonChestNumber 普通宝箱数
  * @magicChestNumber 奇馈宝箱
  * @electroculusNumber 雷神瞳数
+ * @dendroculusNumber 草神瞳数
  * */
 export interface Stats {
 	activeDayNumber: number;
@@ -75,6 +76,7 @@ export interface Stats {
 	commonChestNumber: number;
 	magicChestNumber: number;
 	electroculusNumber: number;
+	dendroculusNumber: number;
 }
 
 /**
