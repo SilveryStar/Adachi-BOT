@@ -7,9 +7,8 @@ const template = `<div class="table-container user group-page">
     	</el-scrollbar>
 	</div>
     <div class="table-view">
-		<el-table v-loading="tableLoading" :data="groupList" header-row-class-name="table-header" :height="tableHeight" stripe border @selection-change="selectionChange">
+		<el-table v-loading="tableLoading" :data="groupList" header-row-class-name="table-header" :height="tableHeight" stripe @selection-change="selectionChange">
         	<el-table-column fixed="left" type="selection" width="50" align="center" prop="selection" label="筛选"></el-table-column>
-			<el-table-column prop="index" type="index" :index="setRowIndex" align="center" min-width="50px"></el-table-column>
 			<el-table-column prop="groupId" label="群号" align="center" min-width="110px"></el-table-column>
 			<el-table-column prop="avatar" label="用户" align="center" min-width="230px">
 				<template #default="{row}">
@@ -80,7 +79,7 @@ export default defineComponent( {
 			groupList: [],
 			cmdKeys: [],
 			currentPage: 1,
-			pageSize: 10,
+			pageSize: 14,
 			totalGroup: 0,
 			tableLoading: false,
 			showGroupModal: false,
@@ -113,7 +112,7 @@ export default defineComponent( {
 		} ];
 		
 		const tableHeight = computed( () => {
-			return `${ deviceHeight.value - ( device.value === "mobile" ? 236 : 278 ) - ( showTab.value ? 40 : 0 ) }px`;
+			return `${ deviceHeight.value - ( device.value === "mobile" ? 240 : 240 ) - ( showTab.value ? 40 : 0 ) }px`;
 		} );
 		
 		onMounted( () => {
@@ -194,10 +193,6 @@ export default defineComponent( {
 			state.selectGroup = {};
 		}
 		
-		/* 设置行首index */
-		function setRowIndex( index ) {
-			return index + ( state.currentPage - 1 ) * state.pageSize + 1
-		}
 		
 		return {
 			...toRefs( state ),
@@ -210,7 +205,6 @@ export default defineComponent( {
 			authLevel,
 			getRole,
 			getGroupData,
-			setRowIndex,
 			exitGroup,
 			selectionChange,
 			openGroupModal,

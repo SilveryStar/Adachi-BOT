@@ -59,19 +59,19 @@
 .user-layout > .content > .el-scrollbar {
 	--content-height: calc(var(--app-height) - var(--header-height) - var(--extra-header));
 	height: var(--content-height);
-	background-color: #f9f9f9;
+	background-color: #f0f2f5;
 }
 
 .user-layout > .content > .el-scrollbar .main-view {
 	position: relative;
-	padding: 30px 30px 12px;
+	padding: 12px;
 	min-height: calc(var(--content-height) - var(--footer-height));
 	box-sizing: border-box;
 	overflow: hidden;
 }
 
 .user-layout > .content > .el-scrollbar .footer-view {
-	padding: 0 30px;
+	padding: 0 12px;
 	height: var(--footer-height);
 }
 
@@ -87,10 +87,10 @@
 
 .header-view > .header-menu > .nav-left > .el-breadcrumb .el-breadcrumb__inner span,
 .header-view > .header-menu > .nav-left > .el-breadcrumb .el-breadcrumb__inner a {
-	font-size: 16px;
+	font-size: 14px;
 	line-height: 20px;
 	font-weight: 500;
-	color: #999;
+	color: #666;
 }
 
 /* 头部按钮样式 */
@@ -102,11 +102,11 @@
 }
 
 .header-view > .header-menu .nav-btn:hover {
-	background-color: #f9f9f9;
+	background-color: #f0f2f5;
 }
 
 .header-view > .header-menu .nav-btn > i {
-	font-size: 26px;
+	font-size: 20px;
 	font-weight: 300;
 }
 
@@ -221,11 +221,12 @@
 }
 
 .aside-view .el-menu .el-menu-item.is-active {
+	background-color: #fff9e7!important;
 	border-left-color: var(--base-color);
 }
 
 .aside-view .el-menu .el-menu-item:hover {
-	background-color: #f9f9f9;
+	background-color: #f0f2f5;
 }
 
 /* 阴影 */
@@ -255,13 +256,5 @@
 @media (max-width: 768px) {
 	.user-layout > .content {
 		padding-left: 0;
-	}
-
-	.user-layout > .content > .el-scrollbar .main-view {
-		padding: 12px;
-	}
-
-	.user-layout > .content > .el-scrollbar .footer-view {
-		padding: 0 12px;
 	}
 }

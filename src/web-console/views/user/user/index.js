@@ -5,8 +5,8 @@ const template = `<div class="table-container user user-page">
     	</el-scrollbar>
 	</div>
     <div class="table-view">
-		<el-table v-loading="tableLoading" :data="userList" header-row-class-name="table-header" :height="tableHeight" stripe border>
-			<el-table-column prop="index" type="index" :index="setRowIndex" align="center" min-width="50px"></el-table-column>
+		<el-table v-loading="tableLoading" :data="userList" header-row-class-name="table-header" :height="tableHeight" stripe>
+			<el-table-column fixed="left" type="selection" width="50" align="center" prop="selection" label="筛选"></el-table-column>
 			<el-table-column prop="userID" label="QQ" align="center" min-width="110px"></el-table-column>
 			<el-table-column prop="avatar" label="用户" align="center" min-width="230px">
 				<template #default="{row}">
@@ -77,7 +77,7 @@ export default defineComponent( {
 			userList: [],
 			cmdKeys: [],
 			currentPage: 1,
-			pageSize: 10,
+			pageSize: 14,
 			totalUser: 0,
 			tableLoading: false,
 			showUserModal: false,
@@ -128,7 +128,7 @@ export default defineComponent( {
 		} ];
 		
 		const tableHeight = computed( () => {
-			return `${ deviceHeight.value - ( device.value === "mobile" ? 236 : 278 ) - ( showTab.value ? 40 : 0 ) }px`;
+			return `${ deviceHeight.value - ( device.value === "mobile" ? 240 : 240 ) - ( showTab.value ? 40 : 0 ) }px`;
 		} );
 		
 		onMounted( () => {
@@ -180,11 +180,6 @@ export default defineComponent( {
 			state.selectUser = {};
 		}
 		
-		/* 设置行首index */
-		function setRowIndex( index ) {
-			return index + ( state.currentPage - 1 ) * state.pageSize + 1
-		}
-		
 		return {
 			...toRefs( state ),
 			userDetailRef,
@@ -196,7 +191,6 @@ export default defineComponent( {
 			searchList,
 			getUserData,
 			removeSub,
-			setRowIndex,
 			openUserModal,
 			resetCurrentData
 		};

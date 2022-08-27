@@ -1,8 +1,8 @@
 .logger {
 	position: absolute;
-	top: 30px;
-	left: 30px;
-	right: 30px;
+	top: 12px;
+	left: 12px;
+	right: 12px;
 	bottom: 12px;
 	padding: var(--box-padding);
 	background-color: #ffffff;
@@ -223,10 +223,6 @@
 @media (max-width: 768px) {
 	.logger {
 		padding: 0;
-		top: 12px;
-		left: 12px;
-		right: 12px;
-		bottom: 12px;
 	}
 
 	.logger .horizontal-wrap,

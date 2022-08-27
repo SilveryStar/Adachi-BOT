@@ -1,16 +1,32 @@
+:root {
+	--app-height: auto;
+	--base-color: #F9D87F;
+	--header-height: 60px;
+	--nav-height: 40px;
+	--aside-width: 240px;
+	--logo-height: 50px;
+	--footer-height: 36px;
+	--mobile-header: 46px;
+	--box-padding: 12px;
+	--box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+}
+
 /* 表格 */
 .table-container {
 	min-height: 100%;
 	display: flex;
 	flex-direction: column;
+	padding: var(--box-padding);
+	background-color: #fff;
+	border-radius: 4px;
+	box-shadow: var(--box-shadow);
 }
 
 .table-container > .nav-btn-box {
 	position: relative;
 	margin-bottom: 10px;
-	background-color: #fff;
-	border-radius: 4px;
-	box-shadow: var(--box-shadow);
+	/*border-radius: 4px;*/
+	/*box-shadow: var(--box-shadow);*/
 }
 
 .table-container > .nav-btn-box > .el-scrollbar {
@@ -19,23 +35,36 @@
 
 .table-container > .table-view {
 	flex: 1;
-	padding: var(--box-padding);
 	background-color: #fff;
-	border-radius: 4px;
-	box-shadow: var(--box-shadow);
 }
 
 .table-container > .table-view > .el-table {
 	height: 100%;
+	font-size: 12px;
+}
+
+/* 按钮 */
+.table-container > .table-view > .el-table .el-button {
+	padding: 0;
+	height: 14px;
+	font-size: 12px;
+}
+
+.table-container > .table-view > .el-table .el-button + .el-button {
+	margin-left: 6px;
 }
 
 .table-container > .table-view > .el-table .table-header {
-	background-color: #333;
-	color: #fff;
+	background-color: #eee;
+	color: #888;
 }
 
 .table-container > .table-view > .el-table .table-header th {
 	background-color: transparent;
+}
+
+.table-container > .table-view > .el-table .el-table__body .cell {
+	line-height: 14px;
 }
 
 .table-container > .table-view > .el-pagination {

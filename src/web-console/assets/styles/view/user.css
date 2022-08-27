@@ -7,8 +7,8 @@
 }
 
 .user > .table-view > .el-table .user-info .user-avatar {
-	width: 38px;
-	height: 38px;
+	width: 24px;
+	height: 24px;
 	border-radius: 4px;
 }
 
@@ -21,21 +21,11 @@
 /* 表格高亮块 */
 .user > .table-view > .el-table .lighter-block {
 	display: inline-block;
-	padding: 2px 8px;
-	width: 72px;
+	padding: 3px 6px;
 	background-color: #727272;
 	border-radius: 4px;
 	color: #fff;
 	font-size: 12px;
-}
-
-/* 按钮 */
-.user > .table-view > .el-table .el-button {
-	font-size: 12px;
-}
-
-.user > .table-view > .el-table .el-button + .el-button {
-	margin-left: 6px;
 }
 
 /* 弹窗 */
