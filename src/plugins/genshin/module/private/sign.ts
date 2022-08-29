@@ -1,5 +1,5 @@
-import { randomInt } from "#genshin/utils/random";
-import { signInInfoPromise, signInResultPromise } from "#genshin/utils/promise";
+import { randomInt, randomSleep } from "#genshin/utils/random";
+import { ErrorMsg, signInInfoPromise, signInResultPromise } from "#genshin/utils/promise";
 import { scheduleJob, Job } from "node-schedule";
 import { Private, Service } from "./main";
 import { SignInInfo } from "#genshin/types";
@@ -58,7 +58,7 @@ export class SignInService implements Service {
 	}
 	
 	
-	private async sign( reply: boolean = true ): Promise<void> {
+	private async sign( reply: boolean = true, tryTime: number = 0 ): Promise<void> {
 		const { uid, server, cookie } = this.parent.setting;
 		try {
 			const info = <SignInInfo>( await signInInfoPromise( uid, server, cookie ) );
@@ -71,6 +71,14 @@ export class SignInService implements Service {
 				`[UID${ uid }] - 今日签到完成，本月累计签到 ${ info.totalSignDay + 1 } 天`
 			);
 		} catch ( error ) {
+			tryTime++;
+			/* 触发验证码后再次尝试签到 */
+			if ( <string>error === ErrorMsg.VERIFICATION_CODE && tryTime <= 3 ) {
+				bot.logger.info( `[UID${ uid }] - 触发验证码，即将在3-5分钟后进行第${ tryTime }次重试，上限3次` );
+				await randomSleep( 180, 300, true );
+				await this.sign( reply, tryTime );
+				return;
+			}
 			await this.parent.sendMessage( <string>error );
 		}
 	}
