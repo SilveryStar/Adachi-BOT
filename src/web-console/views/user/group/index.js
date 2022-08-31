@@ -1,7 +1,7 @@
 const template = `<div class="table-container user group-page">
 	<div class="nav-btn-box">
     	<el-scrollbar class="horizontal-wrap">
-			<nav-search :searchList="searchList" :searchData="listQuery" :showNum="1" :disabled="tableLoading" @change="getGroupData">
+			<nav-search :searchList="searchList" :searchData="listQuery" :showNum="1" :disabled="tableLoading" @change="handleFilter">
 				<send-msg ref="sendMsgRef" :disabled="tableLoading" :selection-list="selectionList"></send-msg>
 			</nav-search>
     	</el-scrollbar>
@@ -143,6 +143,12 @@ export default defineComponent( {
 			} );
 		}
 		
+		/* 筛选条件变化查询 */
+		async function handleFilter() {
+			state.currentPage = 1;
+			await getGroupData();
+		}
+		
 		async function exitGroup( groupId ) {
 			try {
 				await ElMessageBox.confirm( "确定退出/解散此群聊？", "提示", {
@@ -208,6 +214,7 @@ export default defineComponent( {
 			exitGroup,
 			selectionChange,
 			openGroupModal,
+			handleFilter,
 			resetCurrentData
 		};
 	}

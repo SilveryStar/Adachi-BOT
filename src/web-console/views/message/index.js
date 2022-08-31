@@ -1,7 +1,7 @@
 const template = `<div class="table-container message-page">
 	<div class="nav-btn-box">
     	<el-scrollbar class="horizontal-wrap">
-			<nav-search :searchList="searchList" :searchData="listQuery" :showNum="1" :disabled="tableLoading" @change="getMessageData"></nav-search>
+			<nav-search :searchList="searchList" :searchData="listQuery" :showNum="1" :disabled="tableLoading" @change="handleFilter"></nav-search>
     	</el-scrollbar>
 	</div>
     <div class="table-view">
@@ -99,6 +99,12 @@ export default defineComponent( {
 			} );
 		}
 		
+		/* 筛选条件变化查询 */
+		async function handleFilter() {
+			state.currentPage = 1;
+			await getMessageData();
+		}
+		
 		async function ignoreMessage( message ) {
 			try {
 				await ElMessageBox.confirm( "忽略后此消息将不再可见，是否继续？", '提示', {
@@ -140,6 +146,7 @@ export default defineComponent( {
 			searchList,
 			listQuery,
 			formatTime,
+			handleFilter,
 			formatContent,
 			getMessageData,
 			ignoreMessage,

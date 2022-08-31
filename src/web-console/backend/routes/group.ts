@@ -37,17 +37,18 @@ export default express.Router()
 				// 按入群时间排序
 				.sort( ( [ _, { last_join_time: prevTime } ], [ __, { last_join_time: nextTime } ] ) => {
 					return nextTime - prevTime;
-				} )
-				.slice( ( page - 1 ) * length, page * length )
+				} );
+			
+			const pageGroupData = groupData.slice( ( page - 1 ) * length, page * length );
 			
 			const groupInfos: GroupData[] = [];
 			
-			for ( const [ _, info ] of groupData ) {
+			for ( const [ _, info ] of pageGroupData ) {
 				groupInfos.push( await getGroupInfo( info ) );
 			}
 			
 			const cmdKeys: string[] = bot.command.cmdKeys;
-			res.status( 200 ).send( { code: 200, data: { groupInfos, cmdKeys }, total: glMap.size } );
+			res.status( 200 ).send( { code: 200, data: { groupInfos, cmdKeys }, total: groupData.length } );
 		} catch ( error ) {
 			res.status( 500 ).send( { code: 500, data: {}, msg: "Server Error" } );
 		}
