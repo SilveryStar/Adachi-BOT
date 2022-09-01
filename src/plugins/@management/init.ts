@@ -98,15 +98,16 @@ const restart: OrderConfig = {
 const upgrade_plugins: OrderConfig = {
 	type: "order",
 	cmdKey: "adachi.hot-upgrade-plugins",
-	desc: [ "更新插件", "(-f) (插件名)" ],
+	desc: [ "更新插件", "(-f) (-s) (插件名)" ],
 	headers: [ "upgrade_plugins" ],
-	regexps: [ "(-f)?", "([\u4E00-\u9FA5\\w\\-]+)?" ],
+	regexps: [ "(-f)?", "(-s)?", "([\u4E00-\u9FA5\\w\\-]+)?" ],
 	auth: AuthLevel.Master,
 	main: "upgrade-plugins",
 	detail: "该指令用于检测并更新 bot plugin 源码\n" +
 		"要求项目必须是通过 git clone 下载的且不能为 win-start 启动\n" +
 		"若存在更新则会更新插件并重启 bot\n" +
 		"在指令后追加 -f 来覆盖本地修改强制更新\n" +
+		"在指令后追加 -s 将不会自动重启 BOT \n" +
 		"不指定插件名将更新全部支持热更新的插件"
 }
 
