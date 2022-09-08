@@ -206,7 +206,7 @@ export default class Adachi {
 			/* 处理滑动验证码事件 */
 			this.bot.client.on( "system.login.slider", () => {
 				const number = this.bot.config.number;
-				this.bot.logger.mark( `请在10分钟内完成滑动验证,并将获取到的ticket写入到src/data/${ number }/ticket.txt文件中并保存(或在终端粘贴获取到的ticket)，不要重启服务!!!` );
+				this.bot.logger.mark( `请在5分钟内完成滑动验证,并将获取到的ticket写入到src/data/${ number }/ticket.txt文件中并保存(或在终端粘贴获取到的ticket)，不要重启服务!!!` );
 				const d = new Date();
 				// 创建空的ticket.txt
 				let dirName = `src/data/${ number }`;
@@ -221,8 +221,8 @@ export default class Adachi {
 				
 				// 定时去查看ticket文件是否已写入ticket
 				const job: Job = scheduleJob( "0/5 * * * * *", () => {
-					if ( d.setMinutes( d.getMinutes() + 10 ) > d.getTime() ) {
-						this.bot.logger.warn( "已超过10分钟了，请重新登录" )
+					if ( d.setMinutes( d.getMinutes() + 5 ) > d.getTime() ) {
+						this.bot.logger.warn( "已超过5分钟了，请重新登录" )
 						job.cancel();
 						return;
 					}
@@ -240,18 +240,55 @@ export default class Adachi {
 				} );
 			} );
 			/* 处理设备锁事件 */
-			this.bot.client.on( "system.login.device", () => {
-				this.bot.logger.mark( "请在2分钟内完成扫描码登录(或在完成扫码后按下Enter继续)...\n" );
-				const d = new Date();
-				const job: Job = scheduleJob( d.setMinutes( d.getMinutes() + 2 ), async () => {
-					this.bot.client.login();
-				} );
-				
-				/* 兼容终端输入 */
-				process.stdin.once( "data", () => {
-					this.bot.client.login();
-					job.cancel();
-				} );
+			this.bot.client.on( "system.login.device", ( { phone } ) => {
+				if ( phone ) {
+					const number = this.bot.config.number;
+					this.bot.logger.mark( `请在5分钟内将获取到的短信验证码写入到src/data/${ number }/code.txt文件中并保存(或在终端粘贴获取到的code)，不要重启服务!!!` );
+					this.bot.client.sendSMSCode();
+					const d = new Date();
+					// 创建空的code.txt
+					let dirName = `src/data/${ number }`;
+					let path = resolve( this.bot.file.root, dirName );
+					if ( !this.bot.file.isExist( path ) ) {
+						fs.mkdirSync( path, { recursive: true } );
+					}
+					const codePath = resolve( this.bot.file.root, `${ dirName }/code.txt` );
+					const opened: number = fs.openSync( codePath, "w" );
+					fs.writeSync( opened, "" );
+					fs.closeSync( opened );
+					
+					// 定时去查看ticket文件是否已写入ticket
+					const job: Job = scheduleJob( "0/5 * * * * *", () => {
+						if ( d.setMinutes( d.getMinutes() + 5 ) > d.getTime() ) {
+							this.bot.logger.warn( "已超过5分钟了，请重新登录" )
+							job.cancel();
+							return;
+						}
+						const file = readFileSync( codePath, "utf-8" );
+						if ( file ) {
+							this.bot.client.submitSMSCode( file );
+							job.cancel();
+						}
+					} )
+					
+					/* 兼容终端输入 */
+					process.stdin.once( "data", ( input ) => {
+						this.bot.client.submitSMSCode( input.toString() );
+						job.cancel();
+					} );
+				} else {
+					this.bot.logger.mark( "请在2分钟内完成扫描码登录(或在完成扫码后按下Enter继续)...\n" );
+					const d = new Date();
+					const job: Job = scheduleJob( d.setMinutes( d.getMinutes() + 2 ), async () => {
+						this.bot.client.login();
+					} );
+					
+					/* 兼容终端输入 */
+					process.stdin.once( "data", () => {
+						this.bot.client.login();
+						job.cancel();
+					} );
+				}
 			} );
 			this.bot.client.login( this.bot.config.password );
 		}

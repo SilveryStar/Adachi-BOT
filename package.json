@@ -1,6 +1,6 @@
 {
   "name": "adachi-bot",
-  "version": "2.6.9",
+  "version": "2.6.10",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -10,7 +10,6 @@
     "win-start": "ts-node -r tsconfig-paths/register app.ts --files",
     "docker-start": "pm2-runtime start adachi-bot.config.js",
     "restart": "npm i --registry https://registry.npmmirror.com && pm2 restart adachi-bot.config.js",
-    "docker-restart": "npm i --registry https://registry.npmmirror.com && pm2-runtime restart adachi-bot.config.js",
     "stop": "pm2 delete adachi-bot.config.js"
   },
   "keywords": [],
