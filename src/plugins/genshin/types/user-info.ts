@@ -1,7 +1,7 @@
 /**
  * @interface
  * 玩家游戏内数据
- * @role
+ * @role 基本信息
  * @avatars 角色列表
  * @stats 数据统计
  * @cityExplorations 疑似弃用，无内容
@@ -10,12 +10,27 @@
  * */
 export interface UserInfo {
 	type: "user-info";
-	role: null;
+	role: UserRole;
 	avatars: UserCharacter[];
 	stats: Stats;
 	cityExplorations: [] | any;
 	worldExplorations: Exploration[];
 	homes: Home[];
+}
+
+/**
+ * @interface
+ * 玩家基本信息
+ * @avatarUrl 空字符串
+ * @nickname 昵称
+ * @region 服务器
+ * @level 等级
+ */
+export interface UserRole {
+	avatarUrl: string;
+	nickname: string;
+	region: string;
+	level: number;
 }
 
 /**

@@ -4,7 +4,7 @@ import { MysQueryService } from "#genshin/module/private/mys";
 import { RenderResult } from "@modules/renderer";
 import { mysInfoPromise } from "#genshin/utils/promise";
 import { getPrivateAccount } from "#genshin/utils/private";
-import { config, renderer } from "#genshin/init";
+import { characterID, config, renderer } from "#genshin/init";
 import bot from "ROOT";
 
 export async function main(
@@ -27,12 +27,23 @@ export async function main(
 		}
 	}
 	
+	const appointId = info.options[MysQueryService.FixedField].appoint;
+	let appointName = "";
+	
+	for ( const name in characterID.map ) {
+		const mapId = characterID.map[name];
+		if ( mapId === parseInt( appointId ) ) {
+			appointName = name;
+			break;
+		}
+	}
+	
 	const res: RenderResult = await renderer.asCqCode(
 		"/card.html", {
 			qq: userID,
 			style: config.cardWeaponStyle,
 			profile: config.cardProfile,
-			appoint: info.options[ MysQueryService.FixedField ].appoint
+			appoint: appointName
 		} );
 	if ( res.code === "ok" ) {
 		await sendMessage( res.data );

@@ -122,6 +122,12 @@
 	font-size: 9px;
 }
 
+.card-base main .empty-avatar-tip {
+	margin: 10px 0 -10px;
+	color: #666;
+	text-align: center;
+}
+
 /* 作者 */
 .card-base footer {
 	padding-bottom: 12px;

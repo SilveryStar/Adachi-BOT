@@ -43,7 +43,7 @@
 .header-base .card-avatar-box {
 	position: absolute;
 	left: 50%;
-	bottom: -64px;
+	bottom: -46px;
 	transform: translateX(-50%);
 	display: flex;
 	flex-direction: column;
@@ -57,34 +57,18 @@
 }
 
 .header-base .card-avatar-box img {
-	width: 196px;
-	height: 196px;
-	border-radius: 50%;
-	box-sizing: border-box;
-	filter: drop-shadow(0 2px 4px #999);
-}
-
-.header-base .card-avatar-box.user.not-stranger {
-	bottom: -46px;
-}
-
-.header-base .card-avatar-box.user {
-	bottom: -66px;
-}
-
-.header-base .card-avatar-box.user p {
-	margin-bottom: -2px;
-}
-
-.header-base .card-avatar-box.user.not-stranger p {
-	margin-bottom: 18px;
-}
-
-.header-base .card-avatar-box.user.not-stranger img {
 	width: 156px;
 	height: 156px;
 	border: 1px solid #999;
 	box-shadow: 0 0 0 6px #fff;
+	border-radius: 50%;
+	box-sizing: border-box;
+	background: linear-gradient(0deg, #de9552 0%, #9a6d43 100%) #9a6d43;
+	filter: drop-shadow(0 2px 4px #999);
+}
+
+.header-base .card-avatar-box p {
+	margin-bottom: 18px;
 }
 
 /* uid */
