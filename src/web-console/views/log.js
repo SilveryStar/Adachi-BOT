@@ -125,7 +125,7 @@ export default defineComponent( {
 			let protocol = document.location.protocol === "https:" ? "wss:" : "ws:";
 			ws = new WebSocket( `${ protocol }//${ document.location.host }/ws/log` );
 			ws.addEventListener( "message", async ( event ) => {
-				const msg = JSON.parse( event.data );
+				const msg = filterWsLogs( JSON.parse( event.data ) );
 				if ( msg.length === 0 ) {
 					return;
 				}
@@ -137,6 +137,36 @@ export default defineComponent( {
 						} );
 					}
 				} );
+			} );
+		}
+		
+		/* 过滤 ws 传递的 logs 数据 */
+		function filterWsLogs( logs ) {
+			const logLevel = queryParams.value.logLevel;
+			const msgType = parseInt( queryParams.value.msgType );
+			const groupId = queryParams.value.groupId;
+			return logs.filter( el => {
+				/* 过滤日志等级 */
+				if ( logLevel && el.level !== logLevel.toUpperCase() ) {
+					return false;
+				}
+				/* 过滤消息类型 */
+				if ( !Number.isNaN( msgType ) ) {
+					const reg = /^(?:send to|recv from): \[(Group|Private): .*?(\d+)/;
+					const result = reg.exec( el.message );
+					if ( result ) {
+						const type = result[1];
+						if ( msgType !== ( type === 'Group' ? 2 : 1 ) ) {
+							return false;
+						}
+						if ( msgType === 2 && groupId && groupId !== result[2] ) {
+							return false;
+						}
+					} else if ( msgType !== 0 ) {
+						return false;
+					}
+				}
+				return true;
 			} );
 		}
 		
