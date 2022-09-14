@@ -15,6 +15,7 @@ import UserRouter from "./routes/user";
 import GroupRouter from "./routes/group";
 import StatRouter from "./routes/stat";
 import MessageRouter from "./routes/message";
+import { getTokenByRequest } from "@web-console/backend/utils/request";
 
 export default class WebConsole {
 	private readonly app: Express;
@@ -103,13 +104,7 @@ export default class WebConsole {
 			secret,
 			algorithms: [ "HS256" ],
 			getToken( req ) {
-				const auth = req.headers.authorization;
-				if ( auth && auth.split( " " )[0] === "Bearer" ) {
-					return auth.split( " " )[1]
-				} else if ( req.query && req.query.token ) {
-					return req.query.token;
-				}
-				return null;
+				return getTokenByRequest( req );
 			}
 		} );
 	}
