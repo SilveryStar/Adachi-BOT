@@ -15,6 +15,7 @@ import UserRouter from "./routes/user";
 import GroupRouter from "./routes/group";
 import StatRouter from "./routes/stat";
 import MessageRouter from "./routes/message";
+import ConfigRouter from "./routes/config";
 import { getTokenByRequest } from "@web-console/backend/utils/request";
 
 export default class WebConsole {
@@ -48,6 +49,7 @@ export default class WebConsole {
 		this.useApi( "/api/group", GroupRouter );
 		this.useApi( "/api/stat", StatRouter );
 		this.useApi( "/api/message", MessageRouter );
+		this.useApi( "/api/config", ConfigRouter );
 		
 		/* 捕获错误 */
 		this.app.use( WebConsole.ApiErrorCatch );

@@ -1,0 +1,11 @@
+.config .config-form {
+	padding: 10px 0 10px 20px;
+}
+
+.config .config-section {
+	margin-bottom: 15px;
+}
+
+.config .config-section:last-child {
+	margin-bottom: 0;
+}

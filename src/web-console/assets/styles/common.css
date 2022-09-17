@@ -13,13 +13,26 @@
 
 /* 表格 */
 .table-container {
-	min-height: 100%;
 	display: flex;
 	flex-direction: column;
+	position: relative;
 	padding: var(--box-padding);
+	min-height: calc(var(--content-height) - var(--footer-height) - 24px);
 	background-color: #fff;
 	border-radius: 4px;
 	box-shadow: var(--box-shadow);
+	box-sizing: border-box;
+}
+
+.table-container.fix-height {
+	height: calc(var(--content-height) - var(--footer-height) - 24px);
+}
+
+.table-container.no-background {
+	padding: 0;
+	background-color: transparent;
+	box-shadow: none;
+	border-radius: 0;
 }
 
 .table-container > .nav-btn-box {

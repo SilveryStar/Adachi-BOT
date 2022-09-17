@@ -12,7 +12,6 @@ export function getToken( secret: string, userID: number ): string {
 export function validateToken( secret: string, token: string ) {
 	try {
 		const verify = JWT.verify( token, secret );
-		console.log( verify )
 		if ( typeof verify === "string" ) {
 			return false;
 		}

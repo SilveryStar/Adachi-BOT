@@ -65,7 +65,6 @@
 .user-layout > .content > .el-scrollbar .main-view {
 	position: relative;
 	padding: 12px;
-	min-height: calc(var(--content-height) - var(--footer-height));
 	box-sizing: border-box;
 	overflow: hidden;
 }

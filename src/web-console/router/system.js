@@ -15,9 +15,36 @@ const systemRoutes = [
 	},
 	{
 		path: "/system/dashboard",
+		redirect: "/system/dashboard/main",
 		name: "Dashboard",
-		component: () => import("../views/dashboard.js"),
-		meta: { title: "控制台", icon: "icon-dashboard", layout: "system", group: "Mains" }
+		component: DefaultLayout,
+		meta: { title: "控制台", icon: "icon-dashboard", layout: "system", group: "Mains" },
+		children: [
+			{
+				path: "/system/dashboard/main",
+				name: "DashboardMain",
+				component: () => import("../views/dashboard/index.js"),
+				meta: { title: "总览", nav: true }
+			},
+			{
+				path: "/system/dashboard/setting",
+				name: "Setting",
+				component: () => import("../views/dashboard/setting.js"),
+				meta: { title: "基本配置", nav: true }
+			},
+			{
+				path: "/system/dashboard/commands",
+				name: "Commands",
+				component: () => import("../views/dashboard/commands.js"),
+				meta: { title: "指令配置", nav: true }
+			},
+			{
+				path: "/system/dashboard/other",
+				name: "OtherConfig",
+				component: () => import("../views/dashboard/other.js"),
+				meta: { title: "其他配置", nav: true }
+			}
+		]
 	},
 	{
 		path: "/system/log",

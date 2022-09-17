@@ -1,4 +1,4 @@
-const template = `<div class="table-container user user-page">
+const template = `<div class="table-container user">
 	<div class="nav-btn-box">
     	<el-scrollbar class="horizontal-wrap">
 			<nav-search :searchList="searchList" :searchData="listQuery" :showNum="1" :disabled="tableLoading" @change="handleFilter"></nav-search>

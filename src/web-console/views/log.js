@@ -1,4 +1,4 @@
-const template = `<div class="logger">
+const template = `<div class="table-container fix-height logger">
 	<el-scrollbar class="horizontal-wrap">
 		<div class="picker">
 			<el-date-picker

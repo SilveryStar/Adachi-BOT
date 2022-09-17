@@ -21,5 +21,8 @@ export default {
 	MESSAGE_SEND: "/message/send",
 	MESSAGE_REMOVE: "/message/remove",
 	/* 检测 */
-	CHECK_PASSWORD: "/check/password"
+	CHECK_PASSWORD: "/check/password",
+	/* 配置 */
+	CONFIG_GET: "/config",
+	CONFIG_SET: "/config/set"
 }
