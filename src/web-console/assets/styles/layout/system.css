@@ -93,18 +93,23 @@
 }
 
 /* 头部按钮样式 */
-.header-view > .header-menu .nav-btn {
+.header-view > .header-menu > .nav-right {
+	display: flex;
+	align-items: center;
+	column-gap: 10px;
+}
+.header-view > .header-menu > .nav-right > .nav-btn {
 	padding: 7px;
 	border-radius: 4px;
 	cursor: pointer;
 	transition: background-color .3s;
 }
 
-.header-view > .header-menu .nav-btn:hover {
+.header-view > .header-menu > .nav-right > .nav-btn:hover {
 	background-color: #f0f2f5;
 }
 
-.header-view > .header-menu .nav-btn > i {
+.header-view > .header-menu > .nav-right > .nav-btn > i {
 	font-size: 20px;
 	font-weight: 300;
 }

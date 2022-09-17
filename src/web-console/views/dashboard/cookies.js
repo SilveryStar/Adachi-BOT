@@ -92,7 +92,7 @@ export default defineComponent( {
 				} );
 				ElNotification( {
 					title: "成功",
-					message: `更新成功。`,
+					message: "更新成功。",
 					type: "success",
 					duration: 1000
 				} );

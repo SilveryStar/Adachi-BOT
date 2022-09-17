@@ -13,17 +13,22 @@ const template = `<header class="header-view">
     			</transition-group>
   			</el-breadcrumb>
 		</div>
-		<div class="nav-btn" @click="accountLogout">
-			<i class="icon-exit"></i>
-		</div>
+		<ul class="nav-right">
+			<el-button type="primary" :loading="refreshLoading" @click="configRefresh" link>刷新配置</el-button>
+			<el-button type="primary" :loading="restartLoading" @click="botRestart" link>重启BOT</el-button>
+			<li class="nav-btn" @click="accountLogout">
+				<i class="icon-exit"></i>
+			</li>
+		</ul>
 	</div>
 	<Tabs />
 </header>`;
 
 import Tabs from "./tabs.js";
 
-const { defineComponent, ref, watch, inject } = Vue;
+const { defineComponent, ref, watch, inject, reactive, toRefs } = Vue;
 const { useRouter, useRoute } = VueRouter;
+const { ElNotification, ElMessageBox } = ElementPlus;
 
 export default defineComponent( {
 	name: "NavView",
@@ -42,9 +47,13 @@ export default defineComponent( {
 		const router = useRouter();
 		const route = useRoute();
 		const { USER_LOGOUT } = inject( "user" );
+		const { CONFIG_REFRESH, BOT_RESTART } = inject( "app" );
 		
-		// 面包屑数组
-		const breadcrumbs = ref( [] );
+		const state = reactive( {
+			breadcrumbs: [],
+			refreshLoading: false,
+			restartLoading: false
+		} );
 		
 		/* 判断当前路由是否为 home 页 */
 		function isHomeRoute( currenRoute ) {
@@ -58,7 +67,7 @@ export default defineComponent( {
 			if ( !isHomeRoute( first ) ) {
 				matched = [ { path: '/system/home', meta: { title: '首页' } } ].concat( matched );
 			}
-			breadcrumbs.value = matched.filter( ( item ) => {
+			state.breadcrumbs = matched.filter( ( item ) => {
 				return item.meta?.title && item.meta?.breadcrumb !== false
 			} )
 		}
@@ -88,10 +97,57 @@ export default defineComponent( {
 			}
 		}
 		
+		/* 刷新配置 */
+		function configRefresh() {
+			state.refreshLoading = true;
+			CONFIG_REFRESH().then( () => {
+				ElNotification( {
+					title: "成功",
+					message: "刷新配置成功。",
+					type: "success",
+					duration: 2000
+				} );
+				state.refreshLoading = false;
+			} ).catch(error => {
+				ElNotification( {
+					title: "失败",
+					message: error.message,
+					type: "error",
+					duration: 2000
+				} );
+				state.refreshLoading = false;
+			})
+		}
+		
+		/* 重启bot */
+		function botRestart() {
+			state.restartLoading = true;
+			BOT_RESTART().then( () => {
+				ElMessageBox.alert("重启成功，页面将在10秒后自动刷新。", "提示", {
+					confirmButtonText: "确定",
+					type: "warning",
+					center: true
+				});
+				setTimeout(() => {
+					location.reload();
+				}, 10000);
+			} ).catch(error => {
+				ElNotification( {
+					title: "失败",
+					message: error.message,
+					type: "error",
+					duration: 2000
+				} );
+				state.restartLoading = false;
+			})
+		}
+		
 		return {
-			breadcrumbs,
+			...toRefs( state ),
 			toLink,
 			toggle,
+			configRefresh,
+			botRestart,
 			accountLogout
 		}
 	}

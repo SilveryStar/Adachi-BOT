@@ -32,7 +32,7 @@ const template = `<form-item ref="spreadRef" class="spread-form-item" :class="{ 
 			:placeholder="placeholder"
 			:disabled="disabled"
 			:show-password="type === 'password'"
-			@keyup.enter="type === 'textarea' ? () => {} : saveValue"
+			@keyup.enter="type === 'textarea' ? '' : saveValue()"
 			clearable
 		/>
 		<span class="spread-warn-msg" v-if="showErrMsg">{{ verifyMsg }}</span>
