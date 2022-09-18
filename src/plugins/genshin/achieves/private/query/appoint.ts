@@ -14,10 +14,15 @@ export async function main( { sendMessage, messageData }: InputParameter ): Prom
 	if ( typeof single === "string" ) {
 		await sendMessage( single );
 	} else {
+		if ( name === "empty" ) {
+			await ( <MysQueryService>single.services[MysQueryService.FixedField] ).modifyAppointChar( name );
+			await sendMessage( "卡片指定头像清除成功" );
+			return;
+		}
 		const result: NameResult = getRealName( name );
 		if ( result.definite ) {
 			const realName: string = <string>result.info;
-			await ( <MysQueryService>single.services[ MysQueryService.FixedField ] ).modifyAppointChar(
+			await ( <MysQueryService>single.services[MysQueryService.FixedField] ).modifyAppointChar(
 				characterID.map[realName].toString()
 			);
 			await sendMessage( "卡片头像指定成功" );

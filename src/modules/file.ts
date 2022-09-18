@@ -16,6 +16,7 @@ interface ManagementMethod {
 	getFilePath( path: string, place?: PresetPlace ): string;
 	renameFile( fileName: string, newName: string, place?: PresetPlace ): void;
 	readFile( fileName: string, place: PresetPlace ): string;
+	readFileByStream( fileName: string, place: PresetPlace, highWaterMark?: number ): Promise<string>;
 	createDir( dirName: string, place?: PresetPlace ): boolean;
 	getDirFiles( dirName: string, place?: PresetPlace ): string[];
 	createYAML( ymlName: string, data: any, place?: PresetPlace ): boolean;
@@ -47,7 +48,7 @@ export default class FileManagement implements ManagementMethod {
 	
 	public getFilePath( path: string, place: PresetPlace = "config" ): string {
 		const h: string = place === "config" ? this.config
-						: place === "plugin" ? this.plugin : this.root;
+			: place === "plugin" ? this.plugin : this.root;
 		return resolve( h, path );
 	}
 	
@@ -60,6 +61,24 @@ export default class FileManagement implements ManagementMethod {
 	public readFile( fileName: string, place: PresetPlace ): string {
 		const path: string = this.getFilePath( fileName, place );
 		return fs.readFileSync( path, "utf-8" );
+	}
+	
+	public readFileByStream( fileName: string, place: PresetPlace, highWaterMark: number = 64 ): Promise<string> {
+		return new Promise( ( resolve, reject ) => {
+			const path: string = this.getFilePath( fileName, place );
+			const rs = fs.createReadStream( path, { highWaterMark: highWaterMark * 1024 } );
+			const dataList: Buffer[] = [];
+			rs.on( "data", ( chunk ) => {
+				dataList.push( <Buffer>chunk );
+			} );
+			rs.on( "end", () => {
+				const data = Buffer.concat( dataList ).toString( "utf-8" );
+				resolve( data );
+			} )
+			rs.on( "error", ( error ) => {
+				reject( error );
+			} );
+		} )
 	}
 	
 	public createDir( dirName: string, place: PresetPlace = "config" ): boolean {

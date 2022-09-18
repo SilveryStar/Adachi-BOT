@@ -147,6 +147,14 @@ const template = `<div class="table-container config">
 					@change="updateConfig('webConsole.tcpLoggerPort')"
 				/>
 				<spread-form-item
+					v-model="setting.webConsole.logHighWaterMark"
+					:disabled="pageLoading"
+					label="读日志数据量"
+					type="number"
+					desc="控制日志单次读取的数据量，单位 kb，不填或置 0 时默认 64，越大读取越快，内存占用越大，反之同理。"
+					@change="updateConfig('webConsole.logHighWaterMark')"
+				/>
+				<spread-form-item
 					v-model="setting.webConsole.jwtSecret"
 					:disabled="pageLoading"
 					label="JWT验证秘钥"

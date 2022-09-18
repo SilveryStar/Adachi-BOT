@@ -31,6 +31,7 @@ export default class BotConfig {
 		readonly enable: boolean;
 		readonly consolePort: number;
 		readonly tcpLoggerPort: number;
+		readonly logHighWaterMark: number;
 		readonly jwtSecret: string;
 	};
 	
@@ -69,6 +70,7 @@ export default class BotConfig {
 			enable: true,
 			consolePort: 80,
 			tcpLoggerPort: 54921,
+			logHighWaterMark: 64,
 			jwtSecret: randomSecret( 16 )
 		},
 		autoChat: {
@@ -124,6 +126,7 @@ export default class BotConfig {
 			enable: config.webConsole.enable,
 			consolePort: config.webConsole.consolePort,
 			tcpLoggerPort: config.webConsole.tcpLoggerPort,
+			logHighWaterMark: config.webConsole.logHighWaterMark,
 			jwtSecret: config.webConsole.jwtSecret
 		}
 		
