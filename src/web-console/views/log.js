@@ -42,6 +42,9 @@ const template = `<div class="table-container fix-height logger">
 		<p v-else-if="error" class="empty-promote">
 			未找到{{ currentDate.getMonth() + 1 }}月{{ currentDate.getDate() }}日的日志...
 		</p>
+		<p v-else-if="loading" class="empty-promote">
+			正在获取日志记录，请稍后...
+		</p>
 		<div v-else class="log-window">
 			<el-scrollbar ref="scrollbarRef" class="log-scroll-container">
 				<p v-for="m in list" class="content-line">
@@ -79,6 +82,7 @@ export default defineComponent( {
 			currentDate: new Date(),
 			today: true,
 			autoBottom: true,
+			loading: false,
 			error: false,
 			currentPage: 1,
 			pageSize: 750,
@@ -182,6 +186,7 @@ export default defineComponent( {
 		
 		/* 获取日志列表 */
 		async function getLogsData( date = state.currentDate ) {
+			state.loading = true;
 			try {
 				const resp = await $http.LOG_INFO( {
 					date: date.getTime(),
@@ -196,8 +201,10 @@ export default defineComponent( {
 				} else {
 					state.error = true;
 				}
+				state.loading = false;
 			} catch ( error ) {
 				state.error = true;
+				state.loading = false;
 			}
 		}
 		

@@ -28,13 +28,15 @@ export async function main(
 	}
 	
 	const appointId = info.options[MysQueryService.FixedField].appoint;
-	let appointName = "";
+	let appointName: string = "empty";
 	
-	for ( const name in characterID.map ) {
-		const mapId = characterID.map[name];
-		if ( mapId === parseInt( appointId ) ) {
-			appointName = name;
-			break;
+	if ( appointId !== "empty" ) {
+		for ( const name in characterID.map ) {
+			const mapId = characterID.map[name];
+			if ( mapId === parseInt( appointId ) ) {
+				appointName = name;
+				break;
+			}
 		}
 	}
 	

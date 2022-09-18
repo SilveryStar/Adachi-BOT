@@ -1,7 +1,7 @@
 import express from "express";
 import bot from "ROOT";
 
-export default express.Router().get( "/", ( req, res ) => {
+export default express.Router().get( "/", async ( req, res ) => {
 	const page = parseInt( <string>req.query.page ); // 当前第几页
 	const length = parseInt( <string>req.query.length ); // 页长度
 	const logLevel = <string>req.query.logLevel; // 日志等级
@@ -20,7 +20,7 @@ export default express.Router().get( "/", ( req, res ) => {
 	
 	try {
 		if ( bot.file.isExist( path ) ) {
-			const file = bot.file.readFile( fileName, "root" );
+			const file = await bot.file.readFileByStream( fileName, "root", bot.config.webConsole.logHighWaterMark );
 			const fullData = file.split( /[\n\r]/g ).filter( el => el.length !== 0 );
 			const respData = fullData
 				.map( el => JSON.parse( el ) )
