@@ -1,12 +1,12 @@
 const template = `<div class="table-container message-page">
 	<div class="nav-btn-box">
     	<el-scrollbar class="horizontal-wrap">
-			<nav-search :searchList="searchList" :searchData="listQuery" :showNum="1" :disabled="tableLoading" @change="getMessageData"></nav-search>
+			<nav-search :searchList="searchList" :searchData="listQuery" :showNum="1" :disabled="tableLoading" @change="handleFilter"></nav-search>
     	</el-scrollbar>
 	</div>
     <div class="table-view">
-		<el-table v-loading="tableLoading" :data="messageList" header-row-class-name="table-header" :height="tableHeight" stripe border>
-			<el-table-column prop="index" type="index" :index="setRowIndex" align="center" width="50px"></el-table-column>
+		<el-table v-loading="tableLoading" :data="messageList" header-row-class-name="table-header" :height="tableHeight" stripe>
+			<el-table-column fixed="left" type="selection" width="50" align="center" prop="selection" label="筛选"></el-table-column>
 			<el-table-column prop="user" label="QQ" align="center" width="120px"></el-table-column>
 			<el-table-column prop="content" label="内容" align="center" min-width="120px" show-overflow-tooltip>
 				<template #default="{row}">{{ formatContent(row.content) }}</template>
@@ -53,7 +53,7 @@ export default defineComponent( {
 		const state = reactive( {
 			messageList: [],
 			currentPage: 1,
-			pageSize: 10,
+			pageSize: 15,
 			totalMessage: 0,
 			tableLoading: false,
 			showMessageModal: false,
@@ -71,7 +71,7 @@ export default defineComponent( {
 		} )
 		
 		const tableHeight = computed( () => {
-			return `${ deviceHeight.value - ( device.value === "mobile" ? 236 : 278 ) - ( showTab.value ? 40 : 0 ) }px`;
+			return `${ deviceHeight.value - ( device.value === "mobile" ? 240 : 240 ) - ( showTab.value ? 40 : 0 ) }px`;
 		} );
 		
 		/* 日期格式化 */
@@ -97,6 +97,12 @@ export default defineComponent( {
 			} ).catch( error => {
 				state.tableLoading = false;
 			} );
+		}
+		
+		/* 筛选条件变化查询 */
+		async function handleFilter() {
+			state.currentPage = 1;
+			await getMessageData();
 		}
 		
 		async function ignoreMessage( message ) {
@@ -128,11 +134,6 @@ export default defineComponent( {
 			state.selectMessage = {};
 		}
 		
-		/* 设置行首index */
-		function setRowIndex( index ) {
-			return index + ( state.currentPage - 1 ) * state.pageSize + 1
-		}
-		
 		onMounted( () => {
 			getMessageData();
 		} )
@@ -145,10 +146,10 @@ export default defineComponent( {
 			searchList,
 			listQuery,
 			formatTime,
+			handleFilter,
 			formatContent,
 			getMessageData,
 			ignoreMessage,
-			setRowIndex,
 			openMessageModal,
 			closeMessageModal
 		};

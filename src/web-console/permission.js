@@ -13,15 +13,13 @@ function getPageTitle( pageTitle ) {
 
 /* 检查token */
 async function checkToken() {
-	return new Promise( resolve => {
-		$http.TOKEN_CHECK( {}, "GET" ).then( () => {
-			const token = tokenSession.get();
-			resolve( token );
-		} ).catch( () => {
-			tokenSession.remove();
-			resolve( "" );
-		} );
-	} );
+	try {
+		await $http.TOKEN_CHECK( {}, "GET" );
+		return true;
+	} catch ( error ) {
+		tokenSession.remove();
+		return false;
+	}
 }
 
 /* 不需要登陆白名单 */

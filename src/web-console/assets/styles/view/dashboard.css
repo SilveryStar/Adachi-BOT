@@ -1,7 +1,3 @@
-.dashboard {
-	min-height: 100%;
-}
-
 /* 基本信息 */
 .dashboard > .app-info-container {
 	display: flex;

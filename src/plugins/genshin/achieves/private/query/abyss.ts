@@ -152,7 +152,7 @@ export async function main( i: InputParameter ): Promise<void> {
 	}
 	const abyss: Abyss = JSON.parse( abyssData );
 	
-	if ( abyss.totalBattleTimes === 0 ) {
+	if ( !abyss.floors || abyss.floors.length === 0 ) {
 		await sendMessage( "暂未查询到深渊数据" );
 		return;
 	}

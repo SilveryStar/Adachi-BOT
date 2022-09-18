@@ -48,11 +48,12 @@
 	box-sizing: border-box;
 }
 
-.header-base .card-avatar-box img.user {
+.header-base .card-avatar-box img {
 	width: 162px;
 	height: 162px;
 	border-radius: 50%;
 	border: 1px solid #999;
+	background: linear-gradient(0deg, #de9552 0%, #9a6d43 100%) #9a6d43;
 	box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.4);
 	box-sizing: border-box;
 }

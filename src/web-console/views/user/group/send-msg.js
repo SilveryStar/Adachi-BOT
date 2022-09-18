@@ -102,7 +102,7 @@ export default defineComponent( {
 				setCdTimeShow( cdTime );
 				ElNotification( {
 					title: "成功",
-					message: "发送成功，消息将在3分钟内推送给所选群聊。",
+					message: `发送成功，消息将在${ state.batchMsgTimoutText }内推送给所选群聊。`,
 					type: "success",
 				} );
 				state.showModal = false;

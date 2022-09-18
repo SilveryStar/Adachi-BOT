@@ -4,18 +4,17 @@ const template = `
 		class="card-avatar-box"
 		:class="{
 			'without-nickname': data.level === '0',
-			'user': urlParams.profile === 'user',
-			'not-stranger': urlParams.stranger !== 'true'
+			'user': urlParams.profile === 'user'
 		}"
 	>
-		<p>{{ nicknameSpace }}</p>
+		<p>{{ data.nickname }}</p>
 		<img
 			:class="{ user: urlParams.profile === 'user' && urlParams.appoint === 'empty' }"
 			:src="defaultAvatar"
 			alt="ERROR"
 		/>
 	</div>
-	<div class="card-base-uid" v-show="urlParams.stranger === 'false'">
+	<div class="card-base-uid">
 		UID: {{ data.uid }}
 	</div>
 	<div class="card-base-stats">
@@ -54,7 +53,6 @@ export default defineComponent( {
 		
 		const avatars = props.data.avatars;
 		const level = props.data.level;
-		const charNum = avatars.length;
 		
 		for ( let info of props.infoList ) {
 			if ( info.value === "-" ) {
@@ -63,33 +61,33 @@ export default defineComponent( {
 		}
 		
 		/* 获取头像 */
-		function getProImg( id ) {
-			return `https://adachi-bot.oss-cn-beijing.aliyuncs.com/characters/profile/${ id }.png`;
+		function getProImg( name ) {
+			return `https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/thumb/character/${ name }.png`;
 		}
-
-		const defaultAvatar =
-			profile === "random" || props.urlParams.stranger === "true"
-				? getProImg( avatars[Math.floor( Math.random() * charNum )].id )
+		
+		const defaultAvatar = computed( () => {
+			const avatarList = avatars?.length ? avatars : [ { name: "荧" }, { name: "空" } ];
+			return profile === "random" || props.urlParams.stranger === "true"
+				? getProImg( avatarList[Math.floor( Math.random() * avatarList.length )].name )
 				: `https://q1.qlogo.cn/g?b=qq&s=640&nk=${ props.urlParams.qq }`;
+		} );
 		
 		/* 计算世界等级 */
 		const worldLevel = computed( () => {
 			if ( parseInt( level ) < 20 ) {
 				return 0;
 			}
+			if ( parseInt( level ) === 60 ) {
+				return 8;
+			}
 			return Math.floor( ( parseInt( level ) - 15 ) / 5 );
 		} );
 		
-		const nicknameSpace = computed( () => {
-			return props.urlParams.stranger === "true"
-				? `UID ${ props.data.uid }`
-				: props.data.nickname
-		} )
 		
 		return {
+			avatars,
 			defaultAvatar,
-			worldLevel,
-			nicknameSpace
+			worldLevel
 		};
 	}
 } );

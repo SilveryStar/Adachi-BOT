@@ -1,7 +1,8 @@
 export default {
 	/* 基本信息 */
-	BOT_STAT: "/stat",
-	TOKEN_CHECK: "/check",
+	BOT_STAT: "/bot/stat",
+	BOT_RESTART: "/bot/restart",
+	BOT_REFRESH: "/bot/refresh",
 	/* 用户 */
 	USER_LIST: "/user/list",
 	USER_INFO: "/user/info",
@@ -21,5 +22,9 @@ export default {
 	MESSAGE_SEND: "/message/send",
 	MESSAGE_REMOVE: "/message/remove",
 	/* 检测 */
-	CHECK_PASSWORD: "/check/password"
+	TOKEN_CHECK: "/check",
+	CHECK_PASSWORD: "/check/password",
+	/* 配置 */
+	CONFIG_GET: "/config",
+	CONFIG_SET: "/config/set"
 }

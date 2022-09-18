@@ -1,4 +1,4 @@
-const template = `<div class="dashboard">
+const template = `<div class="table-container no-background dashboard">
 	<ul class="app-info-container">
 		<li class="app-info-item" v-for="(i, iKey) of appInfo" :key="iKey">
 			<div class="info-item-content">
@@ -24,12 +24,12 @@ const template = `<div class="dashboard">
 	</div>
 </div>`;
 
-import $http from "../api/index.js"
+import $http from "../../api/index.js"
 
 const { defineComponent, onMounted, onUnmounted, reactive, toRefs, nextTick, ref } = Vue;
 
 export default defineComponent( {
-	name: "Stat",
+	name: "DashboardMain",
 	template,
 	setup() {
 		const weekOption = {

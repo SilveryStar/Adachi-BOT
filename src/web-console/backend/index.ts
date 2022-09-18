@@ -13,8 +13,10 @@ import LoginRouter from "./routes/login";
 import LogRouter from "./routes/log";
 import UserRouter from "./routes/user";
 import GroupRouter from "./routes/group";
-import StatRouter from "./routes/stat";
+import BaseRouter from "./routes/base";
 import MessageRouter from "./routes/message";
+import ConfigRouter from "./routes/config";
+import { getTokenByRequest } from "@web-console/backend/utils/request";
 
 export default class WebConsole {
 	private readonly app: Express;
@@ -42,11 +44,12 @@ export default class WebConsole {
 		/* 创建接口 */
 		this.useApi( "/api/check", CheckRouter, false );
 		this.useApi( "/api/login", LoginRouter, false );
+		this.useApi( "/api/bot", BaseRouter );
 		this.useApi( "/api/log", LogRouter );
 		this.useApi( "/api/user", UserRouter );
 		this.useApi( "/api/group", GroupRouter );
-		this.useApi( "/api/stat", StatRouter );
 		this.useApi( "/api/message", MessageRouter );
+		this.useApi( "/api/config", ConfigRouter );
 		
 		/* 捕获错误 */
 		this.app.use( WebConsole.ApiErrorCatch );
@@ -103,13 +106,7 @@ export default class WebConsole {
 			secret,
 			algorithms: [ "HS256" ],
 			getToken( req ) {
-				const auth = req.headers.authorization;
-				if ( auth && auth.split( " " )[0] === "Bearer" ) {
-					return auth.split( " " )[1]
-				} else if ( req.query && req.query.token ) {
-					return req.query.token;
-				}
-				return null;
+				return getTokenByRequest( req );
 			}
 		} );
 	}

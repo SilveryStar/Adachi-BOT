@@ -11,6 +11,7 @@ import { Order } from "@modules/command";
 export enum ErrorMsg {
 	NOT_FOUND = "未查询到角色数据，请检查米哈游通行证（非UID）是否有误或是否设置角色信息公开",
 	UNKNOWN = "发生未知错误",
+	NOT_PUBLIC = "米游社信息未公开，请前往米游社「个人主页」-「我的角色」右侧「管理」公开信息展示",
 	FORM_MESSAGE = "米游社接口报错: ",
 	VERIFICATION_CODE = "遇到验证码拦截，签到失败，请自行手动签到"
 }
@@ -63,6 +64,7 @@ export async function baseInfoPromise(
 		}
 		
 		const { gameRoleId, nickname, region, level } = genshinInfo;
+		
 		const uid: number = parseInt( gameRoleId );
 		
 		await bot.redis.setString( `silvery-star.user-querying-id-${ userID }`, uid );
@@ -78,16 +80,16 @@ export async function detailInfoPromise(
 ): Promise<number[]> {
 	const UID: string = await bot.redis.getString( `silvery-star.user-querying-id-${ userID }` );
 	if ( UID.length === 0 ) {
-		return Promise.reject( ErrorMsg.UNKNOWN );
+		throw ErrorMsg.UNKNOWN;
 	}
 	
 	const detail: any = await bot.redis.getHash( `silvery-star.card-data-${ UID }` );
 	const uid: number = parseInt( UID );
 	
-	if ( detail.stats && uid === parseInt( detail.uid ) ) {
-		if ( !cookie || ( detail.avatars && JSON.parse( detail.avatars ).length > 8 ) ) {
+	if ( detail.stats && detail.avatars && uid === parseInt( detail.uid ) ) {
+		if ( !cookie || JSON.parse( detail.avatars ).length > 8 ) {
 			bot.logger.info( `用户 ${ uid } 在一小时内进行过查询操作，将返回上次数据` );
-			return Promise.reject( "gotten" );
+			throw "gotten";
 		}
 	}
 	
@@ -96,36 +98,40 @@ export async function detailInfoPromise(
 		// cookies.increaseIndex();
 	}
 	const { retcode, message, data } = await api.getDetailInfo( uid, server, cookie );
+	
 	const allHomes = await api.getUidHome();
 	
 	if ( !ApiType.isUserInfo( data ) ) {
-		return Promise.reject( ErrorMsg.UNKNOWN );
+		throw ErrorMsg.UNKNOWN;
 	}
 	
-	return new Promise( async ( resolve, reject ) => {
-		if ( retcode === 10001 ) {
-			reject( Cookies.checkExpired( cookie ) );
-			return;
-		} else if ( retcode !== 0 ) {
-			reject( await checkQueryTimes( ErrorMsg.FORM_MESSAGE + message ) );
-			return;
-		} else if ( data.avatars.length === 0 ) {
-			reject( `玩家 UID${ uid } 的信息有误` );
-			return;
-		}
-		
-		await bot.redis.setHash( `silvery-star.card-data-${ uid }`, {
-			explorations: JSON.stringify( data.worldExplorations ),
-			stats: JSON.stringify( data.stats ),
-			homes: JSON.stringify( data.homes ),
-			allHomes: JSON.stringify( allHomes )
-		} );
-		await bot.redis.setTimeout( `silvery-star.card-data-${ uid }`, 3600 );
-		bot.logger.info( `用户 ${ uid } 查询成功，数据已缓存` );
-		
-		const charIDs: number[] = data.avatars.map( el => el.id );
-		resolve( charIDs );
+	if ( retcode === 10001 ) {
+		throw Cookies.checkExpired( cookie );
+	}
+	
+	/* 信息未公开 */
+	if ( retcode === 10102 ) {
+		throw ErrorMsg.NOT_PUBLIC;
+	}
+	
+	if ( retcode !== 0 ) {
+		throw await checkQueryTimes( ErrorMsg.FORM_MESSAGE + message );
+	}
+	
+	await bot.redis.setHash( `silvery-star.card-data-${ uid }`, {
+		level: parseInt( detail.level ) || data.role.level,
+		nickname: data.role.nickname || detail.nickname || "",
+		explorations: JSON.stringify( data.worldExplorations ),
+		stats: JSON.stringify( data.stats ),
+		homes: JSON.stringify( data.homes ),
+		allHomes: JSON.stringify( allHomes )
 	} );
+	await bot.redis.setTimeout( `silvery-star.card-data-${ uid }`, 3600 );
+	bot.logger.info( `用户 ${ uid } 查询成功，数据已缓存` );
+	
+	const charIDs: number[] = data.avatars.map( el => el.id );
+	
+	return charIDs;
 }
 
 export async function characterInfoPromise(
@@ -140,80 +146,87 @@ export async function characterInfoPromise(
 		cookie = cookies.get();
 	}
 	const { retcode, message, data } = await api.getCharactersInfo( uid, server, charIDs, cookie );
+	
 	if ( !ApiType.isCharacter( data ) ) {
-		return Promise.reject( ErrorMsg.UNKNOWN );
-	}
-	if ( retcode !== 0 ) {
-		return Promise.reject( await checkQueryTimes( ErrorMsg.FORM_MESSAGE + message ) );
+		throw ErrorMsg.UNKNOWN;
 	}
 	
-	return new Promise( async ( resolve, reject ) => {
-		if ( retcode !== 0 ) {
-			reject( ErrorMsg.FORM_MESSAGE + message );
-			return;
-		}
-		
-		const avatars: ApiType.CharacterInformation[] = [];
-		const charList: ApiType.Avatar[] = data.avatars;
-		for ( const char of charList ) {
-			const base: ApiType.CharacterBase = omit(
-				char, [ "image", "weapon", "reliquaries", "constellations" ]
-			);
-			const weapon: ApiType.CharacterWeapon = {
-				...omit( char.weapon, [ "id", "type", "promoteLevel", "typeName" ] ),
-				image: `https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/weapon/${ encodeURI( char.weapon.name ) }.png`
-			};
-			const artifacts: ApiType.CharacterArt = char.reliquaries.map( el => {
-				return pick( el, [ "pos", "rarity", "icon", "level" ] );
-			} );
-			const constellations: ApiType.CharacterCon = {
-				detail: char.constellations.map( el => {
-					return pick( el, [ "name", "icon", "isActived" ] )
-				} ),
-				activedNum: char.activedConstellationNum,
-				upSkills: char.constellations.reduce( ( pre, cur ) => {
-					const reg: RegExp = /<color=#\w+?>(?<name>.+?)<\/color>的技能等级提高(?<level>\d+)级/;
-					const res: RegExpExecArray | null = reg.exec( cur.effect );
-					if ( res ) {
-						const groups = <{ name: string; level: string; }>res.groups;
-						pre.push( {
-							skillName: groups.name,
-							level: parseInt( groups.level ),
-							requirementNum: cur.pos
-						} );
-					}
-					return pre;
-				}, <ApiType.CharacterConSkill[]>[] )
-			};
-			
-			const tmpSetBucket: Record<string, ApiType.ArtifactSetStat> = {};
-			for ( const pos of char.reliquaries ) {
-				const id: string = pos.set.name;
-				const t = tmpSetBucket[id];
-				tmpSetBucket[id] = {
-					count: t?.count ? t.count + 1 : 1,
-					effect: t?.effect ?? pos.set.affixes,
-					icon: t?.icon ?? pos.icon.replace( /\d\.png/, "4.png" )
-				};
-			}
-			const effects: ApiType.CharacterEffect = [];
-			for ( const key of Object.keys( tmpSetBucket ) ) {
-				const { count, effect, icon } = tmpSetBucket[key];
-				effect.forEach( ( { activationNumber: num } ) => {
-					if ( count >= num ) {
-						const name: string = `${ key } ${ num } 件套`;
-						effects.push( { icon, name } );
-					}
-				} )
-			}
-			
-			avatars.push( { ...base, weapon, constellations, artifacts, effects } );
-		}
-		
+	if ( retcode === 10001 ) {
+		throw Cookies.checkExpired( cookie );
+	}
+	
+	/* 信息未公开 */
+	if ( retcode === 10102 ) {
 		await bot.redis.setHash( `silvery-star.card-data-${ uid }`, {
-			avatars: JSON.stringify( avatars )
+			avatars: JSON.stringify( [] )
 		} );
-		resolve();
+		return;
+	}
+	
+	if ( retcode !== 0 ) {
+		throw await checkQueryTimes( ErrorMsg.FORM_MESSAGE + message );
+	}
+	
+	const avatars: ApiType.CharacterInformation[] = [];
+	
+	const charList: ApiType.Avatar[] = data.avatars;
+	for ( const char of charList ) {
+		const base: ApiType.CharacterBase = omit(
+			char, [ "image", "weapon", "reliquaries", "constellations" ]
+		);
+		const weapon: ApiType.CharacterWeapon = {
+			...omit( char.weapon, [ "id", "type", "promoteLevel", "typeName" ] ),
+			image: `https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/weapon/${ encodeURI( char.weapon.name ) }.png`
+		};
+		const artifacts: ApiType.CharacterArt = char.reliquaries.map( el => {
+			return pick( el, [ "pos", "rarity", "icon", "level" ] );
+		} );
+		const constellations: ApiType.CharacterCon = {
+			detail: char.constellations.map( el => {
+				return pick( el, [ "name", "icon", "isActived" ] )
+			} ),
+			activedNum: char.activedConstellationNum,
+			upSkills: char.constellations.reduce( ( pre, cur ) => {
+				const reg: RegExp = /<color=#\w+?>(?<name>.+?)<\/color>的技能等级提高(?<level>\d+)级/;
+				const res: RegExpExecArray | null = reg.exec( cur.effect );
+				if ( res ) {
+					const groups = <{ name: string; level: string; }>res.groups;
+					pre.push( {
+						skillName: groups.name,
+						level: parseInt( groups.level ),
+						requirementNum: cur.pos
+					} );
+				}
+				return pre;
+			}, <ApiType.CharacterConSkill[]>[] )
+		};
+		
+		const tmpSetBucket: Record<string, ApiType.ArtifactSetStat> = {};
+		for ( const pos of char.reliquaries ) {
+			const id: string = pos.set.name;
+			const t = tmpSetBucket[id];
+			tmpSetBucket[id] = {
+				count: t?.count ? t.count + 1 : 1,
+				effect: t?.effect ?? pos.set.affixes,
+				icon: t?.icon ?? pos.icon.replace( /\d\.png/, "4.png" )
+			};
+		}
+		const effects: ApiType.CharacterEffect = [];
+		for ( const key of Object.keys( tmpSetBucket ) ) {
+			const { count, effect, icon } = tmpSetBucket[key];
+			effect.forEach( ( { activationNumber: num } ) => {
+				if ( count >= num ) {
+					const name: string = `${ key } ${ num } 件套`;
+					effects.push( { icon, name } );
+				}
+			} )
+		}
+		
+		avatars.push( { ...base, weapon, constellations, artifacts, effects } );
+	}
+	
+	await bot.redis.setHash( `silvery-star.card-data-${ uid }`, {
+		avatars: JSON.stringify( avatars )
 	} );
 }
 

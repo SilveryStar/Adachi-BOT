@@ -20,12 +20,12 @@
 }
 
 .overview > li > .battle-char-box.rarity-4 {
-	background: linear-gradient(0deg, #917ab1 0%, #6c6192 100%) #917ab1;;
+	background: linear-gradient(0deg, #917ab1 0%, #6c6192 100%) #917ab1;
 	box-shadow: 0 0 0 9px rgba(177, 215, 255, .2);
 }
 
 .overview > li > .battle-char-box.rarity-5 {
-	background: linear-gradient(0deg, #de9552 0%, #9a6d43 100%) #9a6d43;;
+	background: linear-gradient(0deg, #de9552 0%, #9a6d43 100%) #9a6d43;
 	box-shadow: 0 0 0 9px rgba(255, 215, 135, .2);
 }
 

@@ -4,8 +4,6 @@ import { AuthLevel } from "@modules/management/auth";
 import { MemberBaseInfo } from "oicq";
 import { BOT } from "@modules/bot";
 import { PluginReSubs, SubInfo } from "@modules/plugin";
-import { Md5 } from "md5-typescript";
-import getToken from "@web-console/backend/jwt";
 
 type UserInfo = {
 	userID: number;

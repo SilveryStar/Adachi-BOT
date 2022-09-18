@@ -23,7 +23,6 @@ export default express.Router().get( "/", ( req, res ) => {
 			const file = bot.file.readFile( fileName, "root" );
 			const fullData = file.split( /[\n\r]/g ).filter( el => el.length !== 0 );
 			const respData = fullData
-				.slice( ( page - 1 ) * length, page * length )
 				.map( el => JSON.parse( el ) )
 				.filter( el => {
 					/* 过滤日志等级 */
@@ -31,7 +30,7 @@ export default express.Router().get( "/", ( req, res ) => {
 						return false;
 					}
 					/* 过滤消息类型 */
-					if ( !Number.isNaN(msgType) ) {
+					if ( !Number.isNaN( msgType ) ) {
 						const reg = /^(?:send to|recv from): \[(Group|Private): .*?(\d+)/;
 						const result = reg.exec( el.message );
 						if ( result ) {
@@ -42,14 +41,16 @@ export default express.Router().get( "/", ( req, res ) => {
 							if ( msgType === 2 && groupId && groupId !== result[2] ) {
 								return false;
 							}
-						} else if (msgType !== 0) {
+						} else if ( msgType !== 0 ) {
 							return false;
 						}
 					}
 					return true;
 				} );
 			
-			res.status( 200 ).send( { code: 200, data: respData, total: fullData.length } );
+			const pageRespData = respData.slice( ( page - 1 ) * length, page * length );
+			
+			res.status( 200 ).send( { code: 200, data: pageRespData, total: respData.length } );
 			return;
 		}
 		res.status( 404 ).send( { code: 404, data: {}, msg: "NotFound" } );

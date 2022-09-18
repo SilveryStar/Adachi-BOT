@@ -50,12 +50,7 @@ export async function main(
 	const target: number = atID ? parseInt( atID ) : userID;
 	
 	try {
-		const targetInfo = await client.getStrangerInfo( target );
-		const nickname: string = targetInfo.status === "ok"
-			? targetInfo.data.nickname : "";
-		await redis.setHash( `silvery-star.card-data-${ uid }`, {
-			nickname, uid, level: 0
-		} );
+		await redis.setHash( `silvery-star.card-data-${ uid }`, { uid } );
 		await redis.setString( `silvery-star.user-querying-id-${ target }`, uid );
 		
 		const charIDs = <number[]>await detailInfoPromise( target, server );
@@ -74,6 +69,7 @@ export async function main(
 			profile: config.cardProfile
 		}
 	);
+	
 	if ( res.code === "ok" ) {
 		await sendMessage( res.data );
 	} else {
