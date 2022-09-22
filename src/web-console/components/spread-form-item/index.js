@@ -7,35 +7,37 @@ const template = `<form-item ref="spreadRef" class="spread-form-item" :class="{ 
 		{{ spreadShowText }}
 	</span>
 	<template v-else>
-		<el-input-number
-			v-if="type === 'number'"
-			ref="inputRef"
-			v-model="formValue"
-			:min="0"
-			:controls="false"
-			:placeholder="placeholder"
-			:disabled="disabled"
-			@keyup.enter="saveValue"
-		/>
-		<Tags
-			v-else-if="type === 'list'"
-			v-model="formValue"
-			:disabled="disabled"
-			:limit="1"
-		/>
-		<el-input
-			v-else
-			ref="inputRef"
-			v-model="formValue"
-			:type="type === 'textarea' ? 'textarea' : 'test'"
-			:rows="4"
-			:placeholder="placeholder"
-			:disabled="disabled"
-			:show-password="type === 'password'"
-			@keyup.enter="type === 'textarea' ? '' : saveValue()"
-			clearable
-		/>
-		<span class="spread-warn-msg" v-if="showErrMsg">{{ verifyMsg }}</span>
+		<div class="input-content">
+			<el-input-number
+				v-if="type === 'number'"
+				ref="inputRef"
+				v-model="formValue"
+				:min="0"
+				:controls="false"
+				:placeholder="placeholder"
+				:disabled="disabled"
+				@keyup.enter="saveValue"
+			/>
+			<Tags
+				v-else-if="type === 'list'"
+				v-model="formValue"
+				:disabled="disabled"
+				:limit="1"
+			/>
+			<el-input
+				v-else
+				ref="inputRef"
+				v-model="formValue"
+				:type="type === 'textarea' ? 'textarea' : 'test'"
+				:rows="rows"
+				:placeholder="placeholder"
+				:disabled="disabled"
+				:show-password="type === 'password'"
+				@keyup.enter="type === 'textarea' ? '' : saveValue()"
+				clearable
+			/>
+			<span class="spread-warn-msg" v-if="showErrMsg">{{ verifyMsg }}</span>
+		</div>
 		<div class="btn-list">
 			<el-button type="primary" size="small" @click.stop="saveValue">确认</el-button>
 			<el-button size="small" @click.stop="packUpItem">取消</el-button>
@@ -46,7 +48,7 @@ const template = `<form-item ref="spreadRef" class="spread-form-item" :class="{ 
 import FormItem from "../form-item/index.js";
 import Tags from "../../components/tags/index.js";
 
-const { defineComponent, watch, reactive, ref, toRefs, nextTick, computed } = Vue;
+const { defineComponent, getCurrentInstance, watch, reactive, ref, toRefs, nextTick, computed } = Vue;
 
 export default defineComponent( {
 	name: "SpreadFormItem",
@@ -58,6 +60,10 @@ export default defineComponent( {
 	emits: [ "update:modelValue", "change", "open", "close" ],
 	props: {
 		modelValue: {
+			default: ""
+		},
+		/* 当前展开的组件id */
+		activeSpread: {
 			default: ""
 		},
 		label: {
@@ -78,9 +84,18 @@ export default defineComponent( {
 			type: String,
 			default: ""
 		},
-		/* 正则校验 */
+		/* 行数，仅当 type 为 textarea 时有效 */
+		rows: {
+			type: Number,
+			default: 6
+		},
+		/* 当 type 为 password 时，该配置无效 */
+		hideContent: {
+			type: Boolean,
+			default: false
+		},
+		/* 校验，可为返回值为 Boolean 的方法或正则字符串 */
 		verifyReg: {
-			type: String,
 			default: ""
 		},
 		/* 校验错误提示文字 */
@@ -103,9 +118,18 @@ export default defineComponent( {
 		const inputRef = ref( null );
 		const spreadRef = ref( null );
 		
+		const uid = getCurrentInstance().uid;
+		
 		watch( () => props.modelValue, value => {
 			state.formValue = value;
 		}, { immediate: true } );
+		
+		/* 当前展开项切换时，若非本组件，收起 */
+		watch( () => props.activeSpread, value => {
+			if ( value !== uid ) {
+				packUpItem();
+			}
+		} );
 		
 		watch( () => state.open, value => {
 			resetData();
@@ -116,7 +140,7 @@ export default defineComponent( {
 		
 		/* 是否在未开启时展示按钮效果 */
 		const showBtnStyle = computed( () => {
-			return props.type === "password" || state.formValue.length === 0
+			return props.hideContent || props.type === "password" || state.formValue.length === 0
 		} );
 		
 		const spreadShowText = computed( () => {
@@ -130,7 +154,7 @@ export default defineComponent( {
 		/* 点击展开项 */
 		function spreadItem() {
 			if ( state.open || props.disabled ) return;
-			emit( "open" );
+			emit( "open", uid );
 			state.open = true;
 			nextTick( () => {
 				inputRef.value.focus();
@@ -145,10 +169,20 @@ export default defineComponent( {
 		
 		/* 保存数据 */
 		function saveValue() {
-			const reg = props.verifyReg ? new RegExp( `^${props.verifyReg}$` ) : null;
-			if ( reg && !reg.test( state.formValue ) ) {
-				state.showErrMsg = true;
-				return;
+			const verify = props.verifyReg;
+			if ( verify ) {
+				if ( typeof verify === "function" ) {
+					if ( !verify( state.formValue ) ) {
+						state.showErrMsg = true;
+						return;
+					}
+				} else {
+					const reg = new RegExp( `^${verify}$` );
+					if ( reg && !reg.test( state.formValue ) ) {
+						state.showErrMsg = true;
+						return;
+					}
+				}
 			}
 			if ( state.formValue !== props.modelValue ) {
 				emit( "update:modelValue", state.formValue );

@@ -11,12 +11,14 @@ const template = `<div class="table-container config">
 			</form-item>
 			<spread-form-item
 				v-model="setting.master"
+				:active-spread="activeSpread"
 				:disabled="pageLoading"
 				label="BOT主人QQ"
 				placeholder="请输入BOT主人QQ号"
 				verifyReg=".+"
 				verifyMsg="该项为必填项"
 				@change="updateConfig('master')"
+				@open="activeSpreadItem"
 			/>
 			<form-item label="登录平台">
 				<el-radio-group v-model="setting.platform" :disabled="pageLoading" @change="updateConfig('platform')" >
@@ -44,11 +46,13 @@ const template = `<div class="table-container config">
 			</form-item>
 			<spread-form-item
 				v-model="setting.countThreshold"
+				:active-spread="activeSpread"
 				:disabled="pageLoading"
 				label="使用次数阈值"
 				type="number"
 				desc="如果用户在过去一小时内使用指令的次数超过了该值，BOT将向主人发送私聊提示信息。"
 				@change="updateConfig('countThreshold')"
+				@open="activeSpreadItem"
 			/>
 		</div>
 		<div class="config-section">
@@ -61,27 +65,33 @@ const template = `<div class="table-container config">
 			</form-item>
 			<spread-form-item
 				v-model="setting.header"
+				:active-spread="activeSpread"
 				:disabled="pageLoading"
 				label="指令起始符"
 				placeholder="请输入指令起始符"
 				desc='例：设置为 # 时，需使用 #help 来触发帮助指令。如果不想在指令前添加特殊符号，请置空。'
 				@change="updateConfig('header')"
+				@open="activeSpreadItem"
 			/>
 			<spread-form-item
 				v-model="setting.groupIntervalTime"
+				:active-spread="activeSpread"
 				:disabled="pageLoading"
 				label="群聊指令CD"
 				type="number"
 				desc="群聊中指令操作冷却时间，单位为毫秒(ms)。"
 				@change="updateConfig('groupIntervalTime')"
+				@open="activeSpreadItem"
 			/>
 			<spread-form-item
 				v-model="setting.privateIntervalTime"
+				:active-spread="activeSpread"
 				:disabled="pageLoading"
 				label="私聊指令CD"
 				type="number"
 				desc="私聊中指令操作冷却时间，单位为毫秒(ms)。"
 				@change="updateConfig('privateIntervalTime')"
+				@open="activeSpreadItem"
 			/>
 			<form-item label="帮助信息样式" desc="指令help响应信息所展示的样式。">
 				<el-radio-group v-model="setting.helpMessageStyle" :disabled="pageLoading" @change="updateConfig('helpMessageStyle')" >
@@ -90,39 +100,47 @@ const template = `<div class="table-container config">
 			</form-item>
 			<spread-form-item
 				v-model="setting.helpPort"
+				:active-spread="activeSpread"
 				:disabled="pageLoading"
 				label="图片帮助端口"
 				type="number"
 				desc="帮助信息样式为 card 时有效，除非端口冲突否则不需要改动。"
 				@change="updateConfig('helpPort')"
+				@open="activeSpreadItem"
 			/>
 			<spread-form-item
 				v-model="setting.callTimes"
+				:active-spread="activeSpread"
 				:disabled="pageLoading"
 				label="call次数限制"
 				type="number"
 				desc="指令 联系bot持有者 每个用户一天内可使用的最大次数。"
 				@change="updateConfig('callTimes')"
+				@open="activeSpreadItem"
 			/>
 		</div>
 		<div class="config-section">
 			<section-title title="数据库设置" />
 			<spread-form-item
 				v-model="setting.dbPort"
+				:active-spread="activeSpread"
 				:disabled="pageLoading"
 				label="数据库端口"
 				type="number"
 				desc="Docker 启动修改此值时，需将 redis.conf 中的 port 修改为与此处相同的值。"
 				@change="updateConfig('dbPort')"
+				@open="activeSpreadItem"
 			/>
 			<spread-form-item
 				v-model="setting.dbPassword"
+				:active-spread="activeSpread"
 				:disabled="pageLoading"
 				label="数据库密码"
 				type="password"
 				placeholder="请输入数据库密码"
 				desc="非必填项，看个人需求设置。"
 				@change="updateConfig('dbPassword')"
+				@open="activeSpreadItem"
 			/>
 		</div>
 		<div class="config-section">
@@ -133,29 +151,36 @@ const template = `<div class="table-container config">
 			<template v-if="setting.webConsole.enable">
 				<spread-form-item
 					v-model="setting.webConsole.consolePort"
+					:active-spread="activeSpread"
 					:disabled="pageLoading"
 					label="网页页面端口"
 					type="number"
 					desc="Docker启动修改此值时，需将 docker-compose.yml 中的 services.bot.ports 的第二个数字修改为与此处相同的值。"
 					@change="updateConfig('webConsole.consolePort')"
+					@open="activeSpreadItem"
 				/>
 				<spread-form-item
 					v-model="setting.webConsole.tcpLoggerPort"
+					:active-spread="activeSpread"
 					:disabled="pageLoading"
 					label="日志输出端口"
 					type="number"
 					@change="updateConfig('webConsole.tcpLoggerPort')"
+					@open="activeSpreadItem"
 				/>
 				<spread-form-item
 					v-model="setting.webConsole.logHighWaterMark"
+					:active-spread="activeSpread"
 					:disabled="pageLoading"
 					label="读日志数据量"
 					type="number"
 					desc="控制日志单次读取的数据量，单位 kb，不填或置 0 时默认 64，越大读取越快，内存占用越大，反之同理。"
 					@change="updateConfig('webConsole.logHighWaterMark')"
+					@open="activeSpreadItem"
 				/>
 				<spread-form-item
 					v-model="setting.webConsole.jwtSecret"
+					:active-spread="activeSpread"
 					:disabled="pageLoading"
 					label="JWT验证秘钥"
 					type="password"
@@ -164,6 +189,7 @@ const template = `<div class="table-container config">
 					verifyReg="[0-9a-zA-Z]{6,16}"
 					verifyMsg="要求长度为 6~16，仅由字母和数字组成"
 					@change="updateConfig('webConsole.jwtSecret')"
+					@open="activeSpreadItem"
 				/>
 			</template>
 		</div>
@@ -182,19 +208,23 @@ const template = `<div class="table-container config">
 				<template v-if="setting.autoChat.type === 2">
 					<spread-form-item
 						v-model="setting.autoChat.secretId"
+						:active-spread="activeSpread"
 						:disabled="pageLoading"
 						label="secretId"
 						type="password"
 						placeholder="请输入secretId"
 						@change="updateConfig('autoChat.secretId')"
+						@open="activeSpreadItem"
 					/>
 					<spread-form-item
 						v-model="setting.autoChat.secretKey"
+						:active-spread="activeSpread"
 						:disabled="pageLoading"
 						label="secretKey"
 						type="password"
 						placeholder="请输入secretKey"
 						@change="updateConfig('autoChat.secretKey')"
+						@open="activeSpreadItem"
 					/>
 				</template>
 			</template>
@@ -223,9 +253,10 @@ export default defineComponent( {
 		const state = reactive( {
 			setting: {
 				webConsole: {},
-				autoChat: {}
+				autoChat: {},
 			},
-			pageLoading: false
+			pageLoading: false,
+			activeSpread: ""
 		} );
 		
 		const platformList = [ "安卓手机", "aPad", "安卓手表", "MacOS", "iPad" ];
@@ -275,6 +306,12 @@ export default defineComponent( {
 			}
 		}
 		
+		/* 设置当前正在展开的项目 */
+		function activeSpreadItem(index) {
+			console.log(index)
+			state.activeSpread = index;
+		}
+		
 		
 		onMounted( () => {
 			getSettingConfig();
@@ -286,6 +323,7 @@ export default defineComponent( {
 			authList,
 			helpStyleList,
 			logLevel,
+			activeSpreadItem,
 			updateConfig
 		}
 	}

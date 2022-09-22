@@ -1,26 +1,30 @@
 const template = `<div class="config-section cookies">
-	<section-title title="米游社Cookies配置" desc="清空内容并保存来删除某一项">
+	<section-title title="米游社Cookies" desc="清空并保存以删除某项">
 		<el-button type="primary" link @click="createCookie">新增</el-button>
 	</section-title>
 	<spread-form-item
 		v-for="(c, cKey) of cookies.cookies"
 		:key="cKey"
+		:active-spread="activeSpread"
 		v-model="c"
 		type="textarea"
 		:disabled="pageLoading"
 		:label="'cookie' + (cKey + 1)"
 		placeholder="请输入cookie"
 		@change="modifyOldCookie($event, cKey)"
+		@open="activeSpreadItem"
 	/>
 	<spread-form-item
 		v-if="showAddCookie"
 		ref="addCookieRef"
+		:active-spread="activeSpread"
 		v-model="addCookieItem"
 		type="textarea"
 		:disabled="pageLoading"
 		label="new cookie"
 		placeholder="请输入cookie"
 		@change="addNewCookie"
+		@open="activeSpreadItem"
 		@close="resetAddCookieItem"
 	/>
 </div>`;
@@ -47,6 +51,7 @@ export default defineComponent( {
 		const state = reactive( {
 			cookies: {},
 			addCookieItem: "",
+			activeSpread: "",
 			showAddCookie: false,
 			pageLoading: false
 		} );
@@ -111,6 +116,11 @@ export default defineComponent( {
 			} )
 		}
 		
+		/* 设置当前正在展开的项目 */
+		function activeSpreadItem( index ) {
+			state.activeSpread = index;
+		}
+		
 		/* 重置添加ck项状态 */
 		function resetAddCookieItem() {
 			state.addCookieItem = "";
@@ -128,6 +138,7 @@ export default defineComponent( {
 			createCookie,
 			addNewCookie,
 			modifyOldCookie,
+			activeSpreadItem,
 			resetAddCookieItem
 		}
 	}

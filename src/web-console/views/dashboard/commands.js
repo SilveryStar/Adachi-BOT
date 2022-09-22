@@ -30,24 +30,29 @@ const template = `<div class="table-container config">
 					</form-item>
 					<spread-form-item
 						v-model="commands[cKey].onKey"
+						:active-spread="activeSpread"
 						:disabled="pageLoading"
 						label="关键词(开)"
 						placeholder="请输入关键词"
 						verifyReg=".+"
 						verifyMsg="该项为必填项"
 						@change="updateConfig(cKey, 'onKey')"
+						@open="activeSpreadItem"
 					/>
 					<spread-form-item
 						v-model="commands[cKey].offKey"
+						:active-spread="activeSpread"
 						:disabled="pageLoading"
 						label="关键词(关)"
 						placeholder="请输入关键词"
 						verifyReg=".+"
 						verifyMsg="该项为必填项"
 						@change="updateConfig(cKey, 'offKey')"
+						@open="activeSpreadItem"
 					/>
 					<spread-form-item
 						v-if="commands[cKey].mode !== 'divided'"
+						:active-spread="activeSpread"
 						v-model="commands[cKey].header"
 						:disabled="pageLoading"
 						label="指令头"
@@ -56,6 +61,7 @@ const template = `<div class="table-container config">
 						verifyMsg="该项为必填项"
 						desc="以 __ 开头来屏蔽 setting 中配置的 header。"
 						@change="updateConfig(cKey, 'header')"
+						@open="activeSpreadItem"
 					/>
 				</template>
 			</template>
@@ -85,7 +91,8 @@ export default defineComponent( {
 	setup() {
 		const state = reactive( {
 			commands: {},
-			pageLoading: false
+			pageLoading: false,
+			activeSpread: ""
 		} );
 		
 		const authList = [ "user", "manager", "master" ];
@@ -117,9 +124,11 @@ export default defineComponent( {
 		async function updateConfig( id, field ) {
 			state.pageLoading = true;
 			const path = `${ id }.${ field }`;
-			const value = objectGet( state.commands, path, 1 );
+			/* 略过的"."的数量 */
+			const ignore = id.split( "." ).length - 1;
+			const value = objectGet( state.commands, path, ignore );
 			const data = {};
-			objectSet( data, path, value, 1 );
+			objectSet( data, path, value, ignore );
 			try {
 				await $http.CONFIG_SET( { fileName: "commands", data } );
 				ElNotification( {
@@ -134,6 +143,11 @@ export default defineComponent( {
 			}
 		}
 		
+		/* 设置当前正在展开的项目 */
+		function activeSpreadItem( index ) {
+			state.activeSpread = index;
+		}
+		
 		
 		onMounted( () => {
 			getCommandsConfig();
@@ -144,6 +158,7 @@ export default defineComponent( {
 			authList,
 			scopeList,
 			modeList,
+			activeSpreadItem,
 			updateConfig
 		}
 	}
