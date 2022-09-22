@@ -80,6 +80,14 @@
 	color: var(--el-color-primary);
 }
 
+.spread-form-item .input-content {
+	display: flex;
+	flex-wrap: wrap;
+	row-gap: 5px;
+	column-gap: 10px;
+	align-items: center;
+}
+
 .spread-form-item .btn-list {
 	margin-top: 10px;
 }
@@ -94,7 +102,7 @@
 }
 
 .spread-form-item .spread-warn-msg {
-	margin-left: 10px;
+	line-height: 1.15;
 	color: red;
 }
 

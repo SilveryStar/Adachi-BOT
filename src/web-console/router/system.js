@@ -43,6 +43,12 @@ const systemRoutes = [
 				name: "OtherConfig",
 				component: () => import("../views/dashboard/other.js"),
 				meta: { title: "其他配置", nav: true }
+			},
+			{
+				path: "/system/dashboard/plugins",
+				name: "PluginsConfig",
+				component: () => import("../views/dashboard/plugins.js"),
+				meta: { title: "插件配置", nav: true }
 			}
 		]
 	},
