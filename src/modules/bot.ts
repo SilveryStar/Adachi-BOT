@@ -304,7 +304,7 @@ export default class Adachi {
 		isPrivate: boolean,
 		isAt: boolean
 	): Promise<void> {
-		const content: string = messageData.raw_message.trim() || '';
+		let content: string = messageData.raw_message.replace( /\[CQ:reply,id=[\w=]+]/, "" ).trim() || '';
 		
 		if ( this.bot.refresh.isRefreshing ) {
 			return;
