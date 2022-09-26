@@ -304,7 +304,9 @@ export default class Adachi {
 		isPrivate: boolean,
 		isAt: boolean
 	): Promise<void> {
-		let content: string = messageData.raw_message.replace( /\[CQ:reply,id=[\w=]+]/, "" ).trim() || '';
+		// 群组内的回复消息会at被回复的用户，需要把这个内容也去掉
+		const replyReg = new RegExp( `\\[CQ:reply,id=[\\w=+/]+]\\s*(\\[CQ:at,qq=\\d+,text=.*])?` );
+		let content: string = messageData.raw_message.replace( replyReg, "" ).trim() || '';
 		
 		if ( this.bot.refresh.isRefreshing ) {
 			return;
@@ -474,12 +476,10 @@ export default class Adachi {
 	
 	private checkAtBOT( msg: sdk.GroupMessageEventData ): boolean {
 		const { number } = this.bot.config;
-		const atBOTReg: RegExp = new RegExp( `^ *\\[CQ:at,qq=${ number }.*?]` );
-		const content: string = msg.raw_message;
-		
-		if ( atBOTReg.test( content ) ) {
-			msg.raw_message = content
-				.replace( atBOTReg, "" )
+		if ( msg.atme ) {
+			const atBotReg = new RegExp( `\\[CQ:at,qq=${number}.*?]` );
+			msg.raw_message = msg.raw_message
+				.replace( atBotReg, "" )
 				.trim();
 			return true;
 		}
