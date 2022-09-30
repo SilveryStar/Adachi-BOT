@@ -1,0 +1,10 @@
+.tags {
+	display: flex;
+	align-items: center;
+	column-gap: 10px;
+	height: 32px;
+}
+
+.tags .new-tag-input {
+	width: 100px;
+}

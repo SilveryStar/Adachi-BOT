@@ -1,0 +1,35 @@
+.section-title {
+	display: flex;
+	align-items: center;
+	margin: 4px 0;
+	height: 32px;
+	border-bottom: 1px dotted #e6e6e6;
+}
+
+.section-title:before {
+	content: "";
+	position: relative;
+	top: 1px;
+	margin-right: 0.6em;
+	width: 4px;
+	height: 16px;
+	background-color: var(--el-color-primary);
+	border-radius: 2px;
+}
+
+.section-title > h3 {
+	font-size: 16px;
+	font-weight: normal;
+	line-height: 1.2em;
+}
+
+.section-title > .desc {
+	margin-left: 20px;
+	font-size: 12px;
+	color: #999;
+	line-height: 1.2em;
+}
+
+.section-title > .append {
+	margin-left: 30px;
+}

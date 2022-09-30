@@ -1,0 +1,51 @@
+@import "aside.css";
+@import "footer.css";
+@import "header.css";
+@import "main.css";
+@import "tabs.css";
+
+.user-layout {
+	height: var(--app-height);
+	font-family: "微软雅黑", sans-serif;
+	color: #333;
+}
+
+.user-layout:not( .open ) > .aside-view {
+	pointer-events: none;
+	transform: translateX(calc(-1 * var(--aside-width)));
+}
+
+.user-layout > .content {
+	padding-left: var(--aside-width);
+	width: 100vw;
+	height: 100%;
+	box-sizing: border-box;
+	transition: padding-left .3s;
+}
+
+.user-layout:not( .open ) > .content {
+	padding-left: 0;
+}
+
+.user-layout > .content > .el-scrollbar {
+	--content-height: calc(var(--app-height) - var(--header-height) - var(--extra-header));
+	height: var(--content-height);
+	background-color: #f0f2f5;
+}
+
+/* 阴影 */
+.open.mask {
+	position: fixed;
+	left: 0;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	z-index: 100;
+	background-color: rgba(0, 0, 0, 0.28);
+}
+
+@media (max-width: 768px) {
+	.user-layout > .content {
+		padding-left: 0;
+	}
+}

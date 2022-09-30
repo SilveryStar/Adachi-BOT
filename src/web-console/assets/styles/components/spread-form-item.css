@@ -1,0 +1,61 @@
+.spread-form-item:not([class*="open"]) {
+	cursor: pointer;
+}
+
+.spread-form-item:not([class*="open"]):hover {
+	background-color: #f6f6f6;
+}
+
+.spread-form-item.open {
+	background-color: #f6f6f6;
+}
+
+.spread-form-item .spread-show-text {
+	display: inline-block;
+	padding: 7px 0;
+	max-width: 310px;
+	height: 32px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	font-size: 12px;
+	line-height: 18px;
+	color: #444;
+	box-sizing: border-box;
+}
+
+.spread-form-item .spread-show-text.password {
+	color: var(--el-color-primary);
+}
+
+.spread-form-item .input-content {
+	display: flex;
+	flex-wrap: wrap;
+	row-gap: 5px;
+	column-gap: 10px;
+	align-items: center;
+}
+
+.spread-form-item .btn-list {
+	margin-top: 10px;
+}
+
+.spread-form-item .el-input,
+.spread-form-item .el-input-number {
+	width: 270px;
+}
+
+.spread-form-item .el-input-number .el-input__inner {
+	text-align: left;
+}
+
+.spread-form-item .spread-warn-msg {
+	line-height: 1.15;
+	color: red;
+}
+
+@media (max-width: 768px) {
+	.form-item > .el-form-item__content {
+		width: 100%;
+	}
+}
