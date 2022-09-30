@@ -8,3 +8,7 @@
 .tags .new-tag-input {
 	width: 100px;
 }
+
+.tags .new-tag-input .el-input__inner {
+	text-align: left;
+}

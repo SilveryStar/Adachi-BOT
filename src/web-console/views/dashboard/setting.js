@@ -13,10 +13,9 @@ const template = `<div class="table-container config">
 				v-model="setting.master"
 				:active-spread="activeSpread"
 				:disabled="pageLoading"
+				type="number"
 				label="BOT主人QQ"
 				placeholder="请输入BOT主人QQ号"
-				verifyReg=".+"
-				verifyMsg="该项为必填项"
 				@change="updateConfig('master')"
 				@open="activeSpreadItem"
 			/>
@@ -307,8 +306,8 @@ export default defineComponent( {
 		}
 		
 		/* 设置当前正在展开的项目 */
-		function activeSpreadItem(index) {
-			console.log(index)
+		function activeSpreadItem( index ) {
+			console.log( index )
 			state.activeSpread = index;
 		}
 		

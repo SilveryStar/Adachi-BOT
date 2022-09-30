@@ -130,8 +130,13 @@ export default class BotConfig {
 			jwtSecret: config.webConsole.jwtSecret
 		}
 		
-		this.inviteAuth = config.inviteAuth === "manager"
-			? AuthLevel.Manager : AuthLevel.Master;
+		const authMap: Record<string, AuthLevel> = {
+			master: AuthLevel.Master,
+			manager: AuthLevel.Manager,
+			user: AuthLevel.User
+		}
+		
+		this.inviteAuth = authMap[config.inviteAuth] || AuthLevel.Master;
 		
 		const helpList: string[] = [ "message", "forward", "xml", "card" ];
 		this.helpMessageStyle = helpList.includes( config.helpMessageStyle )

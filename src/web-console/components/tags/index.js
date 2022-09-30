@@ -10,17 +10,31 @@ const template = `<div class="tags">
 	>
 	  {{ t }}
 	</el-tag>
-	<el-input
-	  v-if="inputVisible"
-	  ref="inputRef"
-	  class="new-tag-input"
-	  v-model="newTag"
-	  size="small"
-	  :disabled="disabled"
-	  @input="inputFilter"
-	  @keyup.enter="addTag"
-	  @blur="addTag"
-	/>
+	<template v-if="inputVisible">
+		<el-input-number
+			v-if="type === 'number'"
+			ref="inputRef"
+		  	class="new-tag-input"
+		  	v-model="newTag"
+		  	size="small"
+			:min="0"
+			:controls="false"
+			:placeholder="placeholder"
+			:disabled="disabled"
+		  	@keyup.enter="addTag"
+		  	@blur="addTag"
+		/>
+		<el-input
+			v-else
+		  	ref="inputRef"
+		  	class="new-tag-input"
+		  	v-model="newTag"
+		  	size="small"
+		  	:disabled="disabled"
+		  	@keyup.enter="addTag"
+		  	@blur="addTag"
+		/>
+	</template>
 	<el-button v-else class="add-tag-btn" size="small" :disabled="disabled" @click="showInput" round>+ 新增</el-button>
 </div>
 `;
@@ -82,16 +96,10 @@ export default defineComponent( {
 			state.inputVisible = true
 			nextTick( () => {
 				if ( inputRef.value ) {
-					inputRef.value.input.focus();
+					const input = props.type === "number" ? inputRef.value : inputRef.value.input;
+					input.focus();
 				}
 			} )
-		}
-		
-		/* 对输入内容进行过滤 */
-		function inputFilter(e) {
-			if ( props.type === "number" ) {
-				state.newTag = e.replace(/\D/g, "");
-			}
 		}
 		
 		function addTag() {
@@ -114,7 +122,6 @@ export default defineComponent( {
 			inputRef,
 			showCloseBtn,
 			showInput,
-			inputFilter,
 			closeTag,
 			addTag
 		}
