@@ -1,15 +1,27 @@
+.logger {
+	user-select: none;
+}
+
 .logger > .horizontal-wrap,
 .logger .picker .select-trigger {
 	height: 38px;
 }
 
+.logger .horizontal-wrap {
+	background-color: #f1f1f1;
+}
+
 .logger .picker {
 	position: relative;
 	display: flex;
-	align-items: center;
-	flex-wrap: nowrap;
+	justify-content: space-between;
 	height: 38px;
-	background-color: #f1f1f1;
+}
+
+.logger .picker .picker-left,
+.logger .picker .picker-right {
+	display: flex;
+	align-items: center;
 }
 
 .logger .picker .el-input {
@@ -76,7 +88,7 @@
 .picker .log-nav-item {
 	position: relative;
 	display: inline-flex;
-	width: 20%;
+	width: 25%;
 	max-width: 135px;
 	min-width: 108px;
 	height: 38px;
@@ -98,18 +110,13 @@
 }
 
 .picker .copy-button {
-	position: absolute;
-	display: inline-block;
-	vertical-align: middle;
-	right: 0;
-	top: 0;
 	height: 38px;
 	line-height: 38px;
 	text-align: center;
 	color: #424242;
 	font-size: 13px;
 	width: 95px;
-	flex-direction: row-reverse;
+	cursor: pointer;
 }
 
 .picker .copy-button:hover {
@@ -217,8 +224,11 @@
 		line-height: 26px;
 	}
 
-	.logger .picker {
+	.logger .horizontal-wrap {
 		background-color: #e8e8e8;
+	}
+
+	.logger .picker {
 		height: 30px;
 	}
 

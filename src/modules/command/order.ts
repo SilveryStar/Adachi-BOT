@@ -44,7 +44,7 @@ export class Order extends BasicConfig {
 		for ( let header of headers ) {
 			const pair: RegPair = { header, genRegExps: [] };
 			for ( let reg of rawRegs ) {
-				const r: string = [ "", ...reg ].join( "\\s*" );
+				const r: string = [ "", ...reg ].join( "\\s*?" );
 				const h: string = escapeRegExp( header );
 				const pattern: string = Order.addStartStopChar(
 					h + r,
@@ -84,7 +84,7 @@ export class Order extends BasicConfig {
 				let headerRegStr: string = "";
 				
 				if ( bot.config.fuzzyMatch && rawHeader.length !== 0 && /[\u4e00-\u9fa5]/.test( rawHeader ) ) {
-					headerRegStr = `${ hasHeader ? "(?=^" + bot.config.header + ")" : "" }(?=.*${ rawHeader })`;
+					headerRegStr = `${ hasHeader ? "(?=^" + bot.config.header + ")" : "" }(?=.*?${ rawHeader })`;
 				} else if ( bot.config.matchPrompt && bot.config.header && pair.header ) {
 					headerRegStr = "^" + pair.header;
 				}
@@ -102,7 +102,7 @@ export class Order extends BasicConfig {
 					content = content.replace( fogReg, "" );
 					for ( let params of this.regParam ) {
 						params = [pair.header, ...params];
-						const paramReg = new RegExp( `^${ params.join( "\\s*" ) }$` );
+						const paramReg = new RegExp( `^${ params.join( "\\s*?" ) }$` );
 						const matchParam = paramReg.test( pair.header + content );
 						if ( matchParam ) {
 							throw { type: "order", header: pair.header };

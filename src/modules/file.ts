@@ -17,11 +17,14 @@ interface ManagementMethod {
 	renameFile( fileName: string, newName: string, place?: PresetPlace ): void;
 	readFile( fileName: string, place: PresetPlace ): string;
 	readFileByStream( fileName: string, place: PresetPlace, highWaterMark?: number ): Promise<string>;
-	createDir( dirName: string, place?: PresetPlace ): boolean;
+	createDir( dirName: string, place?: PresetPlace, recursive?: boolean ): boolean;
 	getDirFiles( dirName: string, place?: PresetPlace ): string[];
+	createFile( fileName: string, data: any, place?: PresetPlace ): boolean;
 	createYAML( ymlName: string, data: any, place?: PresetPlace ): boolean;
+	loadFile( fileName: string, place?: PresetPlace ): any;
 	loadYAML( ymlName: string, place?: PresetPlace ): any;
 	writeYAML( ymlName: string, data: any, place?: PresetPlace ): void;
+	writeFile( fileName: string, data: any, place?: PresetPlace ): void;
 	updateYAML( ymlName: string, data: any, place?: PresetPlace, ...index: string[] ): void;
 	// updateYAMLs( ymlName: string, data: Array<{ index: UpdateIndex, data: any }>, place?: PresetPlace ): void;
 }
@@ -81,11 +84,11 @@ export default class FileManagement implements ManagementMethod {
 		} )
 	}
 	
-	public createDir( dirName: string, place: PresetPlace = "config" ): boolean {
+	public createDir( dirName: string, place: PresetPlace = "config", recursive: boolean = false  ): boolean {
 		const path: string = this.getFilePath( dirName, place );
 		const exist: boolean = this.isExist( path );
 		if ( !exist ) {
-			fs.mkdirSync( path );
+			fs.mkdirSync( path, { recursive } );
 		}
 		return exist;
 	}
@@ -93,6 +96,15 @@ export default class FileManagement implements ManagementMethod {
 	public getDirFiles( dirName: string, place: PresetPlace = "config" ): string[] {
 		const path: string = this.getFilePath( dirName, place );
 		return fs.readdirSync( path );
+	}
+	
+	public createFile( fileName: string, data: any, place: PresetPlace = "config" ): boolean {
+		const path: string = this.getFilePath( fileName, place );
+		const exist: boolean = this.isExist( path );
+		if ( !exist ) {
+			this.writeFile( fileName, data, place );
+		}
+		return exist;
 	}
 	
 	public createYAML( ymlName: string, data: any, place: PresetPlace = "config" ): boolean {
@@ -104,10 +116,22 @@ export default class FileManagement implements ManagementMethod {
 		return exist;
 	}
 	
+	public loadFile( fileName: string, place: PresetPlace = "config" ): string {
+		const path: string = this.getFilePath( fileName, place );
+		return fs.readFileSync( path, "utf-8" );
+	}
+	
 	public loadYAML( ymlName: string, place: PresetPlace = "config" ): any {
 		const path: string = this.getFilePath( ymlName, place ) + ".yml";
 		const file: string = fs.readFileSync( path, "utf-8" );
 		return parse( file ) || {};
+	}
+	
+	public writeFile( fileName: string, data: any, place: PresetPlace = "config" ): void {
+		const path: string = this.getFilePath( fileName, place );
+		const opened: number = fs.openSync( path, "w" );
+		fs.writeSync( opened, data );
+		fs.closeSync( opened );
 	}
 	
 	public writeYAML( ymlName: string, data: any, place: PresetPlace = "config" ): void {
