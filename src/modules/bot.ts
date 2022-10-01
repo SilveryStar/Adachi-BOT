@@ -17,9 +17,8 @@ import MsgManagement, * as msg from "./message";
 import { Md5 } from "md5-typescript";
 import { Job, JobCallback, scheduleJob } from "node-schedule";
 import { trim } from "lodash";
-import fs, { readFileSync, unlinkSync } from "fs";
+import { unlinkSync } from "fs";
 import axios, { AxiosError } from "axios";
-import { resolve } from "path";
 import { autoChat } from "@modules/chat";
 import { WhiteList } from "@modules/whitelist";
 
@@ -206,18 +205,13 @@ export default class Adachi {
 			/* 处理滑动验证码事件 */
 			this.bot.client.on( "system.login.slider", () => {
 				const number = this.bot.config.number;
-				this.bot.logger.mark( `请在5分钟内完成滑动验证,并将获取到的ticket写入到src/data/${ number }/ticket.txt文件中并保存(或在终端粘贴获取到的ticket)，不要重启服务!!!` );
+				this.bot.logger.mark( `请在5分钟内完成滑动验证,并将获取到的ticket写入到src/data/${ number }/ticket.txt文件中并保存（亦可通过控制台-其他配置进行写入），或在终端粘贴获取到的ticket，不要重启服务!!!` );
 				const d = new Date();
 				// 创建空的ticket.txt
-				let dirName = `src/data/${ number }`;
-				let path = resolve( this.bot.file.root, dirName );
-				if ( !this.bot.file.isExist( path ) ) {
-					fs.mkdirSync( path, { recursive: true } );
-				}
-				const ticketPath = resolve( this.bot.file.root, `${ dirName }/ticket.txt` );
-				const opened: number = fs.openSync( ticketPath, "w" );
-				fs.writeSync( opened, "" );
-				fs.closeSync( opened );
+				const dirName = `src/data/${ number }`;
+				const ticketPath = `${ dirName }/ticket.txt`;
+				this.bot.file.createDir( dirName, "root", true );
+				this.bot.file.createFile( ticketPath, "", "root" );
 				
 				// 定时去查看ticket文件是否已写入ticket
 				const job: Job = scheduleJob( "0/5 * * * * *", () => {
@@ -226,10 +220,11 @@ export default class Adachi {
 						job.cancel();
 						return;
 					}
-					const file = readFileSync( ticketPath, "utf-8" );
+					const file = this.bot.file.loadFile( ticketPath, "root" );
 					if ( file ) {
 						this.bot.client.sliderLogin( file );
 						job.cancel();
+						this.bot.file.writeFile( ticketPath, "", "root" );
 					}
 				} )
 				
@@ -243,19 +238,14 @@ export default class Adachi {
 			this.bot.client.on( "system.login.device", ( { phone } ) => {
 				if ( phone ) {
 					const number = this.bot.config.number;
-					this.bot.logger.mark( `请在5分钟内将获取到的短信验证码写入到src/data/${ number }/code.txt文件中并保存(或在终端粘贴获取到的code)，不要重启服务!!!` );
+					this.bot.logger.mark( `请在5分钟内将获取到的短信验证码写入到src/data/${ number }/code.txt文件中并保存（亦可通过控制台-其他配置进行写入），或在终端粘贴获取到的code，不要重启服务!!!` );
 					this.bot.client.sendSMSCode();
 					const d = new Date();
 					// 创建空的code.txt
-					let dirName = `src/data/${ number }`;
-					let path = resolve( this.bot.file.root, dirName );
-					if ( !this.bot.file.isExist( path ) ) {
-						fs.mkdirSync( path, { recursive: true } );
-					}
-					const codePath = resolve( this.bot.file.root, `${ dirName }/code.txt` );
-					const opened: number = fs.openSync( codePath, "w" );
-					fs.writeSync( opened, "" );
-					fs.closeSync( opened );
+					const dirName = `src/data/${ number }`;
+					const codePath = `${ dirName }/code.txt`;
+					this.bot.file.createDir( dirName, "root", true );
+					this.bot.file.createFile( codePath, "", "root" );
 					
 					// 定时去查看ticket文件是否已写入ticket
 					const job: Job = scheduleJob( "0/5 * * * * *", () => {
@@ -264,10 +254,11 @@ export default class Adachi {
 							job.cancel();
 							return;
 						}
-						const file = readFileSync( codePath, "utf-8" );
+						const file: string = this.bot.file.loadFile( codePath, "root" );
 						if ( file ) {
 							this.bot.client.submitSMSCode( file );
 							job.cancel();
+							this.bot.file.writeFile( codePath, "", "root" );
 						}
 					} )
 					

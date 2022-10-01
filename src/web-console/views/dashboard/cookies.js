@@ -47,11 +47,16 @@ export default defineComponent( {
 		SectionTitle,
 		Tags
 	},
-	setup() {
+	emits: [ "setActiveSpread" ],
+	props: {
+		activeSpread: {
+			default: ""
+		}
+	},
+	setup( props, { emit } ) {
 		const state = reactive( {
 			cookies: {},
 			addCookieItem: "",
-			activeSpread: "",
 			showAddCookie: false,
 			pageLoading: false
 		} );
@@ -118,7 +123,7 @@ export default defineComponent( {
 		
 		/* 设置当前正在展开的项目 */
 		function activeSpreadItem( index ) {
-			state.activeSpread = index;
+			emit( "setActiveSpread", index );
 		}
 		
 		/* 重置添加ck项状态 */

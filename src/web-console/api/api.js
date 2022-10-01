@@ -27,5 +27,7 @@ export default {
 	/* 配置 */
 	CONFIG_GET: "/config",
 	CONFIG_SET: "/config/set",
+	CONFIG_SET_CODE: "/config/set/code",
+	CONFIG_SET_TICKET: "/config/set/ticket",
 	CONFIG_PLUGINS: "/config/plugins"
 }

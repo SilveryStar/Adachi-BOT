@@ -85,6 +85,8 @@ export default express.Router()
 		const auth = <AuthLevel>parseInt( <string>req.body.auth );
 		const limits: string[] = JSON.parse( <string>req.body.limits );
 		
+		console.log(userID, int, auth)
+		
 		await bot.auth.set( userID, auth );
 		await bot.interval.set( userID, "private", int );
 		

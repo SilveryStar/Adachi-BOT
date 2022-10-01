@@ -51,7 +51,7 @@ export class Switch extends BasicConfig {
 		
 		if ( config.mode === "single" ) {
 			let reg: string = config.regexp instanceof Array
-							? [ "", ...config.regexp ].join( " *" )
+							? [ "", ...config.regexp ].join( "\\s*?" )
 							: config.regexp;
 			const h: string = process( config.header );
 			const r: string = reg.replace(
@@ -63,7 +63,7 @@ export class Switch extends BasicConfig {
 			this.header = h;
 		} else {
 			const r: string = config.regexp instanceof Array
-							? [ "", ...config.regexp.filter( el => el !== "#{OPT}" ) ].join( " *" )
+							? [ "", ...config.regexp.filter( el => el !== "#{OPT}" ) ].join( "\\s*?" )
 							: config.regexp.replace( "#{OPT}", "" ).trim();
 			const h1: string = process( config.onKey );
 			const h2: string = process( config.offKey );

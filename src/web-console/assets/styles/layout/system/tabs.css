@@ -1,0 +1,51 @@
+.header-tab {
+	padding: 0 18px;
+	height: var(--nav-height);
+	border-top: 1px solid #e6e6e6;
+	box-sizing: border-box;
+}
+
+.header-tab > .el-scrollbar {
+	height: 100%;
+}
+
+.header-tab .tab-list {
+	display: flex;
+	align-items: center;
+	column-gap: 10px;
+	height: var(--nav-height);
+}
+
+.header-tab .tab-list > a {
+	position: relative;
+	display: block;
+	padding: 11px 10px;
+	font-size: 14px;
+	color: #999;
+	white-space: nowrap;
+	transition: color .2s ease-out;
+}
+
+.header-tab .tab-list > a.active,
+.header-tab .tab-list > a:hover {
+	color: #333;
+}
+
+.header-tab .tab-list > a::after {
+	content: "";
+	position: absolute;
+	bottom: 2px;
+	left: 0;
+	right: 0;
+	height: 2px;
+	background-color: #409EFF;
+	transform: scaleX(0);
+	opacity: 0;
+	transition: transform .2s ease-out, opacity .2s ease-out;
+}
+
+.header-tab .tab-list > a.active::after,
+.header-tab .tab-list > a:hover::after {
+	opacity: 1;
+	transform: scaleX(1);
+}

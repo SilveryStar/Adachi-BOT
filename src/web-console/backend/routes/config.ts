@@ -58,6 +58,38 @@ export default express.Router()
 		bot.file.writeYAML( fileName, data );
 		res.status( 200 ).send( { code: 200, data: {}, msg: "Success" } );
 	} )
+	.post( "/set/code", ( req, res ) => {
+		const data = req.body.data;
+		if ( typeof data !== "string" ) {
+			res.status( 400 ).send( { code: 400, data: {}, msg: "Error Params" } );
+			return;
+		}
+		
+		const dirName = `src/data/${ bot.config.number }`;
+		const codePath = `${ dirName }/code.txt`;
+		bot.file.createDir( dirName, "root", true );
+		const exist = bot.file.createFile( codePath, data, "root" );
+		if ( exist ) {
+			bot.file.writeFile( codePath, data, "root" );
+		}
+		res.status( 200 ).send( { code: 200, data: {}, msg: "Success" } );
+	} )
+	.post( "/set/ticket", ( req, res ) => {
+		const data = req.body.data;
+		if ( typeof data !== "string" ) {
+			res.status( 400 ).send( { code: 400, data: {}, msg: "Error Params" } );
+			return;
+		}
+		
+		const dirName = `src/data/${ bot.config.number }`;
+		const ticketPath = `${ dirName }/ticket.txt`;
+		bot.file.createDir( dirName, "root", true );
+		const exist = bot.file.createFile( ticketPath, data, "root" );
+		if ( exist ) {
+			bot.file.writeFile( ticketPath, data, "root" );
+		}
+		res.status( 200 ).send( { code: 200, data: {}, msg: "Success" } );
+	} )
 	.get( "/plugins", ( req, res ) => {
 		const configFiles = bot.file.getDirFiles( "" );
 		const data = configFiles.map( name => {

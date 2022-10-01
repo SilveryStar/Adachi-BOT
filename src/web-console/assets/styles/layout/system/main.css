@@ -1,0 +1,6 @@
+.main-view {
+	position: relative;
+	padding: 12px;
+	box-sizing: border-box;
+	overflow: hidden;
+}

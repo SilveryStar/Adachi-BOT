@@ -29,6 +29,7 @@ ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
 
 COPY . /bot
 WORKDIR /bot
+<<<<<<< Updated upstream
 # Use process management tools to handle process signals to prevent processes in containers from becoming zombie processes.
 ENTRYPOINT ["dumb-init", "--"]
 
@@ -36,3 +37,6 @@ ENTRYPOINT ["dumb-init", "--"]
 RUN npm i && sed -i 's/537064315/537128930/' 'node_modules/oicq/lib/device.js'
 
 CMD nohup sh -c "npm i && npm run docker-start"
+=======
+CMD nohup sh -c "npm i && npm i puppeteer && npm run docker-start"
+>>>>>>> Stashed changes

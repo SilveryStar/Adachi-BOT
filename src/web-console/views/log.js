@@ -1,38 +1,42 @@
 const template = `<div class="table-container fix-height logger">
 	<el-scrollbar class="horizontal-wrap">
 		<div class="picker">
-			<el-date-picker
-				v-model="currentDate"
-				type="date"
-				placeholder="选择日期"
-				format="MM-DD"
-				:clearable="false"
-				:editable="false"
-				:disabled-date="disabledDate"
-				@change="dateChange"
-			/>
-			<div v-if="today" class="log-nav-item">
-				<span class="content">自动置底</span>
-				<el-switch
-					v-model="autoBottom"
-					active-color="#20a53a"
-					inactive-color="#f1f1f1"
+			<div class="picker-left">
+				<el-date-picker
+					v-model="currentDate"
+					type="date"
+					placeholder="选择日期"
+					format="MM-DD"
+					:clearable="false"
+					:editable="false"
+					:disabled-date="disabledDate"
+					@change="dateChange"
 				/>
+				<div v-if="today" class="log-nav-item">
+					<span class="content">自动置底</span>
+					<el-switch
+						v-model="autoBottom"
+						active-color="#20a53a"
+						inactive-color="#f1f1f1"
+					/>
+				</div>
+				<div class="log-nav-item">
+					<el-select v-model="queryParams.logLevel" placeholder="日志等级" @change="handleFilter" @clear="handleFilter" clearable>
+    					<el-option v-for="(l, lKey) of logLevel" :key="lKey" :label="l" :value="l"/>
+  					</el-select>
+				</div>
+				<div class="log-nav-item">
+					<el-select v-model="queryParams.msgType" placeholder="类型" @change="msgTypeChange" @clear="msgTypeChange" clearable>
+    					<el-option v-for="(t, tKey) of msgType" :key="tKey" :label="t.label" :value="t.value"/>
+  					</el-select>
+				</div>
+				<div v-show="queryParams.msgType === 2" class="log-nav-item">
+					<el-input v-model="queryParams.groupId" placeholder="请输入群号" @keydown.enter="handleFilter" @clear="handleFilter" clearable></el-input>
+				</div>
 			</div>
-			<div class="log-nav-item">
-				<el-select v-model="queryParams.logLevel" placeholder="日志等级" @change="handleFilter" @clear="handleFilter" clearable>
-    				<el-option v-for="(l, lKey) of logLevel" :key="lKey" :label="l" :value="l"/>
-  				</el-select>
+			<div class="picker-right">
+				<div class="copy-button" @click="copyAsReportFormat">去隐私复制</div>
 			</div>
-			<div class="log-nav-item">
-				<el-select v-model="queryParams.msgType" placeholder="类型" @change="msgTypeChange" @clear="msgTypeChange" clearable>
-    				<el-option v-for="(t, tKey) of msgType" :key="tKey" :label="t.label" :value="t.value"/>
-  				</el-select>
-			</div>
-			<div v-show="queryParams.msgType === 2" class="log-nav-item">
-				<el-input v-model="queryParams.groupId" placeholder="请输入群号" @keydown.enter="handleFilter" @clear="handleFilter" clearable></el-input>
-			</div>
-			<div class="copy-button" @click="copyAsReportFormat">去隐私复制</div>
 		</div>
 	</el-scrollbar>
 	<div class="log-container">
