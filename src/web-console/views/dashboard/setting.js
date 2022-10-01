@@ -307,7 +307,6 @@ export default defineComponent( {
 		
 		/* 设置当前正在展开的项目 */
 		function activeSpreadItem( index ) {
-			console.log( index )
 			state.activeSpread = index;
 		}
 		
