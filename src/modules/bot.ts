@@ -221,8 +221,8 @@ export default class Adachi {
 						return;
 					}
 					const file = this.bot.file.loadFile( ticketPath, "root" );
-					if ( file ) {
-						this.bot.client.sliderLogin( file );
+					if ( file && file.trim() ) {
+						this.bot.client.sliderLogin( file.trim() );
 						job.cancel();
 						this.bot.file.writeFile( ticketPath, "", "root" );
 					}
@@ -255,8 +255,8 @@ export default class Adachi {
 							return;
 						}
 						const file: string = this.bot.file.loadFile( codePath, "root" );
-						if ( file ) {
-							this.bot.client.submitSMSCode( file );
+						if ( file && file.trim() ) {
+							this.bot.client.submitSMSCode( file.trim() );
 							job.cancel();
 							this.bot.file.writeFile( codePath, "", "root" );
 						}

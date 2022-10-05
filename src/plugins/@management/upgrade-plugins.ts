@@ -2,7 +2,7 @@ import fetch from "node-fetch";
 import { exec } from "child_process";
 import { InputParameter } from "@modules/command";
 import { restart } from "pm2";
-import { PluginUpgradeServices } from "@modules/plugin";
+import { PluginAlias, PluginUpgradeServices } from "@modules/plugin";
 
 /* 超时检查 */
 function waitWithTimeout( promise: Promise<any>, timeout: number ): Promise<any> {
@@ -122,7 +122,12 @@ export async function main( i: InputParameter ): Promise<void> {
 	}
 	if ( execArray && execArray[3] ) {
 		// 更新单个插件
-		const pluginName: string = execArray[3];
+		let pluginName: string = execArray[3];
+		const originalName = PluginAlias[pluginName];
+		if ( originalName ) {
+			// 如果是用的别名则重置成插件的原始名称
+			pluginName = originalName;
+		}
 		const repo: string = PluginUpgradeServices[pluginName];
 		if ( !repo ) {
 			await i.sendMessage( `[${ pluginName }]插件不支持热更新.` );

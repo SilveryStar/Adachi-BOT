@@ -17,6 +17,7 @@ export type PluginSubSetting = {
 export interface PluginSetting {
 	pluginName: string;
 	cfgList: cmd.ConfigType[];
+	aliases?: string[];
 	repo?: string | {
 		owner: string;// 仓库拥有者名称
 		repoName: string;// 仓库名称
@@ -29,6 +30,8 @@ export const PluginReSubs: Record<string, PluginSubSetting> = {};
 export const PluginRawConfigs: Record<string, cmd.ConfigType[]> = {};
 
 export const PluginUpgradeServices: Record<string, string> = {};
+
+export const PluginAlias: Record<string, string> = {};
 
 // 不支持热更新的插件集合，这些插件不会被提示不支持热更新。
 const not_support_upgrade_plugins: string[] = [ "@help", "@management", "genshin", "tools" ];
@@ -43,7 +46,7 @@ export default class Plugin {
 			const path: string = bot.file.getFilePath( `${ plugin }/init`, "plugin" );
 			const { init, subInfo } = require( path );
 			try {
-				const { pluginName, cfgList, repo }: PluginSetting = await init( bot );
+				const { pluginName, cfgList, repo, aliases }: PluginSetting = await init( bot );
 				if ( subInfo ) {
 					const { reSub, subs }: PluginSubSetting = await subInfo( bot );
 					PluginReSubs[pluginName] = { reSub, subs };
@@ -59,6 +62,11 @@ export default class Plugin {
 						}
 					} else {
 						PluginUpgradeServices[pluginName] = "";
+					}
+				}
+				if ( aliases && aliases.length > 0 ) {
+					for ( let alias of aliases ) {
+						PluginAlias[alias] = pluginName;
 					}
 				}
 				registerCmd.push( ...commands );
