@@ -404,7 +404,8 @@ export async function dailyNotePromise(
 				reject( Cookies.checkExpired( cookie ) );
 				return;
 			} else if ( retcode !== 0 ) {
-				reject( ErrorMsg.FORM_MESSAGE + message );
+				const errMsg = retcode === 1034 ? "便笺信息查询触发米游社验证码机制" : ErrorMsg.FORM_MESSAGE + message;
+				reject( errMsg );
 				return;
 			}
 			
