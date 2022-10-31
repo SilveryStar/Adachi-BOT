@@ -34,7 +34,11 @@ export class NoteService implements Service {
 			? true : options.enable;
 		
 		this.feedbackCatch = async () => {
-			await this.parent.sendMessage( <string>this.globalData );
+			const errMsg: string = <string>this.globalData;
+			if ( !errMsg.includes( "验证码" ) ) {
+				await this.parent.sendMessage( errMsg );
+			}
+			bot.logger.error( errMsg );
 		};
 		
 		if ( this.enable ) {
@@ -64,10 +68,11 @@ export class NoteService implements Service {
 			const appendToggleNote = TOGGLE_NOTE ? `如果你希望关闭定时提醒功能，可以使用「${ TOGGLE_NOTE.getHeaders()[0] }+账户序号」` : "";
 			
 			return "实时便笺功能已开启：\n" +
-				"默认情况下，树脂数量达到 120 和 155 时会发送进行私聊推送\n" +
+				"默认情况下，树脂数量达到 120 和 155 时会发送私聊推送\n" +
 				appendSetTime +
 				"当洞天宝钱已满、质变仪可用和冒险探索结束时，BOT 也会进行提醒\n" +
-				appendToggleNote;
+				appendToggleNote +
+				"*由于米游社近期新增查询验证码限制，该功能可能会无法正常工作"
 		}
 	}
 	
