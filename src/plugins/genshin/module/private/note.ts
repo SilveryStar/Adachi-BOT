@@ -38,7 +38,6 @@ export class NoteService implements Service {
 			if ( !errMsg.includes( "验证码" ) ) {
 				await this.parent.sendMessage( errMsg );
 			}
-			bot.logger.error( errMsg );
 		};
 		
 		if ( this.enable ) {
