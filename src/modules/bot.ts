@@ -52,9 +52,16 @@ export interface BOT {
 	readonly renderer: BasicRenderer;
 }
 
+type ScreenSwipeInfo = Record<string, {
+	timeout: any,
+	massages: string[]
+}>
+
 export default class Adachi {
 	public readonly bot: BOT;
 	private isOnline: boolean = false;
+	/* 收集触发刷屏的用户及消息信息 */
+	private screenSwipeInfo: ScreenSwipeInfo = {};
 	
 	constructor( root: string ) {
 		/* 初始化运行环境 */
@@ -434,8 +441,18 @@ export default class Adachi {
 				return;
 			}
 			
-			const { user_id: userID, group_id: groupID } = messageData;
+			const { user_id: userID, group_id: groupID, message_id: messageID, message } = messageData;
 			const isMaster = userID === bot.config.master;
+			
+			/* 开启禁止刷屏模式 */
+			if ( bot.config.banScreenSwipe.enable ) {
+				that.banScreenSwipe( userID, groupID, messageID );
+			}
+			
+			/* 开启禁止大量 at 模式 */
+			if ( bot.config.banHeavyAt.enable ) {
+				that.banHeavyAt( userID, groupID, messageID, message );
+			}
 			
 			/* 白名单校验 */
 			if ( !isMaster && bot.config.useWhitelist && !bot.whitelist.groupValid( groupID, userID ) ) {
@@ -462,6 +479,80 @@ export default class Adachi {
 				const unionReg: RegExp = bot.command.getUnion( auth, msg.MessageScope.Group );
 				await that.execute( messageData, sendMessage, cmdSet, [ ...gLim, ...uLim ], unionReg, false, isAt );
 			}
+		}
+	}
+	
+	/* 处理刷屏用户 */
+	private banScreenSwipe( userID: number, groupID: number, messageID: string ) {
+		const config = this.bot.config.banScreenSwipe;
+		
+		const userMark: string = `${ userID }-${ groupID }`;
+		if ( !this.screenSwipeInfo[userMark] ) {
+			this.screenSwipeInfo[userMark] = {
+				massages: [],
+				timeout: null
+			};
+		}
+		const cUserMark = this.screenSwipeInfo[userMark];
+		cUserMark.massages.push( messageID );
+		
+		if ( cUserMark.timeout ) {
+			clearTimeout( cUserMark.timeout );
+			cUserMark.timeout = null;
+		}
+		cUserMark.timeout = setTimeout( async () => {
+			const banUsers = Object.entries( this.screenSwipeInfo )
+				.filter( ( [ k, v ] ) => v.massages.length > config.limit );
+			Promise.all( banUsers.map( el => this.banScreenSwipeHandle( el ) ) ).then( () => {
+				clearTimeout( cUserMark.timeout );
+				cUserMark.timeout = null;
+			} )
+		}, 1000 );
+	}
+	
+	/* 处理刷屏用户具体实现 */
+	private banScreenSwipeHandle( [ userGroupId, { massages } ]: [ string, ScreenSwipeInfo[string] ] ): Promise<void> {
+		return new Promise( resolve => {
+			const config = this.bot.config.banScreenSwipe;
+			
+			const idInfo = userGroupId.split( "-" );
+			const userID = Number.parseInt( idInfo[0] );
+			const groupID = Number.parseInt( idInfo[1] );
+			
+			const promiseList: Promise<any>[] = [
+				...massages.map( msgID => this.bot.client.deleteMsg( msgID ) ),
+				this.bot.client.setGroupBan( groupID, userID, config.duration )
+			];
+			
+			if ( config.prompt ) {
+				promiseList.push(
+					this.bot.client.sendGroupMsg( groupID, `${ sdk.cqcode.at( userID ) } ${ config.promptMsg }` )
+				)
+			}
+			
+			Promise.all( promiseList ).finally( () => {
+				Reflect.deleteProperty( this.screenSwipeInfo, userGroupId );
+				resolve()
+			} );
+		} )
+	}
+	
+	/* 处理大量at用户 */
+	private banHeavyAt( userID: number, groupID: number, messageID: string, message: sdk.MessageElem[] ) {
+		const config = this.bot.config.banHeavyAt;
+		
+		const atNums = message.filter( msg => msg.type === "at" ).length;
+		if ( atNums > config.limit ) {
+			const promiseList: Promise<any>[] = [
+				this.bot.client.deleteMsg( messageID ),
+				this.bot.client.setGroupBan( groupID, userID, config.duration )
+			];
+			if ( config.prompt ) {
+				promiseList.push(
+					this.bot.client.sendGroupMsg( groupID, `${ sdk.cqcode.at( userID ) } ${ config.promptMsg }` )
+				);
+			}
+			Promise.all( promiseList ).then();
 		}
 	}
 	

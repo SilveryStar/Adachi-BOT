@@ -27,6 +27,22 @@ export default class BotConfig {
 	public readonly logLevel: "trace" | "debug" | "info" | "warn" |
 		"error" | "fatal" | "mark" | "off";
 	
+	public readonly banScreenSwipe: {
+		readonly enable: boolean;
+		readonly limit: number;
+		readonly duration: number;
+		readonly prompt: boolean;
+		readonly promptMsg: string;
+	}
+	
+	public readonly banHeavyAt: {
+		readonly enable: boolean;
+		readonly limit: number;
+		readonly duration: number;
+		readonly prompt: boolean;
+		readonly promptMsg: string;
+	}
+	
 	public readonly webConsole: {
 		readonly enable: boolean;
 		readonly consolePort: number;
@@ -66,6 +82,20 @@ export default class BotConfig {
 		logLevel: "info",
 		dbPort: 56379,
 		dbPassword: "",
+		banScreenSwipe: {
+			enable: false,
+			limit: 10,
+			duration: 1800,
+			prompt: true,
+			promptMsg: "请不要刷屏哦~"
+		},
+		banHeavyAt: {
+			enable: false,
+			limit: 10,
+			duration: 1800,
+			prompt: true,
+			promptMsg: "你at太多人了，会被讨厌的哦~"
+		},
 		webConsole: {
 			enable: true,
 			consolePort: 80,
@@ -88,7 +118,8 @@ export default class BotConfig {
 		const checkFields: Array<keyof BotConfig> = [
 			"atBOT", "addFriend", "dbPassword",
 			"helpPort", "autoChat", "callTimes",
-			"fuzzyMatch", "matchPrompt", "useWhitelist"
+			"fuzzyMatch", "matchPrompt", "useWhitelist",
+			"banScreenSwipe", "banHeavyAt"
 		];
 		
 		for ( let key of checkFields ) {
@@ -122,6 +153,22 @@ export default class BotConfig {
 			config.webConsole.jwtSecret = randomSecret( 16 );
 			file.writeYAML( "setting", config );
 		}
+		this.banScreenSwipe = {
+			enable: config.banScreenSwipe.enable,
+			limit: config.banScreenSwipe.limit,
+			duration: config.banScreenSwipe.duration,
+			prompt: config.banScreenSwipe.prompt,
+			promptMsg: config.banScreenSwipe.promptMsg
+		}
+		
+		this.banHeavyAt = {
+			enable: config.banHeavyAt.enable,
+			limit: config.banHeavyAt.limit,
+			duration: config.banHeavyAt.duration,
+			prompt: config.banHeavyAt.prompt,
+			promptMsg: config.banHeavyAt.promptMsg
+		}
+		
 		this.webConsole = {
 			enable: config.webConsole.enable,
 			consolePort: config.webConsole.consolePort,
