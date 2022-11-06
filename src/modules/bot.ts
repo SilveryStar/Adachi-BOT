@@ -444,6 +444,11 @@ export default class Adachi {
 			const { user_id: userID, group_id: groupID, message_id: messageID, message } = messageData;
 			const isMaster = userID === bot.config.master;
 			
+			/* 白名单校验 */
+			if ( !isMaster && bot.config.useWhitelist && !bot.whitelist.groupValid( groupID, userID ) ) {
+				return;
+			}
+			
 			/* 开启禁止刷屏模式 */
 			if ( bot.config.banScreenSwipe.enable ) {
 				that.banScreenSwipe( userID, groupID, messageID );
@@ -452,11 +457,6 @@ export default class Adachi {
 			/* 开启禁止大量 at 模式 */
 			if ( bot.config.banHeavyAt.enable ) {
 				that.banHeavyAt( userID, groupID, messageID, message );
-			}
-			
-			/* 白名单校验 */
-			if ( !isMaster && bot.config.useWhitelist && !bot.whitelist.groupValid( groupID, userID ) ) {
-				return;
 			}
 			
 			if ( !bot.interval.check( userID, groupID ) ) {
@@ -501,17 +501,22 @@ export default class Adachi {
 			cUserMark.timeout = null;
 		}
 		cUserMark.timeout = setTimeout( async () => {
-			const banUsers = Object.entries( this.screenSwipeInfo )
-				.filter( ( [ k, v ] ) => v.massages.length > config.limit );
-			Promise.all( banUsers.map( el => this.banScreenSwipeHandle( el ) ) ).then( () => {
+			if ( cUserMark.massages.length > config.limit ) {
+				this.banScreenSwipeHandle( userMark, cUserMark ).then( () => {
+					Reflect.deleteProperty( this.screenSwipeInfo, userMark );
+					clearTimeout( cUserMark.timeout );
+					cUserMark.timeout = null;
+				} )
+			} else {
+				Reflect.deleteProperty( this.screenSwipeInfo, userMark );
 				clearTimeout( cUserMark.timeout );
 				cUserMark.timeout = null;
-			} )
+			}
 		}, 1000 );
 	}
 	
 	/* 处理刷屏用户具体实现 */
-	private banScreenSwipeHandle( [ userGroupId, { massages } ]: [ string, ScreenSwipeInfo[string] ] ): Promise<void> {
+	private banScreenSwipeHandle( userGroupId: string, { massages }: ScreenSwipeInfo[string] ): Promise<void> {
 		return new Promise( resolve => {
 			const config = this.bot.config.banScreenSwipe;
 			
@@ -531,8 +536,7 @@ export default class Adachi {
 			}
 			
 			Promise.all( promiseList ).finally( () => {
-				Reflect.deleteProperty( this.screenSwipeInfo, userGroupId );
-				resolve()
+				resolve();
 			} );
 		} )
 	}

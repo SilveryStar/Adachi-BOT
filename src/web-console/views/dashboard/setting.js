@@ -228,6 +228,88 @@ const template = `<div class="table-container config">
 				</template>
 			</template>
 		</div>
+		<div class="config-section">
+			<section-title title="刷屏控制" />
+			<form-item label="开启刷屏控制" desc="开启后群聊内连续间隔小于1s发送消息，触发一定次数将会进行撤回+禁言处理（bot需要为管理员）。">
+				<el-switch v-model="setting.banScreenSwipe.enable" :disabled="pageLoading" @change="updateConfig('banScreenSwipe.enable')" />
+			</form-item>
+			<template v-if="setting.banScreenSwipe.enable">
+				<spread-form-item
+					v-model="setting.banScreenSwipe.limit"
+					:active-spread="activeSpread"
+					:disabled="pageLoading"
+					label="次数限制"
+					type="number"
+					desc="连续发送消息几次后触发封禁"
+					@change="updateConfig('banScreenSwipe.limit')"
+					@open="activeSpreadItem"
+				/>
+				<spread-form-item
+					v-model="setting.banScreenSwipe.duration"
+					:active-spread="activeSpread"
+					:disabled="pageLoading"
+					label="禁言时长"
+					type="number"
+					desc="单位为秒"
+					@change="updateConfig('banScreenSwipe.duration')"
+					@open="activeSpreadItem"
+				/>
+				<form-item label="开启提示消息" desc="开启后触发判定后会给予相关用户提示信息。">
+					<el-switch v-model="setting.banScreenSwipe.prompt" :disabled="pageLoading" @change="updateConfig('banScreenSwipe.prompt')" />
+				</form-item>
+				<spread-form-item
+					v-if="setting.banScreenSwipe.prompt"
+					v-model="setting.banScreenSwipe.promptMsg"
+					:active-spread="activeSpread"
+					:disabled="pageLoading"
+					label="消息内容"
+					placeholder="请输入指令起始符"
+					@change="updateConfig('banScreenSwipe.promptMsg')"
+					@open="activeSpreadItem"
+				/>
+			</template>
+		</div>
+		<div class="config-section">
+			<section-title title="过量at限制" />
+			<form-item label="开启过量at限制" desc="开启后群聊内消息包含超过限制数量的at消息时，将会进行撤回+禁言处理（bot需要为管理员）。">
+				<el-switch v-model="setting.banHeavyAt.enable" :disabled="pageLoading" @change="updateConfig('banHeavyAt.enable')" />
+			</form-item>
+			<template v-if="setting.banHeavyAt.enable">
+				<spread-form-item
+					v-model="setting.banHeavyAt.limit"
+					:active-spread="activeSpread"
+					:disabled="pageLoading"
+					label="次数限制"
+					type="number"
+					desc="连续发送消息几次后触发封禁"
+					@change="updateConfig('banHeavyAt.limit')"
+					@open="activeSpreadItem"
+				/>
+				<spread-form-item
+					v-model="setting.banHeavyAt.duration"
+					:active-spread="activeSpread"
+					:disabled="pageLoading"
+					label="禁言时长"
+					type="number"
+					desc="单位为秒"
+					@change="updateConfig('banHeavyAt.duration')"
+					@open="activeSpreadItem"
+				/>
+				<form-item label="开启提示消息" desc="开启后触发判定后会给予相关用户提示信息。">
+					<el-switch v-model="setting.banHeavyAt.prompt" :disabled="pageLoading" @change="updateConfig('banHeavyAt.prompt')" />
+				</form-item>
+				<spread-form-item
+					v-if="setting.banHeavyAt.prompt"
+					v-model="setting.banHeavyAt.promptMsg"
+					:active-spread="activeSpread"
+					:disabled="pageLoading"
+					label="消息内容"
+					placeholder="请输入指令起始符"
+					@change="updateConfig('banHeavyAt.promptMsg')"
+					@open="activeSpreadItem"
+				/>
+			</template>
+		</div>
 	</el-form>
 </div>`;
 
