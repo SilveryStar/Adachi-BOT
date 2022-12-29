@@ -19,6 +19,7 @@ export default class BotConfig {
 	public readonly dbPassword: string;
 	public readonly inviteAuth: AuthLevel;
 	public readonly countThreshold: number;
+	public readonly ThresholdInterval: boolean;
 	public readonly groupIntervalTime: number;
 	public readonly privateIntervalTime: number;
 	public readonly helpPort: number;
@@ -74,6 +75,7 @@ export default class BotConfig {
 		matchPrompt: true,
 		inviteAuth: "master",
 		countThreshold: 60,
+		ThresholdInterval: false,
 		groupIntervalTime: 1500,
 		privateIntervalTime: 2000,
 		helpPort: 54919,
@@ -119,7 +121,7 @@ export default class BotConfig {
 			"atBOT", "addFriend", "dbPassword",
 			"helpPort", "autoChat", "callTimes",
 			"fuzzyMatch", "matchPrompt", "useWhitelist",
-			"banScreenSwipe", "banHeavyAt"
+			"banScreenSwipe", "banHeavyAt", "ThresholdInterval"
 		];
 		
 		for ( let key of checkFields ) {
@@ -149,6 +151,7 @@ export default class BotConfig {
 		this.groupIntervalTime = config.groupIntervalTime;
 		this.privateIntervalTime = config.privateIntervalTime;
 		this.countThreshold = config.countThreshold;
+		this.ThresholdInterval = config.ThresholdInterval;
 		if ( !config.webConsole.jwtSecret ) {
 			config.webConsole.jwtSecret = randomSecret( 16 );
 			file.writeYAML( "setting", config );

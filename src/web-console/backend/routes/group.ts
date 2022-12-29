@@ -159,7 +159,7 @@ async function getGroupInfo( info: GroupInfo ): Promise<GroupData> {
 	);
 	const groupAuth = isBanned ? 1 : 2;
 	
-	const interval: number = bot.interval.get( groupId, -1 );
+	const interval: number = bot.interval.get( groupId, "group" );
 	const limits: string[] = await bot.redis.getList( `adachi.group-command-limit-${ groupId }` );
 	
 	return { groupId, groupName, groupAvatar, groupAuth, groupRole, interval, limits }
