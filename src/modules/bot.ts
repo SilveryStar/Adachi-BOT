@@ -355,7 +355,7 @@ export default class Adachi {
 				return length;
 			}
 			return getHeaderLength( next ) - getHeaderLength( prev );
-		} )[0]
+		} )[0];
 		
 		if ( res.type === "unmatch" ) {
 			if ( this.bot.config.matchPrompt ) {
@@ -384,9 +384,22 @@ export default class Adachi {
 		/* 数据统计与收集 */
 		const userID: number = messageData.user_id;
 		const groupID: number = msg.isGroupMessage( messageData ) ? messageData.group_id : -1;
+		
 		await this.bot.redis.addSetMember( `adachi.user-used-groups-${ userID }`, groupID );
 		await this.bot.redis.incHash( "adachi.hour-stat", userID.toString(), 1 );
 		await this.bot.redis.incHash( "adachi.command-stat", cmd.cmdKey, 1 );
+		
+		const checkRes: boolean = await this.checkThreshold( userID );
+		if ( !checkRes ) {
+			// 此时该用户已超量
+			const msg: string = "指令使用过于频繁，本小时内 BOT 将不再对你的指令作出响应";
+			if ( groupID === -1 ) {
+				await this.bot.client.sendPrivateMsg( userID, msg );
+			} else {
+				await this.bot.client.sendGroupMsg( groupID, `${ sdk.cqcode.at( userID ) } ${ msg }` )
+			}
+		}
+		
 		return;
 	}
 	
@@ -417,7 +430,13 @@ export default class Adachi {
 				return;
 			}
 			
-			if ( !bot.interval.check( userID, -1 ) ) {
+			if ( !bot.interval.check( userID, "private" ) ) {
+				return;
+			}
+			
+			// 检查超量使用
+			const checkThresholdRes: boolean = await that.checkThreshold( userID );
+			if ( !checkThresholdRes ) {
 				return;
 			}
 			
@@ -454,12 +473,18 @@ export default class Adachi {
 				that.banScreenSwipe( userID, groupID, messageID );
 			}
 			
-			/* 开启禁止大量 at 模式 */
+			/* 开启禁止过量 at 模式 */
 			if ( bot.config.banHeavyAt.enable ) {
 				that.banHeavyAt( userID, groupID, messageID, message );
 			}
 			
-			if ( !bot.interval.check( userID, groupID ) ) {
+			if ( !bot.interval.check( groupID, "group" ) ) {
+				return;
+			}
+			
+			// 检查超量使用
+			const checkThresholdRes: boolean = await that.checkThreshold( userID );
+			if ( !checkThresholdRes ) {
 				return;
 			}
 			
@@ -480,6 +505,20 @@ export default class Adachi {
 				await that.execute( messageData, sendMessage, cmdSet, [ ...gLim, ...uLim ], unionReg, false, isAt );
 			}
 		}
+	}
+	
+	// 检测超量使用
+	private async checkThreshold( userID: number ): Promise<boolean> {
+		const thresholdInterval: boolean = this.bot.config.ThresholdInterval;
+		if ( !thresholdInterval ) return true;
+		
+		// 当需要超量禁用时，进行处理
+		const threshold: number = this.bot.config.countThreshold;
+		const dbKey: string = "adachi.hour-stat";
+		const data = await this.bot.redis.getHash( dbKey );
+		
+		const userThresholdCount: number = Number.parseInt( data[userID] ) || 0;
+		return userThresholdCount <= threshold;
 	}
 	
 	/* 处理刷屏用户 */
@@ -641,12 +680,9 @@ export default class Adachi {
 		const bot = that.bot;
 		return function (): void {
 			bot.redis.getHash( "adachi.hour-stat" ).then( async data => {
-				const cmdOverusedUser: string[] = [];
 				const threshold: number = bot.config.countThreshold;
-				Object.keys( data ).forEach( key => {
-					if ( parseInt( data[key] ) > threshold ) {
-						cmdOverusedUser.push( key );
-					}
+				const cmdOverusedUser: string[] = Object.keys( data ).filter( key => {
+					return parseInt( data[key] ) > threshold;
 				} );
 				
 				const length: number = cmdOverusedUser.length;

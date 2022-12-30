@@ -53,6 +53,9 @@ const template = `<div class="table-container config">
 				@change="updateConfig('countThreshold')"
 				@open="activeSpreadItem"
 			/>
+			<form-item label="阈值使用限制" desc="开启后当用户使用超过阈值时，本小时内 BOT 将不再响应其指令。">
+				<el-switch v-model="setting.ThresholdInterval" :disabled="pageLoading" @change="updateConfig('ThresholdInterval')" />
+			</form-item>
 		</div>
 		<div class="config-section">
 		<section-title title="指令设置" />

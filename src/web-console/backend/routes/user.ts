@@ -124,7 +124,7 @@ async function getUserInfo( userID: number ): Promise<UserInfo> {
 	const publicInfo = await bot.client.getStrangerInfo( userID );
 	const isFriend: boolean = bot.client.fl.get( userID ) !== undefined;
 	const botAuth: AuthLevel = await bot.auth.get( userID );
-	const interval: number = bot.interval.get( userID, -1 );
+	const interval: number = bot.interval.get( userID, "private" );
 	const limits: string[] = await bot.redis.getList( `adachi.user-command-limit-${ userID }` );
 	
 	let nickname: string = "";
