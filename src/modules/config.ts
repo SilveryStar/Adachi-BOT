@@ -177,7 +177,7 @@ export default class BotConfig {
 			consolePort: config.webConsole.consolePort,
 			tcpLoggerPort: config.webConsole.tcpLoggerPort,
 			logHighWaterMark: config.webConsole.logHighWaterMark,
-			jwtSecret: config.webConsole.jwtSecret
+			jwtSecret: config.webConsole.jwtSecret?.toString()
 		}
 		
 		const authMap: Record<string, AuthLevel> = {
