@@ -9,6 +9,7 @@ import { SignInInfo, SignInResult } from "./sign-in";
 import { Ledger } from "#genshin/types/ledger";
 import { AvatarDetailRaw } from "#genshin/types/avatar";
 import { CalendarList, CalendarDetail } from "#genshin/types/calendar";
+import { VerifyError } from "#genshin/types/verify-code";
 
 /* 对于米游社 API 返回数据的类型检查 */
 export function isAbyss( obj: ResponseDataType ): obj is Abyss {
@@ -53,6 +54,11 @@ export function isCalendarList( obj: ResponseDataType ): obj is CalendarList {
 
 export function isCalendarDetail( obj: ResponseDataType ): obj is CalendarDetail {
 	return obj.type === "calendar-detail";
+}
+
+/* 对于验证码失败类型检查 */
+export function isVerifyError( obj: ResponseDataType ): obj is VerifyError {
+	return obj.type === 'verify-error';
 }
 
 /* 对于 OSS 返回数据的类型检查 */

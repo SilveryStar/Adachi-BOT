@@ -1,3 +1,7 @@
+> 注意：此分支是基于米游社验证码解决方案分支
+> 具体使用需要前往 `/config/genshin.yml` 配置
+> 由于验证码的不确定性，此分支未经过深度测试
+> 如有问题请带上日志前往官方频道反馈，帮助进一步完善
 <div align="center">
     <img src="https://docs.adachi.top/images/adachi.png" width="200"/>
     <h3>- AdachiBOT -</h3>
