@@ -43,7 +43,6 @@ const __API = {
 	FETCH_CREATE_VERIFICATION: "https://api-takumi-record.mihoyo.com/game_record/app/card/wapi/createVerification",
 	FETCH_GEETEST: "https://api.geetest.com/gettype.php",
 	FETCH_GET_VERIFY: "https://challenge.minigg.cn",
-	FETCH_GET_SIGN_VERIFY: "https://challenge.minigg.cn/pcrd.php",
 	FETCH_VERIFY_VERIFICATION: "https://api-takumi-record.mihoyo.com/game_record/app/card/wapi/verifyVerification"
 };
 
@@ -55,6 +54,8 @@ const HEADERS = {
 	"DS": "",
 	"Cookie": ""
 };
+
+const verifyMsg = "API请求遭遇验证码拦截，可以尝试联系Master开启验证服务";
 
 /* mihoyo BBS API */
 export async function getBaseInfo( mysID: number, cookie: string, time: number = 0 ): Promise<ResponseBody> {
@@ -76,12 +77,13 @@ export async function getBaseInfo( mysID: number, cookie: string, time: number =
 				if ( data.retcode !== 1034 ) {
 					return resolve( data );
 				}
+				bot.logger.warn( `[ MysID${ mysID } ][base] 查询遇到验证码` );
 				if ( config.verifyEnable && time <= config.verifyRepeat ) {
 					const error = await bypassQueryVerification( cookie );
-					bot.logger.debug( `[ MysID${ mysID } ] 第 ${ time + 1 } 次验证码绕过${ error ? "失败：" + error : "成功" }` );
+					bot.logger.debug( `[ MysID${ mysID } ][base] 第 ${ time + 1 } 次验证码绕过${ error ? "失败：" + error : "成功" }` );
 					return resolve( await getBaseInfo( mysID, cookie, ++time ) );
 				}
-				config.verifyEnable ? resolve( verifyError ) : resolve( data );
+				config.verifyEnable ? resolve( verifyError ) : reject( verifyMsg );
 			} )
 			.catch( ( reason ) => {
 				reject( reason );
@@ -107,16 +109,17 @@ export async function getDetailInfo( uid: number, server: string, cookie: string
 		} )
 			.then( async ( result ) => {
 				const resp = toCamelCase( JSON.parse( result ) );
-				const data: ResponseBody = set( resp, "data.type", "user-info" )
+				const data: ResponseBody = set( resp, "data.type", "user-info" );
 				if ( data.retcode !== 1034 ) {
 					return resolve( data );
 				}
+				bot.logger.warn( `[ UID${ uid } ][detail] 查询遇到验证码` );
 				if ( config.verifyEnable && time <= config.verifyRepeat ) {
 					const error = await bypassQueryVerification( cookie );
-					bot.logger.debug( `[ UID${ uid } ] 第 ${ time + 1 } 次验证码绕过${ error ? "失败：" + error : "成功" }` );
+					bot.logger.debug( `[ UID${ uid } ][detail] 第 ${ time + 1 } 次验证码绕过${ error ? "失败：" + error : "成功" }` );
 					return resolve( await getDetailInfo( uid, server, cookie, ++time ) );
 				}
-				config.verifyEnable ? resolve( verifyError ) : resolve( data );
+				config.verifyEnable ? resolve( verifyError ) : reject( verifyMsg );
 			} )
 			.catch( ( reason ) => {
 				reject( reason );
@@ -150,12 +153,13 @@ export async function getCharactersInfo( roleID: number, server: string, charIDs
 				if ( data.retcode !== 1034 ) {
 					return resolve( data );
 				}
+				bot.logger.warn( `[ UID${ roleID } ][char] 查询遇到验证码` );
 				if ( config.verifyEnable && time <= config.verifyRepeat ) {
 					const error = await bypassQueryVerification( cookie );
-					bot.logger.debug( `第 ${ time + 1 } 次验证码绕过${ error ? "失败：" + error : "成功" }` );
+					bot.logger.debug( `[ UID${ roleID } ][char] 第 ${ time + 1 } 次验证码绕过${ error ? "失败：" + error : "成功" }` );
 					return resolve( await getCharactersInfo( roleID, server, charIDs, cookie, ++time ) );
 				}
-				config.verifyEnable ? resolve( verifyError ) : resolve( data );
+				config.verifyEnable ? resolve( verifyError ) : reject( verifyMsg );
 			} )
 			.catch( ( reason ) => {
 				reject( reason );
@@ -185,12 +189,13 @@ export async function getDailyNoteInfo( uid: number, server: string, cookie: str
 				if ( data.retcode !== 1034 ) {
 					return resolve( data );
 				}
+				bot.logger.warn( `[ UID${ uid } ][note] 查询遇到验证码` );
 				if ( config.verifyEnable && time <= config.verifyRepeat ) {
 					const error = await bypassQueryVerification( cookie );
-					bot.logger.debug( `[ UID${ uid } ] 第 ${ time + 1 } 次验证码绕过${ error ? "失败：" + error : "成功" }` );
+					bot.logger.debug( `[ UID${ uid } ][note] 第 ${ time + 1 } 次验证码绕过${ error ? "失败：" + error : "成功" }` );
 					return resolve( await getDailyNoteInfo( uid, server, cookie, ++time ) );
 				}
-				config.verifyEnable ? resolve( verifyError ) : resolve( data );
+				config.verifyEnable ? resolve( verifyError ) : reject( verifyMsg );
 			} )
 			.catch( ( reason ) => {
 				reject( reason );
@@ -221,12 +226,13 @@ export async function getAvatarDetailInfo( uid: string, avatarID: number, server
 				if ( data.retcode !== 1034 ) {
 					return resolve( data );
 				}
+				bot.logger.warn( `[ UID${ uid } ][avatar] 查询遇到验证码` );
 				if ( config.verifyEnable && time <= config.verifyRepeat ) {
 					const error = await bypassQueryVerification( cookie );
-					bot.logger.debug( `[ UID${ uid } ] 第 ${ time + 1 } 次验证码绕过${ error ? "失败：" + error : "成功" }` );
+					bot.logger.debug( `[ UID${ uid } ][avatar] 第 ${ time + 1 } 次验证码绕过${ error ? "失败：" + error : "成功" }` );
 					return resolve( await getAvatarDetailInfo( uid, avatarID, server, cookie, ++time ) );
 				}
-				config.verifyEnable ? resolve( verifyError ) : resolve( data );
+				config.verifyEnable ? resolve( verifyError ) : reject( verifyMsg );
 			} )
 			.catch( ( reason ) => {
 				reject( reason );
@@ -259,12 +265,13 @@ export async function getSpiralAbyssInfo( roleID: number, server: string, period
 				if ( data.retcode !== 1034 ) {
 					return resolve( data );
 				}
+				bot.logger.warn( `[ UID${ roleID } ][abyss] 查询遇到验证码` );
 				if ( config.verifyEnable && time <= config.verifyRepeat ) {
 					const error = await bypassQueryVerification( cookie );
-					bot.logger.debug( `第 ${ time + 1 } 次验证码绕过${ error ? "失败：" + error : "成功" }` );
+					bot.logger.debug( `[ UID${ roleID } ][abyss] 第 ${ time + 1 } 次验证码绕过${ error ? "失败：" + error : "成功" }` );
 					return resolve( await getSpiralAbyssInfo( roleID, server, period, cookie, ++time ) );
 				}
-				config.verifyEnable ? resolve( verifyError ) : resolve( data );
+				config.verifyEnable ? resolve( verifyError ) : reject( verifyMsg );
 			} )
 			.catch( ( reason ) => {
 				reject( reason );
@@ -295,12 +302,13 @@ export async function getLedger( uid: string, server: string, mon: number, cooki
 				if ( data.retcode !== 1034 ) {
 					return resolve( data );
 				}
+				bot.logger.warn( `[ UID${ uid } ][ledger] 查询遇到验证码` );
 				if ( config.verifyEnable && time <= config.verifyRepeat ) {
 					const error = await bypassQueryVerification( cookie );
-					bot.logger.debug( `[ UID${ uid } ] 第 ${ time + 1 } 次验证码绕过${ error ? "失败：" + error : "成功" }` );
+					bot.logger.debug( `[ UID${ uid } ][ledger] 第 ${ time + 1 } 次验证码绕过${ error ? "失败：" + error : "成功" }` );
 					return resolve( await getLedger( uid, server, mon, cookie, ++time ) );
 				}
-				config.verifyEnable ? resolve( verifyError ) : resolve( data );
+				config.verifyEnable ? resolve( verifyError ) :reject( verifyMsg );
 			} )
 			.catch( ( reason ) => {
 				reject( reason );
@@ -497,7 +505,7 @@ const SIGN_HEADERS = {
 };
 
 /* Sign In API */
-export async function mihoyoBBSSignIn( uid: string, region: string, cookie: string ): Promise<ResponseBody> {
+export async function mihoyoBBSSignIn( uid: string, region: string, cookie: string, time: number = 0 ): Promise<ResponseBody> {
 	const body = {
 		act_id: activityID,
 		uid, region
@@ -518,16 +526,17 @@ export async function mihoyoBBSSignIn( uid: string, region: string, cookie: stri
 		} )
 			.then( ( result ) => {
 				const resp = toCamelCase( result );
-				const data: ResponseBody = set( resp, "data.type", "sign-in-result" )
+				const data: ResponseBody = set( resp, "data.type", "sign-in-result" );
 				if ( ApiType.isSignInResult( data.data ) && ( !data.data.gt && data.data.success === 0 ) ) {
 					return resolve( data );
 				}
 				//遇到验证码
-				if ( config.verifyEnable ) {
-					bot.logger.debug( `[ UID${ uid } ] 签到遇到验证码，尝试绕过 ~` );
-					return resolve( mihoyoBBSVerifySignIn( uid, region, cookie ) );
+				bot.logger.warn( `[ UID${ uid } ][sign] 签到遇到验证码` );
+				if ( ApiType.isSignInResult( data.data ) && data.data.gt && data.data.challenge ) {
+					bot.logger.debug( `[ UID${ uid } ][sign] 遇到验证码，尝试绕过 ~` );
+					return resolve( mihoyoBBSVerifySignIn( uid, region, cookie, data.data.gt, data.data.challenge ) );
 				}
-				config.verifyEnable ? resolve( verifyError ) : reject( data.message );
+				config.verifyEnable ? resolve( verifyError ) : reject( verifyMsg );
 			} )
 			.catch( ( reason ) => {
 				reject( reason );
@@ -645,20 +654,34 @@ export async function bypassQueryVerification( cookie: string, gt?: string, chal
 	}
 }
 
-export async function mihoyoBBSVerifySignIn( uid: string, region: string, cookie: string ): Promise<ResponseBody> {
+export async function mihoyoBBSVerifySignIn( uid: string, region: string, cookie: string, gt: string, challenge: string ): Promise<ResponseBody> {
 	const body = {
 		act_id: activityID,
 		uid, region
 	};
 	
-	const verifyCode = await request( {
+	let verifyCode = await request( {
 		method: "GET",
-		url: __API.FETCH_GET_SIGN_VERIFY,
-		json: true,
+		url: formatGetURL( __API.FETCH_GET_VERIFY, {
+			"token": config.verifyToken,
+			"gt": gt,
+			"challenge": challenge
+		} ),
 		headers: {
-			"User-Agent": "Adachi-GBOT"
+			"User-Agent": "Adachi-BOT"
 		}
 	} );
+	
+	try {
+		verifyCode = JSON.parse( verifyCode );
+	} catch ( error ) {
+		bot.logger.error( verifyCode );
+		throw "验证码验证失败，请重试或者等待上游服务商解决";
+	}
+	if ( verifyCode.code !== 0 || verifyCode.info !== "success" ) {
+		bot.logger.error( verifyCode );
+		throw "验证码验证失败，请重试或者等待上游服务商解决";
+	}
 	
 	return new Promise( ( resolve, reject ) => {
 		request( {
@@ -671,9 +694,9 @@ export async function mihoyoBBSVerifySignIn( uid: string, region: string, cookie
 				"content-type": "application/json",
 				"Cookie": cookie,
 				"DS": getDS2(),
-				"x-rpc-challenge": verifyCode.info.challenge,
-				"x-rpc-validate": verifyCode.info.validate,
-				"x-rpc-seccode": `${ verifyCode.info.validate }|jordan`
+				"x-rpc-challenge": verifyCode.data.challenge,
+				"x-rpc-validate": verifyCode.data.validate,
+				"x-rpc-seccode": `${ verifyCode.data.validate }|jordan`
 			}
 		} )
 			.then( async ( result ) => {
