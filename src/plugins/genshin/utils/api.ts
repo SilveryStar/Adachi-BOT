@@ -11,7 +11,6 @@ import { DailyMaterial } from "../module/daily";
 import { FortuneData } from "../module/almanac";
 import fetch from "node-fetch";
 import * as ApiType from "#genshin/types";
-import { verifyError } from "#genshin/types/verify-code";
 import { config } from "#genshin/init";
 import { randomSleep } from "#genshin/utils/random";
 
@@ -56,6 +55,7 @@ const HEADERS = {
 };
 
 const verifyMsg = "API请求遭遇验证码拦截，可以尝试联系Master开启验证服务";
+const verifyError = "多次尝试解决验证码失败，请重试或者带上截图前往官频反馈 ~"
 
 /* mihoyo BBS API */
 export async function getBaseInfo( mysID: number, cookie: string, time: number = 0 ): Promise<ResponseBody> {
@@ -83,7 +83,7 @@ export async function getBaseInfo( mysID: number, cookie: string, time: number =
 					bot.logger.debug( `[ MysID${ mysID } ][base] 第 ${ time + 1 } 次验证码绕过${ error ? "失败：" + error : "成功" }` );
 					return resolve( await getBaseInfo( mysID, cookie, ++time ) );
 				}
-				config.verifyEnable ? resolve( verifyError ) : reject( verifyMsg );
+				reject( config.verifyEnable ? verifyError : verifyMsg );
 			} )
 			.catch( ( reason ) => {
 				reject( reason );
@@ -119,7 +119,7 @@ export async function getDetailInfo( uid: number, server: string, cookie: string
 					bot.logger.debug( `[ UID${ uid } ][detail] 第 ${ time + 1 } 次验证码绕过${ error ? "失败：" + error : "成功" }` );
 					return resolve( await getDetailInfo( uid, server, cookie, ++time ) );
 				}
-				config.verifyEnable ? resolve( verifyError ) : reject( verifyMsg );
+				reject( config.verifyEnable ? verifyError : verifyMsg );
 			} )
 			.catch( ( reason ) => {
 				reject( reason );
@@ -159,7 +159,7 @@ export async function getCharactersInfo( roleID: number, server: string, charIDs
 					bot.logger.debug( `[ UID${ roleID } ][char] 第 ${ time + 1 } 次验证码绕过${ error ? "失败：" + error : "成功" }` );
 					return resolve( await getCharactersInfo( roleID, server, charIDs, cookie, ++time ) );
 				}
-				config.verifyEnable ? resolve( verifyError ) : reject( verifyMsg );
+				reject( config.verifyEnable ? verifyError : verifyMsg );
 			} )
 			.catch( ( reason ) => {
 				reject( reason );
@@ -195,7 +195,7 @@ export async function getDailyNoteInfo( uid: number, server: string, cookie: str
 					bot.logger.debug( `[ UID${ uid } ][note] 第 ${ time + 1 } 次验证码绕过${ error ? "失败：" + error : "成功" }` );
 					return resolve( await getDailyNoteInfo( uid, server, cookie, ++time ) );
 				}
-				config.verifyEnable ? resolve( verifyError ) : reject( verifyMsg );
+				reject( config.verifyEnable ? verifyError : verifyMsg );
 			} )
 			.catch( ( reason ) => {
 				reject( reason );
@@ -232,7 +232,7 @@ export async function getAvatarDetailInfo( uid: string, avatarID: number, server
 					bot.logger.debug( `[ UID${ uid } ][avatar] 第 ${ time + 1 } 次验证码绕过${ error ? "失败：" + error : "成功" }` );
 					return resolve( await getAvatarDetailInfo( uid, avatarID, server, cookie, ++time ) );
 				}
-				config.verifyEnable ? resolve( verifyError ) : reject( verifyMsg );
+				reject( config.verifyEnable ? verifyError : verifyMsg );
 			} )
 			.catch( ( reason ) => {
 				reject( reason );
@@ -271,7 +271,7 @@ export async function getSpiralAbyssInfo( roleID: number, server: string, period
 					bot.logger.debug( `[ UID${ roleID } ][abyss] 第 ${ time + 1 } 次验证码绕过${ error ? "失败：" + error : "成功" }` );
 					return resolve( await getSpiralAbyssInfo( roleID, server, period, cookie, ++time ) );
 				}
-				config.verifyEnable ? resolve( verifyError ) : reject( verifyMsg );
+				reject( config.verifyEnable ? verifyError : verifyMsg );
 			} )
 			.catch( ( reason ) => {
 				reject( reason );
@@ -308,7 +308,7 @@ export async function getLedger( uid: string, server: string, mon: number, cooki
 					bot.logger.debug( `[ UID${ uid } ][ledger] 第 ${ time + 1 } 次验证码绕过${ error ? "失败：" + error : "成功" }` );
 					return resolve( await getLedger( uid, server, mon, cookie, ++time ) );
 				}
-				config.verifyEnable ? resolve( verifyError ) :reject( verifyMsg );
+				config.verifyEnable ? resolve( verifyError ) : reject( verifyMsg );
 			} )
 			.catch( ( reason ) => {
 				reject( reason );
@@ -536,7 +536,7 @@ export async function mihoyoBBSSignIn( uid: string, region: string, cookie: stri
 					bot.logger.debug( `[ UID${ uid } ][sign] 遇到验证码，尝试绕过 ~` );
 					return resolve( mihoyoBBSVerifySignIn( uid, region, cookie, data.data.gt, data.data.challenge ) );
 				}
-				config.verifyEnable ? resolve( verifyError ) : reject( verifyMsg );
+				reject( config.verifyEnable ? verifyError : verifyMsg );
 			} )
 			.catch( ( reason ) => {
 				reject( reason );
@@ -707,7 +707,7 @@ export async function mihoyoBBSVerifySignIn( uid: string, region: string, cookie
 					return resolve( data );
 				}
 				//遇到验证码
-				resolve( verifyError );
+				reject( verifyError );
 			} )
 			.catch( ( reason ) => {
 				reject( reason );
