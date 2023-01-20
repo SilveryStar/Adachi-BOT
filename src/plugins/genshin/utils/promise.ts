@@ -41,9 +41,7 @@ export async function baseInfoPromise(
 	const { retcode, message, data } = await api.getBaseInfo(
 		mysID, cookie ? cookie : cookies.get()
 	);
-	if ( ApiType.isVerifyError( data ) ) {
-		throw message;
-	} else if ( !ApiType.isBBS( data ) ) {
+	if ( !ApiType.isBBS( data ) ) {
 		return Promise.reject( ErrorMsg.UNKNOWN );
 	}
 	
@@ -103,9 +101,7 @@ export async function detailInfoPromise(
 	
 	const allHomes = await api.getUidHome();
 	
-	if ( ApiType.isVerifyError( data ) ) {
-		throw message;
-	} else if ( !ApiType.isUserInfo( data ) ) {
+	if ( !ApiType.isUserInfo( data ) ) {
 		throw ErrorMsg.UNKNOWN;
 	}
 	
@@ -151,9 +147,7 @@ export async function characterInfoPromise(
 	}
 	const { retcode, message, data } = await api.getCharactersInfo( uid, server, charIDs, cookie );
 	
-	if ( ApiType.isVerifyError( data ) ) {
-		throw message;
-	} else if ( !ApiType.isCharacter( data ) ) {
+	if ( !ApiType.isCharacter( data ) ) {
 		throw ErrorMsg.UNKNOWN;
 	}
 	
@@ -254,9 +248,7 @@ export async function mysAvatarDetailInfoPromise(
 	constellation: CharacterCon
 ): Promise<ApiType.Skills> {
 	const { retcode, message, data } = await api.getAvatarDetailInfo( uid, avatar, server, cookie );
-	if ( ApiType.isVerifyError( data ) ) {
-		throw message;
-	} else if ( !ApiType.isAvatarDetail( data ) ) {
+	if ( !ApiType.isAvatarDetail( data ) ) {
 		return Promise.reject( ErrorMsg.UNKNOWN );
 	}
 	
@@ -313,9 +305,7 @@ export async function abyssInfoPromise(
 	}
 	let { retcode, message, data } = await api.getSpiralAbyssInfo( uid, server, period, cookie );
 	
-	if ( ApiType.isVerifyError( data ) ) {
-		throw message;
-	} else if ( !ApiType.isAbyss( data ) ) {
+	if ( !ApiType.isAbyss( data ) ) {
 		throw ErrorMsg.UNKNOWN;
 	}
 	
@@ -376,9 +366,7 @@ export async function ledgerPromise(
 		// cookies.increaseIndex();
 	}
 	const { retcode, message, data } = await api.getLedger( uid, server, month, cookie );
-	if ( ApiType.isVerifyError( data ) ) {
-		throw message;
-	} else if ( !ApiType.isLedger( data ) ) {
+	if ( !ApiType.isLedger( data ) ) {
 		return Promise.reject( ErrorMsg.UNKNOWN );
 	}
 	
@@ -408,9 +396,7 @@ export async function dailyNotePromise(
 			const { retcode, message, data } = await api.getDailyNoteInfo(
 				parseInt( uid ), server, cookie
 			);
-			if ( ApiType.isVerifyError( data ) ) {
-				return reject( message );
-			} else if ( !ApiType.isNote( data ) ) {
+			if ( !ApiType.isNote( data ) ) {
 				return reject( ErrorMsg.UNKNOWN );
 			}
 			
@@ -463,9 +449,7 @@ export async function signInResultPromise(
 	cookie: string
 ): Promise<ApiType.SignInResult> {
 	const { retcode, message, data } = await api.mihoyoBBSSignIn( uid, server, cookie );
-	if ( ApiType.isVerifyError( data ) ) {
-		throw message;
-	} else if ( !ApiType.isSignInResult( data ) ) {
+	if ( !ApiType.isSignInResult( data ) ) {
 		return Promise.reject( ErrorMsg.UNKNOWN );
 	}
 	
