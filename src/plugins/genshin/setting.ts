@@ -173,7 +173,7 @@ const privateSubscribe: OrderConfig = {
 	main: "achieves/private/subscribe",
 	scope: MessageScope.Private,
 	detail: "私人服务，一类通过使用个人 cookie 获取私密信息\n" +
-			"目前包含实时便笺订阅功能，未来可能会添加新功能"
+		"目前包含实时便笺订阅功能，未来可能会添加新功能"
 };
 
 const privateConfirm: OrderConfig = {
@@ -218,20 +218,20 @@ const privateRemove: OrderConfig = {
 	main: "achieves/private/remove",
 	auth: AuthLevel.Master,
 	detail: "移除指定qq号所绑定的所有私人服务\n" +
-			"移除后将会给对方发送提示信息"
+		"移除后将会给对方发送提示信息"
 };
 
 const privateReplace: OrderConfig = {
 	type: "order",
 	cmdKey: "silvery-star.private-replace",
-	desc: [ "更新私人服务", "[账户序号] [cookie]" ],
+	desc: [ "更新私人服务", "[cookie|auto]" ],
 	headers: [ "pr" ],
-	regexps: [ "\\d+", ".+" ],
+	regexps: [ ".+" ],
 	ignoreCase: false,
 	main: "achieves/private/replace",
 	scope: MessageScope.Private,
-	detail: "账户序号在私人服务列表中查看\n" +
-			"该指令用于更换私人服务所绑定的 cookie"
+	detail: "该指令用于更新私人服务所绑定的 cookie\n" +
+		"使用auto参数可以自动根据SToken刷新CToken"
 };
 
 const privateReorder: OrderConfig = {
@@ -243,7 +243,7 @@ const privateReorder: OrderConfig = {
 	main: "achieves/private/reorder",
 	scope: MessageScope.Private,
 	detail: "对当前的私人服务列表的顺序重新调整\n" +
-			"例如用户有 5 个订阅的私人服务账号，则新排序列表的格式为：5 2 3 1 4"
+		"例如用户有 5 个订阅的私人服务账号，则新排序列表的格式为：5 2 3 1 4"
 };
 
 const privateNowNote: OrderConfig = {
@@ -264,7 +264,7 @@ const privateNoteEvent: OrderConfig = {
 	main: "achieves/private/note/set-time",
 	scope: MessageScope.Private,
 	detail: "用于设置 BOT 自动提醒时间点，树脂量可设置多个\n" +
-			"如: 60 90 120 160，数字间用空格隔开"
+		"如: 60 90 120 160，数字间用空格隔开"
 };
 
 const privateMysSetAppoint: OrderConfig = {
@@ -276,7 +276,7 @@ const privateMysSetAppoint: OrderConfig = {
 	main: "achieves/private/query/appoint",
 	scope: MessageScope.Private,
 	detail: "该指令用于指定查询卡片中的头像图片\n" +
-			"使用 empty 恢复默认状态"
+		"使用 empty 恢复默认状态"
 };
 
 const privateMysQuery: OrderConfig = {
@@ -300,7 +300,7 @@ const privateAbyssQuery: SwitchConfig = {
 	onKey: "caby",
 	offKey: "laby",
 	detail: "分别为查询上期与本期的深渊数据\n" +
-			"使用 -l 以转发消息方式显示每层详细图片"
+		"使用 -l 以转发消息方式显示每层详细图片"
 };
 
 const privateCharQuery: OrderConfig = {
@@ -311,7 +311,7 @@ const privateCharQuery: OrderConfig = {
 	regexps: [ "(\\d+)?", "[\\w\\u4e00-\\u9fa5]+" ],
 	main: "achieves/private/query/character",
 	detail: "查询对应的私人服务的账户的游戏内角色信息\n" +
-			"默认查询查询 1 号私人服务账户"
+		"默认查询查询 1 号私人服务账户"
 };
 
 const privateToggleSign: OrderConfig = {
@@ -344,7 +344,7 @@ const privateLedger: OrderConfig = {
 	regexps: [ "(\\d+)?", "(\\d+)?" ],
 	main: "achieves/private/query/ledger",
 	detail: "查看旅行者札记数据\n" +
-			"只填写一个参数时将被视为月份"
+		"只填写一个参数时将被视为月份"
 };
 
 export default <PluginSetting>{

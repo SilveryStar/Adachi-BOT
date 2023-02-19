@@ -22,14 +22,12 @@ export interface Service {
 /* 获取元组第一位 */
 type TupleHead<T extends any[]> = T[0];
 /* 弹出元组第一位 */
-type TupleShift<T extends Service[]> = T extends [ infer L, ... infer R ] ? R : never;
+type TupleShift<T extends Service[]> = T extends [ infer L, ...infer R ] ? R : never;
 /* 合并交叉类型 */
-type Merge<T> = { [ P in keyof T ]: T[P] };
+type Merge<T> = { [P in keyof T]: T[P] };
 /* 向接口中添加新字段 */
-type ObjectExpand<T, U extends Service> = Merge<
-	{ [ P in keyof T ]: T[P] } &
-	{ [ P in U["FixedField"] ]: U }
->;
+type ObjectExpand<T, U extends Service> = Merge<{ [P in keyof T]: T[P] } &
+	{ [P in U["FixedField"]]: U }>;
 /* 定义扩展私人服务的基本接口 */
 type BasicExpand = Record<string, Service>;
 /* 递归定义扩展私人服务类型 */
@@ -50,10 +48,12 @@ export class UserInfo {
 	public readonly userID: number;
 	public readonly mysID: number;
 	public cookie: string;
+	public stoken: string;
 	
-	constructor( uid: string, cookie: string, userID: number, mysID: number ) {
+	constructor( uid: string, cookie: string, userID: number, mysID: number, stoken: string = '' ) {
 		this.uid = uid;
 		this.cookie = cookie;
+		this.stoken = stoken;
 		this.userID = userID;
 		this.mysID = mysID;
 		this.server = getRegion( uid[0] );
@@ -81,30 +81,31 @@ export class Private {
 			data.setting.mysID = parseInt( execRes[1] );
 		}
 		return new Private(
-			data.setting.uid,       data.setting.cookie,
-			data.setting.userID,    data.setting.mysID,
-			data.id,                data.options
+			data.setting.uid, data.setting.cookie,
+			data.setting.userID, data.setting.mysID,
+			data.id, data.options, data.setting.stoken
 		);
 	}
 	
 	constructor(
-		uid: string,    cookie: string,
+		uid: string, cookie: string,
 		userID: number, mysID: number,
-		id: number,     options?: Record<string, any>
+		id: number, options?: Record<string, any>,
+		stoken: string = ""
 	) {
 		this.options = options || {};
-		this.setting = new UserInfo( uid, cookie, userID, mysID );
+		this.setting = new UserInfo( uid, cookie, userID, mysID, stoken );
 		this.sendMessage = bot.message.getSendMessageFunc( userID, MessageType.Private );
 		
 		const md5: string = Md5.init( `${ userID }-${ uid }` );
 		this.id = id;
 		this.dbKey = dbPrefix + md5;
 		this.services = {
-			[ NoteService.FixedField ]:      new NoteService( this ),
-			[ SignInService.FixedField ]:    new SignInService( this ),
-			[ MysQueryService.FixedField ]:  new MysQueryService( this ),
-			[ AbyQueryService.FixedField ]:  new AbyQueryService( this ),
-			[ CharQueryService.FixedField ]: new CharQueryService( this )
+			[NoteService.FixedField]: new NoteService( this ),
+			[SignInService.FixedField]: new SignInService( this ),
+			[MysQueryService.FixedField]: new MysQueryService( this ),
+			[AbyQueryService.FixedField]: new AbyQueryService( this ),
+			[CharQueryService.FixedField]: new CharQueryService( this )
 		};
 		this.options = this.globalOptions();
 	}
@@ -132,7 +133,11 @@ export class Private {
 	}
 	
 	public async replaceCookie( cookie: string ): Promise<void> {
-		this.setting.cookie = cookie;
+		if ( cookie.includes( "stoken" ) ) {
+			this.setting.stoken = cookie;
+		} else {
+			this.setting.cookie = cookie;
+		}
 		await bot.redis.setString( this.dbKey, this.stringify() );
 	}
 	
@@ -175,8 +180,8 @@ export class PrivateClass {
 	}
 	
 	public getUserIDList(): number[] {
-		const userIdList = this.list.map(el => el.setting.userID);
-		return Array.from(new Set(userIdList));
+		const userIdList = this.list.map( el => el.setting.userID );
+		return Array.from( new Set( userIdList ) );
 	}
 	
 	public getUserPrivateList( userID: number ): Private[] {
@@ -203,23 +208,32 @@ export class PrivateClass {
 		return this.getUserPrivateList( userID ).map( el => el.setting );
 	}
 	
-	public async addPrivate( uid: string, cookie: string, userID: number ): Promise<string> {
+	public async addPrivate( uid: string, cookie: string, userID: number, stoken: string = '' ): Promise<string> {
+		let isRefresh = false;
 		const list: Private[] = this.getUserPrivateList( userID );
-		if ( list.some( el => el.setting.uid === uid ) ) {
-			return `UID${ uid } 的私人服务已经申请`;
+		const PRIVATE_UPGRADE = <Order>bot.command.getSingle( "silvery-star-private-replace", AuthLevel.Master );
+		//包涵更新Cookie情况，减少用户的疑问
+		list.forEach( value => {
+			if ( value.setting.uid === uid ) {
+				isRefresh = true;
+				value.replaceCookie( cookie );
+			}
+		} );
+		if ( isRefresh ) {
+			return `UID${ uid } 的授权服务已经更新\n` + `下次可使用『 ${ PRIVATE_UPGRADE.getHeaders()[0] } cookie 』直接更新`;
 		}
-		const reg = new RegExp( /.*?ltuid=([0-9]+).*?/g );
+		
+		const reg = new RegExp( /.*?tuid=([0-9]+).*?/g );
 		const execRes = <RegExpExecArray>reg.exec( cookie );
 		const mysID: number = parseInt( execRes[1] );
 		
-		const userAddedList: Private[] = this.getUserPrivateList( userID );
-		const newPrivate = new Private( uid, cookie, userID, mysID, userAddedList.length + 1 );
+		const newPrivate = new Private( uid, cookie, userID, mysID, list.length + 1, undefined, stoken );
 		this.list.push( newPrivate );
 		await bot.redis.setString( newPrivate.dbKey, newPrivate.stringify() );
-
+		
 		const values: Service[] = Object.values( newPrivate.services );
 		const contents: string[] = await Promise.all( values.map( async el => await el.initTest() ) );
-		return `私人服务开启成功，UID: ${ uid }` + [ "", ...contents  ].join( "\n" );
+		return `私人服务开启成功，UID: ${ uid }` + [ "", ...contents ].join( "\n" );
 	}
 	
 	public async delPrivate( p: Private ): Promise<void> {
