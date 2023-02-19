@@ -4,7 +4,7 @@ import { parse } from "yaml";
 import { toCamelCase } from "./camel-case";
 import { set } from "lodash";
 import { guid } from "../utils/guid";
-import { getDS, getDS2 } from "./ds";
+import { generateDS, getDS, getDS2 } from "./ds";
 import { InfoResponse, ResponseBody } from "#genshin/types";
 import { SlipDetail } from "../module/slip";
 import { DailyMaterial } from "../module/daily";
@@ -12,7 +12,7 @@ import { FortuneData } from "../module/almanac";
 import fetch from "node-fetch";
 import * as ApiType from "#genshin/types";
 import { config } from "#genshin/init";
-import { randomSleep } from "#genshin/utils/random";
+import { randomSleep, randomString } from "#genshin/utils/random";
 
 const __API = {
 	FETCH_ROLE_ID: "https://api-takumi-record.mihoyo.com/game_record/app/card/wapi/getGameRecordCard",
@@ -42,7 +42,12 @@ const __API = {
 	FETCH_CREATE_VERIFICATION: "https://api-takumi-record.mihoyo.com/game_record/app/card/wapi/createVerification",
 	FETCH_GEETEST: "https://api.geetest.com/gettype.php",
 	FETCH_GET_VERIFY: "https://challenge.minigg.cn",
-	FETCH_VERIFY_VERIFICATION: "https://api-takumi-record.mihoyo.com/game_record/app/card/wapi/verifyVerification"
+	FETCH_VERIFY_VERIFICATION: "https://api-takumi-record.mihoyo.com/game_record/app/card/wapi/verifyVerification",
+	/* Token转换相关 */
+	FETCH_GET_MULTI_TOKEN: "https://api-takumi.mihoyo.com/auth/api/getMultiTokenByLoginTicket",
+	FETCH_GET_COOKIE_TOKEN: "https://api-takumi.mihoyo.com/auth/api/getCookieAccountInfoBySToken",
+	FETCH_VERIFY_LTOKEN: "https://passport-api-v4.mihoyo.com/account/ma-cn-session/web/verifyLtoken",
+	FETCH_GET_LTOKEN_BY_STOKEN: "https://passport-api.mihoyo.com/account/auth/api/getLTokenBySToken"
 };
 
 const HEADERS = {
@@ -713,4 +718,138 @@ export async function mihoyoBBSVerifySignIn( uid: string, region: string, cookie
 				reject( reason );
 			} );
 	} );
+}
+
+/* Token转换相关API */
+export async function getCookieAccountInfoBySToken(
+	stoken: string,
+	mid: string,
+	uid: string ): Promise<ResponseBody> {
+	const param = {
+		stoken: stoken,
+		mid: mid,
+		token_types: 3,
+		uid: uid
+	}
+	
+	const url = formatGetURL( __API.FETCH_GET_COOKIE_TOKEN, param );
+	
+	return new Promise( ( resolve, reject ) => {
+		request( {
+			method: "GET",
+			url: url,
+			json: true
+		} ).then( result => {
+			const resp = toCamelCase( result );
+			const data: ResponseBody = set( resp, "data.type", "cookie-token" )
+			resolve( data );
+		} ).catch( ( reason ) => {
+			reject( reason );
+		} );
+	} )
+}
+
+export async function getMultiTokenByLoginTicket( uid: number, loginTicket: string, cookie: string ): Promise<ResponseBody> {
+	const params = {
+		login_ticket: loginTicket,
+		token_types: 3,
+		uid: uid
+	};
+	
+	const deviceName = randomString( 5 );
+	
+	return new Promise( ( resolve, reject ) => {
+		request( {
+			method: "GET",
+			url: __API.FETCH_GET_MULTI_TOKEN,
+			headers: {
+				"host": "api-takumi.mihoyo.com",
+				"x-rpc-app_version": "2.28.1",
+				"x-rpc-channel": "mihoyo",
+				"x-rpc-client_type": "2",
+				"x-rpc-device_id": guid(),
+				"x-rpc-device_model": deviceName,
+				"x-rpc-device_name": "Samsung " + deviceName,
+				"x-rpc-sys_version": "12",
+				"origin": "https://webstatic.mihoyo.com",
+				"referer": "https://webstatic.mihoyo.com/",
+				"user-agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) miHoYoBBS/2.28.1",
+				"x-requested-with": "com.mihoyo.hyperion",
+				"ds": generateDS(),
+				"cookie": cookie
+			},
+			qs: params,
+			timeout: 5000
+		} ).then( async ( result ) => {
+			const resp = toCamelCase( JSON.parse( result ) );
+			if ( !resp.data ) {
+				reject( resp.message || resp.msg );
+				return;
+			}
+			const data: ResponseBody = set( resp, "data.type", "multi-token" );
+			resolve( data );
+		} ).catch( reason => {
+			reject( reason );
+		} )
+	} )
+}
+
+export async function verifyLtoken( ltoken: string, ltuid: string ): Promise<ResponseBody> {
+	const params = {
+		t: Date.now()
+	};
+	const cookie = `ltoken=${ ltoken }; ltuid=${ ltuid };`;
+	
+	return new Promise( ( resolve, reject ) => {
+		request( {
+			method: "POST",
+			url: __API.FETCH_VERIFY_LTOKEN,
+			headers: {
+				...HEADERS,
+				Referer: "https://bbs.mihoyo.com/",
+				cookie: cookie
+			},
+			qs: params,
+			timeout: 5000
+		} ).then( async ( result ) => {
+			const resp = toCamelCase( JSON.parse( result ) );
+			if ( !resp.data ) {
+				reject( resp.message || resp.msg );
+				return;
+			}
+			const data: ResponseBody = set( resp, "data.type", "verify-ltoken" );
+			resolve( data );
+		} ).catch( reason => {
+			reject( reason );
+		} )
+	} )
+}
+
+
+export async function getLTokenBySToken( stoken: string, mid: string ): Promise<ResponseBody> {
+	const cookie = `stoken=${ stoken }; mid=${ mid };`;
+	
+	return new Promise( ( resolve, reject ) => {
+		request( {
+			method: "GET",
+			url: __API.FETCH_GET_LTOKEN_BY_STOKEN,
+			headers: {
+				...HEADERS,
+				cookie: cookie,
+				DS: getDS( undefined, undefined )
+			},
+			timeout: 5000
+		} ).then( async ( result ) => {
+			const resp = toCamelCase( JSON.parse( result ) );
+			const data: ResponseBody = set( resp, "data.type", "get-ltoken" );
+			if ( !resp.data ) {
+				reject( resp.message || resp.msg );
+				return;
+			}
+			resolve( data );
+		} ).catch( reason => {
+			reject( reason );
+		} )
+	} )
+	
 }

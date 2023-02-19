@@ -1,12 +1,10 @@
 import { InputParameter, Order, OrderMatchResult } from "@modules/command";
 import { AuthLevel } from "@modules/management/auth";
 import { SendFunc } from "@modules/message";
-import { ErrorMsg } from "#genshin/utils/promise";
-import * as ApiType from "#genshin/types";
 import { scheduleJob } from "node-schedule";
 import { pull } from "lodash";
-import { getBaseInfo } from "#genshin/utils/api";
 import { privateClass } from "#genshin/init";
+import { checkMysCookieInvalid } from "#genshin/utils/cookie";
 
 const tempSubscriptionList: number[] = [];
 
@@ -36,39 +34,16 @@ function subscribe( userID: number, send: SendFunc, a: AuthLevel, CONFIRM: Order
 }
 
 async function confirm(
-	userID: number, cookie: string,
+	userID: number, rawCookie: string,
 	a: AuthLevel, SUBSCRIBE: Order
 ): Promise<string> {
 	if ( !tempSubscriptionList.some( el => el === userID ) ) {
 		return `你还未申请私人服务，请先使用「${ SUBSCRIBE.getHeaders()[0] }」`;
 	}
-	
-	const reg = new RegExp( /.*?ltuid=([0-9]+).*?/g );
-	const execRes: RegExpExecArray | null = reg.exec( cookie );
-	
-	if ( execRes === null ) {
-		return "无效的 cookie，请重新提交正确的 cookie";
-	}
-	
-	const mysID: number = parseInt( execRes[1] );
-	const { retcode, message, data } = await getBaseInfo( mysID, cookie );
-	
-	if ( !ApiType.isBBS( data ) ) {
-		return ErrorMsg.UNKNOWN;
-	} else if ( retcode !== 0 ) {
-		return ErrorMsg.FORM_MESSAGE + message;
-	} else if ( !data.list || data.list.length === 0 ) {
-		return ErrorMsg.NOT_FOUND;
-	}
-	
-	const genshinInfo: ApiType.Game | undefined = data.list.find( el => el.gameId === 2 );
-	if ( !genshinInfo ) {
-		return ErrorMsg.NOT_FOUND;
-	}
-	
-	const uid: string = genshinInfo.gameRoleId;
+	/* 对Cookie进行简化保留 */
+	const { uid, cookie, stoken } = await checkMysCookieInvalid( rawCookie );
 	pull( tempSubscriptionList, userID );
-	return await privateClass.addPrivate( uid, cookie, userID );
+	return await privateClass.addPrivate( uid, cookie, userID, stoken );
 }
 
 export async function main(

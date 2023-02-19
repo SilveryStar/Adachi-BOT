@@ -9,6 +9,7 @@ import { SignInInfo, SignInResult } from "./sign-in";
 import { Ledger } from "#genshin/types/ledger";
 import { AvatarDetailRaw } from "#genshin/types/avatar";
 import { CalendarList, CalendarDetail } from "#genshin/types/calendar";
+import { CookieToken, GetLtoken, MutiTokenResult, VerifyLtoken } from "#genshin/types/cookie";
 
 /* 对于米游社 API 返回数据的类型检查 */
 export function isAbyss( obj: ResponseDataType ): obj is Abyss {
@@ -53,6 +54,22 @@ export function isCalendarList( obj: ResponseDataType ): obj is CalendarList {
 
 export function isCalendarDetail( obj: ResponseDataType ): obj is CalendarDetail {
 	return obj.type === "calendar-detail";
+}
+
+export function isCookieTokenResult( obj: ResponseDataType ): obj is CookieToken {
+	return obj.type === "cookie-token";
+}
+
+export function isMultiToken( obj: ResponseDataType ): obj is MutiTokenResult {
+	return obj.type === "multi-token";
+}
+
+export function isVerifyLtoken( obj: ResponseDataType ): obj is VerifyLtoken {
+	return obj.type === "verify-ltoken";
+}
+
+export function isGetLtoken( obj: ResponseDataType ): obj is GetLtoken {
+	return obj.type === "get-ltoken";
 }
 
 /* 对于 OSS 返回数据的类型检查 */
