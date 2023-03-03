@@ -1,6 +1,5 @@
-import { AuthLevel } from "@modules/management/auth";
 import { Private } from "#genshin/module/private/main";
-import { InputParameter, Order } from "@modules/command";
+import { InputParameter } from "@modules/command";
 import { privateClass } from "#genshin/init";
 import bot from "ROOT";
 import { checkCookieInvalidReason, checkMysCookieInvalid, refreshTokenBySToken } from "#genshin/utils/cookie";
@@ -26,6 +25,7 @@ async function replaceCookie( userID: number, newCookie: string ) {
 				message.push( `[ UID${ uid } ] Cookie 更新成功` );
 			} catch ( error ) {
 				message.push( `[ UID ${ account.setting.uid } ] ${ <string>error }` );
+				message.push( `通过login_ticket授权的SToken无法用于刷新CToken` );
 			}
 		}
 		return message.join( "\n" );
@@ -35,12 +35,11 @@ async function replaceCookie( userID: number, newCookie: string ) {
 		const { uid, mysID, cookie, stoken } = await checkMysCookieInvalid( newCookie );
 		for ( let account of accounts ) {
 			if ( mysID === account.setting.mysID.toString() ) {
-				await account.replaceCookie( cookie );
-				stoken ? await account.replaceCookie( stoken ) : "";
-				return `[ UID${ uid } ] Cookie 更新成功`;
+				await account.replaceCookie( cookie, stoken );
+				return `[ UID${ uid } ] CToken 更新成功`;
 			}
 		}
-		return await privateClass.addPrivate( uid, cookie, userID );
+		return await privateClass.addPrivate( uid, cookie, userID, stoken );
 	} catch ( error ) {
 		bot.logger.error( error );
 		return checkCookieInvalidReason( <string>error );

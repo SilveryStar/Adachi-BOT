@@ -78,7 +78,7 @@ export function checkCookieInvalidReason( message: string, id?: string | number,
 export async function checkMysCookieInvalid( rawCookie: string ): Promise<FilterMysCookieResult> {
 	
 	let COOKIE = '', STOKEN = '', mysID;
-	/* 首先是处理login_ticket */
+	/* 首先是处理login_ticket，现在通过ticket获取的Stoken已经无法刷新CToken */
 	if ( rawCookie.includes( "login_ticket=" ) && rawCookie.includes( "login_uid=" ) ) {
 		const { login_ticket, login_uid } = cookie2Obj( rawCookie );
 		mysID = login_uid;
@@ -99,7 +99,7 @@ export async function checkMysCookieInvalid( rawCookie: string ): Promise<Filter
 		const ltoken = await getLtoken( stoken, mid );
 		const { cookie_token } = await getCookieTokenBySToken( stoken, mid, stuid );
 		COOKIE = `ltoken=${ ltoken }; ltuid=${ stuid }; account_id=${ stuid }; cookie_token=${ cookie_token };`;
-		// STOKEN = `stoken=${ stoken }; stuid=${ stuid }; mid=${ mid };`;
+		STOKEN = `stoken=${ stoken }; stuid=${ stuid }; mid=${ mid };`;
 	} else if ( rawCookie.includes( "ltoken=" ) && rawCookie.includes( "ltuid=" ) ) {
 		const { ltoken, ltuid } = cookie2Obj( rawCookie );
 		mysID = ltuid;
@@ -146,9 +146,9 @@ export async function checkMysCookieInvalid( rawCookie: string ): Promise<Filter
 export async function refreshTokenBySToken( pri: Private ): Promise<FilterMysCookieResult> {
 	const { stoken } = cookie2Obj( pri.setting.stoken );
 	if ( !stoken ) {
-		throw `没有授权SToken，无法刷新`;
+		throw `没有授权SToken，无法刷新CToken`;
 	}
-	bot.logger.info( `[${ pri.setting.mysID }] 正在根据SToken刷新Token` );
+	bot.logger.info( `[${ pri.setting.mysID }] 正在根据SToken刷新CToken` );
 	return await checkMysCookieInvalid( pri.setting.stoken );
 }
 

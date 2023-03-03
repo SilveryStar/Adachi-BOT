@@ -132,12 +132,9 @@ export class Private {
 		await bot.redis.setString( this.dbKey, this.stringify() );
 	}
 	
-	public async replaceCookie( cookie: string ): Promise<void> {
-		if ( cookie.includes( "stoken" ) ) {
-			this.setting.stoken = cookie;
-		} else {
-			this.setting.cookie = cookie;
-		}
+	public async replaceCookie( cookie: string, stoken: string = '' ): Promise<void> {
+		stoken ? this.setting.stoken = stoken : "";
+		this.setting.cookie = cookie;
 		await bot.redis.setString( this.dbKey, this.stringify() );
 	}
 	
@@ -216,7 +213,7 @@ export class PrivateClass {
 		list.forEach( value => {
 			if ( value.setting.uid === uid ) {
 				isRefresh = true;
-				value.replaceCookie( cookie );
+				value.replaceCookie( cookie, stoken );
 			}
 		} );
 		if ( isRefresh ) {
