@@ -51,9 +51,12 @@ const template = `<div class="table-container fix-height logger">
 		</p>
 		<div v-else class="log-window">
 			<el-scrollbar ref="scrollbarRef" class="log-scroll-container">
-				<p v-for="m in list" class="content-line">
-					<span :style="{ color: m.color }">[{{ m.time }}] {{ m.category }} [{{ m.level }}] - </span>
-					<span style="color: #fff">{{ m.message }}</span>
+				<p v-for="msg in list" class="content-line">
+					<span :style="{ color: msg.color }">[{{ msg.time }}] {{ msg.category }} [{{ msg.level }}] - </span>
+					<template v-for="(m, mKey) of msg.message" :key="mKey">
+						<span v-if="m.type === 'text'">{{ m.data }}</span>
+						<a v-if="m.type === 'link'" :href="m.data" target="_blank">{{ m.data }}</a>
+					</template>
 				</p>
 			</el-scrollbar>
 			<el-pagination
@@ -178,13 +181,50 @@ export default defineComponent( {
 			} );
 		}
 		
+		function formatQrcodeMsg( msg ) {
+			const msgRegex = /若打印出错请打开：(.+[\\\/](\d+)[\\\/]qrcode\.png)$/;
+			return msg.replace( msgRegex, `二维码图片链接：${ location.origin }/oicq/data/$2/qrcode.png` )
+		}
+		
+		// 解析 message 信息
+		function formatMessage( msg ) {
+			console.log( msg )
+			msg = formatQrcodeMsg( msg );
+			const urlRegex = /(?:(?:ht|f)tps?):\/\/[\w\-]+(?:\.[\w\-]+)+(?:[\w\-.,@?^=%&:/~+*#]*[\w\-@?^=%&/~+#])?/g;
+			const match = msg.match( urlRegex );
+			// 此时包含链接
+			if ( match ) {
+				const messageList = msg.split( urlRegex ).map( m => ( {
+					type: "text",
+					data: m
+				} ) );
+				
+				let insertIndex = messageList.length - 1;
+				match.forEach( m => {
+					messageList.splice( -insertIndex, 0, {
+						type: "link",
+						data: m
+					} );
+					insertIndex--;
+				} );
+				return messageList;
+			}
+			return [ {
+				type: "text",
+				data: msg
+			} ]
+		}
+		
 		/* 向列表添加 ws 通讯所得数据，若出现新一页，跳转最新页 */
 		async function addMsgToList( msg ) {
 			const newPage = state.list.length + msg.length > state.pageSize;
 			if ( newPage && state.autoBottom ) {
 				await scrollToBottom();
 			} else {
-				state.list.push( ...msg );
+				state.list.push( ...msg.map( m => ( {
+					...m,
+					message: formatMessage( m.message )
+				} ) ) );
 			}
 		}
 		
@@ -199,7 +239,10 @@ export default defineComponent( {
 					...queryParams.value
 				}, "GET" )
 				if ( resp.data.length ) {
-					state.list = resp.data;
+					state.list = resp.data.map( m => ( {
+						...m,
+						message: formatMessage( m.message )
+					} ) );
 					state.totalLog = resp.total;
 					state.error = false;
 				} else {
