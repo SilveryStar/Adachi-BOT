@@ -190,35 +190,67 @@ export default class Adachi {
 		}
 	}
 	
+	/* 扫码登陆 */
+	private qrcodeLogin() {
+		this.bot.logger.mark( "请在2分钟内完成扫描码登录(或在完成扫码后按下Enter继续)...\n" );
+		const d = new Date();
+		const job: Job = scheduleJob( d.setMinutes( d.getMinutes() + 2 ), async () => {
+			this.bot.client.login();
+		} );
+		
+		/* 兼容终端输入 */
+		process.stdin.once( "data", () => {
+			this.bot.client.login();
+			job.cancel();
+		} );
+	}
+	
 	/* 处理登录事件 */
 	private login(): void {
-		if ( this.bot.config.qrcode ) {
-			/* 扫码登录 */
-			this.bot.client.on( "system.login.qrcode", () => {
-				this.bot.logger.mark( "请在2分钟内完成扫描码登录(或在完成扫码后按下Enter继续)...\n" );
-				const d = new Date();
-				const job: Job = scheduleJob( d.setMinutes( d.getMinutes() + 2 ), async () => {
-					this.bot.client.login();
-				} );
-				
-				/* 兼容终端输入 */
-				process.stdin.once( "data", () => {
-					this.bot.client.login();
+		/* 处理滑动验证码事件 */
+		this.bot.client.on( "system.login.slider", () => {
+			const number = this.bot.config.number;
+			this.bot.logger.mark( `请在5分钟内完成滑动验证,并将获取到的ticket写入到src/data/${ number }/ticket.txt文件中并保存（亦可通过控制台-其他配置进行写入），或在终端粘贴获取到的ticket，不要重启服务!!!` );
+			const d = new Date();
+			// 创建空的ticket.txt
+			const dirName = `src/data/${ number }`;
+			const ticketPath = `${ dirName }/ticket.txt`;
+			this.bot.file.createDir( dirName, "root", true );
+			this.bot.file.createFile( ticketPath, "", "root" );
+			
+			// 定时去查看ticket文件是否已写入ticket
+			const job: Job = scheduleJob( "0/5 * * * * *", () => {
+				if ( d.setMinutes( d.getMinutes() + 5 ) > d.getTime() ) {
+					this.bot.logger.warn( "已超过5分钟了，请重新登录" )
 					job.cancel();
-				} );
+					return;
+				}
+				const file = this.bot.file.loadFile( ticketPath, "root" );
+				if ( file && file.trim() ) {
+					this.bot.client.sliderLogin( file.trim() );
+					job.cancel();
+					this.bot.file.writeFile( ticketPath, "", "root" );
+				}
 			} )
-		} else {
-			/* 账密登录 */
-			/* 处理滑动验证码事件 */
-			this.bot.client.on( "system.login.slider", () => {
+			
+			/* 兼容终端输入 */
+			process.stdin.once( "data", ( input ) => {
+				this.bot.client.sliderLogin( input.toString() );
+				job.cancel();
+			} );
+		} );
+		/* 处理设备锁事件 */
+		this.bot.client.on( "system.login.device", ( { phone } ) => {
+			if ( phone ) {
 				const number = this.bot.config.number;
-				this.bot.logger.mark( `请在5分钟内完成滑动验证,并将获取到的ticket写入到src/data/${ number }/ticket.txt文件中并保存（亦可通过控制台-其他配置进行写入），或在终端粘贴获取到的ticket，不要重启服务!!!` );
+				this.bot.logger.mark( `请在5分钟内将获取到的短信验证码写入到src/data/${ number }/code.txt文件中并保存（亦可通过控制台-其他配置进行写入），或在终端粘贴获取到的code，不要重启服务!!!` );
+				this.bot.client.sendSMSCode();
 				const d = new Date();
-				// 创建空的ticket.txt
+				// 创建空的code.txt
 				const dirName = `src/data/${ number }`;
-				const ticketPath = `${ dirName }/ticket.txt`;
+				const codePath = `${ dirName }/code.txt`;
 				this.bot.file.createDir( dirName, "root", true );
-				this.bot.file.createFile( ticketPath, "", "root" );
+				this.bot.file.createFile( codePath, "", "root" );
 				
 				// 定时去查看ticket文件是否已写入ticket
 				const job: Job = scheduleJob( "0/5 * * * * *", () => {
@@ -227,67 +259,31 @@ export default class Adachi {
 						job.cancel();
 						return;
 					}
-					const file = this.bot.file.loadFile( ticketPath, "root" );
+					const file: string = this.bot.file.loadFile( codePath, "root" );
 					if ( file && file.trim() ) {
-						this.bot.client.sliderLogin( file.trim() );
+						this.bot.client.submitSMSCode( file.trim() );
 						job.cancel();
-						this.bot.file.writeFile( ticketPath, "", "root" );
+						this.bot.file.writeFile( codePath, "", "root" );
 					}
 				} )
 				
 				/* 兼容终端输入 */
 				process.stdin.once( "data", ( input ) => {
-					this.bot.client.sliderLogin( input.toString() );
+					this.bot.client.submitSMSCode( input.toString() );
 					job.cancel();
 				} );
+			} else {
+				this.qrcodeLogin();
+			}
+		} );
+		if ( this.bot.config.qrcode ) {
+			/* 扫码登录 */
+			this.bot.client.on( "system.login.qrcode", () => {
+				this.qrcodeLogin();
 			} );
-			/* 处理设备锁事件 */
-			this.bot.client.on( "system.login.device", ( { phone } ) => {
-				if ( phone ) {
-					const number = this.bot.config.number;
-					this.bot.logger.mark( `请在5分钟内将获取到的短信验证码写入到src/data/${ number }/code.txt文件中并保存（亦可通过控制台-其他配置进行写入），或在终端粘贴获取到的code，不要重启服务!!!` );
-					this.bot.client.sendSMSCode();
-					const d = new Date();
-					// 创建空的code.txt
-					const dirName = `src/data/${ number }`;
-					const codePath = `${ dirName }/code.txt`;
-					this.bot.file.createDir( dirName, "root", true );
-					this.bot.file.createFile( codePath, "", "root" );
-					
-					// 定时去查看ticket文件是否已写入ticket
-					const job: Job = scheduleJob( "0/5 * * * * *", () => {
-						if ( d.setMinutes( d.getMinutes() + 5 ) > d.getTime() ) {
-							this.bot.logger.warn( "已超过5分钟了，请重新登录" )
-							job.cancel();
-							return;
-						}
-						const file: string = this.bot.file.loadFile( codePath, "root" );
-						if ( file && file.trim() ) {
-							this.bot.client.submitSMSCode( file.trim() );
-							job.cancel();
-							this.bot.file.writeFile( codePath, "", "root" );
-						}
-					} )
-					
-					/* 兼容终端输入 */
-					process.stdin.once( "data", ( input ) => {
-						this.bot.client.submitSMSCode( input.toString() );
-						job.cancel();
-					} );
-				} else {
-					this.bot.logger.mark( "请在2分钟内完成扫描码登录(或在完成扫码后按下Enter继续)...\n" );
-					const d = new Date();
-					const job: Job = scheduleJob( d.setMinutes( d.getMinutes() + 2 ), async () => {
-						this.bot.client.login();
-					} );
-					
-					/* 兼容终端输入 */
-					process.stdin.once( "data", () => {
-						this.bot.client.login();
-						job.cancel();
-					} );
-				}
-			} );
+			this.bot.client.login();
+		} else {
+			/* 账密登录 */
 			this.bot.client.login( this.bot.config.password );
 		}
 	}
