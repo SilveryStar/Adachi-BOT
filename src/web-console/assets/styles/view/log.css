@@ -153,12 +153,18 @@
 	user-select: text;
 	line-height: 20px;
 	font-size: 0.875rem;
-	color: #ffffff;
+	color: #fff;
 }
 
-.log-container .content-line span {
+.log-container .content-line span,
+.log-container .content-line a {
 	user-select: inherit;
 	white-space: pre-wrap;
+}
+
+.log-container .content-line a {
+	cursor: pointer;
+	text-decoration: underline;
 }
 
 .log-scroll-container {
