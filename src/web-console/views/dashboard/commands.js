@@ -6,7 +6,7 @@ const template = `<div class="table-container config">
 			<form-item label="启用">
 				<el-switch v-model="commands[cKey].enable" :disabled="pageLoading" @change="updateConfig(cKey, 'enable')" />
 			</form-item>
-			<template v-if="commands[cKey].enable"">
+			<template v-if="commands[cKey].enable">
 				<form-item label="最低操作权限">
 					<el-radio-group v-model="commands[cKey].auth" :disabled="pageLoading" @change="updateConfig(cKey, 'auth')" >
 						<el-radio v-for="(a, aKey) of authList" :key="aKey" :label="aKey + 1">{{ a }}</el-radio>

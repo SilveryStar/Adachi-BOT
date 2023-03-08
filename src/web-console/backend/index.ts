@@ -38,6 +38,7 @@ export default class WebConsole {
 	
 	private createConsole( port: number, tcp: number ) {
 		this.app.use( express.static( resolve( __dirname, ".." ) ) );
+		this.app.use( "/oicq/data", express.static( resolve( process.cwd(), "data" ) ) );
 		this.app.use( bodyParser.json() );
 		this.app.use( bodyParser.urlencoded( { extended: false } ) );
 		
