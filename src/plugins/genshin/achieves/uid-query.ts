@@ -12,7 +12,7 @@ interface UIDResult {
 }
 
 function isAt( message: string ): string | undefined {
-	const res: RegExpExecArray | null = /\[cq:at,qq=(?<id>\d+)/.exec( message );
+	const res: RegExpExecArray | null = /\[CQ:at,type=at,qq=(?<id>\d+)/i.exec( message );
 	return res?.groups?.id;
 }
 
@@ -62,7 +62,7 @@ export async function main(
 		}
 	}
 	
-	const res: RenderResult = await renderer.asCqCode(
+	const res: RenderResult = await renderer.asSegment(
 		"/user-base.html", {
 			qq: target, stranger,
 			style: config.cardWeaponStyle,

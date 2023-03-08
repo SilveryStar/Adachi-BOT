@@ -54,15 +54,11 @@ export default class Plugin {
 				const commands = Plugin.parse( bot, cfgList, pluginName );
 				PluginRawConfigs[pluginName] = cfgList;
 				if ( !not_support_upgrade_plugins.includes( pluginName ) ) {
-					if ( repo ) {
-						if ( typeof repo === "string" ) {
-							PluginUpgradeServices[pluginName] = repo ? `https://api.github.com/repos/${ repo }/commits` : "";
-						} else {
-							PluginUpgradeServices[pluginName] = repo.ref ? `https://api.github.com/repos/${ repo.owner }/${ repo.repoName }/commits/${ repo.ref }` : `https://api.github.com/repos/${ repo.owner }/${ repo.repoName }/commits`;
-						}
-					} else {
-						PluginUpgradeServices[pluginName] = "";
-					}
+					PluginUpgradeServices[pluginName] = repo ?
+						typeof repo === "string" ?
+							`https://api.github.com/repos/${ repo }/commits` :
+							`https://api.github.com/repos/${ repo.owner }/${ repo.repoName }/commits${ repo.ref ? "/" + repo.ref : "" }`
+						: ""
 				}
 				if ( aliases && aliases.length > 0 ) {
 					for ( let alias of aliases ) {

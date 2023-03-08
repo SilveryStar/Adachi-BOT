@@ -1,4 +1,4 @@
-import { FakeMessage, Sendable } from "oicq";
+import { Forwardable, Sendable, segment } from "icqq";
 import { BasicConfig, InputParameter, Order } from "@modules/command";
 import Command from "@modules/command/main";
 import FileManagement from "@modules/file";
@@ -35,7 +35,7 @@ async function forwardStyle(
 	title: string, list: string[],
 	{ config, client, command }: InputParameter
 ): Promise<Sendable> {
-	const content: FakeMessage[] = [];
+	const content: Forwardable[] = [];
 	
 	const DETAIL = <Order>command.getSingle( "adachi.detail" );
 	if ( DETAIL ) {
@@ -45,21 +45,16 @@ async function forwardStyle(
 	list.forEach( el => content.push( {
 		user_id: config.number,
 		nickname: "BOT",
-		message: {
-			type: "text",
-			data: { text: el }
-		}
+		message: segment.text(el)
 	} ) );
 	
 	const reply = await client.makeForwardMsg( content );
-	if ( reply.status === "ok" ) {
-		const content: string = reply.data.data.data;
-		reply.data.data.data = content.replace( "[聊天记录]", "[Adachi-BOT 帮助信息]" )
-			.replace( "转发的聊天记录", title )
-			.replace( /查看\d+条转发消息/, "点击查看更多指令" );
-		return reply.data;
-	}
-	return "";
+	
+	const replyContent: string = reply.data;
+	reply.data = replyContent.replace( "[聊天记录]", "[Adachi-BOT 帮助信息]" )
+		.replace( "转发的聊天记录", title )
+		.replace( /查看\d+条转发消息/, "点击查看更多指令" );
+	return reply.data;
 }
 
 function xmlStyle( title: string, list: string[], command: Command ): Sendable {
@@ -121,7 +116,7 @@ async function cardStyle( i: InputParameter, commands: BasicConfig[], version: s
 		commands: cmdData
 	} ) );
 	
-	const res: RenderResult = await renderer.asCqCode(
+	const res: RenderResult = await renderer.asSegment(
 		"/index.html" );
 	if ( res.code === "ok" ) {
 		return res.data;

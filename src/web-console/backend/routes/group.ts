@@ -1,8 +1,7 @@
 import bot from "ROOT";
 import express from "express";
 import { AuthLevel } from "@modules/management/auth";
-import { GroupInfo, GroupRole } from "oicq";
-import { scheduleJob } from "node-schedule";
+import { GroupInfo, GroupRole } from "icqq";
 
 type GroupData = {
 	groupId: number;
@@ -152,7 +151,7 @@ async function getGroupInfo( info: GroupInfo ): Promise<GroupData> {
 	const groupAvatar = `http://p.qlogo.cn/gh/${ groupId }/${ groupId }/100/`;
 	
 	const botGroupInfo = await bot.client.getGroupMemberInfo( groupId, bot.config.number );
-	const groupRole = botGroupInfo.data!.role;
+	const groupRole = botGroupInfo.role;
 	
 	const isBanned: boolean = await bot.redis.existListElement(
 		"adachi.banned-group", groupId
@@ -172,7 +171,7 @@ function sendToGroupMsg( groupId: number, content: string, delay: number, count:
 	const minSec = count % splitRandom === 0 ? 6 : 1;
 	const randomSeconds: number = Math.floor( ( Math.random() * ( maxSec - minSec ) + minSec ) * 1000 ) + delay;
 	setTimeout( async () => {
-		await bot.client.sendGroupMsg( groupId, content );
+		await bot.client.pickGroup( groupId ).sendMsg( content );
 	}, randomSeconds );
 	
 	return randomSeconds;

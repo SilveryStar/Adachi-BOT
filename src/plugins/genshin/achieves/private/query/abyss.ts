@@ -1,7 +1,7 @@
 import { InputParameter, Order, SwitchMatchResult } from "@modules/command";
 import { Private } from "#genshin/module/private/main";
 import { Abyss } from "#genshin/types";
-import { FakeMessage } from "oicq";
+import { Forwardable, segment } from "icqq";
 import { RenderResult } from "@modules/renderer";
 import { getPrivateAccount } from "#genshin/utils/private";
 import { getRegion } from "#genshin/utils/region";
@@ -47,7 +47,7 @@ async function forwardAchieves( abyss: Abyss, uid: string, userID: number, {
 		} );
 	}
 	
-	const content: FakeMessage[] = [];
+	const content: Forwardable[] = [];
 	for ( let floor of floorList ) {
 		const res: RenderResult = await renderer.asBase64(
 			"/abyss.html", { qq: userID, floor }
@@ -56,12 +56,9 @@ async function forwardAchieves( abyss: Abyss, uid: string, userID: number, {
 			logger.error( res.error );
 			continue;
 		}
-		const msgNode: FakeMessage = {
+		const msgNode: Forwardable = {
 			user_id: config.number,
-			message: {
-				type: "image",
-				data: { file: res.data }
-			}
+			message: segment.image(<string>res.data)
 		};
 		content.push( msgNode );
 	}
@@ -70,9 +67,9 @@ async function forwardAchieves( abyss: Abyss, uid: string, userID: number, {
 	const isPrivate = messageData.message_type === "private";
 	
 	const replyMessage = await client.makeForwardMsg( content, isPrivate );
-	if ( replyMessage.status === "ok" ) {
-		await sendMessage( replyMessage.data, false );
-	} else {
+	try {
+		await sendMessage( replyMessage, false );
+	} catch  {
 		const CALL = <Order>bot.command.getSingle( "adachi.call", await bot.auth.get( userID ) );
 		const appendMsg = CALL ? `私聊使用 ${ CALL.getHeaders()[0] } ` : "";
 		await sendMessage( `转发消息生成错误，请${ appendMsg }联系持有者进行反馈` );
@@ -101,7 +98,7 @@ async function singleAchieves( abyss: Abyss, uid: string, userID: number, {
 		floors: JSON.stringify( abyss.floors )
 	} );
 	
-	const res: RenderResult = await renderer.asCqCode(
+	const res: RenderResult = await renderer.asSegment(
 		"/abyss-single.html", { qq: userID }
 	);
 	if ( res.code === "ok" ) {
