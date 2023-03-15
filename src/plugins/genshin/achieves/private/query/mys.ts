@@ -40,7 +40,7 @@ export async function main(
 		}
 	}
 	
-	const res: RenderResult = await renderer.asCqCode(
+	const res: RenderResult = await renderer.asSegment(
 		"/card.html", {
 			qq: userID,
 			style: config.cardWeaponStyle,

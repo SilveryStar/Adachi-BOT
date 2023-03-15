@@ -1,11 +1,12 @@
 import { URL, URLSearchParams } from "url";
+import { ImageElem, segment, Sendable } from "icqq";
 import { RefreshCatch } from "@modules/management/refresh";
 import puppeteer from "puppeteer";
 import bot from "ROOT";
 
 interface RenderSuccess {
 	code: "ok";
-	data: string;
+	data: Sendable;
 }
 
 interface RenderError {
@@ -21,12 +22,12 @@ export type RenderResult = RenderSuccess | RenderError;
 
 export interface ScreenshotRendererMethods {
 	asBase64( route: string, params?: Record<string, any>, viewPort?: puppeteer.Viewport | null, selector?: string ): Promise<RenderResult>;
-	asCqCode( route: string, params?: Record<string, any>, viewPort?: puppeteer.Viewport | null, selector?: string ): Promise<RenderResult>;
+	asSegment( route: string, params?: Record<string, any>, viewPort?: puppeteer.Viewport | null, selector?: string ): Promise<RenderResult>;
 	asForFunction( route: string, pageFunction: PageFunction, viewPort?: puppeteer.Viewport | null, params?: Record<string, any> ): Promise<RenderResult>;
 }
 
 export interface RenderMethods {
-	register(name: string, route: string, port: number, defaultSelector: string): Renderer;
+	register( name: string, route: string, port: number, defaultSelector: string ): Renderer;
 	/* 浏览器相关 */
 	closeBrowser(): Promise<void>;
 	launchBrowser(): Promise<puppeteer.Browser>;
@@ -76,7 +77,7 @@ export class Renderer implements ScreenshotRendererMethods {
 		}
 	}
 	
-	public async asCqCode(
+	public async asSegment(
 		route: string,
 		params: Record<string, any> = {},
 		viewPort: puppeteer.Viewport | null = null,
@@ -85,8 +86,8 @@ export class Renderer implements ScreenshotRendererMethods {
 		try {
 			const url: string = this.getURL( route, params );
 			const base64: string = await bot.renderer.screenshot( url, viewPort, selector );
-			const cqCode: string = `[CQ:image,file=${ base64 }]`;
-			return { code: "ok", data: cqCode };
+			const segmentImg: ImageElem = segment.image( base64 );
+			return { code: "ok", data: segmentImg };
 		} catch ( error ) {
 			const err = <string>( <Error>error ).stack;
 			return { code: "error", error: err };
@@ -196,7 +197,10 @@ export class BasicRenderer implements RenderMethods {
 			if ( viewPort ) {
 				await page.setViewport( viewPort );
 			}
-			await page.goto( url );
+			await page.goto( url, {
+				waitUntil: "networkidle0",
+				timeout: 30000
+			} );
 			await this.pageLoaded( page );
 			
 			const option: puppeteer.ScreenshotOptions = { encoding: "base64" };
@@ -227,7 +231,10 @@ export class BasicRenderer implements RenderMethods {
 			if ( viewPort ) {
 				await page.setViewport( viewPort );
 			}
-			await page.goto( url );
+			await page.goto( url, {
+				waitUntil: "networkidle0",
+				timeout: 30000
+			} );
 			await this.pageLoaded( page );
 			
 			const result = await pageFunction( page );

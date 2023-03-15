@@ -182,13 +182,15 @@ export default defineComponent( {
 		}
 		
 		function formatQrcodeMsg( msg ) {
-			const msgRegex = /若打印出错请打开：(.+[\\\/](\d+)[\\\/]qrcode\.png)$/;
-			return msg.replace( msgRegex, `二维码图片链接：${ location.origin }/oicq/data/$2/qrcode.png` )
+			const msgRegex = /二维码图片已保存到：.+[\\\/]data[\\\/]qrcode\.png$/;
+			return msg.replace( msgRegex, `二维码图片链接：${ location.origin }/oicq/data/qrcode.png` );
 		}
 		
 		// 解析 message 信息
 		function formatMessage( msg ) {
-			console.log( msg )
+			if ( typeof msg !== "string" ) {
+				msg = JSON.stringify( msg );
+			}
 			msg = formatQrcodeMsg( msg );
 			const urlRegex = /(?:(?:ht|f)tps?):\/\/[\w\-]+(?:\.[\w\-]+)+(?:[\w\-.,@?^=%&:/~+*#]*[\w\-@?^=%&/~+#])?/g;
 			const match = msg.match( urlRegex );

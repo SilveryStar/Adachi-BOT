@@ -20,7 +20,7 @@ const uidQuery: OrderConfig = {
 	headers: [ "uid" ],
 	regexps: [
 		[ "(\\d{9})?" ],
-		[ "\\[CQ:at,qq=\\d+.*]" ]
+		[ "\\[CQ:at,type=at,qq=\\d+.*]" ]
 	],
 	main: "achieves/uid-query"
 };

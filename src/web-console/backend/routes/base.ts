@@ -1,9 +1,11 @@
 import express from "express";
-import { totalmem, freemem, cpus } from "os";
+// import { totalmem, freemem, cpus } from "os";
+import { cpus } from "os";
 import bot from "ROOT";
 import { parseZone } from "moment";
 import { formatMemories } from "../utils/format";
 import { restart } from "pm2";
+import si from "systeminformation";
 
 interface DayData {
 	dayID: string;
@@ -45,8 +47,11 @@ export default express.Router()
 			const groupCount = bot.client.gl.size;
 			
 			/* 内存占用 */
-			const totalMem = formatMemories( totalmem(), "G" );
-			const usedMem = formatMemories( totalmem() - freemem(), "G" );
+			// const totalMem = formatMemories( totalmem(), "G" );
+			// const usedMem = formatMemories( totalmem() - freemem(), "G" );
+			const mem = await si.mem();
+			const usedMem = formatMemories( mem.active, "G" );
+			const totalMem = formatMemories( mem.total, "G" );
 			const memories = { usedMem, totalMem };
 			
 			/* cpu 使用率 */

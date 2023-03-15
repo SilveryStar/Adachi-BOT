@@ -1,4 +1,4 @@
-import { GroupMessageEventData } from "oicq";
+import { GroupMessageEvent } from "icqq";
 import { AuthLevel } from "@modules/management/auth";
 import { BasicConfig, InputParameter } from "@modules/command/main";
 import Database from "@modules/database";
@@ -38,7 +38,7 @@ export async function filterUserUsableCommand( i: InputParameter ): Promise<Basi
 		return commands;
 	}
 	
-	const groupID: number = ( <GroupMessageEventData>i.messageData ).group_id;
+	const groupID: number = ( <GroupMessageEvent>i.messageData ).group_id;
 	const groupLimit: string[] = await getLimited( groupID, "group", i.redis );
 	commands = commands.filter( el => !groupLimit.includes( el.cmdKey ) );
 	return commands;

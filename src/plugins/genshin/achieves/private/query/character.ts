@@ -116,7 +116,7 @@ export async function main(
 		return;
 	}
 	
-	const res: RenderResult = await renderer.asCqCode(
+	const res: RenderResult = await renderer.asSegment(
 		"/character.html", {
 			qq: userID,
 			showScore: config.showCharScore

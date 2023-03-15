@@ -59,7 +59,7 @@ export async function main(
 			data: data.result,
 			name: nickname
 		} ) );
-		const res: RenderResult = await renderer.asCqCode(
+		const res: RenderResult = await renderer.asSegment(
 			"/wish.html",
 			{ qq: userID }
 		);
@@ -103,7 +103,7 @@ export async function main(
 		total: data.total,
 		nickname
 	} );
-	const res: RenderResult = await renderer.asCqCode(
+	const res: RenderResult = await renderer.asSegment(
 		"/wish-statistic.html",
 		{ qq: userID }
 	);

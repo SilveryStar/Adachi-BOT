@@ -7,7 +7,7 @@ export async function main(
 	{ sendMessage, redis, logger, auth, messageData }: InputParameter
 ): Promise<void> {
 	await redis.setString( "silvery-star.almanac", almanacClass.get() );
-	const res: RenderResult = await renderer.asCqCode( "/almanac.html" );
+	const res: RenderResult = await renderer.asSegment( "/almanac.html" );
 	
 	if ( res.code === "ok" ) {
 		await sendMessage( res.data );

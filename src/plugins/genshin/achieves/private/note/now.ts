@@ -4,14 +4,15 @@ import { NoteService } from "#genshin/module/private/note";
 import { InputParameter } from "@modules/command";
 import { RenderResult } from "@modules/renderer";
 import { privateClass, renderer } from "#genshin/init";
+import { Sendable } from "icqq";
 
-async function getNowNote( userID: number ): Promise<string[]> {
+async function getNowNote( userID: number ): Promise<Sendable[]> {
 	const accounts: Private[] = privateClass.getUserPrivateList( userID );
 	if ( accounts.length === 0 ) {
 		return [ "你还未订阅过任何账号" ];
 	}
 	
-	const imageList: string[] = [];
+	const imageList: Sendable[] = [];
 	for ( let a of accounts ) {
 		let data: string;
 		try {
@@ -24,7 +25,7 @@ async function getNowNote( userID: number ): Promise<string[]> {
 		
 		const dbKey: string = `silvery-star.note-temp-${ uid }`;
 		await bot.redis.setString( dbKey, data );
-		const res: RenderResult = await renderer.asCqCode(
+		const res: RenderResult = await renderer.asSegment(
 			"/note.html", { uid }
 		);
 		if ( res.code === "ok" ) {
@@ -39,7 +40,7 @@ async function getNowNote( userID: number ): Promise<string[]> {
 
 export async function main( { sendMessage, messageData }: InputParameter ): Promise<void> {
 	const userID: number = messageData.user_id;
-	const res: string[] = await getNowNote( userID );
+	const res: Sendable[] = await getNowNote( userID );
 	
 	for ( let msg of res ) {
 		await sendMessage( msg );
