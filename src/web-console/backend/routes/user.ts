@@ -64,6 +64,7 @@ export default express.Router()
 			
 			res.status( 200 ).send( { code: 200, data: { userInfos, cmdKeys }, total: userData.length } );
 		} catch ( error ) {
+			bot.logger.error( ( <Error>error ).stack );
 			res.status( 500 ).send( { code: 500, data: {}, msg: "Server Error" } );
 		}
 		
@@ -132,13 +133,15 @@ async function getUserInfo( userID: number ): Promise<UserInfo> {
 	nickname = publicInfo.nickname;
 	
 	for ( let el of usedGroups ) {
-		const groupID: number = parseInt( el );
+		const groupID: number = Number.parseInt( el );
 		if ( groupID === -1 ) {
 			groupInfoList.push( "私聊方式使用" );
 			continue;
 		}
-		const data = await bot.client.getGroupMemberInfo( groupID, userID );
-		groupInfoList.push( data );
+		const data: MemberInfo | undefined = ( await bot.client.pickMember( groupID, userID ) ).info;
+		if ( data ) {
+			groupInfoList.push( data );
+		}
 	}
 	return { userID, avatar, nickname, isFriend, botAuth, interval, limits, groupInfoList }
 }

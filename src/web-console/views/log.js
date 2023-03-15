@@ -189,7 +189,7 @@ export default defineComponent( {
 		// 解析 message 信息
 		function formatMessage( msg ) {
 			if ( typeof msg !== "string" ) {
-				msg = JSON.stringify( msg );
+				msg = JSON.stringify( msg ) || "";
 			}
 			msg = formatQrcodeMsg( msg );
 			const urlRegex = /(?:(?:ht|f)tps?):\/\/[\w\-]+(?:\.[\w\-]+)+(?:[\w\-.,@?^=%&:/~+*#]*[\w\-@?^=%&/~+#])?/g;
