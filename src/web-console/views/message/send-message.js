@@ -2,7 +2,21 @@ const template = `<div class="dialog-body send-message">
 	<div class="section-info">
 		<p class="title">消息内容</p>
 		<el-scrollbar class="message-box" wrap-class="scrollbar-wrapper">
-			<p v-html="content"></p>
+			<p class="user-content">
+				<span style="color: #be750c">来自用户「{{ messageInfo.user }}」：</span>
+				<template v-for="(m, mKey) of content" :key="m">
+					<span v-if="m.type === 'text'">{{ m.message }}</span>
+					<el-image
+						v-else-if="m.type === 'image'"
+						:src="m.src"
+						:preview-src-list="m.imgList"
+						:initial-index="m.index"
+						referrerPolicy="no-referrer"
+						fit="contain"
+						alt="ERROR"
+					></el-image>
+				</template>
+			</p>
 		</el-scrollbar>
 	</div>
 	<div class="section-info">
@@ -13,6 +27,7 @@ const template = `<div class="dialog-body send-message">
 </div>`;
 
 import $http from "../../api/index.js"
+import { isValidUrl } from "../../utils/url.js";
 
 const { defineComponent, computed, ref } = Vue;
 const { ElMessage } = ElementPlus;
@@ -32,11 +47,28 @@ export default defineComponent( {
 		const message = ref( "" );
 		
 		const content = computed( () => {
-			const messageInfo = props.messageInfo;
-			if ( messageInfo.content ) {
-				const reg = /\[CQ:image,.*url=(.+?)]/ig;
-				const header = `<span style="color: #be750c">来自用户「${ props.messageInfo.user }」：</span>`;
-				return header + messageInfo.content.replace( reg, '<a href="$1" target="_blank">[点击查看图片]</a>' )
+			const { content: msg } = props.messageInfo;
+			if ( msg ) {
+				const reg = /\[CQ:image,.*?url=((?:(?:ht|f)tps?):\/\/[\w\-]+(?:\.[\w\-]+)+(?:[\w\-.@?^=%&:/~+*#]*[\w\-@?^=%&/~+#])?).*?]/ig;
+				
+				const imgList = [];
+				
+				return msg.split( reg ).map( m => {
+					if ( isValidUrl( m ) ) {
+						imgList.push( m );
+						return {
+							type: "image",
+							src: m,
+							index: imgList.length - 1,
+							imgList
+						};
+					} else {
+						return {
+							type: "text",
+							message: m
+						}
+					}
+				} );
 			}
 		} )
 		
