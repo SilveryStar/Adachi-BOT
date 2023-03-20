@@ -1,6 +1,6 @@
 import { AuthLevel } from "./management/auth";
 import FileManagement from "@modules/file";
-import { randomSecret } from "@modules/utils";
+import { getRandomStr } from "@modules/utils";
 
 export default class BotConfig {
 	public readonly qrcode: boolean;
@@ -9,6 +9,8 @@ export default class BotConfig {
 	public readonly master: number;
 	public readonly header: string;
 	public readonly platform: 1 | 2 | 3 | 4 | 5;
+	public readonly ffmpegPath: string;
+	public readonly ffprobePath: string;
 	public readonly atUser: boolean;
 	public readonly atBOT: boolean;
 	public readonly addFriend: boolean;
@@ -55,6 +57,7 @@ export default class BotConfig {
 	public readonly autoChat: {
 		readonly enable: boolean;
 		readonly type: number;
+		readonly audio: boolean;
 		readonly secretId: string;
 		readonly secretKey: string;
 	}
@@ -67,6 +70,8 @@ export default class BotConfig {
 		master: 987654321,
 		header: "#",
 		platform: 1,
+		ffmpegPath: "",
+		ffprobePath: "",
 		atUser: false,
 		atBOT: false,
 		addFriend: true,
@@ -103,13 +108,16 @@ export default class BotConfig {
 			consolePort: 80,
 			tcpLoggerPort: 54921,
 			logHighWaterMark: 64,
-			jwtSecret: randomSecret( 16 )
+			jwtSecret: getRandomStr( 16 )
 		},
 		autoChat: {
-			tip1: "type参数说明：1为青云客，不用配置后面的两个secret，",
-			tip2: "2为腾讯自然语言处理，需要前往腾讯云开通NLP并获取到你的secret（听说超级智能）",
+			tip: "type参数说明：\n" +
+				"1：青客云API，无需配置其他参数 \n" +
+				"2：腾讯自然语言处理，需要前往腾讯云开通NLP并获取到你的secret（听说超级智能）\n" +
+				"3：小爱智能语音，使用摹名Api：http://xiaoapi.cn，此时仅 enable 参数有效",
 			enable: false,
 			type: 1,
+			audio: false,
 			secretId: "",
 			secretKey: ""
 		}
@@ -121,7 +129,8 @@ export default class BotConfig {
 			"atBOT", "addFriend", "dbPassword",
 			"helpPort", "autoChat", "callTimes",
 			"fuzzyMatch", "matchPrompt", "useWhitelist",
-			"banScreenSwipe", "banHeavyAt", "ThresholdInterval"
+			"banScreenSwipe", "banHeavyAt", "ThresholdInterval",
+			"ffmpegPath", "ffprobePath"
 		];
 		
 		for ( let key of checkFields ) {
@@ -145,6 +154,8 @@ export default class BotConfig {
 		this.fuzzyMatch = config.fuzzyMatch;
 		this.matchPrompt = config.matchPrompt;
 		this.platform = config.platform;
+		this.ffmpegPath = config.ffmpegPath;
+		this.ffprobePath = config.ffprobePath;
 		this.password = config.password;
 		this.helpPort = config.helpPort;
 		this.callTimes = config.callTimes;
@@ -153,7 +164,7 @@ export default class BotConfig {
 		this.countThreshold = config.countThreshold;
 		this.ThresholdInterval = config.ThresholdInterval;
 		if ( !config.webConsole.jwtSecret ) {
-			config.webConsole.jwtSecret = randomSecret( 16 );
+			config.webConsole.jwtSecret = getRandomStr( 16 );
 			file.writeYAML( "setting", config );
 		}
 		this.banScreenSwipe = {

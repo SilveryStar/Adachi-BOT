@@ -19,7 +19,7 @@ import { Job, JobCallback, scheduleJob } from "node-schedule";
 import { trim } from "lodash";
 import { unlinkSync } from "fs";
 import axios, { AxiosError } from "axios";
-import { autoChat } from "@modules/chat";
+import AiChat from "@modules/chat";
 import { WhiteList } from "@modules/whitelist";
 
 /**
@@ -62,6 +62,8 @@ export default class Adachi {
 	private isOnline: boolean = false;
 	/* 收集触发刷屏的用户及消息信息 */
 	private screenSwipeInfo: ScreenSwipeInfo = {};
+	/* 自动聊天 */
+	private readonly aiChat: AiChat | null = null;
 	
 	constructor( root: string ) {
 		/* 初始化运行环境 */
@@ -77,12 +79,20 @@ export default class Adachi {
 		
 		const client = sdk.createClient( {
 			log_level: config.logLevel,
-			platform: config.platform
+			platform: config.platform,
+			ffmpeg_path: config.ffmpegPath,
+			ffprobe_path: config.ffprobePath
+			// ffmpeg_path: "D:\\Tools\\ffmpeg\\bin\\ffmpeg.exe",
+			// ffprobe_path: "D:\\Tools\\ffmpeg\\bin\\ffprobe.exe",
 		} );
 		const logger = client.logger;
 		process.on( "unhandledRejection", reason => {
 			logger.error( ( <Error>reason ).stack || ( <Error>reason ).message );
 		} );
+		
+		if ( config.autoChat.enable ) {
+			this.aiChat = new AiChat( config.autoChat, logger );
+		}
 		
 		const redis = new Database( config.dbPort, config.dbPassword, logger, file );
 		const interval = new Interval( config, redis );
@@ -315,10 +325,10 @@ export default class Adachi {
 		}
 		
 		/* 人工智障聊天 */
-		if ( !unionRegExp.test( content ) || ( this.bot.config.autoChat.enable && !this.bot.config.atBOT && isAt ) ) {
-			if ( this.bot.config.autoChat.enable && ( isPrivate || ( !this.bot.config.atBOT && isAt ) ) ) {
-				const { autoChat } = require( "./chat" );
-				await autoChat( messageData.raw_message, sendMessage );
+		if ( !unionRegExp.test( content ) ) {
+			const enable: boolean = isPrivate || ( !this.bot.config.atBOT && isAt );
+			if ( this.aiChat && enable ) {
+				await this.aiChat.autoChat( messageData.raw_message, sendMessage );
 			}
 			return;
 		}

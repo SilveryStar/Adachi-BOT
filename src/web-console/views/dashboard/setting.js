@@ -58,7 +58,7 @@ const template = `<div class="table-container config">
 			</form-item>
 		</div>
 		<div class="config-section">
-		<section-title title="指令设置" />
+			<section-title title="指令设置" />
 			<form-item label="模糊匹配" desc="开启后BOT会对中文指令以及指令名称进行模糊匹配，要求必须以header开头且中文指令不得拆开。">
 				<el-switch v-model="setting.fuzzyMatch" :disabled="pageLoading" @change="updateConfig('fuzzyMatch')" />
 			</form-item>
@@ -118,6 +118,27 @@ const template = `<div class="table-container config">
 				type="number"
 				desc="指令 联系bot持有者 每个用户一天内可使用的最大次数。"
 				@change="updateConfig('callTimes')"
+				@open="activeSpreadItem"
+			/>
+		</div>
+		<div class="config-section">
+			<section-title title="ffmpeg配置" desc="当有发送语音与视频需求时需要配置此项" />
+			<spread-form-item
+				v-model="setting.ffmpegPath"
+				:active-spread="activeSpread"
+				:disabled="pageLoading"
+				label="ffmpeg路径"
+				placeholder="ffmpeg路径"
+				@change="updateConfig('ffmpegPath')"
+				@open="activeSpreadItem"
+			/>
+			<spread-form-item
+				v-model="setting.ffprobePath"
+				:active-spread="activeSpread"
+				:disabled="pageLoading"
+				label="ffprobe路径"
+				placeholder="ffprobe路径"
+				@change="updateConfig('ffprobePath')"
 				@open="activeSpreadItem"
 			/>
 		</div>
@@ -205,7 +226,11 @@ const template = `<div class="table-container config">
 					<el-radio-group v-model="setting.autoChat.type" :disabled="pageLoading" @change="updateConfig('autoChat.type')" >
 						<el-radio :label="1">青云客</el-radio>
 						<el-radio :label="2">腾讯NLP</el-radio>
+						<el-radio :label="3">小爱同学</el-radio>
 					</el-radio-group>
+				</form-item>
+				<form-item v-if="setting.autoChat.type === 3" label="语音发送">
+					<el-switch v-model="setting.autoChat.audio" :disabled="pageLoading" @change="updateConfig('autoChat.audio')" />
 				</form-item>
 				<template v-if="setting.autoChat.type === 2">
 					<spread-form-item
@@ -338,6 +363,8 @@ export default defineComponent( {
 			setting: {
 				webConsole: {},
 				autoChat: {},
+				banScreenSwipe: {},
+				banHeavyAt: {}
 			},
 			pageLoading: false,
 			activeSpread: ""
