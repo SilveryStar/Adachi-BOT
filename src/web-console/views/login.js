@@ -25,7 +25,7 @@ const template =
 	</main>
 	<footer class="login-footer">
 		<span v-if="!isMobile">MIT Licensed | </span>
-		<span>Adachi管理面板 ©2021 SilveryStar</span>
+		<span>Adachi管理面板 &copy;{{ currentYear }} SilveryStar</span>
 	</footer>
 </div>`;
 
@@ -44,6 +44,7 @@ export default defineComponent( {
 		const route = useRoute();
 		const { device } = inject( "app" );
 		const { USER_LOGIN } = inject( "user" );
+		const currentYear = Vue.ref('');
 		
 		const state = reactive( {
 			number: "",
@@ -58,6 +59,8 @@ export default defineComponent( {
 			const loginInfo = loginInfoSession.get();
 			state.number = loginInfo?.number;
 			state.rememberAccount = loginInfo?.rememberAccount;
+			const year = new Date().getFullYear();
+            currentYear.value = year;
 		} )
 		
 		function loginByPassword() {
@@ -87,7 +90,8 @@ export default defineComponent( {
 		return {
 			...toRefs( state ),
 			isMobile,
-			loginByPassword
+			loginByPassword,
+			currentYear
 		}
 	}
 } );
