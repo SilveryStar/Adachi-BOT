@@ -167,6 +167,51 @@ const template = `<div class="table-container config">
 			/>
 		</div>
 		<div class="config-section">
+			<section-title title="发件人邮箱配置" desc="用于主动发送邮件相关功能" />
+			<spread-form-item
+				v-model="setting.mailConfig.platform"
+				:active-spread="activeSpread"
+				:disabled="pageLoading"
+				label="平台"
+				desc="如 qq、163 等"
+				@change="updateConfig('mailConfig.platform')"
+				@open="activeSpreadItem"
+			/>
+			<spread-form-item
+				v-model="setting.mailConfig.user"
+				:active-spread="activeSpread"
+				:disabled="pageLoading"
+				label="邮箱账号"
+				desc="xxx@xx.com"
+				@change="updateConfig('mailConfig.user')"
+				@open="activeSpreadItem"
+			/>
+			<spread-form-item
+				v-model="setting.mailConfig.authCode"
+				:active-spread="activeSpread"
+				:disabled="pageLoading"
+				label="授权码"
+				type="password"
+				desc="前往各自平台获取"
+				@change="updateConfig('mailConfig.authCode')"
+				@open="activeSpreadItem"
+			/>
+			<form-item label="离线发送邮件" desc="当 BOT 意外掉线时，向 Master QQ邮箱发送邮件提醒">
+				<el-switch v-model="setting.mailConfig.logoutSend" :disabled="pageLoading" @change="updateConfig('mailConfig.logoutSend')" />
+			</form-item>
+			<spread-form-item
+				v-if="setting.mailConfig.logoutSend"
+				v-model="setting.mailConfig.sendDelay"
+				:active-spread="activeSpread"
+				:disabled="pageLoading"
+				label="离线邮件延迟"
+				type="number"
+				desc="离线多久后发送邮件（分钟）"
+				@change="updateConfig('mailConfig.sendDelay')"
+				@open="activeSpreadItem"
+			/>
+		</div>
+		<div class="config-section">
 			<section-title title="网页控制台相关" />
 			<form-item label="启用控制台" desc="开启后即可通过公网ip+页面端口访问本系统。">
 				<el-switch v-model="setting.webConsole.enable" :disabled="pageLoading" @change="updateConfig('webConsole.enable')" />
@@ -364,7 +409,8 @@ export default defineComponent( {
 				webConsole: {},
 				autoChat: {},
 				banScreenSwipe: {},
-				banHeavyAt: {}
+				banHeavyAt: {},
+				mailConfig: {}
 			},
 			pageLoading: false,
 			activeSpread: ""

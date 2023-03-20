@@ -14,6 +14,9 @@ import { BasicRenderer } from "@modules/renderer";
 import Command, { BasicConfig, MatchResult } from "./command/main";
 import Authorization, { AuthLevel } from "./management/auth";
 import MsgManagement, * as msg from "./message";
+import MailManagement from "./mail";
+
+;
 import { Md5 } from "md5-typescript";
 import { Job, JobCallback, scheduleJob } from "node-schedule";
 import { trim } from "lodash";
@@ -46,6 +49,7 @@ export interface BOT {
 	readonly file: FileManagement;
 	readonly auth: Authorization;
 	readonly message: MsgManagement;
+	readonly mail: MailManagement;
 	readonly command: Command;
 	readonly whitelist: WhiteList;
 	readonly refresh: RefreshConfig;
@@ -60,6 +64,7 @@ type ScreenSwipeInfo = Record<string, {
 export default class Adachi {
 	public readonly bot: BOT;
 	private isOnline: boolean = false;
+	private deadTimer: NodeJS.Timer | null = null;
 	/* 收集触发刷屏的用户及消息信息 */
 	private screenSwipeInfo: ScreenSwipeInfo = {};
 	/* 自动聊天 */
@@ -98,6 +103,7 @@ export default class Adachi {
 		const interval = new Interval( config, redis );
 		const auth = new Authorization( config, redis );
 		const message = new MsgManagement( config, client );
+		const mail = new MailManagement( config, logger );
 		const command = new Command( file );
 		const refresh = new RefreshConfig( file, command );
 		const whitelist = new WhiteList( file );
@@ -105,8 +111,9 @@ export default class Adachi {
 		
 		this.bot = {
 			client, command, file, redis,
-			logger, message, auth, interval,
-			config, refresh, renderer, whitelist
+			logger, message, mail, auth,
+			interval, config, refresh, renderer,
+			whitelist
 		};
 		refresh.registerRefreshableFile( "whitelist", whitelist );
 		refresh.registerRefreshableFunc( renderer );
@@ -122,6 +129,7 @@ export default class Adachi {
 			this.bot.client.on( "request.group", this.acceptInvite( this ) );
 			this.bot.client.on( "request.friend", this.acceptFriend( this ) );
 			this.bot.client.on( "system.online", this.botOnline( this ) );
+			this.bot.client.on( "system.offline", this.botOffline( this ) );
 			this.bot.client.on( "notice.friend.decrease", this.friendDecrease( this ) );
 			this.bot.logger.info( "事件监听启动成功" );
 		} );
@@ -652,11 +660,29 @@ export default class Adachi {
 				return;
 			}
 			that.isOnline = true;
+			if ( that.deadTimer ) {
+				clearTimeout( that.deadTimer );
+				that.deadTimer = null;
+			}
 			const HELP = <Order>bot.command.getSingle( "adachi.help", AuthLevel.Master );
 			const message: string =
 				`Adachi-BOT 已启动成功，请输入 ${ HELP.getHeaders()[0] } 查看命令帮助\n` +
 				"如有问题请前往 github.com/SilveryStar/Adachi-BOT 进行反馈"
 			await that.bot.message.sendMaster( message );
+		}
+	}
+	
+	/* 离线事件 */
+	private botOffline( that: Adachi ) {
+		const bot = that.bot;
+		return async function () {
+			if ( !bot.config.mailConfig.logoutSend ) {
+				return;
+			}
+			const sendDelay: number = bot.config.mailConfig.sendDelay;
+			that.deadTimer = setTimeout( () => {
+				bot.mail.sendMaster( "BOT 已离线", `BOT已离线${ sendDelay }分钟，请前往日志查看并重启BOT` );
+			}, sendDelay * 60 * 1000 );
 		}
 	}
 	

@@ -30,6 +30,14 @@ export default class BotConfig {
 	public readonly logLevel: "trace" | "debug" | "info" | "warn" |
 		"error" | "fatal" | "mark" | "off";
 	
+	public readonly mailConfig: {
+		readonly platform: string;
+		readonly user: string;
+		readonly authCode: string;
+		readonly logoutSend: boolean;
+		readonly sendDelay: number;
+	}
+	
 	public readonly banScreenSwipe: {
 		readonly enable: boolean;
 		readonly limit: number;
@@ -89,6 +97,13 @@ export default class BotConfig {
 		logLevel: "info",
 		dbPort: 56379,
 		dbPassword: "",
+		mailConfig: {
+			platform: "qq",
+			user: "123456789@qq.com",
+			authCode: "",
+			logoutSend: false,
+			sendDelay: 5
+		},
 		banScreenSwipe: {
 			enable: false,
 			limit: 10,
@@ -130,7 +145,7 @@ export default class BotConfig {
 			"helpPort", "autoChat", "callTimes",
 			"fuzzyMatch", "matchPrompt", "useWhitelist",
 			"banScreenSwipe", "banHeavyAt", "ThresholdInterval",
-			"ffmpegPath", "ffprobePath"
+			"ffmpegPath", "ffprobePath", "mailConfig"
 		];
 		
 		for ( let key of checkFields ) {
@@ -166,6 +181,13 @@ export default class BotConfig {
 		if ( !config.webConsole.jwtSecret ) {
 			config.webConsole.jwtSecret = getRandomStr( 16 );
 			file.writeYAML( "setting", config );
+		}
+		this.mailConfig = {
+			platform: config.mailConfig.platform,
+			user: config.mailConfig.user,
+			authCode: config.mailConfig.authCode,
+			logoutSend: config.mailConfig.logoutSend,
+			sendDelay: config.mailConfig.sendDelay
 		}
 		this.banScreenSwipe = {
 			enable: config.banScreenSwipe.enable,
