@@ -92,7 +92,7 @@ export default class Adachi {
 		} );
 		const logger = client.logger;
 		process.on( "unhandledRejection", reason => {
-			logger.error( ( <Error>reason ).stack || ( <Error>reason ).message );
+			logger.error( ( <Error>reason ).stack || ( <Error>reason ).message || reason );
 		} );
 		
 		if ( config.autoChat.enable ) {

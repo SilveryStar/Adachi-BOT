@@ -1,11 +1,13 @@
 const template = `<div class="table-container user">
 	<div class="nav-btn-box">
     	<el-scrollbar class="horizontal-wrap">
-			<nav-search :searchList="searchList" :searchData="listQuery" :showNum="1" :disabled="tableLoading" @change="handleFilter"></nav-search>
+			<nav-search :searchList="searchList" :searchData="listQuery" :showNum="1" :disabled="tableLoading" @change="handleFilter">
+				<el-button type="primary" :disabled="selectionList.length === 0" round @click="removeUserBatch">删除用户</el-button>
+			</nav-search>
     	</el-scrollbar>
 	</div>
     <div class="table-view">
-		<el-table v-loading="tableLoading" :data="userList" header-row-class-name="table-header" :height="tableHeight" stripe>
+		<el-table v-loading="tableLoading" :data="userList" header-row-class-name="table-header" :height="tableHeight" stripe @selection-change="selectionChange">
 			<el-table-column fixed="left" type="selection" width="50" align="center" prop="selection" label="筛选"></el-table-column>
 			<el-table-column prop="userID" label="QQ" align="center" min-width="110px"></el-table-column>
 			<el-table-column prop="avatar" label="用户" align="center" min-width="230px">
@@ -63,7 +65,7 @@ import NavSearch from "../../../components/nav-search/index.js";
 import UserDetail from "./user-detail.js";
 
 const { defineComponent, reactive, onMounted, computed, ref, toRefs, inject } = Vue;
-const { ElMessage, ElMessageBox } = ElementPlus;
+const { ElNotification, ElMessageBox } = ElementPlus;
 
 export default defineComponent( {
 	name: "User",
@@ -81,7 +83,9 @@ export default defineComponent( {
 			totalUser: 0,
 			tableLoading: false,
 			showUserModal: false,
-			selectUser: {}
+			selectUser: {},
+			// 所选列表数组
+			selectionList: []
 		} );
 		
 		const userDetailRef = ref( null );
@@ -169,12 +173,48 @@ export default defineComponent( {
 				return;
 			}
 			state.tableLoading = true;
-			$http.USER_SUB_REMOVE( { userId }, "DELETE" ).then( async () => {
+			$http.USER_SUB_REMOVE( { userId }, "POST" ).then( async () => {
 				getUserData()
-				ElMessage.success( "取消该用户订阅服务成功" )
+				ElNotification( {
+					title: "成功",
+					message: "取消该用户订阅服务成功。",
+					type: "success",
+					duration: 2000
+				} );
 			} ).catch( () => {
 				state.tableLoading = false;
 			} )
+		}
+		
+		async function removeUserBatch() {
+			try {
+				await ElMessageBox.confirm( "删除用户将会清空其订阅并解除好友关系，是否继续？", "提示", {
+					confirmButtonText: "确定",
+					cancelButtonText: "取消",
+					type: "warning",
+					center: true
+				} )
+			} catch ( error ) {
+				return;
+			}
+			state.tableLoading = true;
+			$http.USER_REMOVE_BATCH( {
+				userIds: state.selectionList.map(s => s.userID)
+			}, "POST" ).then( () => {
+				getUserData();
+				ElNotification( {
+					title: "成功",
+					message: "删除用户成功。",
+					type: "success",
+					duration: 2000
+				} );
+			} ).catch( () => {
+				state.tableLoading = false;
+			} );
+		}
+		
+		function selectionChange( val ) {
+			state.selectionList = val
 		}
 		
 		function openUserModal( row ) {
@@ -198,6 +238,8 @@ export default defineComponent( {
 			getUserData,
 			handleFilter,
 			removeSub,
+			removeUserBatch,
+			selectionChange,
 			openUserModal,
 			resetCurrentData
 		};

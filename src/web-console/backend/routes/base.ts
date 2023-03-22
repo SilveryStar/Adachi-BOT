@@ -66,7 +66,7 @@ export default express.Router()
 			const resp = { weakData, userCount, groupCount, memories, cpuUsed };
 			res.status( 200 ).send( { code: 200, data: resp } );
 		} catch ( error ) {
-			res.status( 500 ).send( { code: 500, data: {}, msg: <Error>error.stack } );
+			res.status( 500 ).send( { code: 500, data: {}, msg: error.message || "Server Error" } );
 		}
 	} )
 	.post("/refresh", async (req, res) => {
@@ -74,7 +74,7 @@ export default express.Router()
 			const resp: string[] = await bot.refresh.do();
 			res.status( 200 ).send( { code: 200, data: resp } );
 		} catch ( error ) {
-			res.status( 500 ).send( { code: 500, data: {}, msg: <Error>error.stack } );
+			res.status( 500 ).send( { code: 500, data: {}, msg: error.message || "Server Error" } );
 		}
 	})
 	.post("/restart", async (req, res) => {

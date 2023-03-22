@@ -4,6 +4,7 @@ import { AuthLevel } from "@modules/management/auth";
 import { MemberInfo } from "icqq";
 import { BOT } from "@modules/bot";
 import { PluginReSubs, SubInfo } from "@modules/plugin";
+import { delay, getRandomNumber } from "@web-console/backend/utils/common";
 
 type UserInfo = {
 	userID: number;
@@ -64,8 +65,7 @@ export default express.Router()
 			
 			res.status( 200 ).send( { code: 200, data: { userInfos, cmdKeys }, total: userData.length } );
 		} catch ( error ) {
-			bot.logger.error( ( <Error>error ).stack );
-			res.status( 500 ).send( { code: 500, data: {}, msg: "Server Error" } );
+			res.status( 500 ).send( { code: 500, data: {}, msg: error.message || "Server Error" } );
 		}
 		
 	} )
@@ -97,14 +97,14 @@ export default express.Router()
 		
 		res.status( 200 ).send( "success" );
 	} )
-	.delete( "/sub/remove", async ( req, res ) => {
-		const userId = parseInt( <string>req.query.userId );
+	.post( "/sub/remove", async ( req, res ) => {
+		const userId = req.body.userId ;
+		if ( !userId ) {
+			res.status( 400 ).send( { code: 400, data: [], msg: "Error Params" } );
+			return;
+		}
 		
 		try {
-			if ( !userId ) {
-				res.status( 400 ).send( { code: 400, data: [], msg: "Error Params" } );
-				return;
-			}
 			for ( const plugin in PluginReSubs ) {
 				try {
 					await PluginReSubs[plugin].reSub( userId, bot );
@@ -114,7 +114,40 @@ export default express.Router()
 			}
 			res.status( 200 ).send( { code: 200, data: {}, msg: "Success" } );
 		} catch ( error ) {
-			res.status( 500 ).send( { code: 500, data: [], msg: "Server Error" } );
+			res.status( 500 ).send( { code: 500, data: [], msg: error.message || "Server Error" } );
+		}
+	} )
+	.post( "/remove/batch", async ( req, res ) => {
+		const userIds: number[] = req.body.userIds;
+		if ( !userIds ) {
+			res.status( 400 ).send( { code: 400, data: [], msg: "Error Params" } );
+			return;
+		}
+		
+		try {
+			let first: boolean = true;
+			for ( const id of userIds ) {
+				if ( !first ) {
+					await delay( getRandomNumber( 100, 1000 ) );
+				}
+				// 清除订阅
+				for ( const plugin in PluginReSubs ) {
+					try {
+						await PluginReSubs[plugin].reSub( id, bot );
+					} catch ( error ) {
+						bot.logger.error( `插件${ plugin }取消订阅事件执行异常：${ <string>error }` )
+					}
+				}
+				// 删除好友
+				await bot.client.pickFriend( id ).delete();
+				// 清除数据库
+				await bot.redis.deleteKey( `adachi.user-used-groups-${ id }` );
+				first = false;
+			}
+			await bot.client.reloadFriendList();
+			res.status( 200 ).send( { code: 200, data: {}, msg: "Success" } );
+		} catch ( error ) {
+			res.status( 500 ).send( { code: 500, data: [], msg: error.message || "Server Error" } );
 		}
 	} )
 

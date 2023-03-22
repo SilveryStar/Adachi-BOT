@@ -2,6 +2,11 @@ import express from "express";
 import { mergeWith } from "lodash";
 import bot from "ROOT";
 
+interface FileData {
+	code: number;
+	data: any;
+}
+
 export default express.Router()
 	.get( "/", ( req, res ) => {
 		const fileName = <string>req.query.fileName;
@@ -9,15 +14,13 @@ export default express.Router()
 			res.status( 400 ).send( { code: 400, data: {}, msg: "Error Params" } );
 			return;
 		}
-		const data = getFileData( fileName );
-		if ( data === 404 ) {
-			res.status( 404 ).send( { code: 404, data: {}, msg: "Not Found" } );
+		const fileData: FileData = getFileData( fileName );
+		if ( fileData.code !== 200 ) {
+			res.status( fileData.code ).send( { code: fileData.code, data: {}, msg: fileData.data } );
 			return;
 		}
-		if ( data === 500 ) {
-			res.status( 500 ).send( { code: 500, data: {}, msg: "Server Error" } );
-			return;
-		}
+		
+		const data = fileData.data;
 		
 		if ( fileName === "setting" ) {
 			delete data.password;
@@ -35,19 +38,16 @@ export default express.Router()
 			return;
 		}
 		
-		let data;
+		let data: any;
 		if ( force ) {
 			data = content;
 		} else {
-			data = getFileData( fileName );
-			if ( data === 404 ) {
-				res.status( 404 ).send( { code: 404, data: {}, msg: "Not Found" } );
+			const fileData: FileData = getFileData( fileName );
+			if ( fileData.code !== 200 ) {
+				res.status( fileData.code ).send( { code: fileData.code, data: {}, msg: fileData.data } );
 				return;
 			}
-			if ( data === 500 ) {
-				res.status( 500 ).send( { code: 500, data: {}, msg: "Server Error" } );
-				return;
-			}
+			data = fileData.data;
 			
 			mergeWith( data, content, ( objValue, srcValue ) => {
 				if ( objValue instanceof Array ) {
@@ -100,7 +100,7 @@ export default express.Router()
 			}
 			
 			const data = getFileData( fileName );
-			if ( typeof data === "number" ) {
+			if ( data.code !== 200 ) {
 				return null;
 			}
 			return { name: fileName, data };
@@ -109,15 +109,15 @@ export default express.Router()
 		res.status( 200 ).send( { code: 200, data, msg: "Success" } );
 	} )
 
-function getFileData( fileName: string ): any {
+function getFileData( fileName: string ): FileData {
 	const path = bot.file.getFilePath( `${ fileName }.yml` );
 	const exist = bot.file.isExist( path );
 	if ( !exist ) {
-		return 404;
+		return { code: 404, data: "Not Found" };
 	}
 	try {
-		return bot.file.loadYAML( fileName );
+		return { code: 200, data: bot.file.loadYAML( fileName ) };
 	} catch ( error ) {
-		return 500;
+		return { code: 500, data: error.message || "Server Error" };
 	}
 }

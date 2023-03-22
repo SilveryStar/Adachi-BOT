@@ -8,13 +8,15 @@ export default {
 	USER_INFO: "/user/info",
 	USER_SET: "/user/set",
 	USER_SUB_REMOVE: "/user/sub/remove",
+	USER_REMOVE_BATCH: "/user/remove/batch",
 	USER_LOGIN: "/login/",
 	/* 群组 */
 	GROUP_LIST: "/group/list",
 	GROUP_INFO: "/group/info",
 	GROUP_SET: "/group/set",
 	GROUP_EXIT: "/group/exit",
-	GROUP_BATCH_SEND: "/group/batchsend",
+	GROUP_SEND_BATCH: "/group/send/batch",
+	GROUP_EXIT_BATCH: "/group/exit/batch",
 	/* 日志 */
 	LOG_INFO: "/log",
 	/* 反馈消息 */

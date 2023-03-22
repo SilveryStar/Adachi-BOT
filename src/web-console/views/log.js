@@ -175,13 +175,7 @@ export default defineComponent( {
 				} );
 				state.cmdValue = "";
 				state.cmdInputLoading = false;
-			} catch ( error ) {
-				ElNotification( {
-					title: "错误",
-					message: error.message,
-					type: "error",
-					duration: 1000
-				} );
+			} catch {
 				state.cmdInputLoading = false;
 			}
 		}
