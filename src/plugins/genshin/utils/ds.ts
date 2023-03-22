@@ -30,3 +30,11 @@ export function getDS2(): string {
 	
 	return `${ i },${ r },${ c }`;
 }
+
+export function generateDS(): string {
+	const n: string = "dWCcD2FsOUXEstC5f9xubswZxEeoBOTc";
+	const i: number = Date.now() / 1000 | 0;
+	const r: string = randomString( 6 ).toLowerCase();
+	const c: string = Md5.init( `salt=${ n }&t=${ i }&r=${ r }` );
+	return `${ i },${ r },${ c }`;
+}

@@ -1,8 +1,7 @@
 import bot from "ROOT";
 import express from "express";
 import { AuthLevel } from "@modules/management/auth";
-import { GroupInfo, GroupRole } from "oicq";
-import { scheduleJob } from "node-schedule";
+import { GroupInfo, GroupRole, MemberInfo } from "icqq";
 
 type GroupData = {
 	groupId: number;
@@ -44,7 +43,10 @@ export default express.Router()
 			const groupInfos: GroupData[] = [];
 			
 			for ( const [ _, info ] of pageGroupData ) {
-				groupInfos.push( await getGroupInfo( info ) );
+				const groupInfo: GroupData | undefined = await getGroupInfo( info );
+				if ( groupInfo ) {
+					groupInfos.push( groupInfo );
+				}
 			}
 			
 			const cmdKeys: string[] = bot.command.cmdKeys;
@@ -67,9 +69,13 @@ export default express.Router()
 			return
 		}
 		
-		const groupInfo = await getGroupInfo( groupData );
+		const groupInfo: GroupData | undefined = await getGroupInfo( groupData );
 		
-		res.status( 200 ).send( { code: 200, data: groupInfo } );
+		if ( groupInfo ) {
+			res.status( 200 ).send( { code: 200, data: groupInfo } );
+		} else {
+			res.status( 404 ).send( { code: 404, data: {}, msg: "Not Found" } );
+		}
 	} )
 	.post( "/set", async ( req, res ) => {
 		const groupId: number = parseInt( <string>req.body.target );
@@ -146,13 +152,18 @@ export default express.Router()
 		}
 	} )
 
-async function getGroupInfo( info: GroupInfo ): Promise<GroupData> {
-	const groupId = info.group_id;
-	const groupName = info.group_name;
-	const groupAvatar = `http://p.qlogo.cn/gh/${ groupId }/${ groupId }/100/`;
+async function getGroupInfo( info: GroupInfo ): Promise<GroupData | undefined> {
+	const groupId: number = info.group_id;
+	const groupName: string = info.group_name;
+	const groupAvatar: string = `http://p.qlogo.cn/gh/${ groupId }/${ groupId }/100/`;
 	
-	const botGroupInfo = await bot.client.getGroupMemberInfo( groupId, bot.config.number );
-	const groupRole = botGroupInfo.data!.role;
+	const botGroupInfo: MemberInfo | undefined = ( await bot.client.pickMember( groupId, bot.config.number ) ).info;
+	
+	if ( !botGroupInfo ) {
+		return undefined;
+	}
+	
+	const groupRole: GroupRole = botGroupInfo.role;
 	
 	const isBanned: boolean = await bot.redis.existListElement(
 		"adachi.banned-group", groupId
@@ -172,7 +183,7 @@ function sendToGroupMsg( groupId: number, content: string, delay: number, count:
 	const minSec = count % splitRandom === 0 ? 6 : 1;
 	const randomSeconds: number = Math.floor( ( Math.random() * ( maxSec - minSec ) + minSec ) * 1000 ) + delay;
 	setTimeout( async () => {
-		await bot.client.sendGroupMsg( groupId, content );
+		await bot.client.pickGroup( groupId ).sendMsg( content );
 	}, randomSeconds );
 	
 	return randomSeconds;

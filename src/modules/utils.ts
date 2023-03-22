@@ -44,15 +44,31 @@ export const findFreePort: ( port?: number, logger?: Logger ) => Promise<number>
 	}
 }
 
-export function randomSecret( length: number ): string {
+/* 获取指定长度的随机字符串 */
+export function getRandomStr( length ) {
 	const charSet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ,.;></~?[]{}~!@#$%^&*()-=+1234567890";
-	const characterLen: number = charSet.length;
-	let result: string = "";
+	return Array.from( { length }, () => {
+		const randNum = Math.floor( Math.random() * charSet.length );
+		return charSet[randNum];
+	} ).join( "" );
+}
+
+/* 解析 url 参数字符串 */
+export function urlParamsParse( url: string | undefined, params: Record<string, string | number> ) {
+	const paramsStr = Object.entries( params ).map( ( [ key, value ] ) => {
+		return `${ key }=${ encodeURIComponent( value ) }`;
+	} ).join( "&" );
 	
-	for ( let i = 0; i < length; i++ ) {
-		const randNum: number = Math.floor( Math.random() * characterLen );
-		result += charSet.charAt( randNum );
+	return url ? `${ url }?${ paramsStr }` : paramsStr;
+}
+
+/* 校验传入值是否为 Json 字符串 */
+export function isJsonString( str: unknown ): str is string {
+	if ( typeof str !== "string" ) return false;
+	try {
+		const obj = JSON.parse( str );
+		return !!( typeof obj === "object" && obj );
+	} catch {
+		return false;
 	}
-	
-	return result;
 }

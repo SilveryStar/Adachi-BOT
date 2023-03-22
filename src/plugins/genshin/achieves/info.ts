@@ -24,7 +24,7 @@ export async function main(
 			await sendMessage( "仅角色支持查看技能详情" );
 		} else {
 			const route: string = checked( typeData.artifact.suitNames ) ? "/info-artifact.html" : "/info.html";
-			const res: RenderResult = await renderer.asCqCode(
+			const res: RenderResult = await renderer.asSegment(
 				route,
 				{ name: result.info, skill: isSkillPage }
 			);

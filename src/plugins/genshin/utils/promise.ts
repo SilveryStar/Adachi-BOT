@@ -2,18 +2,24 @@ import * as ApiType from "../types";
 import * as api from "./api";
 import bot from "ROOT";
 import { Cookies } from "#genshin/module";
-import { omit, pick } from "lodash";
+import { omit, pick, set } from "lodash";
 import { characterID, cookies } from "../init";
 import { CharacterCon } from "../types";
-import { getCalendarDetail, getCalendarList } from "./api";
+import { getCalendarDetail, getCalendarList, getLTokenBySToken, getMultiTokenByLoginTicket, verifyLtoken } from "./api";
 import { Order } from "@modules/command";
+import { checkCookieInvalidReason, cookie2Obj } from "#genshin/utils/cookie";
 
 export enum ErrorMsg {
 	NOT_FOUND = "未查询到角色数据，请检查米哈游通行证（非UID）是否有误或是否设置角色信息公开",
 	UNKNOWN = "发生未知错误",
+	COOKIE_UPTIME = "当前公共Cookie查询次数已用尽，已自动切换，请再次尝试",
 	NOT_PUBLIC = "米游社信息未公开，请前往米游社「个人主页」-「我的角色」右侧「管理」公开信息展示",
+	PRIVATE_COOKIE_INVALID = "授权服务Cookie已失效，请及时更换",
+	PUBLIC_COOKIE_INVALID = "公共查询Cookie已失效，已自动切换",
 	FORM_MESSAGE = "米游社接口报错: ",
-	VERIFICATION_CODE = "遇到验证码拦截，签到失败，请自行手动签到"
+	VERIFICATION_CODE = "遇到验证码拦截，签到失败，请自行手动签到",
+	COOKIE_FORMAT_INVALID = `提供的Cookie字段错误，几种Cookie格式请查看教程，如有问题请联系管理员`,
+	GET_TICKET_INVAILD = `获取Stoken未知错误`
 }
 
 /* 当前cookie查询次数上限，切换下一个cookie */
@@ -412,6 +418,7 @@ export async function dailyNotePromise(
 			bot.logger.info( `用户 ${ uid } 的实时便笺数据查询成功` );
 			resolve( data );
 		} catch ( error ) {
+			bot.logger.error( `用户 ${ uid } 的实时便笺数据查询失败，错误：${ (<Error>error).stack }` );
 			const CALL = <Order>bot.command.getSingle( "adachi.call" );
 			const appendMsg = CALL ? `私聊使用 ${ CALL.getHeaders()[0] } ` : "";
 			reject( `便笺数据查询错误，可能服务器出现了网络波动或米游社API故障，请${ appendMsg }联系持有者进行反馈` );
@@ -581,4 +588,85 @@ export async function calendarPromise(): Promise<ApiType.CalendarData[]> {
 	}
 	bot.logger.info( "活动数据查询成功" );
 	return calcDataList;
+}
+
+/* Token转换相关API */
+export async function getCookieTokenBySToken(
+	stoken: string,
+	mid: string,
+	uid: string ): Promise<{ uid: string, cookie_token: string }> {
+	const { retcode, message, data } = await api.getCookieAccountInfoBySToken( stoken, mid, uid );
+	
+	if ( !ApiType.isCookieTokenResult( data ) ) {
+		return Promise.reject( ErrorMsg.UNKNOWN );
+	}
+	
+	return new Promise( ( resolve, reject ) => {
+		if ( retcode === -100 || retcode !== 0 ) {
+			return reject( checkCookieInvalidReason( message, parseInt( uid ) ) );
+		}
+		resolve( {
+			uid: data.uid,
+			cookie_token: data.cookieToken
+		} );
+	} );
+}
+
+export async function getMultiToken( mysID, cookie ): Promise<any> {
+	
+	const { login_ticket } = cookie2Obj( cookie );
+	if ( !login_ticket ) {
+		throw "cookie缺少login_ticket无法生成获取Stoken";
+	}
+	if ( !cookie.includes( "stuid" ) ) {
+		cookie = cookie + ";stuid=" + mysID;
+	}
+	if ( !cookie.includes( "login_uid" ) ) {
+		cookie = cookie + ";login_uid=" + mysID;
+	}
+	
+	const { retcode, message, data } = await getMultiTokenByLoginTicket( mysID, login_ticket, cookie );
+	if ( !ApiType.isMultiToken( data ) ) {
+		throw ErrorMsg.UNKNOWN;
+	} else if ( !data.list || data.list.length === 0 ) {
+		throw ErrorMsg.GET_TICKET_INVAILD;
+	}
+	
+	return new Promise( ( resolve, reject ) => {
+		if ( retcode === 1001 || retcode !== 0 ) {
+			return reject( checkCookieInvalidReason( message, mysID ) );
+		}
+		let cookie = {};
+		data.list.forEach( value => {
+			// cookie += `${ value.name }=${ value.token }; `;
+			cookie = set( cookie, value.name, value.token );
+		} );
+		resolve( cookie );
+	} );
+}
+
+export async function getMidByLtoken( ltoken: string, ltuid: string ): Promise<string> {
+	const { retcode, message, data } = await verifyLtoken( ltoken, ltuid );
+	if ( !ApiType.isVerifyLtoken( data ) ) {
+		throw ErrorMsg.UNKNOWN;
+	}
+	return new Promise( ( resolve, reject ) => {
+		if ( retcode === 1001 || retcode !== 0 ) {
+			return reject( checkCookieInvalidReason( message, ltuid ) );
+		}
+		resolve( data.userInfo.mid );
+	} );
+}
+
+export async function getLtoken( stoken: string, mid: string ): Promise<string> {
+	const { retcode, message, data } = await getLTokenBySToken( stoken, mid );
+	if ( !ApiType.isGetLtoken( data ) ) {
+		throw ErrorMsg.UNKNOWN;
+	}
+	return new Promise( ( resolve, reject ) => {
+		if ( retcode === 1001 || retcode !== 0 ) {
+			return reject( checkCookieInvalidReason( message ) );
+		}
+		resolve( data.ltoken );
+	} );
 }

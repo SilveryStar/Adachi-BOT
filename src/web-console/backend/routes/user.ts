@@ -1,7 +1,7 @@
 import bot from "ROOT";
 import express from "express";
 import { AuthLevel } from "@modules/management/auth";
-import { MemberBaseInfo } from "oicq";
+import { MemberInfo } from "icqq";
 import { BOT } from "@modules/bot";
 import { PluginReSubs, SubInfo } from "@modules/plugin";
 
@@ -13,7 +13,7 @@ type UserInfo = {
 	botAuth: AuthLevel;
 	interval: number;
 	limits: string[];
-	groupInfoList: ( string | MemberBaseInfo )[];
+	groupInfoList: ( string | MemberInfo )[];
 	subInfo?: string[]
 }
 
@@ -64,6 +64,7 @@ export default express.Router()
 			
 			res.status( 200 ).send( { code: 200, data: { userInfos, cmdKeys }, total: userData.length } );
 		} catch ( error ) {
+			bot.logger.error( ( <Error>error ).stack );
 			res.status( 500 ).send( { code: 500, data: {}, msg: "Server Error" } );
 		}
 		
@@ -84,8 +85,6 @@ export default express.Router()
 		const int: number = parseInt( <string>req.body.int );
 		const auth = <AuthLevel>parseInt( <string>req.body.auth );
 		const limits: string[] = JSON.parse( <string>req.body.limits );
-		
-		console.log(userID, int, auth)
 		
 		await bot.auth.set( userID, auth );
 		await bot.interval.set( userID, "private", int );
@@ -128,22 +127,20 @@ async function getUserInfo( userID: number ): Promise<UserInfo> {
 	const limits: string[] = await bot.redis.getList( `adachi.user-command-limit-${ userID }` );
 	
 	let nickname: string = "";
-	const groupInfoList: Array<MemberBaseInfo | string> = [];
+	const groupInfoList: Array<MemberInfo | string> = [];
 	
-	if ( publicInfo.retcode === 0 ) {
-		const usedGroups: string[] = await bot.redis.getSet( `adachi.user-used-groups-${ userID }` );
-		nickname = publicInfo.data.nickname;
-		
-		for ( let el of usedGroups ) {
-			const groupID: number = parseInt( el );
-			if ( groupID === -1 ) {
-				groupInfoList.push( "私聊方式使用" );
-				continue;
-			}
-			const data = await bot.client.getGroupMemberInfo( groupID, userID );
-			if ( data.retcode === 0 ) {
-				groupInfoList.push( data.data );
-			}
+	const usedGroups: string[] = await bot.redis.getSet( `adachi.user-used-groups-${ userID }` );
+	nickname = publicInfo.nickname;
+	
+	for ( let el of usedGroups ) {
+		const groupID: number = Number.parseInt( el );
+		if ( groupID === -1 ) {
+			groupInfoList.push( "私聊方式使用" );
+			continue;
+		}
+		const data: MemberInfo | undefined = ( await bot.client.pickMember( groupID, userID ) ).info;
+		if ( data ) {
+			groupInfoList.push( data );
 		}
 	}
 	return { userID, avatar, nickname, isFriend, botAuth, interval, limits, groupInfoList }

@@ -9,6 +9,7 @@ import { RenderResult } from "@modules/renderer";
 import { renderer } from "#genshin/init";
 import { calendarPromise } from "#genshin/utils/promise";
 import { Order } from "@modules/command";
+import { Sendable } from "icqq";
 
 export interface DailyMaterial {
 	"Mon&Thu": string[];
@@ -69,7 +70,7 @@ export class DailySet {
 }
 
 async function getRenderResult( id: number, subState: boolean, week?: number ): Promise<RenderResult> {
-	return await renderer.asCqCode( "/daily.html", {
+	return await renderer.asSegment( "/daily.html", {
 		id,
 		type: subState ? "sub" : "all",
 		week: week ?? "today"
@@ -118,19 +119,16 @@ export class DailyClass {
 			const groupIDs: string[] = await bot.redis.getList( "silvery-star.daily-sub-group" );
 			
 			const groupData = new DailySet( this.getDataSet( week ), this.eventData );
-			let subMessage: string = "";
 			await groupData.save( 0 );
 			const res: RenderResult = await getRenderResult( 0, false );
 			if ( res.code === "ok" ) {
-				subMessage = res.data;
+				const subMessage: Sendable = res.data;
+				for ( let id of groupIDs ) {
+					await bot.client.pickGroup( Number.parseInt( id ) ).sendMsg( subMessage );
+				}
 			} else {
 				bot.logger.error( res.error );
 				await bot.message.sendMaster( "每日素材订阅图片渲染异常，请查看日志进行检查" );
-			}
-			if ( subMessage.length !== 0 ) {
-				for ( let id of groupIDs ) {
-					await bot.client.sendGroupMsg( parseInt( id ), subMessage );
-				}
 			}
 			
 			/* 私发订阅信息 */
@@ -152,7 +150,7 @@ export class DailyClass {
 				date.setMinutes( randomMinute );
 				
 				scheduleJob( date, async () => {
-					await bot.client.sendPrivateMsg( userID, res.data );
+					await bot.client.pickUser( userID ).sendMsg( res.data );
 				} );
 			}
 		} );
@@ -246,7 +244,7 @@ export class DailyClass {
 		return new DailySet( privateSub, hasEventSub ? this.eventData : [] );
 	}
 	
-	public async getUserSubscription( userID: number, initWeek?: number ): Promise<string> {
+	public async getUserSubscription( userID: number, initWeek?: number ): Promise<Sendable> {
 		if ( initWeek === 7 ) {
 			return "周日所有材料都可以刷取哦~";
 		}

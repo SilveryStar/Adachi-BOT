@@ -32,7 +32,4 @@ WORKDIR /bot
 # Use process management tools to handle process signals to prevent processes in containers from becoming zombie processes.
 ENTRYPOINT ["dumb-init", "--"]
 
-# 临时修复MacOS提示QQ版本低的问题
-RUN npm i && sed -i 's/537064315/537128930/' 'node_modules/oicq/lib/device.js'
-
 CMD nohup sh -c "npm i && npm run docker-start"

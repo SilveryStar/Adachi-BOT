@@ -44,8 +44,8 @@ export default class Plugin {
 		/* 从 plugins 文件夹从导入 init.ts 进行插件初始化 */
 		for ( let plugin of plugins ) {
 			const path: string = bot.file.getFilePath( `${ plugin }/init`, "plugin" );
-			const { init, subInfo } = require( path );
 			try {
+				const { init, subInfo } = require( path );
 				const { pluginName, cfgList, repo, aliases }: PluginSetting = await init( bot );
 				if ( subInfo ) {
 					const { reSub, subs }: PluginSubSetting = await subInfo( bot );
@@ -54,15 +54,11 @@ export default class Plugin {
 				const commands = Plugin.parse( bot, cfgList, pluginName );
 				PluginRawConfigs[pluginName] = cfgList;
 				if ( !not_support_upgrade_plugins.includes( pluginName ) ) {
-					if ( repo ) {
-						if ( typeof repo === "string" ) {
-							PluginUpgradeServices[pluginName] = repo ? `https://api.github.com/repos/${ repo }/commits` : "";
-						} else {
-							PluginUpgradeServices[pluginName] = repo.ref ? `https://api.github.com/repos/${ repo.owner }/${ repo.repoName }/commits/${ repo.ref }` : `https://api.github.com/repos/${ repo.owner }/${ repo.repoName }/commits`;
-						}
-					} else {
-						PluginUpgradeServices[pluginName] = "";
-					}
+					PluginUpgradeServices[pluginName] = repo ?
+						typeof repo === "string" ?
+							`https://api.github.com/repos/${ repo }/commits` :
+							`https://api.github.com/repos/${ repo.owner }/${ repo.repoName }/commits${ repo.ref ? "/" + repo.ref : "" }`
+						: ""
 				}
 				if ( aliases && aliases.length > 0 ) {
 					for ( let alias of aliases ) {
@@ -72,7 +68,7 @@ export default class Plugin {
 				registerCmd.push( ...commands );
 				bot.logger.info( `插件 ${ pluginName } 加载完成` );
 			} catch ( error ) {
-				bot.logger.error( `插件加载异常: ${ <string>error }` );
+				bot.logger.error( `插件 ${ plugin } 加载异常: ${ <string>error }` );
 			}
 		}
 		

@@ -121,7 +121,7 @@ export class NoteService implements Service {
 		} );
 	}
 	
-	private async getData(): Promise<void> {
+	private async getData( quiet: boolean = false ): Promise<void> {
 		try {
 			const setting: UserInfo = this.parent.setting;
 			this.globalData = <Note>await dailyNotePromise(
@@ -130,7 +130,9 @@ export class NoteService implements Service {
 				setting.cookie
 			);
 		} catch ( error ) {
-			this.globalData = <string>error;
+			if ( !quiet ) {
+				this.globalData = <string>error;
+			}
 		}
 	}
 	
@@ -144,7 +146,7 @@ export class NoteService implements Service {
 	private async refreshPushEvent(): Promise<void> {
 		const now: number = new Date().getTime();
 		
-		await this.getData();
+		await this.getData( true );
 		if ( typeof this.globalData === "string" ) {
 			if ( /cookie/.test( this.globalData ) ) {
 				this.globalData += "，自动提醒已停止，请更新 cookie 后重新开启";

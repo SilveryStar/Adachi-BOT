@@ -1,12 +1,12 @@
 const { readFileSync } = require( "fs" );
 const { parse } = require( "yaml" );
-const { createClient } = require( "oicq" );
+const { createClient } = require( "icqq" );
 const { resolve } = require( "path" );
 
 ( function() {
 	const file = readFileSync( resolve( __dirname, "../config/setting.yml" ), "utf-8" );
 	const setting = parse( file );
-	const bot = createClient( setting.number );
+	const bot = createClient();
 	
 	// 处理登录滑动验证码
 	bot.on( "system.login.slider", () => {
@@ -23,5 +23,5 @@ const { resolve } = require( "path" );
 		} );
 	} );
 	
-	bot.login( setting.password );
+	bot.login( setting.number, setting.password );
 } )();

@@ -11,7 +11,7 @@ export default class WebConfiguration {
 	private readonly tcpLoggerPort: number;
 	
 	constructor( config: BotConfig ) {
-		const platformName: string[] = [ "", "Android", "aPad", "Watch", "MacOS", "iPad" ];
+		const platformName: string[] = [ "", "Android", "aPad", "Watch", "iMac", "iPad" ];
 		
 		this.tcpLoggerPort = config.webConsole.tcpLoggerPort;
 		this.deviceName = `[${ platformName[config.platform] }:${ config.number }]`;
@@ -31,8 +31,8 @@ export default class WebConfiguration {
 	}
 	
 	private getConfiguration( enable: boolean, logLevel: BotConfig["logLevel"] ): Configuration {
-		const console = { type: "console" };
-		const network = {
+		const appConsole = { type: "console" };
+		const appNetwork = {
 			type: "tcp",
 			port: this.tcpLoggerPort,
 			endMsg: "__ADACHI__",
@@ -53,10 +53,11 @@ export default class WebConfiguration {
 		};
 		
 		return <Configuration>{
-			appenders: { console, network, logFile },
+			appenders: { console: appConsole, network: appNetwork, logFile },
 			categories: {
 				default: Default,
-				[this.deviceName]: Device
+				[this.deviceName]: Device,
+				"[icqq]": Device
 			},
 			pm2: true,
 			disableClustering: true
