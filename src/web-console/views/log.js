@@ -59,13 +59,26 @@ const template = `<div class="table-container fix-height logger">
 					</template>
 				</p>
 			</el-scrollbar>
+			<el-input
+				v-model="cmdValue"
+				class="cmd-input"
+				:placeholder="cmdPlaceholder"
+				@keyup.enter="cmdSubmit"
+				:disabled="cmdInputLoading"
+			>
+				<template #prepend>
+        			<el-select v-model="cmdType" class="cmd-type-select">
+        			  <el-option label="滑动验证码" :value="1" />
+        			  <el-option label="短信验证码" :value="2" />
+        			</el-select>
+      			</template>
+			</el-input>
 			<el-pagination
 				v-model:current-page="currentPage"
 				:page-size="pageSize"
 				:total="totalLog"
 				:pager-count="7"
 				layout="prev, pager, next"
-				hide-on-single-page
         		@current-change="pageChange"
 			/>
 		</div>
@@ -76,7 +89,7 @@ import $http from "../api/index.js";
 
 const { defineComponent, onMounted, computed, reactive, toRefs, watch, ref, nextTick } = Vue;
 const { useRoute } = VueRouter;
-const { ElMessage } = ElementPlus;
+const { ElMessage, ElNotification } = ElementPlus;
 
 export default defineComponent( {
 	name: "Log",
@@ -91,6 +104,9 @@ export default defineComponent( {
 			autoBottom: true,
 			loading: false,
 			error: false,
+			cmdValue: "",
+			cmdType: 1,
+			cmdInputLoading: false,
 			currentPage: 1,
 			pageSize: 750,
 			totalLog: 0
@@ -122,6 +138,11 @@ export default defineComponent( {
 			return Math.ceil( state.totalLog / state.pageSize );
 		} )
 		
+		/* 输入框默认内容 */
+		const cmdPlaceholder = computed( () => {
+			return `请输入${ [ "滑动验证码ticket", "短信验证码" ][state.cmdType - 1] }并回车发送`;
+		} );
+		
 		watch( () => route.path, () => {
 			if ( ws ) ws.close();
 		} );
@@ -130,6 +151,40 @@ export default defineComponent( {
 			state.currentDate = getCurrentDate();
 			dateChange( state.currentDate );
 		} )
+		
+		const cmdInfoMap = [ {
+			path: "CONFIG_SET_TICKET",
+			message: "提交滑动验证码ticket成功"
+		}, {
+			path: "CONFIG_SET_CODE",
+			message: "提交短信验证码成功。"
+		} ];
+		
+		/* 发送 ticket 或 code */
+		async function cmdSubmit() {
+			if ( !state.cmdValue ) return;
+			state.cmdInputLoading = true;
+			const cmdInfo = cmdInfoMap[state.cmdType - 1];
+			try {
+				await $http[cmdInfo.path]( { data: state.cmdValue } );
+				ElNotification( {
+					title: "成功",
+					message: cmdInfo.message,
+					type: "success",
+					duration: 1000
+				} );
+				state.cmdValue = "";
+				state.cmdInputLoading = false;
+			} catch ( error ) {
+				ElNotification( {
+					title: "错误",
+					message: error.message,
+					type: "error",
+					duration: 1000
+				} );
+				state.cmdInputLoading = false;
+			}
+		}
 		
 		/* 开启 ws 通讯 */
 		function runWS() {
@@ -383,6 +438,8 @@ export default defineComponent( {
 			dateChange,
 			pageChange,
 			msgTypeChange,
+			cmdPlaceholder,
+			cmdSubmit,
 			handleFilter,
 			disabledDate,
 			copyAsReportFormat

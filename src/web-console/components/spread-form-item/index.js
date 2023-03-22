@@ -29,7 +29,7 @@ const template = `<form-item ref="spreadRef" class="spread-form-item" :class="{ 
 				v-else
 				ref="inputRef"
 				v-model="formValue"
-				:type="type === 'textarea' ? 'textarea' : 'test'"
+				:type="type === 'textarea' ? 'textarea' : 'text'"
 				:rows="rows"
 				:placeholder="placeholder"
 				:disabled="disabled"

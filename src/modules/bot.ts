@@ -228,7 +228,7 @@ export default class Adachi {
 		/* 处理滑动验证码事件 */
 		this.bot.client.on( "system.login.slider", () => {
 			const number = this.bot.config.number;
-			this.bot.logger.mark( `请在5分钟内完成滑动验证,并将获取到的ticket写入到src/data/${ number }/ticket.txt文件中并保存（亦可通过控制台-其他配置进行写入），或在终端粘贴获取到的ticket，不要重启服务!!!` );
+			this.bot.logger.mark( `请在5分钟内完成滑动验证,并将获取到的ticket写入到src/data/${ number }/ticket.txt文件中并保存（亦可通过控制台下方输入框键入），或在终端粘贴获取到的ticket，不要重启服务!!!` );
 			const d = new Date();
 			// 创建空的ticket.txt
 			const dirName = `src/data/${ number }`;
@@ -261,7 +261,7 @@ export default class Adachi {
 		this.bot.client.on( "system.login.device", ( { phone } ) => {
 			if ( phone ) {
 				const number = this.bot.config.number;
-				this.bot.logger.mark( `请在5分钟内将获取到的短信验证码写入到src/data/${ number }/code.txt文件中并保存（亦可通过控制台-其他配置进行写入），或在终端粘贴获取到的code，不要重启服务!!!` );
+				this.bot.logger.mark( `请在5分钟内将获取到的短信验证码写入到src/data/${ number }/code.txt文件中并保存（亦可通过控制台下方输入框键入），或在终端粘贴获取到的code，不要重启服务!!!` );
 				this.bot.client.sendSmsCode();
 				const d = new Date();
 				// 创建空的code.txt

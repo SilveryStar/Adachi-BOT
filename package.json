@@ -36,7 +36,7 @@
     "eslint": "~7.29.0",
     "express-jwt": "~6.1.0",
     "express-ws": "~5.0.2",
-    "icqq": "0.0.29",
+    "icqq": "0.0.33",
     "jsonwebtoken": "~8.5.1",
     "lodash": "~4.17.21",
     "log4js": "~6.3.0",
