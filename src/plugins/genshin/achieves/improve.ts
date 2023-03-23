@@ -12,7 +12,7 @@ export async function main(
 		await sendMessage( "请先抽取一个圣遗物" );
 		return;
 	}
-	const res: RenderResult = await renderer.asCqCode(
+	const res: RenderResult = await renderer.asSegment(
 		"/artifact.html",
 		{ qq: userID, type: "rein" }
 	);

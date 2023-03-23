@@ -1,8 +1,8 @@
 import bot from "ROOT";
 import express from "express";
 import { AuthLevel } from "@modules/management/auth";
-import { GroupInfo, GroupRole } from "oicq";
-import { scheduleJob } from "node-schedule";
+import { GroupInfo, GroupRole, MemberInfo } from "icqq";
+import { delay, getRandomNumber } from "@web-console/backend/utils/common";
 
 type GroupData = {
 	groupId: number;
@@ -44,13 +44,16 @@ export default express.Router()
 			const groupInfos: GroupData[] = [];
 			
 			for ( const [ _, info ] of pageGroupData ) {
-				groupInfos.push( await getGroupInfo( info ) );
+				const groupInfo: GroupData | undefined = await getGroupInfo( info );
+				if ( groupInfo ) {
+					groupInfos.push( groupInfo );
+				}
 			}
 			
 			const cmdKeys: string[] = bot.command.cmdKeys;
 			res.status( 200 ).send( { code: 200, data: { groupInfos, cmdKeys }, total: groupData.length } );
 		} catch ( error ) {
-			res.status( 500 ).send( { code: 500, data: {}, msg: "Server Error" } );
+			res.status( 500 ).send( { code: 500, data: {}, msg: error.message || "Server Error" } );
 		}
 		
 	} )
@@ -67,9 +70,13 @@ export default express.Router()
 			return
 		}
 		
-		const groupInfo = await getGroupInfo( groupData );
+		const groupInfo: GroupData | undefined = await getGroupInfo( groupData );
 		
-		res.status( 200 ).send( { code: 200, data: groupInfo } );
+		if ( groupInfo ) {
+			res.status( 200 ).send( { code: 200, data: groupInfo } );
+		} else {
+			res.status( 404 ).send( { code: 404, data: {}, msg: "Not Found" } );
+		}
 	} )
 	.post( "/set", async ( req, res ) => {
 		const groupId: number = parseInt( <string>req.body.target );
@@ -95,7 +102,7 @@ export default express.Router()
 		
 		res.status( 200 ).send( "success" );
 	} )
-	.post( "/batchsend", async ( req, res ) => {
+	.post( "/send/batch", async ( req, res ) => {
 		const content: string = <string>req.body.content;
 		const groupIds: number[] | undefined = req.body.groupIds;
 		
@@ -130,29 +137,56 @@ export default express.Router()
 		await bot.redis.setString( timoutDbKey, cdTime );
 		res.status( 200 ).send( { code: 200, data: { cdTime }, msg: "Success" } );
 	} )
-	.delete( "/exit", async ( req, res ) => {
-		const groupId = parseInt( <string>req.query.groupId );
+	.post( "/exit", async ( req, res ) => {
+		const groupId: number = req.body.groupId;
+		if ( !groupId ) {
+			res.status( 400 ).send( { code: 400, data: [], msg: "Error Params" } );
+			return;
+		}
 		
 		try {
-			if ( !groupId ) {
-				res.status( 400 ).send( { code: 400, data: [], msg: "Error Params" } );
-				return;
-			}
 			await bot.client.setGroupLeave( groupId );
 			await bot.client.reloadGroupList();
 			res.status( 200 ).send( { code: 200, data: {}, msg: "Success" } );
 		} catch ( error ) {
-			res.status( 500 ).send( { code: 500, data: [], msg: "Server Error" } );
+			res.status( 500 ).send( { code: 500, data: [], msg: error.message || "Server Error" } );
+		}
+	} )
+	.post( "/exit/batch", async ( req, res ) => {
+		const groupIds: number[] = req.body.groupIds;
+		if ( !groupIds ) {
+			res.status( 400 ).send( { code: 400, data: [], msg: "Error Params" } );
+			return;
+		}
+		
+		try {
+			let first: boolean = true;
+			for ( const id of groupIds ) {
+				if ( !first ) {
+					await delay( getRandomNumber( 100, 1000 ) );
+				}
+				await bot.client.pickGroup( id ).quit();
+				first = false;
+			}
+			await bot.client.reloadGroupList();
+			res.status( 200 ).send( { code: 200, data: {}, msg: "Success" } );
+		} catch ( error ) {
+			res.status( 500 ).send( { code: 500, data: [], msg: error.message || "Server Error" } );
 		}
 	} )
 
-async function getGroupInfo( info: GroupInfo ): Promise<GroupData> {
-	const groupId = info.group_id;
-	const groupName = info.group_name;
-	const groupAvatar = `http://p.qlogo.cn/gh/${ groupId }/${ groupId }/100/`;
+async function getGroupInfo( info: GroupInfo ): Promise<GroupData | undefined> {
+	const groupId: number = info.group_id;
+	const groupName: string = info.group_name;
+	const groupAvatar: string = `http://p.qlogo.cn/gh/${ groupId }/${ groupId }/100/`;
 	
-	const botGroupInfo = await bot.client.getGroupMemberInfo( groupId, bot.config.number );
-	const groupRole = botGroupInfo.data!.role;
+	const botGroupInfo: MemberInfo | undefined = ( await bot.client.pickMember( groupId, bot.config.number ) ).info;
+	
+	if ( !botGroupInfo ) {
+		return undefined;
+	}
+	
+	const groupRole: GroupRole = botGroupInfo.role;
 	
 	const isBanned: boolean = await bot.redis.existListElement(
 		"adachi.banned-group", groupId
@@ -167,12 +201,12 @@ async function getGroupInfo( info: GroupInfo ): Promise<GroupData> {
 
 /* 向随机间隔1-4s向群聊发送消息，每发送8-12次，下一次间隔改为6-20s */
 function sendToGroupMsg( groupId: number, content: string, delay: number, count: number ): number {
-	const splitRandom = Math.floor( Math.random() * ( 12 - 8 ) + 8 );
+	const splitRandom = getRandomNumber( 8, 12 );
 	const maxSec = count % splitRandom === 0 ? 20 : 4;
 	const minSec = count % splitRandom === 0 ? 6 : 1;
 	const randomSeconds: number = Math.floor( ( Math.random() * ( maxSec - minSec ) + minSec ) * 1000 ) + delay;
 	setTimeout( async () => {
-		await bot.client.sendGroupMsg( groupId, content );
+		await bot.client.pickGroup( groupId ).sendMsg( content );
 	}, randomSeconds );
 	
 	return randomSeconds;

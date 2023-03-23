@@ -1,3 +1,4 @@
+const { ElNotification } = ElementPlus;
 import router from "../router/index.js";
 import { tokenSession } from "../utils/session.js";
 
@@ -21,9 +22,19 @@ server.interceptors.request.use( config => {
 server.interceptors.response.use( resp => {
 	return Promise.resolve( resp.data );
 }, error => {
-	if ( error.response && error.response.status === 401 ) {
+	if ( error.response?.status === 401 ) {
 		localStorage.removeItem( "token" );
 		router.push( { name: "Login" } );
+	}
+	const errMsg = error.response?.data?.msg;
+	if ( errMsg ) {
+		ElNotification( {
+			title: "错误",
+			message: errMsg,
+			type: "error",
+			duration: 2000
+		} );
+		return Promise.reject( new Error( errMsg ) );
 	}
 	return Promise.reject( error );
 } );

@@ -1,7 +1,6 @@
 import bot from "ROOT";
-import * as sdk from "oicq";
+import * as sdk from "icqq";
 import BotConfig from "@modules/config";
-import { MessageElem } from "oicq";
 
 export enum MessageScope {
 	Neither,
@@ -16,15 +15,15 @@ export enum MessageType {
 	Unknown
 }
 
-export type SendFunc = ( content: sdk.Sendable, allowAt?: boolean ) => Promise<void>;
-export type Message = sdk.PrivateMessageEventData | sdk.GroupMessageEventData;
+export type SendFunc = ( content: sdk.Sendable, allowAt?: boolean ) => Promise<sdk.MessageRet>;
+export type Message = sdk.PrivateMessageEvent | sdk.GroupMessageEvent;
 
 interface MsgManagementMethod {
 	getSendMessageFunc( userID: number, type: MessageType, groupID?: number ): SendFunc;
 	sendMaster( content: string ): Promise<void>;
 }
 
-function checkIterator( obj: MessageElem | Iterable<MessageElem | string> ): obj is Iterable<MessageElem | string> {
+function checkIterator( obj: sdk.MessageElem | Iterable<sdk.MessageElem | string> ): obj is Iterable<sdk.MessageElem | string> {
 	return typeof obj[Symbol.iterator] === "function";
 }
 
@@ -43,32 +42,29 @@ export default class MsgManagement implements MsgManagementMethod {
 		const client = this.client;
 		const atUser = this.atUser;
 		if ( type === MessageType.Private ) {
-			return async function ( content ): Promise<void> {
-				await client.sendPrivateMsg( userID, content );
+			return async function ( content ): Promise<sdk.MessageRet> {
+				return client.pickUser( userID ).sendMsg( content );
 			}
 		} else {
-			return async function ( content, allowAt ): Promise<void> {
-				const at = sdk.segment.at( userID )
-				const space = sdk.segment.text( " " );
+			return async function ( content, allowAt ): Promise<sdk.MessageRet> {
+				const at = sdk.segment.at( userID );
 				if ( atUser && allowAt !== false ) {
 					if ( typeof content === "string" ) {
 						const split = content.length < 60 ? " " : "\n";
-						content = sdk.cqcode.at( userID ) + split + content;
+						content = [ at, split, content ];
 					} else if ( checkIterator( content ) ) {
-						// @ts-ignore
-						content = [ at, space, ...content ];
+						content = [ at, " ", ...content ];
 					} else {
-						const data = ( "data" in content && content.data ) ? Object.values( content.data ) : []
-						content = [ at, space, sdk.segment[content.type]( ...data ) ];
+						content = [ at, " ", content ];
 					}
 				}
-				await client.sendGroupMsg( <number>groupID, content );
+				return await client.pickGroup( groupID ).sendMsg( content );
 			}
 		}
 	}
 	
 	public async sendMaster( content: string ): Promise<void> {
-		await this.client.sendPrivateMsg( this.master, content );
+		await this.client.pickUser( this.master ).sendMsg( content );
 	}
 }
 
@@ -78,10 +74,10 @@ export function removeStringPrefix( string: string, prefix: string ): string {
 	return string.replace( new RegExp( prefix, "g" ), '' );
 }
 
-export function isPrivateMessage( data: Message ): data is sdk.PrivateMessageEventData {
+export function isPrivateMessage( data: Message ): data is sdk.PrivateMessageEvent {
 	return data.message_type === "private";
 }
 
-export function isGroupMessage( data: Message ): data is sdk.GroupMessageEventData {
+export function isGroupMessage( data: Message ): data is sdk.GroupMessageEvent {
 	return data.message_type === "group";
 }

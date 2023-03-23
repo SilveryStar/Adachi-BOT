@@ -27,20 +27,11 @@ export function useAppStore() {
 	}
 	
 	async function CONFIG_REFRESH() {
-		try {
-			const res = await $http.BOT_REFRESH();
-			return res;
-		} catch ( error ) {
-			throw new Error( "刷信配置项出错" );
-		}
+		return await $http.BOT_REFRESH();
 	}
 	
 	async function BOT_RESTART() {
-		try {
-			await $http.BOT_RESTART();
-		} catch ( error ) {
-			throw new Error( "重启 BOT 出错" );
-		}
+		await $http.BOT_RESTART();
 	}
 	
 	return {

@@ -1,9 +1,10 @@
 import bot from "ROOT";
 import express from "express";
 import { AuthLevel } from "@modules/management/auth";
-import { MemberBaseInfo } from "oicq";
+import { MemberInfo } from "icqq";
 import { BOT } from "@modules/bot";
 import { PluginReSubs, SubInfo } from "@modules/plugin";
+import { delay, getRandomNumber } from "@web-console/backend/utils/common";
 
 type UserInfo = {
 	userID: number;
@@ -13,7 +14,7 @@ type UserInfo = {
 	botAuth: AuthLevel;
 	interval: number;
 	limits: string[];
-	groupInfoList: ( string | MemberBaseInfo )[];
+	groupInfoList: ( string | MemberInfo )[];
 	subInfo?: string[]
 }
 
@@ -64,7 +65,7 @@ export default express.Router()
 			
 			res.status( 200 ).send( { code: 200, data: { userInfos, cmdKeys }, total: userData.length } );
 		} catch ( error ) {
-			res.status( 500 ).send( { code: 500, data: {}, msg: "Server Error" } );
+			res.status( 500 ).send( { code: 500, data: {}, msg: error.message || "Server Error" } );
 		}
 		
 	} )
@@ -85,8 +86,6 @@ export default express.Router()
 		const auth = <AuthLevel>parseInt( <string>req.body.auth );
 		const limits: string[] = JSON.parse( <string>req.body.limits );
 		
-		console.log(userID, int, auth)
-		
 		await bot.auth.set( userID, auth );
 		await bot.interval.set( userID, "private", int );
 		
@@ -98,14 +97,14 @@ export default express.Router()
 		
 		res.status( 200 ).send( "success" );
 	} )
-	.delete( "/sub/remove", async ( req, res ) => {
-		const userId = parseInt( <string>req.query.userId );
+	.post( "/sub/remove", async ( req, res ) => {
+		const userId = req.body.userId ;
+		if ( !userId ) {
+			res.status( 400 ).send( { code: 400, data: [], msg: "Error Params" } );
+			return;
+		}
 		
 		try {
-			if ( !userId ) {
-				res.status( 400 ).send( { code: 400, data: [], msg: "Error Params" } );
-				return;
-			}
 			for ( const plugin in PluginReSubs ) {
 				try {
 					await PluginReSubs[plugin].reSub( userId, bot );
@@ -115,7 +114,40 @@ export default express.Router()
 			}
 			res.status( 200 ).send( { code: 200, data: {}, msg: "Success" } );
 		} catch ( error ) {
-			res.status( 500 ).send( { code: 500, data: [], msg: "Server Error" } );
+			res.status( 500 ).send( { code: 500, data: [], msg: error.message || "Server Error" } );
+		}
+	} )
+	.post( "/remove/batch", async ( req, res ) => {
+		const userIds: number[] = req.body.userIds;
+		if ( !userIds ) {
+			res.status( 400 ).send( { code: 400, data: [], msg: "Error Params" } );
+			return;
+		}
+		
+		try {
+			let first: boolean = true;
+			for ( const id of userIds ) {
+				if ( !first ) {
+					await delay( getRandomNumber( 100, 1000 ) );
+				}
+				// 清除订阅
+				for ( const plugin in PluginReSubs ) {
+					try {
+						await PluginReSubs[plugin].reSub( id, bot );
+					} catch ( error ) {
+						bot.logger.error( `插件${ plugin }取消订阅事件执行异常：${ <string>error }` )
+					}
+				}
+				// 删除好友
+				await bot.client.pickFriend( id ).delete();
+				// 清除数据库
+				await bot.redis.deleteKey( `adachi.user-used-groups-${ id }` );
+				first = false;
+			}
+			await bot.client.reloadFriendList();
+			res.status( 200 ).send( { code: 200, data: {}, msg: "Success" } );
+		} catch ( error ) {
+			res.status( 500 ).send( { code: 500, data: [], msg: error.message || "Server Error" } );
 		}
 	} )
 
@@ -128,22 +160,20 @@ async function getUserInfo( userID: number ): Promise<UserInfo> {
 	const limits: string[] = await bot.redis.getList( `adachi.user-command-limit-${ userID }` );
 	
 	let nickname: string = "";
-	const groupInfoList: Array<MemberBaseInfo | string> = [];
+	const groupInfoList: Array<MemberInfo | string> = [];
 	
-	if ( publicInfo.retcode === 0 ) {
-		const usedGroups: string[] = await bot.redis.getSet( `adachi.user-used-groups-${ userID }` );
-		nickname = publicInfo.data.nickname;
-		
-		for ( let el of usedGroups ) {
-			const groupID: number = parseInt( el );
-			if ( groupID === -1 ) {
-				groupInfoList.push( "私聊方式使用" );
-				continue;
-			}
-			const data = await bot.client.getGroupMemberInfo( groupID, userID );
-			if ( data.retcode === 0 ) {
-				groupInfoList.push( data.data );
-			}
+	const usedGroups: string[] = await bot.redis.getSet( `adachi.user-used-groups-${ userID }` );
+	nickname = publicInfo.nickname;
+	
+	for ( let el of usedGroups ) {
+		const groupID: number = Number.parseInt( el );
+		if ( groupID === -1 ) {
+			groupInfoList.push( "私聊方式使用" );
+			continue;
+		}
+		const data: MemberInfo | undefined = ( await bot.client.pickMember( groupID, userID ) ).info;
+		if ( data ) {
+			groupInfoList.push( data );
 		}
 	}
 	return { userID, avatar, nickname, isFriend, botAuth, interval, limits, groupInfoList }

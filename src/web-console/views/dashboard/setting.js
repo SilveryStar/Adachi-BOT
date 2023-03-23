@@ -58,7 +58,7 @@ const template = `<div class="table-container config">
 			</form-item>
 		</div>
 		<div class="config-section">
-		<section-title title="指令设置" />
+			<section-title title="指令设置" />
 			<form-item label="模糊匹配" desc="开启后BOT会对中文指令以及指令名称进行模糊匹配，要求必须以header开头且中文指令不得拆开。">
 				<el-switch v-model="setting.fuzzyMatch" :disabled="pageLoading" @change="updateConfig('fuzzyMatch')" />
 			</form-item>
@@ -122,6 +122,27 @@ const template = `<div class="table-container config">
 			/>
 		</div>
 		<div class="config-section">
+			<section-title title="ffmpeg配置" desc="当有发送语音与视频需求时需要配置此项" />
+			<spread-form-item
+				v-model="setting.ffmpegPath"
+				:active-spread="activeSpread"
+				:disabled="pageLoading"
+				label="ffmpeg路径"
+				placeholder="ffmpeg路径"
+				@change="updateConfig('ffmpegPath')"
+				@open="activeSpreadItem"
+			/>
+			<spread-form-item
+				v-model="setting.ffprobePath"
+				:active-spread="activeSpread"
+				:disabled="pageLoading"
+				label="ffprobe路径"
+				placeholder="ffprobe路径"
+				@change="updateConfig('ffprobePath')"
+				@open="activeSpreadItem"
+			/>
+		</div>
+		<div class="config-section">
 			<section-title title="数据库设置" />
 			<spread-form-item
 				v-model="setting.dbPort"
@@ -142,6 +163,51 @@ const template = `<div class="table-container config">
 				placeholder="请输入数据库密码"
 				desc="非必填项，看个人需求设置。"
 				@change="updateConfig('dbPassword')"
+				@open="activeSpreadItem"
+			/>
+		</div>
+		<div class="config-section">
+			<section-title title="发件人邮箱配置" desc="用于主动发送邮件相关功能" />
+			<spread-form-item
+				v-model="setting.mailConfig.platform"
+				:active-spread="activeSpread"
+				:disabled="pageLoading"
+				label="平台"
+				desc="如 qq、163 等"
+				@change="updateConfig('mailConfig.platform')"
+				@open="activeSpreadItem"
+			/>
+			<spread-form-item
+				v-model="setting.mailConfig.user"
+				:active-spread="activeSpread"
+				:disabled="pageLoading"
+				label="邮箱账号"
+				desc="xxx@xx.com"
+				@change="updateConfig('mailConfig.user')"
+				@open="activeSpreadItem"
+			/>
+			<spread-form-item
+				v-model="setting.mailConfig.authCode"
+				:active-spread="activeSpread"
+				:disabled="pageLoading"
+				label="授权码"
+				type="password"
+				desc="前往各自平台获取"
+				@change="updateConfig('mailConfig.authCode')"
+				@open="activeSpreadItem"
+			/>
+			<form-item label="离线发送邮件" desc="当 BOT 意外掉线时，向 Master QQ邮箱发送邮件提醒">
+				<el-switch v-model="setting.mailConfig.logoutSend" :disabled="pageLoading" @change="updateConfig('mailConfig.logoutSend')" />
+			</form-item>
+			<spread-form-item
+				v-if="setting.mailConfig.logoutSend"
+				v-model="setting.mailConfig.sendDelay"
+				:active-spread="activeSpread"
+				:disabled="pageLoading"
+				label="离线邮件延迟"
+				type="number"
+				desc="离线多久后发送邮件（分钟）"
+				@change="updateConfig('mailConfig.sendDelay')"
 				@open="activeSpreadItem"
 			/>
 		</div>
@@ -205,7 +271,11 @@ const template = `<div class="table-container config">
 					<el-radio-group v-model="setting.autoChat.type" :disabled="pageLoading" @change="updateConfig('autoChat.type')" >
 						<el-radio :label="1">青云客</el-radio>
 						<el-radio :label="2">腾讯NLP</el-radio>
+						<el-radio :label="3">小爱同学</el-radio>
 					</el-radio-group>
+				</form-item>
+				<form-item v-if="setting.autoChat.type === 3" label="语音发送">
+					<el-switch v-model="setting.autoChat.audio" :disabled="pageLoading" @change="updateConfig('autoChat.audio')" />
 				</form-item>
 				<template v-if="setting.autoChat.type === 2">
 					<spread-form-item
@@ -338,6 +408,9 @@ export default defineComponent( {
 			setting: {
 				webConsole: {},
 				autoChat: {},
+				banScreenSwipe: {},
+				banHeavyAt: {},
+				mailConfig: {}
 			},
 			pageLoading: false,
 			activeSpread: ""

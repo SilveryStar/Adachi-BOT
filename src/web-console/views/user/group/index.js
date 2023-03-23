@@ -2,6 +2,7 @@ const template = `<div class="table-container user">
 	<div class="nav-btn-box">
     	<el-scrollbar class="horizontal-wrap">
 			<nav-search :searchList="searchList" :searchData="listQuery" :showNum="1" :disabled="tableLoading" @change="handleFilter">
+				<el-button type="primary" :disabled="selectionList.length === 0" round @click="exitGroupBatch">退出群聊</el-button>
 				<send-msg ref="sendMsgRef" :disabled="tableLoading" :selection-list="selectionList"></send-msg>
 			</nav-search>
     	</el-scrollbar>
@@ -35,7 +36,6 @@ const template = `<div class="table-container user">
 			<el-table-column prop="setting" label="操作" align="center" min-width="85px">
 				<template #default="{row}">
     	      		<el-button type="text" @click="openGroupModal(row)">编辑</el-button>
-    	      		<el-button type="text" @click="exitGroup(row.groupId)">退群</el-button>
 				</template>
 			</el-table-column>
 		</el-table>
@@ -64,7 +64,7 @@ import GroupDetail from "./group-detail.js";
 import SendMsg from "./send-msg.js";
 
 const { defineComponent, reactive, onMounted, computed, ref, toRefs, inject } = Vue;
-const { ElNotification, ElMessageBox } = ElementPlus;
+const { ElMessageBox, ElNotification } = ElementPlus;
 
 export default defineComponent( {
 	name: "Group",
@@ -160,27 +160,54 @@ export default defineComponent( {
 			} catch ( error ) {
 				return;
 			}
+			// try {
+			// 	const { value } = await ElMessageBox.prompt( "敏感操作，请输入 BOT 密码验证身份", '验证', {
+			// 		confirmButtonText: "确认",
+			// 		cancelButtonText: '取消',
+			// 		inputType: "password",
+			// 		inputPattern: /\w+/,
+			// 		inputErrorMessage: "请输入密码",
+			// 		center: true
+			// 	} )
+			// 	try {
+			// 		await $http.CHECK_PASSWORD( { pwd: value }, "POST" );
+			// 	} catch ( error ) {
+			// 		ElNotification( { title: "失败", message: "验证失败：密码错误", type: "error", } );
+			// 		return;
+			// 	}
+			// } catch ( error ) {
+			// 	return;
+			// }
+			state.tableLoading = true;
+			$http.GROUP_EXIT( { groupId }, "POST" ).then( resp => {
+				getGroupData()
+			} ).catch( () => {
+				state.tableLoading = false;
+			} );
+		}
+		
+		async function exitGroupBatch() {
 			try {
-				const { value } = await ElMessageBox.prompt( "敏感操作，请输入 BOT 密码验证身份", '验证', {
-					confirmButtonText: "确认",
-					cancelButtonText: '取消',
-					inputType: "password",
-					inputPattern: /\w+/,
-					inputErrorMessage: "请输入密码",
+				await ElMessageBox.confirm( "确定退出/解散这些群聊？", "提示", {
+					confirmButtonText: "确定",
+					cancelButtonText: "取消",
+					type: "warning",
 					center: true
 				} )
-				try {
-					await $http.CHECK_PASSWORD( { pwd: value }, "POST" );
-				} catch ( error ) {
-					ElNotification( { title: "失败", message: "验证失败：密码错误", type: "error", } );
-					return;
-				}
 			} catch ( error ) {
 				return;
 			}
 			state.tableLoading = true;
-			$http.GROUP_EXIT( { groupId }, "DELETE" ).then( resp => {
-				getGroupData()
+			$http.GROUP_EXIT_BATCH( {
+				groupIds: state.selectionList.map( s => s.groupId )
+			}, "POST" ).then( () => {
+				getGroupData();
+				ElNotification( {
+					title: "成功",
+					message: "退出群聊成功。",
+					type: "success",
+					duration: 2000
+				} );
 			} ).catch( () => {
 				state.tableLoading = false;
 			} );
@@ -212,6 +239,7 @@ export default defineComponent( {
 			getRole,
 			getGroupData,
 			exitGroup,
+			exitGroupBatch,
 			selectionChange,
 			openGroupModal,
 			handleFilter,

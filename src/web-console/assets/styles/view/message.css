@@ -9,8 +9,13 @@
 	height: 100px;
 }
 
-.send-message .message-box a {
+.send-message .message-box .user-content a {
 	color: var(--el-color-primary);
+}
+
+.send-message .message-box .user-content .el-image,
+.send-message .message-box .user-content img {
+	max-height: 100px;
 }
 
 @media (max-width: 768px) {

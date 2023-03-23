@@ -108,13 +108,7 @@ export default defineComponent( {
 					duration: 2000
 				} );
 				state.refreshLoading = false;
-			} ).catch(error => {
-				ElNotification( {
-					title: "失败",
-					message: error.message,
-					type: "error",
-					duration: 2000
-				} );
+			} ).catch(() => {
 				state.refreshLoading = false;
 			})
 		}
@@ -131,13 +125,7 @@ export default defineComponent( {
 				setTimeout(() => {
 					location.reload();
 				}, 10000);
-			} ).catch(error => {
-				ElNotification( {
-					title: "失败",
-					message: error.message,
-					type: "error",
-					duration: 2000
-				} );
+			} ).catch(() => {
 				state.restartLoading = false;
 			})
 		}

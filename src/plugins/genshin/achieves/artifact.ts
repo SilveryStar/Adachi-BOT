@@ -15,7 +15,7 @@ export async function main(
 		await sendMessage( reason );
 		return;
 	}
-	const res: RenderResult = await renderer.asCqCode(
+	const res: RenderResult = await renderer.asSegment(
 		"/artifact.html",
 		{ qq: userID, type: "init" }
 	);

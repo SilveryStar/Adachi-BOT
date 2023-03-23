@@ -93,7 +93,7 @@ export default defineComponent( {
 				return;
 			}
 			const groupIds = props.selectionList.map( s => s.groupId );
-			$http.GROUP_BATCH_SEND( {
+			$http.GROUP_SEND_BATCH( {
 				groupIds,
 				content: state.content
 			}, "POST" ).then( res => {
@@ -106,12 +106,7 @@ export default defineComponent( {
 					type: "success",
 				} );
 				state.showModal = false;
-			} ).catch( error => {
-				ElNotification( {
-					title: "失败",
-					message: error.message || "发送失败",
-					type: "error",
-				} );
+			} ).catch( () => {
 			} );
 		}
 		

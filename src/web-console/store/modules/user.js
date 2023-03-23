@@ -11,9 +11,7 @@ export function useUserStore() {
 			const res = await $http.USER_LOGIN( { num: number, pwd: pwd } );
 			tokenSession.set( res.token );
 			return res;
-		} catch ( error ) {
-			throw new Error( "账号或密码不正确" );
-		}
+		} catch ( error ) {}
 	}
 	
 	async function USER_LOGOUT() {

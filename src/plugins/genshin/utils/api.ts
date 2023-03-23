@@ -1,14 +1,18 @@
+import bot from "ROOT";
 import request, { formatGetURL } from "./requests";
 import { parse } from "yaml";
 import { toCamelCase } from "./camel-case";
 import { set } from "lodash";
 import { guid } from "../utils/guid";
-import { getDS, getDS2 } from "./ds";
+import { generateDS, getDS, getDS2 } from "./ds";
 import { InfoResponse, ResponseBody } from "#genshin/types";
 import { SlipDetail } from "../module/slip";
 import { DailyMaterial } from "../module/daily";
 import { FortuneData } from "../module/almanac";
 import fetch from "node-fetch";
+import * as ApiType from "#genshin/types";
+import { config } from "#genshin/init";
+import { randomSleep, randomString } from "#genshin/utils/random";
 
 const __API = {
 	FETCH_ROLE_ID: "https://api-takumi-record.mihoyo.com/game_record/app/card/wapi/getGameRecordCard",
@@ -33,7 +37,17 @@ const __API = {
 	FETCH_SIGN_INFO: "https://api-takumi.mihoyo.com/event/bbs_sign_reward/info",
 	FETCH_LEDGER: "https://hk4e-api.mihoyo.com/event/ys_ledger/monthInfo",
 	FETCH_CALENDAR_LIST: "https://hk4e-api.mihoyo.com/common/hk4e_cn/announcement/api/getAnnList",
-	FETCH_CALENDAR_DETAIL: "https://hk4e-api.mihoyo.com/common/hk4e_cn/announcement/api/getAnnContent"
+	FETCH_CALENDAR_DETAIL: "https://hk4e-api.mihoyo.com/common/hk4e_cn/announcement/api/getAnnContent",
+	//验证码服务相关
+	FETCH_CREATE_VERIFICATION: "https://api-takumi-record.mihoyo.com/game_record/app/card/wapi/createVerification",
+	FETCH_GEETEST: "https://api.geetest.com/gettype.php",
+	FETCH_GET_VERIFY: "https://challenge.minigg.cn",
+	FETCH_VERIFY_VERIFICATION: "https://api-takumi-record.mihoyo.com/game_record/app/card/wapi/verifyVerification",
+	/* Token转换相关 */
+	FETCH_GET_MULTI_TOKEN: "https://api-takumi.mihoyo.com/auth/api/getMultiTokenByLoginTicket",
+	FETCH_GET_COOKIE_TOKEN: "https://api-takumi.mihoyo.com/auth/api/getCookieAccountInfoBySToken",
+	FETCH_VERIFY_LTOKEN: "https://passport-api-v4.mihoyo.com/account/ma-cn-session/web/verifyLtoken",
+	FETCH_GET_LTOKEN_BY_STOKEN: "https://passport-api.mihoyo.com/account/auth/api/getLTokenBySToken"
 };
 
 const HEADERS = {
@@ -45,8 +59,15 @@ const HEADERS = {
 	"Cookie": ""
 };
 
+const verifyMsg = "API请求遭遇验证码拦截，可以尝试联系Master开启验证服务";
+
 /* mihoyo BBS API */
-export async function getBaseInfo( mysID: number, cookie: string ): Promise<ResponseBody> {
+export async function getBaseInfo(
+	mysID: number,
+	cookie: string,
+	time: number = 0,
+	verifyResult: string = ''
+): Promise<ResponseBody> {
 	const query = { uid: mysID };
 	return new Promise( ( resolve, reject ) => {
 		request( {
@@ -59,10 +80,19 @@ export async function getBaseInfo( mysID: number, cookie: string ): Promise<Resp
 				"Cookie": cookie
 			}
 		} )
-			.then( ( result ) => {
+			.then( async ( result ) => {
 				const resp = toCamelCase( JSON.parse( result ) );
 				const data: ResponseBody = set( resp, "data.type", "bbs" )
-				resolve( data );
+				if ( data.retcode !== 1034 ) {
+					return resolve( data );
+				}
+				bot.logger.warn( `[ MysID${ mysID } ][base] 查询遇到验证码` );
+				if ( config.verifyEnable && time <= config.verifyRepeat ) {
+					verifyResult = await bypassQueryVerification( cookie );
+					bot.logger.debug( `[ MysID${ mysID } ][base] 第 ${ time + 1 } 次验证码绕过${ verifyResult ? "失败：" + verifyResult : "成功" }` );
+					return resolve( await getBaseInfo( mysID, cookie, ++time, verifyResult ) );
+				}
+				reject( config.verifyEnable ? "[base] " + verifyResult : verifyMsg );
 			} )
 			.catch( ( reason ) => {
 				reject( reason );
@@ -70,7 +100,13 @@ export async function getBaseInfo( mysID: number, cookie: string ): Promise<Resp
 	} );
 }
 
-export async function getDetailInfo( uid: number, server: string, cookie: string ): Promise<ResponseBody> {
+export async function getDetailInfo(
+	uid: number,
+	server: string,
+	cookie: string,
+	time: number = 0,
+	verifyResult: string = ''
+): Promise<ResponseBody> {
 	const query = {
 		role_id: uid,
 		server
@@ -86,10 +122,19 @@ export async function getDetailInfo( uid: number, server: string, cookie: string
 				"Cookie": cookie
 			}
 		} )
-			.then( ( result ) => {
+			.then( async ( result ) => {
 				const resp = toCamelCase( JSON.parse( result ) );
-				const data: ResponseBody = set( resp, "data.type", "user-info" )
-				resolve( data );
+				const data: ResponseBody = set( resp, "data.type", "user-info" );
+				if ( data.retcode !== 1034 ) {
+					return resolve( data );
+				}
+				bot.logger.warn( `[ UID${ uid } ][detail] 查询遇到验证码` );
+				if ( config.verifyEnable && time <= config.verifyRepeat ) {
+					verifyResult = await bypassQueryVerification( cookie );
+					bot.logger.debug( `[ UID${ uid } ][detail] 第 ${ time + 1 } 次验证码绕过${ verifyResult ? "失败：" + verifyResult : "成功" }` );
+					return resolve( await getDetailInfo( uid, server, cookie, ++time, verifyResult ) );
+				}
+				reject( config.verifyEnable ? "[detail] " + verifyResult : verifyMsg );
 			} )
 			.catch( ( reason ) => {
 				reject( reason );
@@ -97,7 +142,14 @@ export async function getDetailInfo( uid: number, server: string, cookie: string
 	} );
 }
 
-export async function getCharactersInfo( roleID: number, server: string, charIDs: number[], cookie: string ): Promise<ResponseBody> {
+export async function getCharactersInfo(
+	roleID: number,
+	server: string,
+	charIDs: number[],
+	cookie: string,
+	time: number = 0,
+	verifyResult: string = ''
+): Promise<ResponseBody> {
 	const body = {
 		character_ids: charIDs,
 		role_id: roleID,
@@ -117,10 +169,19 @@ export async function getCharactersInfo( roleID: number, server: string, charIDs
 				"content-type": "application/json"
 			}
 		} )
-			.then( ( result ) => {
+			.then( async ( result ) => {
 				const resp = toCamelCase( result );
 				const data: ResponseBody = set( resp, "data.type", "character" )
-				resolve( data );
+				if ( data.retcode !== 1034 ) {
+					return resolve( data );
+				}
+				bot.logger.warn( `[ UID${ roleID } ][char] 查询遇到验证码` );
+				if ( config.verifyEnable && time <= config.verifyRepeat ) {
+					verifyResult = await bypassQueryVerification( cookie );
+					bot.logger.debug( `[ UID${ roleID } ][char] 第 ${ time + 1 } 次验证码绕过${ verifyResult ? "失败：" + verifyResult : "成功" }` );
+					return resolve( await getCharactersInfo( roleID, server, charIDs, cookie, ++time, verifyResult ) );
+				}
+				reject( config.verifyEnable ? "[char] " + verifyResult : verifyMsg );
 			} )
 			.catch( ( reason ) => {
 				reject( reason );
@@ -128,7 +189,13 @@ export async function getCharactersInfo( roleID: number, server: string, charIDs
 	} );
 }
 
-export async function getDailyNoteInfo( uid: number, server: string, cookie: string ): Promise<ResponseBody> {
+export async function getDailyNoteInfo(
+	uid: number,
+	server: string,
+	cookie: string,
+	time: number = 0,
+	verifyResult: string = ''
+): Promise<ResponseBody> {
 	const query = {
 		role_id: uid,
 		server
@@ -144,10 +211,19 @@ export async function getDailyNoteInfo( uid: number, server: string, cookie: str
 				"Cookie": cookie
 			}
 		} )
-			.then( ( result ) => {
+			.then( async ( result ) => {
 				const resp = toCamelCase( JSON.parse( result ) );
 				const data: ResponseBody = set( resp, "data.type", "note" );
-				resolve( data );
+				if ( data.retcode !== 1034 ) {
+					return resolve( data );
+				}
+				bot.logger.warn( `[ UID${ uid } ][note] 查询遇到验证码` );
+				if ( config.verifyEnable && time <= config.verifyRepeat ) {
+					verifyResult = await bypassQueryVerification( cookie );
+					bot.logger.debug( `[ UID${ uid } ][note] 第 ${ time + 1 } 次验证码绕过${ verifyResult ? "失败：" + verifyResult : "成功" }` );
+					return resolve( await getDailyNoteInfo( uid, server, cookie, ++time, verifyResult ) );
+				}
+				reject( config.verifyEnable ? "[note] " + verifyResult : verifyMsg );
 			} )
 			.catch( ( reason ) => {
 				reject( reason );
@@ -155,7 +231,14 @@ export async function getDailyNoteInfo( uid: number, server: string, cookie: str
 	} );
 }
 
-export async function getAvatarDetailInfo( uid: string, avatarID: number, server: string, cookie: string ): Promise<ResponseBody> {
+export async function getAvatarDetailInfo(
+	uid: string,
+	avatarID: number,
+	server: string,
+	cookie: string,
+	time: number = 0,
+	verifyResult: string = ''
+): Promise<ResponseBody> {
 	const query = {
 		avatar_id: avatarID,
 		region: server,
@@ -172,10 +255,19 @@ export async function getAvatarDetailInfo( uid: string, avatarID: number, server
 				"Cookie": cookie
 			}
 		} )
-			.then( ( result ) => {
+			.then( async ( result ) => {
 				const resp = toCamelCase( JSON.parse( result ) );
 				const data: ResponseBody = set( resp, "data.type", "avatar" );
-				resolve( data );
+				if ( data.retcode !== 1034 ) {
+					return resolve( data );
+				}
+				bot.logger.warn( `[ UID${ uid } ][avatar] 查询遇到验证码` );
+				if ( config.verifyEnable && time <= config.verifyRepeat ) {
+					verifyResult = await bypassQueryVerification( cookie );
+					bot.logger.debug( `[ UID${ uid } ][avatar] 第 ${ time + 1 } 次验证码绕过${ verifyResult ? "失败：" + verifyResult : "成功" }` );
+					return resolve( await getAvatarDetailInfo( uid, avatarID, server, cookie, ++time, verifyResult ) );
+				}
+				reject( config.verifyEnable ? "[avatar] " + verifyResult : verifyMsg );
 			} )
 			.catch( ( reason ) => {
 				reject( reason );
@@ -184,7 +276,14 @@ export async function getAvatarDetailInfo( uid: string, avatarID: number, server
 }
 
 /* period 为 1 时表示本期深渊，2 时为上期深渊 */
-export async function getSpiralAbyssInfo( roleID: number, server: string, period: number, cookie: string ): Promise<ResponseBody> {
+export async function getSpiralAbyssInfo(
+	roleID: number,
+	server: string,
+	period: number,
+	cookie: string,
+	time: number = 0,
+	verifyResult: string = ''
+): Promise<ResponseBody> {
 	const query = {
 		role_id: roleID,
 		schedule_type: period,
@@ -202,10 +301,19 @@ export async function getSpiralAbyssInfo( roleID: number, server: string, period
 				"Cookie": cookie
 			}
 		} )
-			.then( ( result ) => {
+			.then( async ( result ) => {
 				const resp = toCamelCase( JSON.parse( result ) );
 				const data: ResponseBody = set( resp, "data.type", "abyss" )
-				resolve( data );
+				if ( data.retcode !== 1034 ) {
+					return resolve( data );
+				}
+				bot.logger.warn( `[ UID${ roleID } ][abyss] 查询遇到验证码` );
+				if ( config.verifyEnable && time <= config.verifyRepeat ) {
+					verifyResult = await bypassQueryVerification( cookie );
+					bot.logger.debug( `[ UID${ roleID } ][abyss] 第 ${ time + 1 } 次验证码绕过${ verifyResult ? "失败：" + verifyResult : "成功" }` );
+					return resolve( await getSpiralAbyssInfo( roleID, server, period, cookie, ++time, verifyResult ) );
+				}
+				reject( config.verifyEnable ? "[abyss] " + verifyResult : verifyMsg );
 			} )
 			.catch( ( reason ) => {
 				reject( reason );
@@ -213,7 +321,14 @@ export async function getSpiralAbyssInfo( roleID: number, server: string, period
 	} );
 }
 
-export async function getLedger( uid: string, server: string, mon: number, cookie: string ): Promise<any> {
+export async function getLedger(
+	uid: string,
+	server: string,
+	mon: number,
+	cookie: string,
+	time: number = 0,
+	verifyResult: string = ''
+): Promise<any> {
 	const query = {
 		bind_uid: uid,
 		bind_region: server,
@@ -230,10 +345,19 @@ export async function getLedger( uid: string, server: string, mon: number, cooki
 				"Cookie": cookie
 			}
 		} )
-			.then( ( result ) => {
+			.then( async ( result ) => {
 				const resp = toCamelCase( JSON.parse( result ) );
 				const data: ResponseBody = set( resp, "data.type", "ledger" )
-				resolve( data );
+				if ( data.retcode !== 1034 ) {
+					return resolve( data );
+				}
+				bot.logger.warn( `[ UID${ uid } ][ledger] 查询遇到验证码` );
+				if ( config.verifyEnable && time <= config.verifyRepeat ) {
+					verifyResult = await bypassQueryVerification( cookie );
+					bot.logger.debug( `[ UID${ uid } ][ledger] 第 ${ time + 1 } 次验证码绕过${ verifyResult ? "失败：" + verifyResult : "成功" }` );
+					return resolve( await getLedger( uid, server, mon, cookie, ++time, verifyResult ) );
+				}
+				reject( config.verifyEnable ? "[ledger] " + verifyResult : verifyMsg );
 			} )
 			.catch( ( reason ) => {
 				reject( reason );
@@ -430,7 +554,7 @@ const SIGN_HEADERS = {
 };
 
 /* Sign In API */
-export async function mihoyoBBSSignIn( uid: string, region: string, cookie: string ): Promise<ResponseBody> {
+export async function mihoyoBBSSignIn( uid: string, region: string, cookie: string, time: number = 0 ): Promise<ResponseBody> {
 	const body = {
 		act_id: activityID,
 		uid, region
@@ -451,12 +575,17 @@ export async function mihoyoBBSSignIn( uid: string, region: string, cookie: stri
 		} )
 			.then( ( result ) => {
 				const resp = toCamelCase( result );
-				if ( !resp.data ) {
-					reject( resp.message || resp.msg );
-					return;
+				const data: ResponseBody = set( resp, "data.type", "sign-in-result" );
+				if ( ApiType.isSignInResult( data.data ) && ( !data.data.gt && data.data.success === 0 ) ) {
+					return resolve( data );
 				}
-				const data: ResponseBody = set( resp, "data.type", "sign-in-result" )
-				resolve( data );
+				//遇到验证码
+				bot.logger.warn( `[ UID${ uid } ][sign] 签到遇到验证码` );
+				if ( ApiType.isSignInResult( data.data ) && data.data.gt && data.data.challenge ) {
+					bot.logger.debug( `[ UID${ uid } ][sign] 遇到验证码，尝试绕过 ~` );
+					return resolve( mihoyoBBSVerifySignIn( uid, region, cookie, data.data.gt, data.data.challenge ) );
+				}
+				reject( `解决签到验证码失败 ${ typeof result === 'string' ? "\n" + result : "" }` );
 			} )
 			.catch( ( reason ) => {
 				reject( reason );
@@ -493,4 +622,270 @@ export async function getSignInInfo( uid: string, region: string, cookie: string
 				reject( reason );
 			} );
 	} );
+}
+
+/* 验证码相关解决方案 */
+export async function bypassQueryVerification( cookie: string, gt?: string, challenge?: string ): Promise<string> {
+	const data = {
+		gt: gt ? gt : '',
+		challenge: challenge ? challenge : ''
+	};
+	if ( !gt || !challenge ) {
+		//获取验证码
+		const createVerify = JSON.parse( await request( {
+			method: "GET",
+			url: formatGetURL( __API.FETCH_CREATE_VERIFICATION, {
+				"is_high": "true"
+			} ),
+			headers: {
+				...HEADERS,
+				"DS": getDS( { is_high: true } ),
+				"Cookie": cookie
+			}
+		} ) );
+		if ( !createVerify.data ) {
+			bot.logger.error( "[create]", createVerify );
+			return "[create] 获取验证码失败";
+		}
+		data.gt = createVerify.data.gt;
+		data.challenge = createVerify.data.challenge;
+	}
+	//提交GEETEST
+	await randomSleep( 3, 5, true );
+	await request( {
+		url: formatGetURL( __API.FETCH_GEETEST, {
+			"gt": data.gt,
+			"challenge": data.challenge
+		} ),
+		method: "GET"
+	} );
+	//验证验证码
+	let analysisCode = await request( {
+		method: "GET",
+		url: formatGetURL( __API.FETCH_GET_VERIFY, {
+			"token": config.verifyToken,
+			"gt": data.gt,
+			"challenge": data.challenge
+		} ),
+		headers: {
+			"User-Agent": "Adachi-BOT"
+		},
+		json: true
+	} );
+	if ( analysisCode.code !== 0 || analysisCode.info !== "success" ) {
+		bot.logger.error( "[verify]", analysisCode );
+		return `[verify] 验证失败 ${ typeof analysisCode === 'string' ? "\n" + analysisCode : analysisCode.info }`;
+	}
+	const body = {
+		geetest_challenge: analysisCode.data.challenge,
+		geetest_validate: analysisCode.data.validate,
+		geetest_seccode: `${ analysisCode.data.validate }|jordan`
+	}
+	const verifyResult = await request( {
+		method: "POST",
+		url: __API.FETCH_VERIFY_VERIFICATION,
+		json: true,
+		body,
+		headers: {
+			...HEADERS,
+			"DS": getDS( undefined, JSON.stringify( body ) ),
+			"Cookie": cookie
+		}
+	} );
+	/* 验证码过期 */
+	if ( verifyResult.retcode !== 0 || verifyResult.message !== 'OK' ) {
+		bot.logger.error( "[submit]", verifyResult );
+		return `[submit] 验证失败 ${ typeof verifyResult === 'string' ? "\n" + verifyResult : verifyResult.message }`;
+	}
+	return "";
+}
+
+export async function mihoyoBBSVerifySignIn( uid: string, region: string, cookie: string, gt: string, challenge: string ): Promise<ResponseBody> {
+	const body = {
+		act_id: activityID,
+		uid, region
+	};
+	
+	let verifyCode = await request( {
+		method: "GET",
+		url: formatGetURL( __API.FETCH_GET_VERIFY, {
+			"token": config.verifyToken,
+			"gt": gt,
+			"challenge": challenge
+		} ),
+		headers: {
+			"User-Agent": "Adachi-BOT"
+		},
+		json: true
+	} );
+	
+	if ( verifyCode.code !== 0 || verifyCode.info !== "success" ) {
+		bot.logger.error( verifyCode );
+		throw `[verify] 验证失败 ${ typeof verifyCode === 'string' ? "\n" + verifyCode : verifyCode.info }`;
+	}
+	
+	return new Promise( ( resolve, reject ) => {
+		request( {
+			method: "POST",
+			url: __API.FETCH_SIGN_IN,
+			json: true,
+			body,
+			headers: {
+				...SIGN_HEADERS,
+				"content-type": "application/json",
+				"Cookie": cookie,
+				"DS": getDS2(),
+				"x-rpc-challenge": verifyCode.data.challenge,
+				"x-rpc-validate": verifyCode.data.validate,
+				"x-rpc-seccode": `${ verifyCode.data.validate }|jordan`
+			}
+		} )
+			.then( async ( result ) => {
+				const resp = toCamelCase( result );
+				const data: ResponseBody = set( resp, "data.type", "sign-in-result" );
+				if ( ApiType.isSignInResult( data.data ) &&
+					( !data.data.gt && data.data.success === 0 ) ) {
+					return resolve( data );
+				}
+				//遇到验证码
+				reject( `解决签到验证码失败 ${ typeof result === 'string' ? "\n" + result : "" }` );
+			} )
+			.catch( ( reason ) => {
+				reject( reason );
+			} );
+	} );
+}
+
+/* Token转换相关API */
+export async function getCookieAccountInfoBySToken(
+	stoken: string,
+	mid: string,
+	uid: string ): Promise<ResponseBody> {
+	const param = {
+		stoken: stoken,
+		mid: mid,
+		token_types: 3,
+		uid: uid
+	}
+	
+	const url = formatGetURL( __API.FETCH_GET_COOKIE_TOKEN, param );
+	
+	return new Promise( ( resolve, reject ) => {
+		request( {
+			method: "GET",
+			url: url,
+			json: true
+		} ).then( result => {
+			const resp = toCamelCase( result );
+			const data: ResponseBody = set( resp, "data.type", "cookie-token" )
+			resolve( data );
+		} ).catch( ( reason ) => {
+			reject( reason );
+		} );
+	} )
+}
+
+export async function getMultiTokenByLoginTicket( uid: number, loginTicket: string, cookie: string ): Promise<ResponseBody> {
+	const params = {
+		login_ticket: loginTicket,
+		token_types: 3,
+		uid: uid
+	};
+	
+	const deviceName = randomString( 5 );
+	
+	return new Promise( ( resolve, reject ) => {
+		request( {
+			method: "GET",
+			url: __API.FETCH_GET_MULTI_TOKEN,
+			headers: {
+				"host": "api-takumi.mihoyo.com",
+				"x-rpc-app_version": "2.28.1",
+				"x-rpc-channel": "mihoyo",
+				"x-rpc-client_type": "2",
+				"x-rpc-device_id": guid(),
+				"x-rpc-device_model": deviceName,
+				"x-rpc-device_name": "Samsung " + deviceName,
+				"x-rpc-sys_version": "12",
+				"origin": "https://webstatic.mihoyo.com",
+				"referer": "https://webstatic.mihoyo.com/",
+				"user-agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) miHoYoBBS/2.28.1",
+				"x-requested-with": "com.mihoyo.hyperion",
+				"ds": generateDS(),
+				"cookie": cookie
+			},
+			qs: params,
+			timeout: 5000
+		} ).then( async ( result ) => {
+			const resp = toCamelCase( JSON.parse( result ) );
+			if ( !resp.data ) {
+				reject( resp.message || resp.msg );
+				return;
+			}
+			const data: ResponseBody = set( resp, "data.type", "multi-token" );
+			resolve( data );
+		} ).catch( reason => {
+			reject( reason );
+		} )
+	} )
+}
+
+export async function verifyLtoken( ltoken: string, ltuid: string ): Promise<ResponseBody> {
+	const params = {
+		t: Date.now()
+	};
+	const cookie = `ltoken=${ ltoken }; ltuid=${ ltuid };`;
+	
+	return new Promise( ( resolve, reject ) => {
+		request( {
+			method: "POST",
+			url: __API.FETCH_VERIFY_LTOKEN,
+			headers: {
+				...HEADERS,
+				Referer: "https://bbs.mihoyo.com/",
+				cookie: cookie
+			},
+			qs: params,
+			timeout: 5000
+		} ).then( async ( result ) => {
+			const resp = toCamelCase( JSON.parse( result ) );
+			if ( !resp.data ) {
+				reject( resp.message || resp.msg );
+				return;
+			}
+			const data: ResponseBody = set( resp, "data.type", "verify-ltoken" );
+			resolve( data );
+		} ).catch( reason => {
+			reject( reason );
+		} )
+	} )
+}
+
+
+export async function getLTokenBySToken( stoken: string, mid: string ): Promise<ResponseBody> {
+	const cookie = `stoken=${ stoken }; mid=${ mid };`;
+	
+	return new Promise( ( resolve, reject ) => {
+		request( {
+			method: "GET",
+			url: __API.FETCH_GET_LTOKEN_BY_STOKEN,
+			headers: {
+				...HEADERS,
+				cookie: cookie,
+				DS: getDS( undefined, undefined )
+			},
+			timeout: 5000
+		} ).then( async ( result ) => {
+			const resp = toCamelCase( JSON.parse( result ) );
+			const data: ResponseBody = set( resp, "data.type", "get-ltoken" );
+			if ( !resp.data ) {
+				reject( resp.message || resp.msg );
+				return;
+			}
+			resolve( data );
+		} ).catch( reason => {
+			reject( reason );
+		} )
+	} )
+	
 }

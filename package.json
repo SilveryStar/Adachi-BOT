@@ -1,13 +1,14 @@
 {
   "name": "adachi-bot",
-  "version": "2.7.10",
+  "version": "2.9.3",
   "description": "",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "login": "node ./src/login.js",
+    "dev": "nodemon --exec ts-node -r tsconfig-paths/register app.ts --files",
+    "win-start": "ts-node -r tsconfig-paths/register -T app.ts --files",
     "start": "pm2 start adachi-bot.config.js",
-    "win-start": "ts-node -r tsconfig-paths/register app.ts --files",
     "docker-start": "pm2-runtime start adachi-bot.config.js",
     "restart": "npm i --registry https://registry.npmmirror.com && pm2 restart adachi-bot.config.js",
     "stop": "pm2 delete adachi-bot.config.js"
@@ -35,6 +36,7 @@
     "eslint": "~7.29.0",
     "express-jwt": "~6.1.0",
     "express-ws": "~5.0.2",
+    "icqq": "0.0.33",
     "jsonwebtoken": "~8.5.1",
     "lodash": "~4.17.21",
     "log4js": "~6.3.0",
@@ -42,12 +44,13 @@
     "moment": "~2.29.1",
     "node-fetch": "~2.6.1",
     "node-schedule": "~2.0.0",
+    "nodemailer": "^6.9.1",
     "object-immutable-set": "~1.0.0",
-    "oicq": "~1.21.3",
     "pm2": "~5.2.0",
     "puppeteer": "~10.0.0",
     "redis": "~3.1.2",
     "request": "~2.88.2",
+    "systeminformation": "^5.17.12",
     "tencentcloud-sdk-nodejs-nlp": "~4.0.381",
     "ts-node": "~9.1.1",
     "tsconfig-paths": "~3.11.0",
@@ -56,6 +59,8 @@
   },
   "devDependencies": {
     "@types/node": "~15.0.2",
-    "express": "~4.17.1"
+    "@types/nodemailer": "^6.4.7",
+    "express": "~4.17.1",
+    "nodemon": "^2.0.21"
   }
 }

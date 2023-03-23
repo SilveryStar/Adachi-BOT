@@ -36,7 +36,7 @@ export async function main(
 			m = parseInt( data[2] );
 		}
 		if ( monthCheck( m ) ) {
-			sendMessage( `无法查询 ${ m } 月的札记数据` );
+			await sendMessage( `无法查询 ${ m } 月的札记数据` );
 			return;
 		} else {
 			month = m;
@@ -59,7 +59,7 @@ export async function main(
 		}
 	}
 	
-	const res: RenderResult = await renderer.asCqCode( "/ledger.html", { uid } );
+	const res: RenderResult = await renderer.asSegment( "/ledger.html", { uid } );
 	if ( res.code === "ok" ) {
 		await sendMessage( res.data );
 	} else {

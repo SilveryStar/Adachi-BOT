@@ -54,7 +54,7 @@ export default express.Router().get( "/", async ( req, res ) => {
 			return;
 		}
 		res.status( 404 ).send( { code: 404, data: {}, msg: "NotFound" } );
-	} catch ( e ) {
-		res.status( 500 ).send( { code: 500, data: {}, msg: "Server Error" } );
+	} catch ( error ) {
+		res.status( 500 ).send( { code: 500, data: {}, msg: error.message || "Server Error" } );
 	}
 } );
