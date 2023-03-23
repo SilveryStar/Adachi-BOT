@@ -1,6 +1,6 @@
 {
   "name": "adachi-bot",
-  "version": "2.9.3",
+  "version": "2.9.3-bugfix",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -46,6 +46,7 @@
     "node-schedule": "~2.0.0",
     "nodemailer": "^6.9.1",
     "object-immutable-set": "~1.0.0",
+    "openai": "^3.2.1",
     "pm2": "~5.2.0",
     "puppeteer": "~10.0.0",
     "redis": "~3.1.2",

@@ -99,11 +99,11 @@ export default express.Router()
 				return null;
 			}
 			
-			const data = getFileData( fileName );
-			if ( data.code !== 200 ) {
+			const fileData: FileData = getFileData( fileName );
+			if ( fileData.code !== 200 ) {
 				return null;
 			}
-			return { name: fileName, data };
+			return { name: fileName, data: fileData.data };
 		} ).filter( c => !!c );
 		
 		res.status( 200 ).send( { code: 200, data, msg: "Success" } );
