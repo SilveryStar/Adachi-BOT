@@ -38,15 +38,19 @@ export default class MsgManagement implements MsgManagementMethod {
 		this.client = client;
 	}
 	
-	public getSendMessageFunc( userID: number, type: MessageType, groupID: number = -1 ): SendFunc {
+	public getSendMessageFunc( userID: number | "all" | string, type: MessageType, groupID: number = -1 ): SendFunc {
 		const client = this.client;
 		const atUser = this.atUser;
 		if ( type === MessageType.Private ) {
 			return async function ( content ): Promise<sdk.MessageRet> {
-				return client.pickUser( userID ).sendMsg( content );
+				return client.pickUser( <number>userID ).sendMsg( content );
 			}
 		} else {
 			return async function ( content, allowAt ): Promise<sdk.MessageRet> {
+				if ( userID === 'all' ) {
+					const number = await client.pickGroup( groupID ).getAtAllRemainder();
+					allowAt = number > 0 ? allowAt : false;
+				}
 				const at = sdk.segment.at( userID );
 				if ( atUser && allowAt !== false ) {
 					if ( typeof content === "string" ) {

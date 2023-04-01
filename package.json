@@ -1,16 +1,16 @@
 {
-  "name": "adachi-bot",
-  "version": "2.9.3-bugfix",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "login": "node ./src/login.js",
-    "dev": "nodemon --exec ts-node -r tsconfig-paths/register app.ts --files",
-    "win-start": "ts-node -r tsconfig-paths/register -T app.ts --files",
-    "start": "pm2 start adachi-bot.config.js",
-    "docker-start": "pm2-runtime start adachi-bot.config.js",
-    "restart": "npm i --registry https://registry.npmmirror.com && pm2 restart adachi-bot.config.js",
+  "name" : "adachi-bot",
+  "version" : "2.9.4",
+  "description" : "",
+  "main" : "index.js",
+  "scripts" : {
+    "test" : "echo \"Error: no test specified\" && exit 1",
+    "login" : "node ./src/login.js",
+    "dev" : "nodemon --exec ts-node -r tsconfig-paths/register app.ts --files",
+    "win-start" : "ts-node -r tsconfig-paths/register -T app.ts --files",
+    "start" : "pm2 start adachi-bot.config.js",
+    "docker-start" : "pm2-runtime start adachi-bot.config.js",
+    "restart" : "npm i --registry https://registry.npmmirror.com && pm2 restart adachi-bot.config.js",
     "stop": "pm2 delete adachi-bot.config.js"
   },
   "keywords": [],
