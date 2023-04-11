@@ -4,7 +4,7 @@ import { AuthLevel } from "@modules/management/auth";
 import { MemberInfo } from "icqq";
 import { BOT } from "@modules/bot";
 import { PluginReSubs, SubInfo } from "@modules/plugin";
-import { delay, getRandomNumber } from "@web-console/backend/utils/common";
+import { delay, getRandomNumber } from "@modules/utils";
 
 type UserInfo = {
 	userID: number;

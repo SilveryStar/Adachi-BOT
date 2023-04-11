@@ -65,6 +65,7 @@ export default class Adachi {
 	public readonly bot: BOT;
 	private isOnline: boolean = false;
 	private deadTimer: NodeJS.Timer | null = null;
+	private lastOnline: moment.Moment | null = null;
 	/* 收集触发刷屏的用户及消息信息 */
 	private screenSwipeInfo: ScreenSwipeInfo = {};
 	/* 自动聊天 */
@@ -660,10 +661,15 @@ export default class Adachi {
 				clearTimeout( that.deadTimer );
 				that.deadTimer = null;
 			}
-			if ( that.isOnline ) {
-				return;
+			
+			if ( that.lastOnline ) {
+				that.lastOnline = null;
 			}
+			
+			if ( that.isOnline ) return;
+			
 			that.isOnline = true;
+			
 			const HELP = <Order>bot.command.getSingle( "adachi.help", AuthLevel.Master );
 			const message: string =
 				`Adachi-BOT 已启动成功，请输入 ${ HELP.getHeaders()[0] } 查看命令帮助\n` +
@@ -676,12 +682,29 @@ export default class Adachi {
 	private botOffline( that: Adachi ) {
 		const bot = that.bot;
 		return async function () {
-			if ( !bot.config.mailConfig.logoutSend ) {
-				return;
+			if ( !bot.config.mailConfig.logoutSend || that.deadTimer ) return;
+			
+			if ( !that.lastOnline ) {
+				that.lastOnline = moment();
 			}
-			const sendDelay: number = bot.config.mailConfig.sendDelay;
+			
+			const { sendDelay, retry, retryWait } = bot.config.mailConfig;
 			that.deadTimer = setTimeout( () => {
-				bot.mail.sendMaster( "BOT 已离线", `BOT已离线${ sendDelay }分钟，请前往日志查看并重启BOT` );
+				const lastTime: string = that.lastOnline!.format( "YYYY-MM-DD HH:mm:ss" );
+				bot.mail.sendMaster( {
+					subject: "BOT 已离线",
+					html: `<p>BOT已离线，上次在线时间：${ lastTime }，请前往日志查看并重启BOT</p>
+						<div align="center">
+						    <img src="https://docs.adachi.top/images/adachi.png" width="200"/>
+						    <h3>- AdachiBOT -</h3>
+						    <div>
+						        <a href="https://docs.adachi.top" target="_blank">官方文档</a> &nbsp;|&nbsp;
+						        <a href="https://github.com/SilveryStar/Adachi-Plugin" target="_blank">插件库</a> &nbsp;|&nbsp;
+						        <a href="https://github.com/SilveryStar/Adachi-BOT/issues/146">关于频道</a>
+						    </div>
+						    <small>&gt; 原神Q群助手 &lt;</small>
+						</div>`
+				}, retry, retryWait * 60 * 1000 );
 			}, sendDelay * 60 * 1000 );
 		}
 	}
