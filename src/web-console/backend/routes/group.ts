@@ -2,7 +2,7 @@ import bot from "ROOT";
 import express from "express";
 import { AuthLevel } from "@modules/management/auth";
 import { GroupInfo, GroupRole, MemberInfo } from "icqq";
-import { delay, getRandomNumber } from "@web-console/backend/utils/common";
+import { delay, getRandomNumber } from "@modules/utils";
 
 type GroupData = {
 	groupId: number;

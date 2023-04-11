@@ -1,17 +1,18 @@
-import mail from "nodemailer";
+import mail, { SendMailOptions } from "nodemailer";
 import BotConfig from "@modules/config";
 import { Logger } from "log4js";
+import { delay } from "@modules/utils";
 
 enum InfoMessage {
 	SUCCESS_SEND = "邮件发送成功。",
 	ERROR_SEND = "邮件发送失败，错误："
 }
 
-export type SendFunc = ( title: mail.SendMailOptions["subject"], content: mail.SendMailOptions["html"] ) => Promise<void>;
+export type SendFunc = ( mailOptions: mail.SendMailOptions, retry: number, retryWait: number ) => Promise<void>;
 
 interface MailManagementMethod {
 	getSendMailFunc( address: mail.SendMailOptions["to"] ): SendFunc;
-	sendMaster( title: mail.SendMailOptions["subject"], content: mail.SendMailOptions["html"] ): Promise<void>;
+	sendMaster: SendFunc;
 }
 
 
@@ -29,41 +30,61 @@ export default class MailManagement implements MailManagementMethod {
 			address: `${ this.config.number }@qq.com`
 		}
 		this.sender = mail.createTransport( {
-			service: mailConfig.platform,
+			host: mailConfig.host,
+			port: mailConfig.port,
+			secure: mailConfig.secure,
+			tls: {
+				servername: mailConfig.servername,
+				rejectUnauthorized: mailConfig.rejectUnauthorized
+			},
 			auth: {
 				user: mailConfig.user,
-				pass: mailConfig.authCode
+				pass: mailConfig.pass
 			}
 		} );
 	}
 	
 	public getSendMailFunc( address: mail.SendMailOptions["to"] ) {
-		return async ( title: mail.SendMailOptions["subject"], content: mail.SendMailOptions["html"] ) => {
+		const sendMailFunc = async ( mailOptions: mail.SendMailOptions, retry: number = 3, retryWait: number = 120 ) => {
 			try {
 				await this.sender.sendMail( {
 					from: this.senderInfo,
-					subject: title,
 					to: address,
-					html: content
+					...mailOptions
 				} );
 				this.logger.info( InfoMessage.SUCCESS_SEND );
 			} catch ( error ) {
-				this.logger.error( InfoMessage.ERROR_SEND + ( <Error>error ).stack )
+				if ( retry ) {
+					await delay( retryWait );
+					await sendMailFunc( mailOptions, retry - 1, retryWait );
+				} else {
+					this.logger.error( InfoMessage.ERROR_SEND + ( <Error>error ).message );
+				}
 			}
-		}
+		};
+		
+		return sendMailFunc;
 	}
 	
-	public async sendMaster( title: mail.SendMailOptions["subject"], content: mail.SendMailOptions["html"] ) {
+	public async sendMaster(
+		mailOptions: mail.SendMailOptions,
+		retry: number = 3,
+		retryWait: number = 180
+	) {
 		try {
 			await this.sender.sendMail( {
 				from: this.senderInfo,
-				subject: title,
 				to: `${ this.config.master }@qq.com`,
-				html: content
+				...mailOptions
 			} );
 			this.logger.info( InfoMessage.SUCCESS_SEND );
 		} catch ( error ) {
-			this.logger.error( InfoMessage.ERROR_SEND + ( <Error>error ).stack )
+			if ( retry ) {
+				await delay( retryWait );
+				await this.sendMaster( mailOptions, retry - 1, retryWait );
+			} else {
+				this.logger.error( InfoMessage.ERROR_SEND + ( <Error>error ).message );
+			}
 		}
 	}
 }

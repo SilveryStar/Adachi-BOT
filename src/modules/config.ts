@@ -31,11 +31,17 @@ export default class BotConfig {
 		"error" | "fatal" | "mark" | "off";
 	
 	public readonly mailConfig: {
-		readonly platform: string;
+		readonly host: string;
+		readonly port: number;
 		readonly user: string;
-		readonly authCode: string;
+		readonly pass: string;
+		readonly secure: boolean;
+		readonly servername: string;
+		readonly rejectUnauthorized: boolean;
 		readonly logoutSend: boolean;
 		readonly sendDelay: number;
+		readonly retry: number;
+		readonly retryWait: number;
 	}
 	
 	public readonly banScreenSwipe: {
@@ -98,11 +104,17 @@ export default class BotConfig {
 		dbPort: 56379,
 		dbPassword: "",
 		mailConfig: {
-			platform: "qq",
+			host: "smtp.qq.com",
+			port: 587,
 			user: "123456789@qq.com",
-			authCode: "",
+			pass: "",
+			secure: false,
+			servername: "",
+			rejectUnauthorized: false,
 			logoutSend: false,
-			sendDelay: 5
+			sendDelay: 5,
+			retry: 3,
+			retryWait: 5
 		},
 		banScreenSwipe: {
 			enable: false,
@@ -183,11 +195,17 @@ export default class BotConfig {
 			file.writeYAML( "setting", config );
 		}
 		this.mailConfig = {
-			platform: config.mailConfig.platform,
+			host: config.mailConfig.host,
+			port: config.mailConfig.port,
 			user: config.mailConfig.user,
-			authCode: config.mailConfig.authCode,
+			pass: config.mailConfig.pass,
+			secure: config.mailConfig.secure,
+			servername: config.mailConfig.servername,
+			rejectUnauthorized: config.mailConfig.rejectUnauthorized,
 			logoutSend: config.mailConfig.logoutSend,
-			sendDelay: config.mailConfig.sendDelay
+			sendDelay: config.mailConfig.sendDelay,
+			retry: config.mailConfig.retry,
+			retryWait: config.mailConfig.retryWait
 		}
 		this.banScreenSwipe = {
 			enable: config.banScreenSwipe.enable,

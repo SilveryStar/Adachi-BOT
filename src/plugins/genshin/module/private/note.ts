@@ -34,10 +34,11 @@ export class NoteService implements Service {
 			? true : options.enable;
 		
 		this.feedbackCatch = async () => {
-			const errMsg: string = <string>this.globalData;
-			if ( !errMsg.includes( "验证码" ) ) {
-				await this.parent.sendMessage( errMsg );
-			}
+			// 自动查询出错时不再给予提示
+			// const errMsg: string = <string>this.globalData;
+			// if ( !errMsg.includes( "验证码" ) ) {
+			// 	await this.parent.sendMessage( errMsg );
+			// }
 		};
 		
 		if ( this.enable ) {
@@ -130,9 +131,7 @@ export class NoteService implements Service {
 				setting.cookie
 			);
 		} catch ( error ) {
-			if ( !quiet ) {
-				this.globalData = <string>error;
-			}
+			this.globalData = <string>error;
 		}
 	}
 	
@@ -146,11 +145,12 @@ export class NoteService implements Service {
 	private async refreshPushEvent(): Promise<void> {
 		const now: number = new Date().getTime();
 		
-		await this.getData( true );
+		await this.getData();
 		if ( typeof this.globalData === "string" ) {
 			if ( /cookie/.test( this.globalData ) ) {
 				this.globalData += "，自动提醒已停止，请更新 cookie 后重新开启";
 				await this.toggleEnableStatus( false, false );
+				await this.parent.sendMessage( this.globalData );
 			}
 			return Promise.reject();
 		}

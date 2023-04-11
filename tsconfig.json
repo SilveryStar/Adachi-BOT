@@ -76,6 +76,11 @@
     "skipLibCheck": true,                           /* Skip type checking of declaration files. */
     "forceConsistentCasingInFileNames": true        /* Disallow inconsistently-cased references to the same file. */
   },
+  "ts-node" : {
+    "transpileOnly": true,
+    "files": true,
+    "require" : [ "tsconfig-paths/register" ]
+  },
   "exclude": [
     "node_modules"
   ]

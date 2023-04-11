@@ -72,3 +72,17 @@ export function isJsonString( str: unknown ): str is string {
 		return false;
 	}
 }
+
+/* 阻塞延时 */
+export function delay( time: number ): Promise<void> {
+	return new Promise( resolve => {
+		setTimeout( resolve, time );
+	} );
+}
+
+/* 获取区间内随机值 */
+export function getRandomNumber( min: number, max: number ) {
+	min = Math.ceil( min );
+	max = Math.floor( max );
+	return Math.floor( Math.random() * ( max - min ) ) + min;
+}

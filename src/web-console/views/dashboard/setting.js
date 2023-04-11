@@ -167,14 +167,24 @@ const template = `<div class="table-container config">
 			/>
 		</div>
 		<div class="config-section">
-			<section-title title="发件人邮箱配置" desc="用于主动发送邮件相关功能" />
+			<section-title title="发件人邮箱配置" desc="用于主动发送邮件相关功能，使用SMTP协议发送邮件" />
 			<spread-form-item
-				v-model="setting.mailConfig.platform"
+				v-model="setting.mailConfig.host"
 				:active-spread="activeSpread"
 				:disabled="pageLoading"
-				label="平台"
-				desc="如 qq、163 等"
-				@change="updateConfig('mailConfig.platform')"
+				label="邮箱服务主机"
+				desc="要连接的主机名或 IP 地址，例如qq服务为smtp.qq.com。"
+				@change="updateConfig('mailConfig.host')"
+				@open="activeSpreadItem"
+			/>
+			<spread-form-item
+				v-model="setting.mailConfig.port"
+				:active-spread="activeSpread"
+				:disabled="pageLoading"
+				label="邮箱服务端口"
+				type="number"
+				desc="安全连接关闭时默认587，反之465。"
+				@change="updateConfig('mailConfig.port')"
 				@open="activeSpreadItem"
 			/>
 			<spread-form-item
@@ -187,29 +197,67 @@ const template = `<div class="table-container config">
 				@open="activeSpreadItem"
 			/>
 			<spread-form-item
-				v-model="setting.mailConfig.authCode"
+				v-model="setting.mailConfig.pass"
 				:active-spread="activeSpread"
 				:disabled="pageLoading"
-				label="授权码"
+				label="邮箱密码"
 				type="password"
-				desc="前往各自平台获取"
-				@change="updateConfig('mailConfig.authCode')"
+				desc="各平台互不相同，如qq邮箱为授权码，请参考各自平台进行配置"
+				@change="updateConfig('mailConfig.pass')"
 				@open="activeSpreadItem"
 			/>
+			<form-item label="开启安全连接" desc="一般情况下开启时port应为为465，反之则为587或25。">
+				<el-switch v-model="setting.mailConfig.secure" :disabled="pageLoading" @change="updateConfig('mailConfig.secure')" />
+			</form-item>
+			<template v-if="setting.mailConfig.secure">
+				<spread-form-item
+					v-model="setting.mailConfig.servername"
+					:active-spread="activeSpread"
+					:disabled="pageLoading"
+					label="验证主机名"
+					desc="host设置为IP地址时可选的TLS验证主机名"
+					@change="updateConfig('mailConfig.servername')"
+					@open="activeSpreadItem"
+				/>
+				<form-item label="证书校验" desc="建议关闭，开启可能会存在认证问题">
+					<el-switch v-model="setting.mailConfig.rejectUnauthorized" :disabled="pageLoading" @change="updateConfig('mailConfig.rejectUnauthorized')" />
+				</form-item>
+			</template>
 			<form-item label="离线发送邮件" desc="当 BOT 意外掉线时，向 Master QQ邮箱发送邮件提醒">
 				<el-switch v-model="setting.mailConfig.logoutSend" :disabled="pageLoading" @change="updateConfig('mailConfig.logoutSend')" />
 			</form-item>
-			<spread-form-item
-				v-if="setting.mailConfig.logoutSend"
-				v-model="setting.mailConfig.sendDelay"
-				:active-spread="activeSpread"
-				:disabled="pageLoading"
-				label="离线邮件延迟"
-				type="number"
-				desc="离线多久后发送邮件（分钟）"
-				@change="updateConfig('mailConfig.sendDelay')"
-				@open="activeSpreadItem"
-			/>
+			<template v-if="setting.mailConfig.logoutSend">
+				<spread-form-item
+					v-model="setting.mailConfig.sendDelay"
+					:active-spread="activeSpread"
+					:disabled="pageLoading"
+					label="离线邮件延迟"
+					type="number"
+					desc="离线多久后发送邮件（分钟）"
+					@change="updateConfig('mailConfig.sendDelay')"
+					@open="activeSpreadItem"
+				/>
+				<spread-form-item
+					v-model="setting.mailConfig.retry"
+					:active-spread="activeSpread"
+					:disabled="pageLoading"
+					label="重试次数"
+					type="number"
+					desc="发送失败时重新尝试发送次数"
+					@change="updateConfig('mailConfig.retry')"
+					@open="activeSpreadItem"
+				/>
+				<spread-form-item
+					v-model="setting.mailConfig.retryWait"
+					:active-spread="activeSpread"
+					:disabled="pageLoading"
+					label="重试延迟"
+					type="number"
+					desc="发送失败后延迟多久重新尝试发送（分钟）"
+					@change="updateConfig('mailConfig.retryWait')"
+					@open="activeSpreadItem"
+				/>
+			</template>
 		</div>
 		<div class="config-section">
 			<section-title title="网页控制台相关" />
