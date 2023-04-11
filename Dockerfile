@@ -1,6 +1,9 @@
 FROM alpine
 
-ENV TZ=Asia/Shanghai
+ENV TZ=Asia/Shanghai \
+    PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
+    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser \
+    GOSU_VERSION=1.16
 
 COPY public/fonts/wqy-microhei-regular.ttf /usr/share/fonts/win/wqy-microhei-regular.ttf
 # Installs latest Chromium (100) package.
@@ -21,15 +24,40 @@ RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositorie
     cp /usr/share/zoneinfo/$TZ /etc/localtime && \
     echo $TZ > /etc/timezone && \
     npm config set registry https://registry.npmmirror.com && \
-    rm -rf /var/cache/apk/*
-
-# Tell Puppeteer to skip installing Chrome. We'll be using the installed package.
-ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
-    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+    rm -rf /var/cache/apk/* && \
+    addgroup -S adachi && adduser -S adachi -G adachi && \
+    set -eux; \
+    	\
+    	apk add --no-cache --virtual .gosu-deps \
+    		ca-certificates \
+    		dpkg \
+    		gnupg \
+    	; \
+    	\
+    	dpkgArch="$(dpkg --print-architecture | awk -F- '{ print $NF }')"; \
+    	wget -O /usr/local/bin/gosu "https://ghproxy.com/https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$dpkgArch"; \
+    	wget -O /usr/local/bin/gosu.asc "https://ghproxy.com/https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$dpkgArch.asc"; \
+    	\
+    # verify the signature
+    	export GNUPGHOME="$(mktemp -d)"; \
+    	gpg --batch --keyserver hkps://keys.openpgp.org --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD4; \
+    	gpg --batch --verify /usr/local/bin/gosu.asc /usr/local/bin/gosu; \
+    	command -v gpgconf && gpgconf --kill all || :; \
+    	rm -rf "$GNUPGHOME" /usr/local/bin/gosu.asc; \
+    	\
+    # clean up fetch dependencies
+    	apk del --no-network .gosu-deps; \
+    	\
+    	chmod +x /usr/local/bin/gosu; \
+    # verify that the binary works
+    	gosu --version; \
+    	gosu nobody true
 
 COPY . /bot
 WORKDIR /bot
-# Use process management tools to handle process signals to prevent processes in containers from becoming zombie processes.
-ENTRYPOINT ["dumb-init", "--"]
 
-CMD nohup sh -c "npm i && npm run docker-start"
+RUN chmod +x docker-entrypoint.sh
+
+ENTRYPOINT ["sh", "docker-entrypoint.sh"]
+
+CMD sh -c "npm i && npm run docker-start"
