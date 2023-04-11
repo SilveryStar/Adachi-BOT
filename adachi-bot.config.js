@@ -5,12 +5,12 @@ const app = {
 	script: "app.ts",
 	min_uptime: "1000",
 	interpreter: "./node_modules/.bin/ts-node",
-	interpreter_args: "-r tsconfig-paths/register -T",
 	exec_mode: "fork",
 	instances: 1,
 	autorestart: false
 };
-if ( os.platform() === 'win32' ) {
+
+if ( os.platform() === "win32" ) {
 	app.exec_mode = "cluster";
 }
 module.exports = {
