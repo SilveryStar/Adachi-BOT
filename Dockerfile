@@ -1,3 +1,13 @@
+FROM alpine AS resource
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories && \
+    apk add --no-cache --update \
+        		ca-certificates \
+        		dpkg &&  \
+    dpkgArch="$(dpkg --print-architecture | awk -F- '{ print $NF }')" && \
+    wget https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-${dpkgArch}-static.tar.xz && \
+    mkdir -p /res/ffmpeg && \
+    tar -xvf ./ffmpeg-release-${dpkgArch}-static.tar.xz -C /res/ffmpeg --strip-components 1
+
 FROM alpine
 
 ENV TZ=Asia/Shanghai \
@@ -6,10 +16,13 @@ ENV TZ=Asia/Shanghai \
     GOSU_VERSION=1.16
 
 COPY public/fonts/wqy-microhei-regular.ttf /usr/share/fonts/win/wqy-microhei-regular.ttf
+
+# 复制资源镜像中下载好的FFMPEG到最终镜像
+COPY --from=resource /res/ffmpeg/ffmpeg /res/ffmpeg/ffprobe /usr/bin/
 # Installs latest Chromium (100) package.
 # Non-mainland China servers can remove this sed replace and npm config registry. example: RUN apk add --no-cache ...
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories && \
-    apk add --no-cache \
+    apk add --no-cache --update \
     chromium \
     nss \
     freetype \
@@ -28,7 +41,7 @@ RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositorie
     addgroup -S adachi && adduser -S adachi -G adachi && \
     set -eux; \
     	\
-    	apk add --no-cache --virtual .gosu-deps \
+    	apk add --no-cache --update --virtual .gosu-deps \
     		ca-certificates \
     		dpkg \
     		gnupg \
@@ -56,7 +69,7 @@ RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositorie
 COPY . /bot
 WORKDIR /bot
 
-RUN chmod +x docker-entrypoint.sh
+RUN chmod +x docker-entrypoint.sh && sed -i 's/\r$//' docker-entrypoint.sh
 
 ENTRYPOINT ["sh", "docker-entrypoint.sh"]
 
