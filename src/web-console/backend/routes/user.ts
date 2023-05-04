@@ -1,12 +1,12 @@
 import bot from "ROOT";
 import express from "express";
-import { AuthLevel } from "@modules/management/auth";
+import { AuthLevel } from "@/modules/management/auth";
 import { MemberInfo } from "icqq";
-import { BOT } from "@modules/bot";
-import { PluginReSubs, SubInfo } from "@modules/plugin";
-import { delay, getRandomNumber } from "@modules/utils";
+import { BOT } from "@/main";
+import { PluginReSubs, SubInfo } from "@/modules/plugin";
+import { sleep, getRandomNumber } from "@/utils/common";
 
-type UserInfo = {
+export interface UserInfo {
 	userID: number;
 	avatar: string;
 	nickname: string;
@@ -64,7 +64,7 @@ export default express.Router()
 			userInfos = userInfos.sort( ( prev, next ) => next.botAuth - prev.botAuth );
 			
 			res.status( 200 ).send( { code: 200, data: { userInfos, cmdKeys }, total: userData.length } );
-		} catch ( error ) {
+		} catch ( error:any ) {
 			res.status( 500 ).send( { code: 500, data: {}, msg: error.message || "Server Error" } );
 		}
 		
@@ -76,15 +76,20 @@ export default express.Router()
 			return;
 		}
 		
-		const userInfo = await getUserInfo( userID );
-		
-		res.status( 200 ).send( JSON.stringify( userInfo ) );
+		try {
+			const userInfo = await getUserInfo( userID );
+			res.status( 200 ).send( JSON.stringify( userInfo ) );
+		} catch ( error: any ) {
+			res.status( 500 ).send( { code: 500, data: {}, msg: error.message || "Server Error" } );
+		}
 	} )
 	.post( "/set", async ( req, res ) => {
 		const userID: number = parseInt( <string>req.body.target );
 		const int: number = parseInt( <string>req.body.int );
 		const auth = <AuthLevel>parseInt( <string>req.body.auth );
 		const limits: string[] = JSON.parse( <string>req.body.limits );
+		
+		console.log(userID, int, auth)
 		
 		await bot.auth.set( userID, auth );
 		await bot.interval.set( userID, "private", int );
@@ -113,7 +118,7 @@ export default express.Router()
 				}
 			}
 			res.status( 200 ).send( { code: 200, data: {}, msg: "Success" } );
-		} catch ( error ) {
+		} catch ( error: any ) {
 			res.status( 500 ).send( { code: 500, data: [], msg: error.message || "Server Error" } );
 		}
 	} )
@@ -128,7 +133,7 @@ export default express.Router()
 			let first: boolean = true;
 			for ( const id of userIds ) {
 				if ( !first ) {
-					await delay( getRandomNumber( 100, 1000 ) );
+					await sleep( getRandomNumber( 100, 1000 ) );
 				}
 				// 清除订阅
 				for ( const plugin in PluginReSubs ) {
@@ -146,7 +151,7 @@ export default express.Router()
 			}
 			await bot.client.reloadFriendList();
 			res.status( 200 ).send( { code: 200, data: {}, msg: "Success" } );
-		} catch ( error ) {
+		} catch ( error: any ) {
 			res.status( 500 ).send( { code: 500, data: [], msg: error.message || "Server Error" } );
 		}
 	} )
@@ -159,11 +164,10 @@ async function getUserInfo( userID: number ): Promise<UserInfo> {
 	const interval: number = bot.interval.get( userID, "private" );
 	const limits: string[] = await bot.redis.getList( `adachi.user-command-limit-${ userID }` );
 	
-	let nickname: string = "";
 	const groupInfoList: Array<MemberInfo | string> = [];
 	
 	const usedGroups: string[] = await bot.redis.getSet( `adachi.user-used-groups-${ userID }` );
-	nickname = publicInfo.nickname;
+	const nickname: string = publicInfo.nickname;
 	
 	for ( let el of usedGroups ) {
 		const groupID: number = Number.parseInt( el );
@@ -176,6 +180,7 @@ async function getUserInfo( userID: number ): Promise<UserInfo> {
 			groupInfoList.push( data );
 		}
 	}
+	
 	return { userID, avatar, nickname, isFriend, botAuth, interval, limits, groupInfoList }
 }
 

@@ -1,9 +1,9 @@
-import Database from "@modules/database";
-import { InputParameter, Order } from "@modules/command";
-import { RenderResult } from "@modules/renderer";
-import { characterInfoPromise, detailInfoPromise } from "../utils/promise";
-import { getRegion } from "../utils/region";
-import { config, renderer } from "#genshin/init";
+import Database from "@/modules/database";
+import { InputParameter, Order } from "@/modules/command";
+import { RenderResult } from "@/modules/renderer";
+import { characterInfoPromise, detailInfoPromise } from "#/genshin/utils/promise";
+import { getRegion } from "#/genshin/utils/region";
+import { config, renderer } from "#/genshin/init";
 import bot from "ROOT";
 
 interface UIDResult {
@@ -12,7 +12,7 @@ interface UIDResult {
 }
 
 function isAt( message: string ): string | undefined {
-	const res: RegExpExecArray | null = /\[CQ:at,type=at,qq=(?<id>\d+)/i.exec( message );
+	const res: RegExpExecArray | null = /\[cq:at,qq=(?<id>\d+)/.exec( message );
 	return res?.groups?.id;
 }
 
@@ -63,7 +63,7 @@ export async function main(
 	}
 	
 	const res: RenderResult = await renderer.asSegment(
-		"/user-base.html", {
+		"/user-base", {
 			qq: target, stranger,
 			style: config.cardWeaponStyle,
 			profile: config.cardProfile

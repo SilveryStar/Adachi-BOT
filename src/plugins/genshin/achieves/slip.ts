@@ -1,5 +1,5 @@
-import { InputParameter } from "@modules/command";
-import { slipClass } from "../init";
+import { InputParameter } from "@/modules/command";
+import { slipClass } from "#/genshin/init";
 
 export async function main( { sendMessage, messageData }: InputParameter ): Promise<void> {
 	const userID: number = messageData.user_id;

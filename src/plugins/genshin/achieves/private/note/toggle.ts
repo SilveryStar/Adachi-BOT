@@ -1,7 +1,7 @@
-import { InputParameter } from "@modules/command";
-import { Private } from "#genshin/module/private/main";
-import { NoteService } from "#genshin/module/private/note";
-import { privateClass } from "#genshin/init";
+import { InputParameter } from "@/modules/command";
+import { Private } from "#/genshin/module/private/main";
+import { NoteService } from "#/genshin/module/private/note";
+import { privateClass } from "#/genshin/init";
 
 export async function main( { messageData, sendMessage }: InputParameter ): Promise<void> {
 	const userID: number = messageData.user_id;

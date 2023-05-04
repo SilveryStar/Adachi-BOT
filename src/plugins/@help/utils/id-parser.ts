@@ -1,4 +1,4 @@
-import { MessageType } from "@modules/message";
+import { MessageType } from "@/modules/message";
 
 export default function idParser( id: string ): [ MessageType, number ] {
 	const char: string = id[0].toLowerCase();

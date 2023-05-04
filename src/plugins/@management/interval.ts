@@ -1,6 +1,6 @@
-import { InputParameter } from "@modules/command";
-import idParser from "#@help/utils/id-parser";
-import { MessageType } from "@modules/message";
+import { InputParameter } from "@/modules/command";
+import idParser from "#/@help/utils/id-parser";
+import { MessageType } from "@/modules/message";
 
 export async function main( { sendMessage, messageData, interval }: InputParameter ): Promise<void> {
 	const [ id, time ] = messageData.raw_message.split( " " );

@@ -1,10 +1,10 @@
-import { randomInt, randomSleep } from "#genshin/utils/random";
-import { ErrorMsg, signInInfoPromise, signInResultPromise } from "#genshin/utils/promise";
+import { ErrorMsg, signInInfoPromise, signInResultPromise } from "#/genshin/utils/promise";
 import { scheduleJob, Job } from "node-schedule";
 import { Private, Service } from "./main";
-import { SignInInfo } from "#genshin/types";
-import { Order } from "@modules/command";
+import { SignInInfo } from "#/genshin/types";
+import { Order } from "@/modules/command";
 import bot from "ROOT";
+import { getRandomNumber, randomSleep } from "@/utils/common";
 
 export class SignInService implements Service {
 	public readonly parent: Private;
@@ -25,7 +25,7 @@ export class SignInService implements Service {
 	
 	public async loadedHook(): Promise<void> {
 		if ( this.enable ) {
-			const delay: number = randomInt( 0, 99 );
+			const delay: number = getRandomNumber( 0, 99 );
 			
 			setTimeout( async () => {
 				await this.sign( false );
@@ -85,7 +85,7 @@ export class SignInService implements Service {
 	
 	private setScheduleJob(): void {
 		this.job = scheduleJob( "0 0 8 * * *", () => {
-			const sec: number = randomInt( 0, 180 );
+			const sec: number = getRandomNumber( 0, 180 );
 			const time = new Date().setSeconds( sec * 10 );
 			
 			const job: Job = scheduleJob( time, async () => {

@@ -1,4 +1,4 @@
-import { InputParameter } from "@modules/command";
+import { InputParameter } from "@/modules/command";
 import bot from "ROOT";
 
 export async function main( { sendMessage }: InputParameter ): Promise<void> {

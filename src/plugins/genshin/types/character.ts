@@ -4,7 +4,6 @@
  * @avatars 角色数据列表
  * */
 export interface Character {
-	type: "character";
 	avatars: Avatar[];
 }
 

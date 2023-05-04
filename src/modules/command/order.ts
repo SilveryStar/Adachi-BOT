@@ -1,5 +1,5 @@
 import { BasicConfig, CommandInfo, Unmatch } from "./main";
-import BotConfig from "../config";
+import BotConfig from "@/modules/config";
 import bot from "ROOT";
 import { escapeRegExp } from "lodash";
 

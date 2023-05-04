@@ -1,52 +1,25 @@
-import bot from "ROOT";
-import * as m from "./module";
-import GenshinConfig from "#genshin/module/config";
 import pluginSetting from "./setting";
-import FileManagement from "@modules/file";
-import { Renderer } from "@modules/renderer";
-import { BOT } from "@modules/bot";
-import { PluginSetting, PluginSubSetting, SubInfo } from "@modules/plugin";
-import { createServer } from "./server";
-import { findFreePort } from "@modules/utils";
+import { Renderer } from "@/modules/renderer";
+import { BOT } from "@/main";
+import { PluginSetting, PluginSubSetting, SubInfo } from "@/modules/plugin";
+import GenshinConfig from "./module/config";
+import * as m from "./module";
+import { apis } from "#/genshin/utils/api";
+import { FetchServer } from "@/utils/request";
 
 export let config: GenshinConfig;
-export let renderer: Renderer;
-export const artClass = new m.ArtClass();
-export const cookies = new m.Cookies();
-export const typeData = new m.TypeData();
-export const aliasClass = new m.AliasClass();
-export const almanacClass = new m.AlmanacClass();
-export const wishClass = new m.WishClass();
-export const dailyClass = new m.DailyClass();
-export const slipClass = new m.SlipClass();
-export const privateClass = new m.PrivateClass();
-export const characterID = new m.CharacterId();
 
-function loadConfig( file: FileManagement ): GenshinConfig {
-	const initCfg = GenshinConfig.init;
-	
-	const path: string = file.getFilePath( "genshin.yml" );
-	const isExist: boolean = file.isExist( path );
-	if ( !isExist ) {
-		file.createYAML( "genshin", initCfg );
-		return new GenshinConfig( initCfg );
-	}
-	
-	const config: any = file.loadYAML( "genshin" );
-	const keysNum = o => Object.keys( o ).length;
-	
-	/* 检查 defaultConfig 是否更新 */
-	if ( keysNum( config ) !== keysNum( initCfg ) ) {
-		const c: any = {};
-		const keys: string[] = Object.keys( initCfg );
-		for ( let k of keys ) {
-			c[k] = config[k] ? config[k] : initCfg[k];
-		}
-		file.writeYAML( "genshin", c );
-		return new GenshinConfig( c );
-	}
-	return new GenshinConfig( config );
-}
+export let renderer: Renderer;
+export let artClass: m.ArtClass;
+export let cookies: m.Cookies;
+export let typeData: m.TypeData;
+export let aliasClass: m.AliasClass;
+export let almanacClass: m.AlmanacClass;
+export let wishClass: m.WishClass;
+export let dailyClass: m.DailyClass;
+export let slipClass: m.SlipClass;
+export let privateClass: m.PrivateClass;
+export let characterID: m.CharacterId;
 
 /* 删除好友后清除订阅服务 */
 async function decreaseFriend( userId: number, { redis }: BOT ) {
@@ -69,6 +42,19 @@ export async function subs( { redis }: BOT ): Promise<SubInfo[]> {
 	} ]
 }
 
+function initModules() {
+	artClass = new m.ArtClass();
+	cookies = new m.Cookies();
+	typeData = new m.TypeData();
+	aliasClass = new m.AliasClass();
+	almanacClass = new m.AlmanacClass();
+	wishClass = new m.WishClass();
+	dailyClass = new m.DailyClass();
+	slipClass = new m.SlipClass();
+	privateClass = new m.PrivateClass();
+	characterID = new m.CharacterId();
+}
+
 export async function subInfo(): Promise<PluginSubSetting> {
 	return {
 		subs: subs,
@@ -76,20 +62,17 @@ export async function subInfo(): Promise<PluginSubSetting> {
 	}
 }
 
-export async function init( { file, logger }: BOT ): Promise<PluginSetting> {
+export async function init( { file, renderer: botRenderer, refresh, config: botConfig }: BOT ): Promise<PluginSetting> {
 	/* 加载 genshin.yml 配置 */
-	config = loadConfig( file );
-	const port: number = await findFreePort( config.serverPort, logger );
+	const configData = botConfig.register( file, "genshin", GenshinConfig.init );
+	config = new GenshinConfig( configData );
 	/* 实例化渲染器 */
-	renderer = bot.renderer.register(
-		"genshin", "/views",
-		port, "#app"
-	);
-	/* 启动 express 服务 */
-	createServer( port, logger );
+	renderer = botRenderer.register( "/genshin", "#app" );
+	/* 初始化模块 */
+	initModules();
 	
-	bot.refresh.registerRefreshableFile( "genshin", config );
-	bot.refresh.registerRefreshableFile( "cookies", cookies );
+	refresh.registerRefreshableFile( "genshin", config );
+	refresh.registerRefreshableFile( "cookies", cookies );
 	
 	return pluginSetting;
 }

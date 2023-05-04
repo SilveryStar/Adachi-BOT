@@ -1,5 +1,5 @@
 import { scheduleJob } from "node-schedule";
-import { getCharacterID } from "#genshin/utils/api";
+import { getCharacterID } from "#/genshin/utils/api";
 
 export class CharacterId {
 	public map: Record<string, number> = {};

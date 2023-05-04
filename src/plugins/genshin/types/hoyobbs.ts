@@ -4,7 +4,6 @@
  * @list 通行证绑定的 miHoYo 游戏
  * */
 export interface BBS {
-	type: "bbs";
 	list: Game[];
 }
 

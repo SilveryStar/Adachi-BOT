@@ -17,7 +17,6 @@
  * @transformer 参量质变仪数据
  * */
 export interface Note {
-	type: "note";
 	currentResin: number;
 	maxResin: number;
 	resinRecoveryTime: string;

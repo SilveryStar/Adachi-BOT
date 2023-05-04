@@ -1,6 +1,6 @@
-import { InputParameter } from "@modules/command";
-import { EpitomizedPath } from "#genshin/module/wish";
-import { wishClass } from "#genshin/init";
+import { InputParameter } from "@/modules/command";
+import { EpitomizedPath } from "#/genshin/module/wish";
+import { wishClass } from "#/genshin/init";
 import bot from "ROOT";
 
 export async function main(
@@ -22,8 +22,9 @@ export async function main(
 	if ( param.length === 0 ) {
 		const user: number = await EpitomizedPath.getUser( dbKey );
 		
-		let { epit } = await redis.getHash( weaponDBKey );
-		if ( epit === undefined ) {
+		const data = await redis.getHash( weaponDBKey );
+		let epit: number = Number.parseInt( data.epit );
+		if ( Number.isNaN( epit ) ) {
 			await bot.redis.setHash( weaponDBKey, { epit: 0 } );
 			epit = 0;
 		}
@@ -31,7 +32,7 @@ export async function main(
 		const msg: string[] = [ "无定轨", ...upWeapon ]
 			.map( ( el, i ) => {
 				return `\n ${ i === user ? "*" : "-" } ${ el }` +
-					      `${ i === user && i > 0 ? ` (${ epit }/2)` : "" }`
+					`${ i === user && i > 0 ? ` (${ epit }/2)` : "" }`
 			} );
 		await sendMessage( "当前定轨:" + msg.join( "" ) );
 	} else if ( parseInt( param ) === 0 ) {
@@ -43,6 +44,6 @@ export async function main(
 		/* 切换定轨武器，清空命定值 */
 		await redis.setHash( weaponDBKey, { epit: 0 } );
 		await redis.setHash( dbKey, { id: nowWeaponID, set: param } );
-		await sendMessage( `武器已定轨至: ${ upWeapon[ parseInt( param ) - 1 ] }` );
+		await sendMessage( `武器已定轨至: ${ upWeapon[parseInt( param ) - 1] }` );
 	}
 }

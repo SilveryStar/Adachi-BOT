@@ -1,6 +1,6 @@
-import { InputParameter } from "@modules/command";
-import { RenderResult } from "@modules/renderer";
-import { renderer } from "../init";
+import { InputParameter } from "@/modules/command";
+import { RenderResult } from "@/modules/renderer";
+import { renderer } from "#/genshin/init";
 
 export async function main(
 	{ sendMessage, messageData, redis, logger }: InputParameter
@@ -13,7 +13,7 @@ export async function main(
 		return;
 	}
 	const res: RenderResult = await renderer.asSegment(
-		"/artifact.html",
+		"/artifact",
 		{ qq: userID, type: "rein" }
 	);
 	if ( res.code === "ok" ) {

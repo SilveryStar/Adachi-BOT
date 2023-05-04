@@ -1,8 +1,8 @@
 import bot from "ROOT";
-import { Private } from "#genshin/module/private/main";
-import { Order } from "@modules/command";
-import Authorization, { AuthLevel } from "@modules/management/auth";
-import { privateClass } from "#genshin/init";
+import { Private } from "#/genshin/module/private/main";
+import { Order } from "@/modules/command";
+import Authorization, { AuthLevel } from "@/modules/management/auth";
+import { privateClass } from "#/genshin/init";
 
 function parseID( msg: string ): number {
 	if ( !msg ) {

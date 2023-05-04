@@ -1,3 +1,3 @@
-import Adachi from "@modules/bot";
+import Adachi from "@/main";
 
 export default new Adachi( __dirname ).run();

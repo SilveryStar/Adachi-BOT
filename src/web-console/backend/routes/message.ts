@@ -49,10 +49,10 @@ export default express.Router()
 		
 		res.status( 200 ).send( { code: 200, data: delData, msg: "Success" } );
 	} )
-	.delete( "/remove", async ( req, res ) => {
-		const user = parseInt( <string>req.query.user );
-		const content = <string>req.query.content;
-		const date = parseInt( <string>req.query.date );
+	.post( "/remove", async ( req, res ) => {
+		const user = parseInt( <string>req.body.user );
+		const content = <string>req.body.content;
+		const date = parseInt( <string>req.body.date );
 		
 		if ( !user || !content || !date ) {
 			res.status( 400 ).send( { code: 400, data: {}, msg: "Error Params" } );

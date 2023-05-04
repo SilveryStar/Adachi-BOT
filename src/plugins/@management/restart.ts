@@ -1,4 +1,4 @@
-import { InputParameter } from "@modules/command";
+import { InputParameter } from "@/modules/command";
 import { restart } from "pm2";
 
 export async function main( { sendMessage, logger }: InputParameter ): Promise<void> {

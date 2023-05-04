@@ -1,5 +1,5 @@
-import { AuthLevel } from "@modules/management/auth";
-import { InputParameter, SwitchMatchResult } from "@modules/command";
+import { AuthLevel } from "@/modules/management/auth";
+import { InputParameter, SwitchMatchResult } from "@/modules/command";
 
 export async function main( { sendMessage, redis, matchResult }: InputParameter ): Promise<void> {
 	const match = <SwitchMatchResult>matchResult;

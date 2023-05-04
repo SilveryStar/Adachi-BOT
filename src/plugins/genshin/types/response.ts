@@ -4,17 +4,18 @@ import { Character } from "./character";
 import { UserInfo } from "./user-info";
 import { Note } from "./note";
 import { Ledger } from "./ledger";
-import { SignInInfo, SignInResult } from "#genshin/types/sign-in";
-import { AvatarDetailRaw } from "#genshin/types/avatar";
-import { CalendarList, CalendarDetail } from "#genshin/types/calendar";
-import { CookieToken, GetLtoken, MutiTokenResult, VerifyLtoken } from "#genshin/types/cookie";
+import { SignInInfo, SignInResult } from "./sign-in";
+import { AvatarDetailRaw } from "./avatar";
+import { CalendarList, CalendarDetail } from "./calendar";
+import { CookieToken, GetLtoken, MutiTokenResult, VerifyLtoken } from "./cookie";
+import { WishList } from "./wish";
 
 export type ResponseDataType = Abyss | BBS | Character |
 	UserInfo | Note | SignInInfo | SignInResult | Ledger | AvatarDetailRaw |
-	CalendarList | CalendarDetail | CookieToken | MutiTokenResult | VerifyLtoken | GetLtoken;
+	CalendarList | CalendarDetail | CookieToken | MutiTokenResult | VerifyLtoken | GetLtoken | WishList;
 
-export interface ResponseBody {
+export interface ResponseBody<T extends ResponseDataType> {
 	retcode: number;
 	message: string;
-	data: ResponseDataType;
+	data: T;
 }

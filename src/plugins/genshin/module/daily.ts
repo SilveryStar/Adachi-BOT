@@ -2,14 +2,14 @@ import bot from "ROOT"
 import { getRealName, NameResult } from "../utils/name";
 import { scheduleJob } from "node-schedule";
 import { isCharacterInfo, isWeaponInfo, InfoResponse, CalendarData } from "../types";
-import { randomInt } from "../utils/random";
 import { getDailyMaterial, getInfo } from "../utils/api";
 import { take } from "lodash";
-import { RenderResult } from "@modules/renderer";
-import { renderer } from "#genshin/init";
-import { calendarPromise } from "#genshin/utils/promise";
-import { Order } from "@modules/command";
+import { RenderResult } from "@/modules/renderer";
+import { renderer } from "#/genshin/init";
+import { calendarPromise } from "#/genshin/utils/promise";
+import { Order } from "@/modules/command";
 import { Sendable } from "icqq";
+import { getRandomNumber } from "@/utils/common";
 
 export interface DailyMaterial {
 	"Mon&Thu": string[];
@@ -70,7 +70,7 @@ export class DailySet {
 }
 
 async function getRenderResult( id: number, subState: boolean, week?: number ): Promise<RenderResult> {
-	return await renderer.asSegment( "/daily.html", {
+	return await renderer.asSegment( "/daily", {
 		id,
 		type: subState ? "sub" : "all",
 		week: week ?? "today"
@@ -146,7 +146,7 @@ export class DailyClass {
 					await bot.message.sendMaster( "每日素材订阅图片渲染异常，请查看日志进行检查" );
 					continue;
 				}
-				const randomMinute: number = randomInt( 3, 59 );
+				const randomMinute: number = getRandomNumber( 3, 59 );
 				date.setMinutes( randomMinute );
 				
 				scheduleJob( date, async () => {

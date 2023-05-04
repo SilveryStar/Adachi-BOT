@@ -6,7 +6,6 @@
  * @reliquaryList 圣遗物列表
  * */
 export interface AvatarDetailRaw {
-	type: "avatar";
 	skillList: AvatarSkill[];
 	weapon: AvatarWeapon;
 	reliquaryList: AvatarReliquary[];

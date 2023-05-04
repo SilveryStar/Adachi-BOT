@@ -1,11 +1,11 @@
-import { InputParameter, Order } from "@modules/command";
-import { Private } from "#genshin/module/private/main";
-import { RenderResult } from "@modules/renderer";
-import { CharacterInformation, Skills } from "#genshin/types";
-import { getRealName, NameResult } from "#genshin/utils/name";
-import { mysAvatarDetailInfoPromise, mysInfoPromise } from "#genshin/utils/promise";
-import { getPrivateAccount } from "#genshin/utils/private";
-import { characterID, config, renderer } from "#genshin/init";
+import { InputParameter, Order } from "@/modules/command";
+import { Private } from "#/genshin/module/private/main";
+import { RenderResult } from "@/modules/renderer";
+import { CharacterInformation, Skills } from "#/genshin/types";
+import { getRealName, NameResult } from "#/genshin/utils/name";
+import { mysAvatarDetailInfoPromise, mysInfoPromise } from "#/genshin/utils/promise";
+import { getPrivateAccount } from "#/genshin/utils/private";
+import { characterID, config, renderer } from "#/genshin/init";
 import bot from "ROOT";
 
 interface ScoreItem {
@@ -117,7 +117,7 @@ export async function main(
 	}
 	
 	const res: RenderResult = await renderer.asSegment(
-		"/character.html", {
+		"/character", {
 			qq: userID,
 			showScore: config.showCharScore
 		} );

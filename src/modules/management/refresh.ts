@@ -1,5 +1,5 @@
-import FileManagement, { PresetPlace } from "@modules/file";
-import Command from "@modules/command/main";
+import FileManagement, { PresetPlace } from "@/modules/file";
+import Command from "@/modules/command/main";
 import bot from "ROOT";
 
 export type RefreshTarget =

@@ -1,6 +1,6 @@
-import { randomInt } from "../utils/random";
 import { getArtifact } from "../utils/api";
-import Database from "@modules/database";
+import Database from "@/modules/database";
+import { getRandomNumber } from "@/utils/common";
 
 interface Domain {
 	name: string;
@@ -76,7 +76,7 @@ export class ArtClass {
 		for ( let w of dataArr ) {
 			sufSum.push( sum += w );
 		}
-		const rand: number = randomInt( 1, sum );
+		const rand: number = getRandomNumber( 1, sum );
 		for ( let i = 0; i < length; i++ ) {
 			if ( rand <= sufSum[i] ) {
 				return i;
@@ -103,9 +103,9 @@ export class ArtClass {
 		return new Promise( ( resolve, reject ) => {
 			if ( domainID === -1 ) {
 				const domainNum: number = this.suitNames.length;
-				resolve( randomInt( 0, domainNum - 1 ) );
+				resolve( getRandomNumber( 0, domainNum - 1 ) );
 			} else if ( domainID < this.domains.length ) {
-				resolve( this.domains[domainID].product[randomInt( 0, 1 )] );
+				resolve( this.domains[domainID].product[getRandomNumber( 0, 1 )] );
 			} else {
 				reject( "未知的秘境ID" );
 			}
@@ -126,7 +126,7 @@ export class ArtClass {
 		const length: number = this.values[0].length;
 		
 		for ( let i = 0; i < length; i++ ) {
-			const w: number = this.weights.prob[slot].sub[i] * randomInt( 0, 1e5 );
+			const w: number = this.weights.prob[slot].sub[i] * getRandomNumber( 0, 1e5 );
 			pairs.push( { property: i, weight: w } );
 		}
 		pairs.sort( ( x: PairData, y: PairData ) => {
@@ -153,7 +153,7 @@ export class ArtClass {
 		let improves: any[] = [];
 		for ( let i = 0; i < 5; i++ ) {
 			improves.push( {
-				place: randomInt( 0, 3 ),
+				place: getRandomNumber( 0, 3 ),
 				stage: ArtClass.getProperty( this.weights.stage )
 			} );
 		}

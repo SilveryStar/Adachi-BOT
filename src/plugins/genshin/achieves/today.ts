@@ -1,5 +1,5 @@
-import { InputParameter } from "@modules/command";
-import { dailyClass } from "../init";
+import { InputParameter } from "@/modules/command";
+import { dailyClass } from "#/genshin/init";
 import { Sendable } from "icqq";
 
 export async function main( { sendMessage, messageData }: InputParameter ): Promise<void> {

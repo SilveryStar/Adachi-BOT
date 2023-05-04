@@ -1,7 +1,7 @@
 import { URL, URLSearchParams } from "url";
 import { ImageElem, segment, Sendable } from "icqq";
-import { RefreshCatch } from "@modules/management/refresh";
-import puppeteer from "puppeteer";
+import { RefreshCatch } from "./management/refresh";
+import * as puppeteer from "puppeteer";
 import bot from "ROOT";
 
 interface RenderSuccess {
@@ -27,7 +27,7 @@ export interface ScreenshotRendererMethods {
 }
 
 export interface RenderMethods {
-	register( name: string, route: string, port: number, defaultSelector: string ): Renderer;
+	register( route: string, defaultSelector: string ): Renderer;
 	/* 浏览器相关 */
 	closeBrowser(): Promise<void>;
 	launchBrowser(): Promise<puppeteer.Browser>;
@@ -42,11 +42,10 @@ export class Renderer implements ScreenshotRendererMethods {
 	private readonly httpBase: string;
 	
 	constructor(
-		private readonly sourceName: string,
 		private readonly defaultSelector: string,
-		route: string, port: number
+		route: string
 	) {
-		this.httpBase = `http://localhost:${ port }${ route }`;
+		this.httpBase = `http://localhost:${ bot.config.renderPort }${ route }`;
 	}
 	
 	private getURL( route: string, params?: Record<string, any> ): string {
@@ -69,6 +68,7 @@ export class Renderer implements ScreenshotRendererMethods {
 	): Promise<RenderResult> {
 		try {
 			const url: string = this.getURL( route, params );
+			console.log(url)
 			const base64: string = await bot.renderer.screenshot( url, viewPort, selector );
 			return { code: "ok", data: base64 };
 		} catch ( error ) {
@@ -85,6 +85,7 @@ export class Renderer implements ScreenshotRendererMethods {
 	): Promise<RenderResult> {
 		try {
 			const url: string = this.getURL( route, params );
+			console.log( url )
 			const base64: string = await bot.renderer.screenshot( url, viewPort, selector );
 			const segmentImg: ImageElem = segment.image( base64 );
 			return { code: "ok", data: segmentImg };
@@ -122,11 +123,8 @@ export class BasicRenderer implements RenderMethods {
 			.then( browser => this.browser = browser );
 	}
 	
-	public register(
-		name: string, route: string,
-		port: number, defaultSelector: string
-	): Renderer {
-		return new Renderer( name, defaultSelector, route, port );
+	public register( route: string, defaultSelector: string ): Renderer {
+		return new Renderer( defaultSelector, route );
 	}
 	
 	public async closeBrowser(): Promise<void> {
@@ -146,7 +144,7 @@ export class BasicRenderer implements RenderMethods {
 			}
 			try {
 				const browser = await puppeteer.launch( {
-					headless: true,
+					headless: "new",
 					args: [
 						"--no-sandbox",
 						"--disable-setuid-sandbox",
@@ -182,6 +180,7 @@ export class BasicRenderer implements RenderMethods {
 	}
 	
 	private async pageLoaded( page: puppeteer.Page ) {
+		await page.content();
 		await page.waitForFunction( () => {
 			return document.readyState === "complete";
 		}, { timeout: 10000 } )
@@ -203,7 +202,7 @@ export class BasicRenderer implements RenderMethods {
 			} );
 			await this.pageLoaded( page );
 			
-			const option: puppeteer.ScreenshotOptions = { encoding: "base64", type: 'jpeg', quality: 100 };
+			const option: puppeteer.ScreenshotOptions = { encoding: "base64", type: "jpeg", quality: 100 };;
 			const element = await page.$( selector );
 			const result = <string>await element?.screenshot( option );
 			const base64: string = `base64://${ result }`;

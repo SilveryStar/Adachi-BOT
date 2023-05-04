@@ -1,6 +1,6 @@
-import { UserInfo } from "#genshin/module/private/main";
-import { InputParameter } from "@modules/command";
-import { privateClass } from "#genshin/init";
+import { UserInfo } from "#/genshin/module/private/main";
+import { InputParameter } from "@/modules/command";
+import { privateClass } from "#/genshin/init";
 
 async function cancelPrivate( userID: number, id: number ): Promise<string> {
 	const settings: UserInfo[] = privateClass.getUserInfoList( userID );

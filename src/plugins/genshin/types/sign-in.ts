@@ -1,5 +1,4 @@
 export interface SignInInfo {
-	type: "sign-in-info";
 	totalSignDay: number;
 	today: string;
 	isSign: boolean;
@@ -10,7 +9,6 @@ export interface SignInInfo {
 }
 
 export interface SignInResult {
-	type: "sign-in-result";
 	code: string;
 	riskCode: number;
 	gt: string;

@@ -1,5 +1,5 @@
 import { Md5 } from "md5-typescript";
-import { randomString } from "./random";
+import { getRandomString } from "@/utils/common";
 
 function getQueryParam( data: any ): string {
 	if ( data === undefined ) {
@@ -15,7 +15,7 @@ function getQueryParam( data: any ): string {
 export function getDS( query: any, body: string = "" ): string {
 	const n: string = "xV8v4Qu54lUKrEYFZkJhB8cuOh9Asafs";
 	const i: number = Date.now() / 1000 | 0;
-	const r: string = randomString( 6 );
+	const r: string = getRandomString( 6 );
 	const q: string = getQueryParam( query );
 	const c: string = Md5.init( `salt=${ n }&t=${ i }&r=${ r }&b=${ body }&q=${ q }` );
 	
@@ -25,7 +25,7 @@ export function getDS( query: any, body: string = "" ): string {
 export function getDS2(): string {
 	const n: string = "9nQiU3AV0rJSIBWgdynfoGMGKaklfbM7";
 	const i: number = Date.now() / 1000 | 0;
-	const r: string = randomString( 6 );
+	const r: string = getRandomString( 6 );
 	const c: string = Md5.init( `salt=${ n }&t=${ i }&r=${ r }` );
 	
 	return `${ i },${ r },${ c }`;
@@ -34,7 +34,7 @@ export function getDS2(): string {
 export function generateDS(): string {
 	const n: string = "dWCcD2FsOUXEstC5f9xubswZxEeoBOTc";
 	const i: number = Date.now() / 1000 | 0;
-	const r: string = randomString( 6 ).toLowerCase();
+	const r: string = getRandomString( 6 ).toLowerCase();
 	const c: string = Md5.init( `salt=${ n }&t=${ i }&r=${ r }` );
 	return `${ i },${ r },${ c }`;
 }

@@ -1,6 +1,6 @@
-import { Private } from "#genshin/module/private/main";
-import { InputParameter } from "@modules/command";
-import { privateClass } from "#genshin/init";
+import { Private } from "#/genshin/module/private/main";
+import { InputParameter } from "@/modules/command";
+import { privateClass } from "#/genshin/init";
 import { trim } from "lodash";
 
 function checkList( list: number[] ): boolean {

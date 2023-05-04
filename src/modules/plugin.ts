@@ -1,8 +1,16 @@
 import * as cmd from "./command";
 import { BasicConfig } from "./command";
-import { BOT } from "@modules/bot";
+import { BOT } from "@/main";
+import { getConfigValue } from "@/utils/common";
+import { extname } from "path";
+import { RenderRoutes, ServerRouters } from "@/types/render";
+import { Router } from "express";
 
-declare function require( moduleName: string ): any;
+export interface PluginLoadResult {
+	renderRoutes: Array<RenderRoutes>;
+	serverRouters: Array<ServerRouters>;
+	registerCmd: Array<BasicConfig>;
+}
 
 export type SubInfo = {
 	name: string;
@@ -18,6 +26,13 @@ export interface PluginSetting {
 	pluginName: string;
 	cfgList: cmd.ConfigType[];
 	aliases?: string[];
+	render?: boolean | {
+		dirname?: string;
+		mainFiles?: string[];
+	};
+	server?: {
+		routers?: Record<string, Router>
+	};
 	repo?: string | {
 		owner: string;// 仓库拥有者名称
 		repoName: string;// 仓库名称
@@ -37,20 +52,43 @@ export const PluginAlias: Record<string, string> = {};
 const not_support_upgrade_plugins: string[] = [ "@help", "@management", "genshin", "tools" ];
 
 export default class Plugin {
-	public static async load( bot: BOT ): Promise<BasicConfig[]> {
-		const registerCmd: BasicConfig[] = [];
+	public static async load( bot: BOT ): Promise<PluginLoadResult> {
 		const plugins: string[] = bot.file.getDirFiles( "", "plugin" );
+		const renderRoutes: Array<RenderRoutes> = [];
+		const serverRouters: Array<ServerRouters> = [];
+		const registerCmd: BasicConfig[] = [];
 		
 		/* 从 plugins 文件夹从导入 init.ts 进行插件初始化 */
 		for ( let plugin of plugins ) {
-			const path: string = bot.file.getFilePath( `${ plugin }/init`, "plugin" );
 			try {
-				const { init, subInfo } = require( path );
-				const { pluginName, cfgList, repo, aliases }: PluginSetting = await init( bot );
+				const { init, subInfo } = await import( `#/${ plugin }/init.ts` );
+				const { pluginName, render, server, cfgList, repo, aliases }: PluginSetting = await init( bot );
 				if ( subInfo ) {
 					const { reSub, subs }: PluginSubSetting = await subInfo( bot );
 					PluginReSubs[pluginName] = { reSub, subs };
 				}
+				// 加载前端渲染页面路由
+				if ( render ) {
+					const renderDir = getConfigValue( render, "dirname", "views" );
+					const mainFiles = getConfigValue( render, "mainFiles", [ "index" ] );
+					const views = bot.file.getDirFiles( `${ plugin }/${ renderDir }`, "plugin" );
+					views.forEach( v => {
+						const route = setRenderRoute( bot, plugin, renderDir, mainFiles, v );
+						if ( route ) {
+							renderRoutes.push( route );
+						}
+					} );
+				}
+				// 加载 express server 路由
+				if ( server?.routers ) {
+					Object.entries( server.routers ).forEach( ( [ path, router ] ) => {
+						serverRouters.push( {
+							path: `/${ plugin }${ path }`,
+							router
+						} )
+					} )
+				}
+				//
 				const commands = Plugin.parse( bot, cfgList, pluginName );
 				PluginRawConfigs[pluginName] = cfgList;
 				if ( !not_support_upgrade_plugins.includes( pluginName ) ) {
@@ -71,8 +109,7 @@ export default class Plugin {
 				bot.logger.error( `插件 ${ plugin } 加载异常: ${ <string>error }` );
 			}
 		}
-		
-		return registerCmd;
+		return { renderRoutes, serverRouters, registerCmd };
 	}
 	
 	public static parse(
@@ -130,4 +167,46 @@ export default class Plugin {
 		bot.file.writeYAML( "commands", data );
 		return commands;
 	}
+}
+
+/* 获取插件渲染页的路由对象 */
+function setRenderRoute( bot: BOT, plugin: string, renderDir: string, mainFiles: string[], view: string ): RenderRoutes | null {
+	let route: RenderRoutes | null = null;
+	const ext: string = extname( view );
+	if ( ext === ".vue" ) {
+		// 加载后缀名为 vue 的文件
+		const fileName: string = view.replace( /\.vue$/, "" );
+		route = {
+			path: `/${ plugin }/${ fileName }`,
+			componentData: {
+				plugin,
+				renderDir,
+				fileName
+			}
+		}
+	} else if ( !ext ) {
+		// 后缀名不存在且为目录时，加载目录下的 index.vue 文件
+		const fileType = bot.file.getFileType( `${ plugin }/${ renderDir }/${ view }`, "plugin" );
+		if ( fileType === "directory" ) {
+			for ( const mainFile of mainFiles ) {
+				const path: string = bot.file.getFilePath( `${ plugin }/${ renderDir }/${ view }/${ mainFile }.vue`, "plugin" );
+				// 判断目录下是否存在 mainFile
+				const isExist: boolean = bot.file.isExist( path );
+				if ( isExist ) {
+					route = {
+						path: `/${ plugin }/${ view }`,
+						componentData: {
+							plugin,
+							renderDir,
+							fileDir: view,
+							fileName: mainFile
+						}
+					};
+					break;
+				}
+			}
+		}
+	}
+	
+	return route;
 }

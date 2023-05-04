@@ -10,7 +10,6 @@
  * @cookieToken 所需数据Token
  */
 export interface CookieToken {
-	type: "cookie-token",
 	uid: string,
 	cookieToken: string
 }
@@ -21,7 +20,6 @@ export interface CookieToken {
  * @list token列表
  */
 export interface MutiTokenResult {
-	type: "multi-token",
 	list: {
 		"name": string,
 		"token": string
@@ -35,11 +33,10 @@ export interface MutiTokenResult {
  */
 
 export interface VerifyLtoken {
-	type: "verify-ltoken",
-	userInfo: UserInfo
+	userInfo: CookieUserInfo
 }
 
-export interface UserInfo {
+export interface CookieUserInfo {
 	aid: string, //相当于MysID
 	mid: string,
 	account_name: string,
@@ -62,6 +59,5 @@ export interface UserInfo {
  * 根据Stoken获取Ltoken
  */
 export interface GetLtoken {
-	type: "get-ltoken",
 	ltoken: string
 }

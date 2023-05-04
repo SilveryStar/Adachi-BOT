@@ -1,5 +1,5 @@
-import { InputParameter } from "@modules/command";
-import { randomInt } from "#genshin/utils/random";
+import { InputParameter } from "@/modules/command";
+import { getRandomNumber } from "@/utils/common";
 
 const MAX_TIMES = 100;
 const MAX_SIDES = 32767;
@@ -28,7 +28,7 @@ export async function main( { sendMessage, messageData }: InputParameter ): Prom
 	
 	const randomRes: number[] = []
 	for ( let i = 0; i < rollTimes; i++ ) {
-		randomRes.push( randomInt( 1, sides ) );
+		randomRes.push( getRandomNumber( 1, sides ) );
 	}
 	if ( topK !== -1 ) {
 		const msg: string = randomRes

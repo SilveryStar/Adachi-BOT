@@ -1,5 +1,5 @@
-import { filterUserUsableCommand } from "../utils/filter";
-import { InputParameter } from "@modules/command/main";
+import { filterUserUsableCommand } from "#/@help/utils/filter";
+import { InputParameter } from "@/modules/command/main";
 
 export async function main( i: InputParameter ): Promise<void> {
 	const commands = await filterUserUsableCommand( i );

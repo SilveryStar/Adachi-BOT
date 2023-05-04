@@ -1,4 +1,4 @@
-import { InputParameter } from "@modules/command";
+import { InputParameter } from "@/modules/command";
 import { artClass } from "../init";
 
 export async function main( { sendMessage }: InputParameter ): Promise<void> {

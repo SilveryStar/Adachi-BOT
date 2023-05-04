@@ -1,8 +1,8 @@
-import { Private } from "#genshin/module/private/main";
-import { InputParameter } from "@modules/command";
-import { privateClass } from "#genshin/init";
+import { Private } from "#/genshin/module/private/main";
+import { InputParameter, Order } from "@/modules/command";
+import { privateClass } from "#/genshin/init";
 import bot from "ROOT";
-import { checkCookieInvalidReason, checkMysCookieInvalid, refreshTokenBySToken } from "#genshin/utils/cookie";
+import { checkCookieInvalidReason, checkMysCookieInvalid, refreshTokenBySToken } from "#/genshin/utils/cookie";
 
 export async function main(
 	{ sendMessage, messageData }: InputParameter

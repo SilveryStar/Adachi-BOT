@@ -1,6 +1,6 @@
-import { AuthLevel } from "@modules/management/auth";
-import { OrderConfig, SwitchConfig } from "@modules/command";
-import { PluginSetting } from "@modules/plugin";
+import { AuthLevel } from "@/modules/management/auth";
+import { OrderConfig, SwitchConfig } from "@/modules/command";
+import { PluginSetting } from "@/modules/plugin";
 
 const manager: SwitchConfig = {
 	type: "switch",

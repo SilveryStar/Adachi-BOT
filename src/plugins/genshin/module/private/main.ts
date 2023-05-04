@@ -1,15 +1,15 @@
 import bot from "ROOT";
-import { MessageType, SendFunc } from "@modules/message";
-import { AuthLevel } from "@modules/management/auth";
-import { Order } from "@modules/command";
+import { MessageType, SendFunc } from "@/modules/message";
+import { AuthLevel } from "@/modules/management/auth";
+import { Order } from "@/modules/command";
 import { NoteService } from "./note";
 import { MysQueryService } from "./mys";
 import { AbyQueryService } from "./abyss";
-import { CharQueryService } from "#genshin/module/private/char";
+import { CharQueryService } from "#/genshin/module/private/char";
 import { SignInService } from "./sign";
 import { Md5 } from "md5-typescript";
 import { pull } from "lodash";
-import { getRegion } from "#genshin/utils/region";
+import { getRegion } from "#/genshin/utils/region";
 
 export interface Service {
 	parent: Private;
@@ -22,12 +22,14 @@ export interface Service {
 /* 获取元组第一位 */
 type TupleHead<T extends any[]> = T[0];
 /* 弹出元组第一位 */
-type TupleShift<T extends Service[]> = T extends [ infer L, ...infer R ] ? R : never;
+type TupleShift<T extends Service[]> = T extends [ infer L, ... infer R ] ? R : never;
 /* 合并交叉类型 */
-type Merge<T> = { [P in keyof T]: T[P] };
+type Merge<T> = { [ P in keyof T ]: T[P] };
 /* 向接口中添加新字段 */
-type ObjectExpand<T, U extends Service> = Merge<{ [P in keyof T]: T[P] } &
-	{ [P in U["FixedField"]]: U }>;
+type ObjectExpand<T, U extends Service> = Merge<
+	{ [ P in keyof T ]: T[P] } &
+	{ [ P in U["FixedField"] ]: U }
+>;
 /* 定义扩展私人服务的基本接口 */
 type BasicExpand = Record<string, Service>;
 /* 递归定义扩展私人服务类型 */
@@ -81,16 +83,17 @@ export class Private {
 			data.setting.mysID = parseInt( execRes[1] );
 		}
 		return new Private(
-			data.setting.uid, data.setting.cookie,
-			data.setting.userID, data.setting.mysID,
-			data.id, data.options, data.setting.stoken
+			data.setting.uid,       data.setting.cookie,
+			data.setting.userID,    data.setting.mysID,
+			data.id,                data.options,
+			data.setting.stoken
 		);
 	}
 	
 	constructor(
-		uid: string, cookie: string,
+		uid: string,    cookie: string,
 		userID: number, mysID: number,
-		id: number, options?: Record<string, any>,
+		id: number,     options?: Record<string, any>,
 		stoken: string = ""
 	) {
 		this.options = options || {};
@@ -101,11 +104,11 @@ export class Private {
 		this.id = id;
 		this.dbKey = dbPrefix + md5;
 		this.services = {
-			[NoteService.FixedField]: new NoteService( this ),
-			[SignInService.FixedField]: new SignInService( this ),
-			[MysQueryService.FixedField]: new MysQueryService( this ),
-			[AbyQueryService.FixedField]: new AbyQueryService( this ),
-			[CharQueryService.FixedField]: new CharQueryService( this )
+			[ NoteService.FixedField ]:      new NoteService( this ),
+			[ SignInService.FixedField ]:    new SignInService( this ),
+			[ MysQueryService.FixedField ]:  new MysQueryService( this ),
+			[ AbyQueryService.FixedField ]:  new AbyQueryService( this ),
+			[ CharQueryService.FixedField ]: new CharQueryService( this )
 		};
 		this.options = this.globalOptions();
 	}
@@ -133,7 +136,9 @@ export class Private {
 	}
 	
 	public async replaceCookie( cookie: string, stoken: string = '' ): Promise<void> {
-		stoken ? this.setting.stoken = stoken : "";
+		if ( stoken ) {
+			this.setting.stoken = stoken;
+		}
 		this.setting.cookie = cookie;
 		await bot.redis.setString( this.dbKey, this.stringify() );
 	}
@@ -177,8 +182,8 @@ export class PrivateClass {
 	}
 	
 	public getUserIDList(): number[] {
-		const userIdList = this.list.map( el => el.setting.userID );
-		return Array.from( new Set( userIdList ) );
+		const userIdList = this.list.map(el => el.setting.userID);
+		return Array.from(new Set(userIdList));
 	}
 	
 	public getUserPrivateList( userID: number ): Private[] {

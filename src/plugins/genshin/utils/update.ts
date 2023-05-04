@@ -1,15 +1,16 @@
 import { getWishDetail, getWishList } from "./api";
-import { WishDetail, WishInfo, WishDetailNull } from "../module/wish";
+import { WishDetail, WishInfo, WishDetailNull } from "#/genshin/module/wish";
+import { WishOverview, WishProbItem } from "#/genshin/types";
 
 export interface WishData {
 	res: WishDetailNull[];
 	weaponID: string;
 }
 
-function pack( data: any ): WishInfo {
+function pack( data: WishProbItem ): WishInfo {
 	return {
-		type: data.item_type,
-		name: data.item_name,
+		type: data.itemType,
+		name: data.itemName,
 		rank: data.rank
 	};
 }
@@ -19,9 +20,9 @@ async function parser( wishID: string ): Promise<WishDetailNull> {
 		return null;
 	}
 
-	const data: any = await getWishDetail( wishID );
+	const data = await getWishDetail( wishID );
 	const info: WishDetail = {
-		type: parseInt( data.gacha_type ),
+		type: data.gachaType,
 		upFourStar: [],
 		upFiveStar: [],
 		nonUpFourStar: [],
@@ -29,23 +30,23 @@ async function parser( wishID: string ): Promise<WishDetailNull> {
 		threeStar: []
 	};
 
-	data.r4_prob_list.forEach( ( el ) => {
+	data.r4ProbList.forEach( ( el ) => {
 		const parsed: WishInfo = pack( el );
-		if ( el.is_up === 0 ) {
+		if ( el.isUp === 0 ) {
 			info.nonUpFourStar.push( parsed );
 		} else {
 			info.upFourStar.push( parsed );
 		}
 	} );
-	data.r5_prob_list.forEach( ( el ) => {
+	data.r5ProbList.forEach( ( el ) => {
 		const parsed: WishInfo = pack( el );
-		if ( el.is_up === 0 ) {
+		if ( el.isUp === 0 ) {
 			info.nonUpFiveStar.push( parsed );
 		} else {
 			info.upFiveStar.push( parsed );
 		}
 	} );
-	data.r3_prob_list.forEach( ( el ) => {
+	data.r3ProbList.forEach( ( el ) => {
 		const parsed: WishInfo = pack( el );
 		info.threeStar.push( parsed );
 	} );
@@ -53,27 +54,19 @@ async function parser( wishID: string ): Promise<WishDetailNull> {
 	return info;
 }
 
-function getWishID( wishData: any, wishType: number ): string {
-	const wish = wishData.filter( el => el.gacha_type === wishType );
-	let maxTime: number = 0;
-	let tempWish: any;
+function getWishID( wishData: WishOverview[], wishType: number ): string {
+	const wish = wishData
+		.filter( el => el.gachaType === wishType )
+		.sort( (prev, next) => new Date(next.beginTime).getTime() - new Date( prev.beginTime ).getTime() );
 
-	for ( let w of wish ) {
-		const date = new Date( w.begin_time );
-		if ( date.getTime() > maxTime ) {
-			maxTime = date.getTime();
-			tempWish = w;
-		}
-	}
-
-	return tempWish === undefined ? "" : tempWish.gacha_id;
+	return wish[0] ? wish[0].gachaId : "";
 }
 
 export async function updateWish(): Promise<WishData> {
 	return new Promise( async ( resolve ) => {
-		const wishData: any = ( await getWishList() ).data.list;
+		const wishData = ( await getWishList() ).data.list;
 
-		const indefinite: WishDetailNull = await parser( wishData[0].gacha_id );
+		const indefinite: WishDetailNull = await parser( wishData[0].gachaId );
 		const character1: WishDetailNull = await parser( getWishID( wishData, 301 ) );
 		const character2: WishDetailNull = await parser( getWishID( wishData, 400 ) );
 		

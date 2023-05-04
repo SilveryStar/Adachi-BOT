@@ -1,7 +1,7 @@
-import mail, { SendMailOptions } from "nodemailer";
-import BotConfig from "@modules/config";
+import mail from "nodemailer";
+import BotConfig from "@/modules/config";
 import { Logger } from "log4js";
-import { delay } from "@modules/utils";
+import { sleep } from "@/utils/common";
 
 enum InfoMessage {
 	SUCCESS_SEND = "邮件发送成功。",
@@ -55,7 +55,7 @@ export default class MailManagement implements MailManagementMethod {
 				this.logger.info( InfoMessage.SUCCESS_SEND );
 			} catch ( error ) {
 				if ( retry ) {
-					await delay( retryWait );
+					await sleep( retryWait );
 					await sendMailFunc( mailOptions, retry - 1, retryWait );
 				} else {
 					this.logger.error( InfoMessage.ERROR_SEND + ( <Error>error ).message );
@@ -80,7 +80,7 @@ export default class MailManagement implements MailManagementMethod {
 			this.logger.info( InfoMessage.SUCCESS_SEND );
 		} catch ( error ) {
 			if ( retry ) {
-				await delay( retryWait );
+				await sleep( retryWait );
 				await this.sendMaster( mailOptions, retry - 1, retryWait );
 			} else {
 				this.logger.error( InfoMessage.ERROR_SEND + ( <Error>error ).message );

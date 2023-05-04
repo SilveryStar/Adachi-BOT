@@ -1,7 +1,7 @@
-import { deepParse } from "#genshin/utils/deep-parse";
+import { typeData } from "#/genshin/init";
+import { deepParse } from "#/genshin/utils/deep-parse";
 import bot from "ROOT";
 import express from "express";
-import { typeData } from "#genshin/init";
 
 export default express.Router()
 	.get( "/result", async ( req, res ) => {

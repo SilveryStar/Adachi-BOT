@@ -1,6 +1,6 @@
-import fetch from "node-fetch";
+import fetch, { Response } from "node-fetch";
 import { exec } from "child_process";
-import { InputParameter } from "@modules/command";
+import { InputParameter } from "@/modules/command";
 import { restart } from "pm2";
 
 /* 超时检查 */

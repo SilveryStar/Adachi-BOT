@@ -1,9 +1,9 @@
-import { PluginSetting } from "@modules/plugin";
-import { OrderConfig } from "@modules/command";
-import { Renderer } from "@modules/renderer";
-import { BOT } from "@modules/bot";
-import { createServer } from "#@help/server";
-import { findFreePort } from "@modules/utils";
+import { PluginSetting } from "@/modules/plugin";
+import { OrderConfig } from "@/modules/command";
+import { Renderer } from "@/modules/renderer";
+import { BOT } from "@/main";
+import * as r from "./routes";
+import { Router } from "express";
 
 const help: OrderConfig = {
 	type: "order",
@@ -38,23 +38,25 @@ const call: OrderConfig = {
 			"仅允许发送包含文字/图片的内容"
 };
 
+const serverRouters: Record<string, Router> = {
+	"/api/help": r.HelpRoute
+}
+
 export let renderer: Renderer;
 
 export async function init( bot: BOT ): Promise<PluginSetting> {
 	/* 未启用卡片帮助时不启动服务 */
 	if ( bot.config.helpMessageStyle === "card" ) {
-		const serverPort: number = await findFreePort( bot.config.helpPort, bot.logger );
 		/* 实例化渲染器 */
-		renderer = bot.renderer.register(
-			"@help", "/view",
-			serverPort, "#app"
-		);
-		/* 启动 express 服务 */
-		createServer( serverPort, bot.logger );
+		renderer = bot.renderer.register("/@help", "#app" );
 	}
 	
 	return {
 		pluginName: "@help",
-		cfgList: [ help, detail, call ]
+		cfgList: [ help, detail, call ],
+		render: true,
+		server: {
+			routers: serverRouters
+		}
 	};
 }

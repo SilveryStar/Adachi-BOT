@@ -1,7 +1,7 @@
-import { InputParameter, Order } from "@modules/command";
-import { WishResult, WishTotalSet } from "../module/wish";
-import { RenderResult } from "@modules/renderer";
-import { wishClass, renderer, config } from "../init";
+import { InputParameter, Order } from "@/modules/command";
+import { WishResult, WishTotalSet } from "#/genshin/module/wish";
+import { RenderResult } from "@/modules/renderer";
+import { wishClass, renderer, config } from "#/genshin/init";
 import bot from "ROOT";
 
 type WishStatistic = WishResult & {
@@ -60,7 +60,7 @@ export async function main(
 			name: nickname
 		} ) );
 		const res: RenderResult = await renderer.asSegment(
-			"/wish.html",
+			"/wish",
 			{ qq: userID }
 		);
 		if ( res.code === "ok" ) {
@@ -104,7 +104,7 @@ export async function main(
 		nickname
 	} );
 	const res: RenderResult = await renderer.asSegment(
-		"/wish-statistic.html",
+		"/wish-statistic",
 		{ qq: userID }
 	);
 	if ( res.code === "ok" ) {

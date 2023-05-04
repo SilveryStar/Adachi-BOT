@@ -1,4 +1,4 @@
-import { InputParameter } from "@modules/command/main";
+import { InputParameter } from "@/modules/command/main";
 
 export async function main( { sendMessage, messageData, message, redis, config }: InputParameter ): Promise<void> {
 	const user = messageData.user_id;

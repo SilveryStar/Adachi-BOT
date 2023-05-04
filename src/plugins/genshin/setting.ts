@@ -1,7 +1,9 @@
-import { AuthLevel } from "@modules/management/auth";
-import { MessageScope } from "@modules/message";
-import { OrderConfig, SwitchConfig } from "@modules/command";
-import { PluginSetting } from "@modules/plugin";
+import { AuthLevel } from "@/modules/management/auth";
+import { MessageScope } from "@/modules/message";
+import { OrderConfig, SwitchConfig } from "@/modules/command";
+import { PluginSetting } from "@/modules/plugin";
+import { Router } from "express";
+import * as r from "./routes";
 
 const bind: OrderConfig = {
 	type: "order",
@@ -20,7 +22,7 @@ const uidQuery: OrderConfig = {
 	headers: [ "uid" ],
 	regexps: [
 		[ "(\\d{9})?" ],
-		[ "\\[CQ:at,type=at,qq=\\d+.*]" ]
+		[ "\\[CQ:at,qq=\\d+.*]" ]
 	],
 	main: "achieves/uid-query"
 };
@@ -224,9 +226,9 @@ const privateRemove: OrderConfig = {
 const privateReplace: OrderConfig = {
 	type: "order",
 	cmdKey: "silvery-star.private-replace",
-	desc: [ "更新私人服务", "[cookie|auto]" ],
+	desc: [ "更新私人服务", "[账户序号] [cookie]" ],
 	headers: [ "pr" ],
-	regexps: [ ".+" ],
+	regexps: [ "\\d+", ".+" ],
 	ignoreCase: false,
 	main: "achieves/private/replace",
 	scope: MessageScope.Private,
@@ -347,6 +349,19 @@ const privateLedger: OrderConfig = {
 		"只填写一个参数时将被视为月份"
 };
 
+const serverRouters: Record<string, Router> = {
+	"/api/card": r.CardRouter,
+	"/api/artifact": r.ArtifactRouter,
+	"/api/wish": r.WishRouter,
+	"/api/info": r.InfoRouter,
+	"/api/note": r.NoteRouter,
+	"/api/char": r.CharacterRouter,
+	"/api/abyss": r.AbyssRouter,
+	"/api/daily": r.DailyRouter,
+	"/api/almanac": r.AlmanacRouter,
+	"/api/ledger": r.LedgerRouter,
+}
+
 export default <PluginSetting>{
 	pluginName: "genshin",
 	cfgList: [
@@ -358,6 +373,12 @@ export default <PluginSetting>{
 		privateConfirm, privateCancel, privateRemove,
 		privateSubList, privateReorder, privateToggleSign,
 		privateToggleNote, privateNoteEvent, privateNowNote,
-		privateAbyssQuery, privateLedger,
-	]
+		privateAbyssQuery, privateLedger
+	],
+	render: {
+		mainFiles: [ "index", "app" ]
+	},
+	server: {
+		routers: serverRouters
+	}
 };

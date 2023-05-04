@@ -1,7 +1,12 @@
-import { RefreshCatch } from "@modules/management/refresh";
-import FileManagement from "@modules/file";
+import { RefreshCatch } from "@/modules/management/refresh";
+import FileManagement from "@/modules/file";
 
-export class WhiteList {
+export interface WhiteListConfig {
+	user: Array<string | number>;
+	group: Array<string | number>;
+}
+
+export default class WhiteList {
 	private userList: number[];
 	private groupList: number[];
 	
@@ -11,9 +16,10 @@ export class WhiteList {
 		if ( !isExist ) {
 			this.createConfig( file );
 		}
-		const data = file.loadYAML( "whitelist" );
-		this.userList = data.user.filter( w => typeof w === "number" );
-		this.groupList = data.group.filter( w => typeof w === "number" );
+		const data: WhiteListConfig = file.loadYAML( "whitelist" );
+		
+		this.userList = <number[]>data.user.filter( w => typeof w === "number" );
+		this.groupList = <number[]>data.group.filter( w => typeof w === "number" );
 	}
 	
 	/* 创建配置文件 */

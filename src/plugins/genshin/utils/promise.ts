@@ -1,13 +1,13 @@
 import * as ApiType from "../types";
 import * as api from "./api";
 import bot from "ROOT";
-import { Cookies } from "#genshin/module";
+import { Cookies } from "#/genshin/module";
 import { omit, pick, set } from "lodash";
 import { characterID, cookies } from "../init";
 import { CharacterCon } from "../types";
 import { getCalendarDetail, getCalendarList, getLTokenBySToken, getMultiTokenByLoginTicket, verifyLtoken } from "./api";
-import { Order } from "@modules/command";
-import { checkCookieInvalidReason, cookie2Obj } from "#genshin/utils/cookie";
+import { Order } from "@/modules/command";
+import { checkCookieInvalidReason, cookie2Obj } from "#/genshin/utils/cookie";
 
 export enum ErrorMsg {
 	NOT_FOUND = "未查询到角色数据，请检查米哈游通行证（非UID）是否有误或是否设置角色信息公开",
@@ -47,9 +47,6 @@ export async function baseInfoPromise(
 	const { retcode, message, data } = await api.getBaseInfo(
 		mysID, cookie ? cookie : cookies.get()
 	);
-	if ( !ApiType.isBBS( data ) ) {
-		return Promise.reject( ErrorMsg.UNKNOWN );
-	}
 	
 	return new Promise( async ( resolve, reject ) => {
 		if ( retcode === 10001 ) {
@@ -107,10 +104,6 @@ export async function detailInfoPromise(
 	
 	const allHomes = await api.getUidHome();
 	
-	if ( !ApiType.isUserInfo( data ) ) {
-		throw ErrorMsg.UNKNOWN;
-	}
-	
 	if ( retcode === 10001 ) {
 		throw Cookies.checkExpired( cookie );
 	}
@@ -152,10 +145,6 @@ export async function characterInfoPromise(
 		cookie = cookies.get();
 	}
 	const { retcode, message, data } = await api.getCharactersInfo( uid, server, charIDs, cookie );
-	
-	if ( !ApiType.isCharacter( data ) ) {
-		throw ErrorMsg.UNKNOWN;
-	}
 	
 	if ( retcode === 10001 ) {
 		throw Cookies.checkExpired( cookie );
@@ -254,9 +243,6 @@ export async function mysAvatarDetailInfoPromise(
 	constellation: CharacterCon
 ): Promise<ApiType.Skills> {
 	const { retcode, message, data } = await api.getAvatarDetailInfo( uid, avatar, server, cookie );
-	if ( !ApiType.isAvatarDetail( data ) ) {
-		return Promise.reject( ErrorMsg.UNKNOWN );
-	}
 	
 	return new Promise( async ( resolve, reject ) => {
 		if ( retcode !== 0 ) {
@@ -310,10 +296,6 @@ export async function abyssInfoPromise(
 		// cookies.increaseIndex();
 	}
 	let { retcode, message, data } = await api.getSpiralAbyssInfo( uid, server, period, cookie );
-	
-	if ( !ApiType.isAbyss( data ) ) {
-		throw ErrorMsg.UNKNOWN;
-	}
 	
 	if ( retcode === 10001 ) {
 		throw Cookies.checkExpired( cookie );
@@ -372,9 +354,6 @@ export async function ledgerPromise(
 		// cookies.increaseIndex();
 	}
 	const { retcode, message, data } = await api.getLedger( uid, server, month, cookie );
-	if ( !ApiType.isLedger( data ) ) {
-		return Promise.reject( ErrorMsg.UNKNOWN );
-	}
 	
 	return new Promise( async ( resolve, reject ) => {
 		if ( retcode === 10001 ) {
@@ -402,9 +381,6 @@ export async function dailyNotePromise(
 			const { retcode, message, data } = await api.getDailyNoteInfo(
 				parseInt( uid ), server, cookie
 			);
-			if ( !ApiType.isNote( data ) ) {
-				return reject( ErrorMsg.UNKNOWN );
-			}
 			
 			if ( retcode === 10001 ) {
 				reject( Cookies.checkExpired( cookie ) );
@@ -432,9 +408,6 @@ export async function signInInfoPromise(
 	cookie: string
 ): Promise<ApiType.SignInInfo> {
 	const { retcode, message, data } = await api.getSignInInfo( uid, server, cookie );
-	if ( !ApiType.isSignInInfo( data ) ) {
-		return Promise.reject( ErrorMsg.UNKNOWN );
-	}
 	
 	return new Promise( ( resolve, reject ) => {
 		if ( retcode === -100 ) {
@@ -456,9 +429,6 @@ export async function signInResultPromise(
 	cookie: string
 ): Promise<ApiType.SignInResult> {
 	const { retcode, message, data } = await api.mihoyoBBSSignIn( uid, server, cookie );
-	if ( !ApiType.isSignInResult( data ) ) {
-		return Promise.reject( ErrorMsg.UNKNOWN );
-	}
 	
 	return new Promise( ( resolve, reject ) => {
 		if ( retcode === -100 ) {
@@ -480,9 +450,6 @@ export async function signInResultPromise(
 export async function calendarPromise(): Promise<ApiType.CalendarData[]> {
 	const { data: detail, retcode: dRetCode, message: dMessage } = await getCalendarDetail();
 	const { data: list, retcode: lRetCode, message: lMessage } = await getCalendarList();
-	if ( !ApiType.isCalendarDetail( detail ) || !ApiType.isCalendarList( list ) ) {
-		throw ErrorMsg.UNKNOWN;
-	}
 	
 	if ( dRetCode !== 0 ) {
 		throw ErrorMsg.FORM_MESSAGE + dMessage;
@@ -516,7 +483,7 @@ export async function calendarPromise(): Promise<ApiType.CalendarData[]> {
 	
 	/* 记录版本更新时间 */
 	const verDbKey = "silvery-star.calendar-version-time";
-	const verTimeInfo: Record<string, number> = await bot.redis.getHash( verDbKey );
+	const verTimeInfo: Record<string, string> = await bot.redis.getHash( verDbKey );
 	const verLength = Object.keys( verTimeInfo ).length;
 	
 	/* 获取与版本更新有关的文章 */
@@ -536,7 +503,7 @@ export async function calendarPromise(): Promise<ApiType.CalendarData[]> {
 		
 		const time = new Date( verTimeRet[1] ).getTime()
 		if ( !Number.isNaN( time ) ) {
-			verTimeInfo[verRet[1]] = time;
+			verTimeInfo[verRet[1]] = time.toString();
 		}
 	}
 	/* 版本号数据存在变动，更新 */
@@ -561,7 +528,7 @@ export async function calendarPromise(): Promise<ApiType.CalendarData[]> {
 			const vRet = /(\d\.\d)版本更新后/.exec( content );
 			if ( vRet && vRet[1] ) {
 				/* 版本更新活动 */
-				const cTime = verTimeInfo[vRet[1]];
+				const cTime = Number.parseInt( verTimeInfo[vRet[1]] );
 				if ( cTime ) {
 					start = cTime;
 				}
@@ -597,10 +564,6 @@ export async function getCookieTokenBySToken(
 	uid: string ): Promise<{ uid: string, cookie_token: string }> {
 	const { retcode, message, data } = await api.getCookieAccountInfoBySToken( stoken, mid, uid );
 	
-	if ( !ApiType.isCookieTokenResult( data ) ) {
-		return Promise.reject( ErrorMsg.UNKNOWN );
-	}
-	
 	return new Promise( ( resolve, reject ) => {
 		if ( retcode === -100 || retcode !== 0 ) {
 			return reject( checkCookieInvalidReason( message, parseInt( uid ) ) );
@@ -626,9 +589,8 @@ export async function getMultiToken( mysID, cookie ): Promise<any> {
 	}
 	
 	const { retcode, message, data } = await getMultiTokenByLoginTicket( mysID, login_ticket, cookie );
-	if ( !ApiType.isMultiToken( data ) ) {
-		throw ErrorMsg.UNKNOWN;
-	} else if ( !data.list || data.list.length === 0 ) {
+	
+	if ( !data.list || data.list.length === 0 ) {
 		throw ErrorMsg.GET_TICKET_INVAILD;
 	}
 	
@@ -647,9 +609,7 @@ export async function getMultiToken( mysID, cookie ): Promise<any> {
 
 export async function getMidByLtoken( ltoken: string, ltuid: string ): Promise<string> {
 	const { retcode, message, data } = await verifyLtoken( ltoken, ltuid );
-	if ( !ApiType.isVerifyLtoken( data ) ) {
-		throw ErrorMsg.UNKNOWN;
-	}
+
 	return new Promise( ( resolve, reject ) => {
 		if ( retcode === 1001 || retcode !== 0 ) {
 			return reject( checkCookieInvalidReason( message, ltuid ) );
@@ -660,9 +620,7 @@ export async function getMidByLtoken( ltoken: string, ltuid: string ): Promise<s
 
 export async function getLtoken( stoken: string, mid: string ): Promise<string> {
 	const { retcode, message, data } = await getLTokenBySToken( stoken, mid );
-	if ( !ApiType.isGetLtoken( data ) ) {
-		throw ErrorMsg.UNKNOWN;
-	}
+	
 	return new Promise( ( resolve, reject ) => {
 		if ( retcode === 1001 || retcode !== 0 ) {
 			return reject( checkCookieInvalidReason( message ) );

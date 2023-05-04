@@ -1,10 +1,10 @@
 import bot from "ROOT";
-import { Order } from "@modules/command";
-import { AuthLevel } from "@modules/management/auth";
-import { Note, Expedition } from "#genshin/types";
+import { Order } from "@/modules/command";
+import { AuthLevel } from "@/modules/management/auth";
+import { Note, Expedition } from "#/genshin/types";
 import { Private, Service, UserInfo } from "./main";
 import { scheduleJob, Job } from "node-schedule";
-import { dailyNotePromise } from "#genshin/utils/promise";
+import { dailyNotePromise } from "#/genshin/utils/promise";
 
 interface PushEvent {
 	type: "resin" | "homeCoin" | "transformer" | "expedition";
@@ -122,7 +122,7 @@ export class NoteService implements Service {
 		} );
 	}
 	
-	private async getData( quiet: boolean = false ): Promise<void> {
+	private async getData(): Promise<void> {
 		try {
 			const setting: UserInfo = this.parent.setting;
 			this.globalData = <Note>await dailyNotePromise(

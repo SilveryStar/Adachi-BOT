@@ -1,4 +1,4 @@
-import { aliasClass } from "../init";
+import { aliasClass } from "#/genshin/init";
 import { fuzzyMatch, MatchResult } from "./fuzzy-match";
 
 export interface NameResult {

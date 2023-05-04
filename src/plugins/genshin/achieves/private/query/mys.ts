@@ -1,10 +1,10 @@
-import { InputParameter, Order } from "@modules/command";
-import { Private } from "#genshin/module/private/main";
-import { MysQueryService } from "#genshin/module/private/mys";
-import { RenderResult } from "@modules/renderer";
-import { mysInfoPromise } from "#genshin/utils/promise";
-import { getPrivateAccount } from "#genshin/utils/private";
-import { characterID, config, renderer } from "#genshin/init";
+import { InputParameter, Order } from "@/modules/command";
+import { Private } from "#/genshin/module/private/main";
+import { MysQueryService } from "#/genshin/module/private/mys";
+import { RenderResult } from "@/modules/renderer";
+import { mysInfoPromise } from "#/genshin/utils/promise";
+import { getPrivateAccount } from "#/genshin/utils/private";
+import { characterID, config, renderer } from "#/genshin/init";
 import bot from "ROOT";
 
 export async function main(
@@ -41,7 +41,7 @@ export async function main(
 	}
 	
 	const res: RenderResult = await renderer.asSegment(
-		"/card.html", {
+		"/card", {
 			qq: userID,
 			style: config.cardWeaponStyle,
 			profile: config.cardProfile,

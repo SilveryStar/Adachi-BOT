@@ -1,10 +1,10 @@
 import bot from "ROOT";
-import { Private } from "#genshin/module/private/main";
-import { NoteService } from "#genshin/module/private/note";
-import { InputParameter } from "@modules/command";
-import { RenderResult } from "@modules/renderer";
-import { privateClass, renderer } from "#genshin/init";
 import { Sendable } from "icqq";
+import { Private } from "#/genshin/module/private/main";
+import { NoteService } from "#/genshin/module/private/note";
+import { InputParameter } from "@/modules/command";
+import { RenderResult } from "@/modules/renderer";
+import { privateClass, renderer } from "#/genshin/init";
 
 async function getNowNote( userID: number ): Promise<Sendable[]> {
 	const accounts: Private[] = privateClass.getUserPrivateList( userID );
@@ -26,7 +26,7 @@ async function getNowNote( userID: number ): Promise<Sendable[]> {
 		const dbKey: string = `silvery-star.note-temp-${ uid }`;
 		await bot.redis.setString( dbKey, data );
 		const res: RenderResult = await renderer.asSegment(
-			"/note.html", { uid }
+			"/note", { uid }
 		);
 		if ( res.code === "ok" ) {
 			imageList.push( res.data );

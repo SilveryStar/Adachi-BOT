@@ -1,9 +1,9 @@
 import { Forwardable, Sendable, segment } from "icqq";
-import { BasicConfig, InputParameter, Order } from "@modules/command";
-import Command from "@modules/command/main";
-import FileManagement from "@modules/file";
+import { BasicConfig, InputParameter, Order } from "@/modules/command";
+import Command from "@/modules/command/main";
+import FileManagement from "@/modules/file";
 import { filterUserUsableCommand } from "../utils/filter";
-import { RenderResult } from "@modules/renderer";
+import { RenderResult } from "@/modules/renderer";
 import { renderer } from "../init";
 import bot from "ROOT";
 
@@ -42,10 +42,10 @@ async function forwardStyle(
 		list.push( `使用 ${ DETAIL.getHeaders()[0] }+指令序号 获取更多信息` );
 	}
 	list.push( "[] 表示必填, () 表示选填, | 表示选择" );
-	list.forEach( el => content.push( {
+	list.forEach( ( el: string ) => content.push( {
 		user_id: config.number,
 		nickname: "BOT",
-		message: segment.text(el)
+		message: el
 	} ) );
 	
 	const reply = await client.makeForwardMsg( content );
@@ -117,7 +117,7 @@ async function cardStyle( i: InputParameter, commands: BasicConfig[], version: s
 	} ) );
 	
 	const res: RenderResult = await renderer.asSegment(
-		"/index.html" );
+		"/help" );
 	if ( res.code === "ok" ) {
 		return res.data;
 	} else {

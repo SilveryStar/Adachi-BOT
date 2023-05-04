@@ -20,12 +20,13 @@ export default express.Router()
 			return;
 		}
 		
-		const data = fileData.data;
+		const data: any = fileData.data;
 		
 		if ( fileName === "setting" ) {
 			delete data.password;
 			delete data.dbPassword;
-			delete data.webConsole.jwtSecret
+			delete data.webConsole.jwtSecret;
+			delete data.mailConfig.pass;
 		}
 		res.status( 200 ).send( { code: 200, data, msg: "Success" } );
 	} )
@@ -91,25 +92,29 @@ export default express.Router()
 		res.status( 200 ).send( { code: 200, data: {}, msg: "Success" } );
 	} )
 	.get( "/plugins", ( req, res ) => {
-		const configFiles = bot.file.getDirFiles( "" );
-		const data = configFiles.map( name => {
-			const fileName = name.replace( ".yml", "" );
-			/* 过滤非插件配置项 */
-			if ( [ "setting", "commands", "cookies", "whitelist" ].includes( fileName ) ) {
-				return null;
-			}
+		try {
+			const configFiles = bot.file.getDirFiles( "" );
+			const data = configFiles.map( name => {
+				const fileName = name.replace( ".yml", "" );
+				/* 过滤非插件配置项 */
+				if ( [ "setting", "commands", "cookies", "whitelist" ].includes( fileName ) ) {
+					return null;
+				}
+				
+				const fileData: FileData = getFileData( fileName );
+				if ( fileData.code !== 200 ) {
+					return null;
+				}
+				return { name: fileName, data: fileData.data };
+			} ).filter( c => !!c );
 			
-			const fileData: FileData = getFileData( fileName );
-			if ( fileData.code !== 200 ) {
-				return null;
-			}
-			return { name: fileName, data: fileData.data };
-		} ).filter( c => !!c );
-		
-		res.status( 200 ).send( { code: 200, data, msg: "Success" } );
+			res.status( 200 ).send( { code: 200, data, msg: "Success" } );
+		} catch ( error: any ) {
+			res.status( 500 ).send( { code: 500, data: {}, msg: error.message || "Server Error" } );
+		}
 	} )
 
-function getFileData( fileName: string ): FileData {
+function getFileData( fileName: string ): any {
 	const path = bot.file.getFilePath( `${ fileName }.yml` );
 	const exist = bot.file.isExist( path );
 	if ( !exist ) {
@@ -117,7 +122,7 @@ function getFileData( fileName: string ): FileData {
 	}
 	try {
 		return { code: 200, data: bot.file.loadYAML( fileName ) };
-	} catch ( error ) {
+	} catch ( error: any ) {
 		return { code: 500, data: error.message || "Server Error" };
 	}
 }

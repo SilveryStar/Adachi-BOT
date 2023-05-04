@@ -61,7 +61,7 @@ ij_xml_space_around_equals_in_attribute = false
 ij_xml_space_inside_empty_tag = false
 ij_xml_text_wrap = normal
 
-[{*.ats,*.ts}]
+[{*.ats,*.ts,*.vue}]
 indent_style = tab
 ij_continuation_indent_size = 4
 ij_smart_tabs = true

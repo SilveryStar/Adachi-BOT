@@ -1,9 +1,10 @@
 import { resolve } from "path"
-import { set } from "object-immutable-set";
 import { parse, stringify } from "yaml";
 import * as fs from "fs";
 
 export type PresetPlace = "config" | "plugin" | "root";
+
+export type FileType = "directory" | "file" | null;
 
 type Tuple<T, N extends number, L extends any[] = []> =
 	L["length"] extends N ? L : Tuple<T, N, [ ...L, T ]>;
@@ -13,6 +14,7 @@ type UpdateIndex = Union<string, 10>;
 
 interface ManagementMethod {
 	isExist( path: string ): boolean;
+	getFileType( path: string ): FileType;
 	getFilePath( path: string, place?: PresetPlace ): string;
 	renameFile( fileName: string, newName: string, place?: PresetPlace ): void;
 	readFile( fileName: string, place: PresetPlace ): string;
@@ -46,6 +48,20 @@ export default class FileManagement implements ManagementMethod {
 			return true;
 		} catch ( error ) {
 			return false;
+		}
+	}
+	
+	public getFileType( fileName: string, place: PresetPlace = "config" ): FileType {
+		try {
+			const path: string = this.getFilePath( fileName, place );
+			const stats = fs.statSync(path);
+			if ( stats.isFile() ) {
+				return "file";
+			} else {
+				return "directory";
+			}
+		} catch ( error ) {
+			return null;
 		}
 	}
 	
@@ -84,7 +100,7 @@ export default class FileManagement implements ManagementMethod {
 		} )
 	}
 	
-	public createDir( dirName: string, place: PresetPlace = "config", recursive: boolean = false  ): boolean {
+	public createDir( dirName: string, place: PresetPlace = "config", recursive: boolean = false ): boolean {
 		const path: string = this.getFilePath( dirName, place );
 		const exist: boolean = this.isExist( path );
 		if ( !exist ) {

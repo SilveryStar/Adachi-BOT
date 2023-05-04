@@ -18,7 +18,6 @@
  * @isUnlock 是否解锁
  * */
 export interface Abyss {
-	type: "abyss";
 	scheduleId: number;
 	startTime: string;
 	endTime: string;
@@ -82,12 +81,14 @@ export interface AbyssRoom {
 export interface AbyssBattle {
 	index: number;
 	timestamp: string;
-	avatars: {
-		id: number;
-		icon: string;
-		level: number;
-		rarity: number;
-	}[];
+	avatars: AbyssBattleAvatar[];
+}
+
+export interface AbyssBattleAvatar {
+	id: number;
+	icon: string;
+	level: number;
+	rarity: number;
 }
 
 /**

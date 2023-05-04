@@ -6,7 +6,6 @@
  * @t 最后更新时间戳（s）
  */
 export interface CalendarList {
-	type: "calendar-list";
 	list: CalendarListData[];
 	total: number;
 	t: string;
@@ -55,7 +54,6 @@ export interface CalendarListItem {
  * @total 总数
  */
 export interface CalendarDetail {
-	type: "calendar-detail";
 	list: CalendarDetailItem[];
 	total: number;
 }

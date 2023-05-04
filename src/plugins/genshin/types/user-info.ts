@@ -9,7 +9,6 @@
  * @homes 尘歌壶
  * */
 export interface UserInfo {
-	type: "user-info";
 	role: UserRole;
 	avatars: UserCharacter[];
 	stats: Stats;

@@ -7,5 +7,4 @@ export function getTokenByRequest(req: Request) {
 	} else if ( req.query && req.query.token ) {
 		return <string>req.query.token;
 	}
-	return null;
 }

@@ -1,8 +1,8 @@
 import bot from "ROOT";
-import { MessageType } from "@modules/message";
-import { InputParameter } from "@modules/command";
-import { UserInfo } from "#genshin/module/private/main";
-import { privateClass } from "#genshin/init";
+import { MessageType } from "@/modules/message";
+import { InputParameter } from "@/modules/command";
+import { UserInfo } from "#/genshin/module/private/main";
+import { privateClass } from "#/genshin/init";
 
 async function removePrivate( userID: number ): Promise<string> {
 	const settings: UserInfo[] = privateClass.getUserInfoList( userID );

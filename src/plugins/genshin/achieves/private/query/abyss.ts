@@ -1,12 +1,12 @@
-import { InputParameter, Order, SwitchMatchResult } from "@modules/command";
-import { Private } from "#genshin/module/private/main";
-import { Abyss } from "#genshin/types";
+import { InputParameter, Order, SwitchMatchResult } from "@/modules/command";
+import { Private } from "#/genshin/module/private/main";
+import { Abyss } from "#/genshin/types";
 import { Forwardable, segment } from "icqq";
-import { RenderResult } from "@modules/renderer";
-import { getPrivateAccount } from "#genshin/utils/private";
-import { getRegion } from "#genshin/utils/region";
-import { abyssInfoPromise } from "#genshin/utils/promise";
-import { renderer } from "#genshin/init";
+import { RenderResult } from "@/modules/renderer";
+import { getPrivateAccount } from "#/genshin/utils/private";
+import { getRegion } from "#/genshin/utils/region";
+import { abyssInfoPromise } from "#/genshin/utils/promise";
+import { renderer } from "#/genshin/init";
 import bot from "ROOT";
 
 /* 回复深渊多图消息 */
@@ -50,7 +50,7 @@ async function forwardAchieves( abyss: Abyss, uid: string, userID: number, {
 	const content: Forwardable[] = [];
 	for ( let floor of floorList ) {
 		const res: RenderResult = await renderer.asBase64(
-			"/abyss.html", { qq: userID, floor }
+			"/abyss", { qq: userID, floor }
 		);
 		if ( res.code === "error" ) {
 			logger.error( res.error );
@@ -67,13 +67,7 @@ async function forwardAchieves( abyss: Abyss, uid: string, userID: number, {
 	const isPrivate = messageData.message_type === "private";
 	
 	const replyMessage = await client.makeForwardMsg( content, isPrivate );
-	try {
-		await sendMessage( replyMessage, false );
-	} catch  {
-		const CALL = <Order>bot.command.getSingle( "adachi.call", await bot.auth.get( userID ) );
-		const appendMsg = CALL ? `私聊使用 ${ CALL.getHeaders()[0] } ` : "";
-		await sendMessage( `转发消息生成错误，请${ appendMsg }联系持有者进行反馈` );
-	}
+	await sendMessage( replyMessage, false );
 }
 
 /* 回复深渊单图消息 */
@@ -99,7 +93,7 @@ async function singleAchieves( abyss: Abyss, uid: string, userID: number, {
 	} );
 	
 	const res: RenderResult = await renderer.asSegment(
-		"/abyss-single.html", { qq: userID }
+		"/abyss-single", { qq: userID }
 	);
 	if ( res.code === "ok" ) {
 		await sendMessage( res.data );

@@ -1,8 +1,8 @@
 import { GroupMessageEvent } from "icqq";
-import { AuthLevel } from "@modules/management/auth";
-import { BasicConfig, InputParameter } from "@modules/command/main";
-import Database from "@modules/database";
-import * as m from "@modules/message";
+import { AuthLevel } from "@/modules/management/auth";
+import { BasicConfig, InputParameter } from "@/modules/command/main";
+import Database from "@/modules/database";
+import * as m from "@/modules/message";
 
 function getMessageType( msg: m.Message ): m.MessageType {
 	if ( m.isGroupMessage( msg ) ) {

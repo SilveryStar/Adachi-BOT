@@ -13,7 +13,6 @@
  * @region 服务器代号
  * */
 export interface Ledger {
-	type: "ledger";
 	accountId: number;
 	dataLastMonth: number;
 	dataMonth: number;

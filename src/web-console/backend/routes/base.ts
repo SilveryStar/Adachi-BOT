@@ -7,12 +7,12 @@ import { formatMemories } from "../utils/format";
 import { restart } from "pm2";
 import si from "systeminformation";
 
-interface DayData {
+export interface DayData {
 	dayID: string;
 	data: { hour: string, detail: string }[];
 }
 
-interface WeekData {
+export interface WeekData {
 	week: number;
 	data: DayData;
 }
@@ -65,19 +65,20 @@ export default express.Router()
 			
 			const resp = { weakData, userCount, groupCount, memories, cpuUsed };
 			res.status( 200 ).send( { code: 200, data: resp } );
-		} catch ( error ) {
+		} catch ( error: any ) {
 			res.status( 500 ).send( { code: 500, data: {}, msg: error.message || "Server Error" } );
 		}
 	} )
-	.post("/refresh", async (req, res) => {
+	.post( "/refresh", async ( req, res ) => {
 		try {
 			const resp: string[] = await bot.refresh.do();
 			res.status( 200 ).send( { code: 200, data: resp } );
-		} catch ( error ) {
+		} catch ( error: any ) {
 			res.status( 500 ).send( { code: 500, data: {}, msg: error.message || "Server Error" } );
 		}
-	})
-	.post("/restart", async (req, res) => {
-		restart( "adachi-bot", () => {} );
+	} )
+	.post( "/restart", async ( req, res ) => {
+		restart( "adachi-bot", () => {
+		} );
 		res.status( 200 ).send( { code: 200, data: {} } );
-	});
+	} );

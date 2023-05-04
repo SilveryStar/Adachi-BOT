@@ -1,9 +1,9 @@
-import { InputParameter } from "@modules/command";
-import { Private } from "#genshin/module/private/main";
-import { RenderResult } from "@modules/renderer";
-import { ledgerPromise } from "#genshin/utils/promise";
-import { getPrivateAccount } from "#genshin/utils/private";
-import { renderer } from "#genshin/init";
+import { InputParameter } from "@/modules/command";
+import { Private } from "#/genshin/module/private/main";
+import { RenderResult } from "@/modules/renderer";
+import { ledgerPromise } from "#/genshin/utils/promise";
+import { getPrivateAccount } from "#/genshin/utils/private";
+import { renderer } from "#/genshin/init";
 
 function monthCheck( m: number ) {
 	const optional: number[] = [];
@@ -59,7 +59,7 @@ export async function main(
 		}
 	}
 	
-	const res: RenderResult = await renderer.asSegment( "/ledger.html", { uid } );
+	const res: RenderResult = await renderer.asSegment( "/ledger", { uid } );
 	if ( res.code === "ok" ) {
 		await sendMessage( res.data );
 	} else {

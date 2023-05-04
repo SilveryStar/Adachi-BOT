@@ -1,7 +1,7 @@
-import { InputParameter, Order } from "@modules/command";
-import { RenderResult } from "@modules/renderer";
+import { InputParameter, Order } from "@/modules/command";
+import { RenderResult } from "@/modules/renderer";
 import { NameResult, getRealName } from "../utils/name";
-import { renderer, typeData } from "#genshin/init";
+import { renderer, typeData } from "#/genshin/init";
 import bot from "ROOT";
 
 export async function main(
@@ -23,7 +23,7 @@ export async function main(
 		if ( !checked( Object.keys( typeData.character ) ) && isSkillPage ) {
 			await sendMessage( "仅角色支持查看技能详情" );
 		} else {
-			const route: string = checked( typeData.artifact.suitNames ) ? "/info-artifact.html" : "/info.html";
+			const route: string = checked( typeData.artifact.suitNames ) ? "/info-artifact" : "/info";
 			const res: RenderResult = await renderer.asSegment(
 				route,
 				{ name: result.info, skill: isSkillPage }

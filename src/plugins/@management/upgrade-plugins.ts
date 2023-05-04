@@ -1,8 +1,8 @@
-import fetch from "node-fetch";
+import fetch, { Response } from "node-fetch";
 import { exec } from "child_process";
-import { InputParameter } from "@modules/command";
+import { InputParameter } from "@/modules/command";
 import { restart } from "pm2";
-import { PluginAlias, PluginUpgradeServices } from "@modules/plugin";
+import { PluginAlias, PluginUpgradeServices } from "@/modules/plugin";
 
 /* 超时检查 */
 function waitWithTimeout( promise: Promise<any>, timeout: number ): Promise<any> {
@@ -56,7 +56,7 @@ async function updateBotPlugin( {
 	try {
 		await waitWithTimeout( execPromise, 30000 );
 	} catch ( error ) {
-		logger.error( `更新 BOT Plugin:[${ pluginName }] 失败: ${ typeof error === "string" ? error : <Error>error.message }` );
+		logger.error( `更新 BOT Plugin:[${ pluginName }] 失败: ${ typeof error === "string" ? error : (<Error>error).message }` );
 		if ( typeof error === "string" ) {
 			throw error.includes( "timeout" ) ? `[${ pluginName }]更新失败，网络请求超时` : error;
 		} else {
@@ -148,7 +148,9 @@ export async function main( i: InputParameter ): Promise<void> {
 		try {
 			await updateBotPlugin( i, pluginName, isForce );
 			await i.sendMessage( `[${ pluginName }]插件更新完成，${ isRestart ? "正在重启服务..." : "请稍后手动重启 BOT" }` );
-			await i.redis.setString( dbKey, checkResult.newDate );
+			if ( checkResult.newDate ) {
+				await i.redis.setString( dbKey, checkResult.newDate );
+			}
 			if ( isRestart ) { // 重启服务
 				restart( "adachi-bot", async ( error ) => {
 					await i.sendMessage( `重启 BOT 出错: ${ error }` );
@@ -189,7 +191,9 @@ export async function main( i: InputParameter ): Promise<void> {
 			try {
 				await updateBotPlugin( i, key, isForce );
 				upgrade_plugins.push( key );
-				await i.redis.setString( dbKey, checkResult.newDate );
+				if ( checkResult.newDate ) {
+					await i.redis.setString( dbKey, checkResult.newDate );
+				}
 			} catch ( e ) {
 				if ( typeof e === "string" ) {
 					upgrade_errors.push( e );

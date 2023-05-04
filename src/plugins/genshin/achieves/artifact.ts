@@ -1,5 +1,5 @@
-import { InputParameter, Order } from "@modules/command";
-import { RenderResult } from "@modules/renderer";
+import { InputParameter, Order } from "@/modules/command";
+import { RenderResult } from "@/modules/renderer";
 import { artClass, renderer } from "../init";
 import bot from "ROOT";
 
@@ -16,7 +16,7 @@ export async function main(
 		return;
 	}
 	const res: RenderResult = await renderer.asSegment(
-		"/artifact.html",
+		"/artifact",
 		{ qq: userID, type: "init" }
 	);
 	if ( res.code === "ok" ) {

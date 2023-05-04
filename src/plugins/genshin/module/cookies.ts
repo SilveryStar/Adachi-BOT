@@ -1,5 +1,5 @@
 import bot from "ROOT";
-import { RefreshCatch } from "@modules/management/refresh";
+import { RefreshCatch } from "@/modules/management/refresh";
 
 export class Cookies {
 	private index: number;

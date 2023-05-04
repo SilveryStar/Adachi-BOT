@@ -1,8 +1,8 @@
-import { Private } from "#genshin/module/private/main";
-import { InputParameter } from "@modules/command";
-import { MysQueryService } from "#genshin/module/private/mys";
-import { NameResult, getRealName } from "#genshin/utils/name";
-import { characterID, privateClass } from "#genshin/init";
+import { Private } from "#/genshin/module/private/main";
+import { InputParameter } from "@/modules/command";
+import { MysQueryService } from "#/genshin/module/private/mys";
+import { NameResult, getRealName } from "#/genshin/utils/name";
+import { characterID, privateClass } from "#/genshin/init";
 
 export async function main( { sendMessage, messageData }: InputParameter ): Promise<void> {
 	const userID: number = messageData.user_id;

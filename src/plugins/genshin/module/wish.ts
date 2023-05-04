@@ -1,8 +1,8 @@
 import bot from "ROOT";
 import { updateWish, WishData } from "../utils/update";
 import { scheduleJob } from "node-schedule";
-import { randomInt } from "../utils/random";
-import { wishClass } from "#genshin/init";
+import { wishClass } from "#/genshin/init";
+import { getRandomNumber } from "@/utils/common";
 
 export interface WishResult {
 	type: string;
@@ -92,7 +92,7 @@ class Wish {
 	}
 	
 	private static getRandom( max: number = 1e4 ): number {
-		return randomInt( 1, max );
+		return getRandomNumber( 1, max );
 	}
 	
 	private readonly probFunc: probFn;

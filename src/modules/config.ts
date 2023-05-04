@@ -1,6 +1,7 @@
 import { AuthLevel } from "./management/auth";
-import FileManagement from "@modules/file";
-import { getRandomStr } from "@modules/utils";
+import FileManagement from "@/modules/file";
+import { getRandomString } from "@/utils/common";
+import { LogLevel } from "icqq";
 
 export default class BotConfig {
 	public readonly qrcode: boolean;
@@ -17,6 +18,7 @@ export default class BotConfig {
 	public readonly useWhitelist: boolean;
 	public readonly fuzzyMatch: boolean;
 	public readonly matchPrompt: boolean;
+	public readonly renderPort: number;
 	public readonly dbPort: number;
 	public readonly dbPassword: string;
 	public readonly inviteAuth: AuthLevel;
@@ -24,11 +26,9 @@ export default class BotConfig {
 	public readonly ThresholdInterval: boolean;
 	public readonly groupIntervalTime: number;
 	public readonly privateIntervalTime: number;
-	public readonly helpPort: number;
 	public readonly helpMessageStyle: string;
 	public readonly callTimes: number;
-	public readonly logLevel: "trace" | "debug" | "info" | "warn" |
-		"error" | "fatal" | "mark" | "off";
+	public readonly logLevel: LogLevel;
 	
 	public readonly mailConfig: {
 		readonly host: string;
@@ -62,7 +62,6 @@ export default class BotConfig {
 	
 	public readonly webConsole: {
 		readonly enable: boolean;
-		readonly consolePort: number;
 		readonly tcpLoggerPort: number;
 		readonly logHighWaterMark: number;
 		readonly jwtSecret: string;
@@ -92,12 +91,12 @@ export default class BotConfig {
 		useWhitelist: false,
 		fuzzyMatch: false,
 		matchPrompt: true,
+		renderPort: 80,
 		inviteAuth: "master",
 		countThreshold: 60,
 		ThresholdInterval: false,
 		groupIntervalTime: 1500,
 		privateIntervalTime: 2000,
-		helpPort: 54919,
 		helpMessageStyle: "message",
 		callTimes: 3,
 		logLevel: "info",
@@ -132,10 +131,9 @@ export default class BotConfig {
 		},
 		webConsole: {
 			enable: true,
-			consolePort: 80,
 			tcpLoggerPort: 54921,
 			logHighWaterMark: 64,
-			jwtSecret: getRandomStr( 16 )
+			jwtSecret: getRandomString( 16 )
 		},
 		autoChat: {
 			tip: "type参数说明：\n" +
@@ -151,21 +149,12 @@ export default class BotConfig {
 	};
 	
 	constructor( file: FileManagement ) {
-		const config: any = file.loadYAML( "setting" );
-		const checkFields: Array<keyof BotConfig> = [
-			"atBOT", "addFriend", "dbPassword",
-			"helpPort", "autoChat", "callTimes",
-			"fuzzyMatch", "matchPrompt", "useWhitelist",
-			"banScreenSwipe", "banHeavyAt", "ThresholdInterval",
-			"ffmpegPath", "ffprobePath", "mailConfig"
-		];
+		const config = this.register( file, "setting", BotConfig.initObject );
 		
-		for ( let key of checkFields ) {
-			if ( config[key] === undefined ) {
-				config[key] = BotConfig.initObject[key];
-			}
+		if ( !config.webConsole.jwtSecret ) {
+			config.webConsole.jwtSecret = getRandomString( 16 );
+			file.writeYAML( "setting", config );
 		}
-		file.writeYAML( "setting", config );
 		
 		this.atBOT = config.atBOT;
 		this.qrcode = config.qrcode;
@@ -180,20 +169,16 @@ export default class BotConfig {
 		this.autoChat = config.autoChat;
 		this.fuzzyMatch = config.fuzzyMatch;
 		this.matchPrompt = config.matchPrompt;
-		this.platform = config.platform;
+		this.renderPort = config.renderPort;
+		this.platform = <any>config.platform;
 		this.ffmpegPath = config.ffmpegPath;
 		this.ffprobePath = config.ffprobePath;
 		this.password = config.password;
-		this.helpPort = config.helpPort;
 		this.callTimes = config.callTimes;
 		this.groupIntervalTime = config.groupIntervalTime;
 		this.privateIntervalTime = config.privateIntervalTime;
 		this.countThreshold = config.countThreshold;
 		this.ThresholdInterval = config.ThresholdInterval;
-		if ( !config.webConsole.jwtSecret ) {
-			config.webConsole.jwtSecret = getRandomStr( 16 );
-			file.writeYAML( "setting", config );
-		}
 		this.mailConfig = {
 			host: config.mailConfig.host,
 			port: config.mailConfig.port,
@@ -225,7 +210,6 @@ export default class BotConfig {
 		
 		this.webConsole = {
 			enable: config.webConsole.enable,
-			consolePort: config.webConsole.consolePort,
 			tcpLoggerPort: config.webConsole.tcpLoggerPort,
 			logHighWaterMark: config.webConsole.logHighWaterMark,
 			jwtSecret: config.webConsole.jwtSecret?.toString()
@@ -247,7 +231,31 @@ export default class BotConfig {
 			"trace", "debug", "info", "warn",
 			"error", "fatal", "mark", "off"
 		];
-		this.logLevel = logLevelList.includes( config.logLevel )
-			? config.logLevel : "info";
+		this.logLevel = <any>( logLevelList.includes( config.logLevel )
+			? config.logLevel : "info" );
+	}
+	
+	public register<T extends Record<string, any>>( file: FileManagement, filename: string, initCfg: T ): T {
+		const path: string = file.getFilePath( `${ filename }.yml` );
+		const isExist: boolean = file.isExist( path );
+		if ( !isExist ) {
+			file.createYAML( filename, initCfg );
+			return initCfg;
+		}
+		
+		const config: any = file.loadYAML( filename );
+		const keysNum = o => Object.keys( o ).length;
+		
+		/* 检查 defaultConfig 是否更新 */
+		if ( keysNum( config ) === keysNum( initCfg ) ) {
+			return config;
+		}
+		
+		const c: any = Object.fromEntries( Object.entries( initCfg ).map( ( [ k, v ] ) => {
+			return [ k, config[k] || v ];
+		} ) );
+		
+		file.writeYAML( filename, c );
+		return c;
 	}
 }

@@ -1,7 +1,7 @@
-import { InputParameter, SwitchMatchResult } from "@modules/command";
-import idParser from "#@help/utils/id-parser";
-import { MessageType } from "@modules/message";
-import { AuthLevel } from "@modules/management/auth";
+import { InputParameter, SwitchMatchResult } from "@/modules/command";
+import idParser from "#/@help/utils/id-parser";
+import { MessageType } from "@/modules/message";
+import { AuthLevel } from "@/modules/management/auth";
 
 export async function main( { sendMessage, matchResult, messageData, auth, redis }: InputParameter ): Promise<void> {
 	const match = <SwitchMatchResult>matchResult;

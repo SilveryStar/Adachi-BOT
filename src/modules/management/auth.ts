@@ -1,5 +1,5 @@
-import BotConfig from "@modules/config";
-import Database from "@modules/database";
+import BotConfig from "@/modules/config";
+import Database from "@/modules/database";
 
 export enum AuthLevel {
 	Banned,

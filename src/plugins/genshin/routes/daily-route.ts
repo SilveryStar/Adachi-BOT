@@ -1,4 +1,4 @@
-import { deepParse } from "#genshin/utils/deep-parse";
+import { deepParse } from "#/genshin/utils/deep-parse";
 import express from "express";
 import bot from "ROOT";
 

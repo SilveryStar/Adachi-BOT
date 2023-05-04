@@ -1,5 +1,5 @@
-import { InputParameter, Order } from "@modules/command";
-import { RenderResult } from "@modules/renderer";
+import { InputParameter, Order } from "@/modules/command";
+import { RenderResult } from "@/modules/renderer";
 import { almanacClass, renderer } from "../init";
 import bot from "ROOT";
 
@@ -7,7 +7,7 @@ export async function main(
 	{ sendMessage, redis, logger, auth, messageData }: InputParameter
 ): Promise<void> {
 	await redis.setString( "silvery-star.almanac", almanacClass.get() );
-	const res: RenderResult = await renderer.asSegment( "/almanac.html" );
+	const res: RenderResult = await renderer.asSegment( "/almanac" );
 	
 	if ( res.code === "ok" ) {
 		await sendMessage( res.data );

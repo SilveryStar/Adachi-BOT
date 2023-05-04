@@ -1,7 +1,7 @@
 import moment from "moment";
 import bot from "ROOT";
-import { randomInt } from "../utils/random";
 import { getSlip } from "../utils/api";
+import { getRandomNumber } from "@/utils/common";
 
 export interface SlipDetail {
 	SlipInfo: string[];
@@ -29,7 +29,7 @@ export class SlipClass {
 			return data.slip;
 		}
 		
-		const slip: string = this.slip[ randomInt( 0, this.slipNum - 1 ) ];
+		const slip: string = this.slip[ getRandomNumber( 0, this.slipNum - 1 ) ];
 		await bot.redis.setHash( dbKey, { today, slip } );
 		return slip;
 	}

@@ -1,6 +1,6 @@
 import bot from "ROOT";
 import * as sdk from "icqq";
-import BotConfig from "@modules/config";
+import BotConfig from "@/modules/config";
 
 export enum MessageScope {
 	Neither,

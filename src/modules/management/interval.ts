@@ -1,5 +1,5 @@
-import BotConfig from "@modules/config";
-import Database from "@modules/database";
+import BotConfig from "@/modules/config";
+import Database from "@/modules/database";
 
 export type IntervalType = "private" | "group";
 
@@ -11,7 +11,7 @@ export interface IntervalSettingData {
 class IntervalSetting {
 	public dbKey: string;
 	public globalLimit: number;
-	public limitList: Record<string, number> = {};
+	public limitList: Record<string, string> = {};
 	
 	constructor( redis: Database, dbKey: string, limit: number ) {
 		this.dbKey = dbKey;
@@ -22,7 +22,7 @@ class IntervalSetting {
 	}
 	
 	public get( userID: number | string ): number {
-		return this.limitList[userID] || this.globalLimit;
+		return this.limitList[userID] ? Number.parseInt( this.limitList[userID] ) : this.globalLimit;
 	}
 }
 
@@ -69,6 +69,6 @@ export default class Interval {
 		const setting: IntervalSetting = this.settingData[type].setting;
 		await this.redis.setHash( setting.dbKey, { [id]: time } );
 		
-		setting.limitList[id] = time;
+		setting.limitList[id] = time.toString();
 	}
 }

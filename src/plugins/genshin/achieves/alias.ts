@@ -1,5 +1,5 @@
-import { InputParameter, SwitchMatchResult } from "@modules/command";
-import { aliasClass, typeData } from "../init";
+import { InputParameter, SwitchMatchResult } from "@/modules/command";
+import { aliasClass, typeData } from "#/genshin/init";
 
 export async function main(
 	{ sendMessage, matchResult, redis }: InputParameter

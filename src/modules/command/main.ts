@@ -1,12 +1,12 @@
 import * as cmd from "./index";
 import bot from "ROOT";
-import Plugin, { PluginRawConfigs } from "@modules/plugin";
-import FileManagement from "@modules/file";
-import { RefreshCatch } from "@modules/management/refresh";
-import { Message, MessageScope, SendFunc } from "../message";
+import Plugin, { PluginRawConfigs } from "@/modules/plugin";
+import FileManagement from "@/modules/file";
+import { RefreshCatch } from "@/modules/management/refresh";
+import { Message, MessageScope, SendFunc } from "@/modules/message";
 import { Enquire, Order, Switch } from "./index";
 import { AuthLevel } from "../management/auth";
-import { BOT } from "../bot";
+import { BOT } from "@/main";
 import { trimStart, without } from "lodash";
 
 type Optional<T> = {

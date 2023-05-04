@@ -1,10 +1,10 @@
 import bot from "ROOT";
 import express from "express";
-import { AuthLevel } from "@modules/management/auth";
+import { AuthLevel } from "@/modules/management/auth";
 import { GroupInfo, GroupRole, MemberInfo } from "icqq";
-import { delay, getRandomNumber } from "@modules/utils";
+import { sleep, getRandomNumber } from "@/utils/common";
 
-type GroupData = {
+export interface GroupData {
 	groupId: number;
 	groupAvatar: string;
 	groupName: string;
@@ -52,7 +52,7 @@ export default express.Router()
 			
 			const cmdKeys: string[] = bot.command.cmdKeys;
 			res.status( 200 ).send( { code: 200, data: { groupInfos, cmdKeys }, total: groupData.length } );
-		} catch ( error ) {
+		} catch ( error: any ) {
 			res.status( 500 ).send( { code: 500, data: {}, msg: error.message || "Server Error" } );
 		}
 		
@@ -87,9 +87,9 @@ export default express.Router()
 		/* 封禁相关 */
 		const banDbKey = "adachi.banned-group";
 		if ( auth === 1 ) {
-			await bot.redis.addListElement( banDbKey, groupId );
+			await bot.redis.addListElement( banDbKey, groupId.toString() );
 		} else {
-			await bot.redis.delListElement( banDbKey, groupId );
+			await bot.redis.delListElement( banDbKey, groupId.toString() );
 		}
 		
 		await bot.interval.set( groupId, "private", int );
@@ -148,7 +148,7 @@ export default express.Router()
 			await bot.client.setGroupLeave( groupId );
 			await bot.client.reloadGroupList();
 			res.status( 200 ).send( { code: 200, data: {}, msg: "Success" } );
-		} catch ( error ) {
+		} catch ( error: any ) {
 			res.status( 500 ).send( { code: 500, data: [], msg: error.message || "Server Error" } );
 		}
 	} )
@@ -163,14 +163,14 @@ export default express.Router()
 			let first: boolean = true;
 			for ( const id of groupIds ) {
 				if ( !first ) {
-					await delay( getRandomNumber( 100, 1000 ) );
+					await sleep( getRandomNumber( 100, 1000 ) );
 				}
 				await bot.client.pickGroup( id ).quit();
 				first = false;
 			}
 			await bot.client.reloadGroupList();
 			res.status( 200 ).send( { code: 200, data: {}, msg: "Success" } );
-		} catch ( error ) {
+		} catch ( error: any ) {
 			res.status( 500 ).send( { code: 500, data: [], msg: error.message || "Server Error" } );
 		}
 	} )
