@@ -144,7 +144,7 @@ export class BasicRenderer implements RenderMethods {
 			}
 			try {
 				const browser = await puppeteer.launch( {
-					headless: "new",
+					headless: false,
 					args: [
 						"--no-sandbox",
 						"--disable-setuid-sandbox",
