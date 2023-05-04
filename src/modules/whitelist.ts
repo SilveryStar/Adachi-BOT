@@ -16,7 +16,7 @@ export default class WhiteList {
 		if ( !isExist ) {
 			this.createConfig( file );
 		}
-		const data: WhiteListConfig = file.loadYAML( "whitelist" );
+		const data = <WhiteListConfig>(file.loadYAML( "whitelist" ) || {});
 		
 		this.userList = <number[]>data.user.filter( w => typeof w === "number" );
 		this.groupList = <number[]>data.group.filter( w => typeof w === "number" );

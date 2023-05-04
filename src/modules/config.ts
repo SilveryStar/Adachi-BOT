@@ -243,7 +243,7 @@ export default class BotConfig {
 			return initCfg;
 		}
 		
-		const config: any = file.loadYAML( filename );
+		const config: any = file.loadYAML( filename ) || {};
 		const keysNum = o => Object.keys( o ).length;
 		
 		/* 检查 defaultConfig 是否更新 */

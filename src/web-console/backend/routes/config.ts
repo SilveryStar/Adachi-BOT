@@ -121,7 +121,7 @@ function getFileData( fileName: string ): any {
 		return { code: 404, data: "Not Found" };
 	}
 	try {
-		return { code: 200, data: bot.file.loadYAML( fileName ) };
+		return { code: 200, data: bot.file.loadYAML( fileName ) || {} };
 	} catch ( error: any ) {
 		return { code: 500, data: error.message || "Server Error" };
 	}

@@ -5,6 +5,9 @@ import { getConfigValue } from "@/utils/common";
 import { extname } from "path";
 import { RenderRoutes, ServerRouters } from "@/types/render";
 import { Router } from "express";
+import { IOssListObject } from "@/types/oss";
+import axios, { AxiosError, AxiosResponse } from "axios";
+import Progress from "@/utils/progress";
 
 export interface PluginLoadResult {
 	renderRoutes: Array<RenderRoutes>;
@@ -26,7 +29,7 @@ export interface PluginSetting {
 	pluginName: string;
 	cfgList: cmd.ConfigType[];
 	aliases?: string[];
-	render?: boolean | {
+	renderer?: boolean | {
 		dirname?: string;
 		mainFiles?: string[];
 	};
@@ -38,6 +41,11 @@ export interface PluginSetting {
 		repoName: string;// 仓库名称
 		ref?: string;// 分支名称
 	}; // 设置为非必须兼容低版本插件
+	assets?: string | { // 是否从线上同步更新静态资源
+		manifestUrl: string; // 线上 manifest.yml 文件地址
+		saveTarget?: string; // 保存到本地的目标目录名
+		overflowPrompt?: string; // 超出最大更新数量后给予的提示消息
+	};
 }
 
 export const PluginReSubs: Record<string, PluginSubSetting> = {};
@@ -62,15 +70,15 @@ export default class Plugin {
 		for ( let plugin of plugins ) {
 			try {
 				const { init, subInfo } = await import( `#/${ plugin }/init.ts` );
-				const { pluginName, render, server, cfgList, repo, aliases }: PluginSetting = await init( bot );
+				const { pluginName, renderer, server, cfgList, repo, aliases, assets }: PluginSetting = await init( bot );
 				if ( subInfo ) {
 					const { reSub, subs }: PluginSubSetting = await subInfo( bot );
 					PluginReSubs[pluginName] = { reSub, subs };
 				}
 				// 加载前端渲染页面路由
-				if ( render ) {
-					const renderDir = getConfigValue( render, "dirname", "views" );
-					const mainFiles = getConfigValue( render, "mainFiles", [ "index" ] );
+				if ( renderer ) {
+					const renderDir = getConfigValue( renderer, "dirname", "views" );
+					const mainFiles = getConfigValue( renderer, "mainFiles", [ "index" ] );
 					const views = bot.file.getDirFiles( `${ plugin }/${ renderDir }`, "plugin" );
 					views.forEach( v => {
 						const route = setRenderRoute( bot, plugin, renderDir, mainFiles, v );
@@ -104,6 +112,8 @@ export default class Plugin {
 					}
 				}
 				registerCmd.push( ...commands );
+				// 检查更新插件静态资源
+				await checkUpdate( plugin, assets, bot );
 				bot.logger.info( `插件 ${ pluginName } 加载完成` );
 			} catch ( error ) {
 				bot.logger.error( `插件 ${ plugin } 加载异常: ${ <string>error }` );
@@ -118,20 +128,20 @@ export default class Plugin {
 		pluginName: string
 	): cmd.BasicConfig[] {
 		const commands: cmd.BasicConfig[] = [];
-		const data: Record<string, any> = bot.file.loadYAML( "commands" );
+		const data: Record<string, any> = bot.file.loadYAML( "commands" ) || {};
 		
 		/* 此处删除所有向后兼容代码 */
 		cfgList.forEach( config => {
 			/* 允许 main 传入函数 */
-			if ( config.main instanceof Function ) {
-				config.run = config.main;
-			} else {
+			if ( typeof config.main === "string" ) {
 				const main: string = config.main || "index";
 				const path: string = bot.file.getFilePath(
 					pluginName + "/" + main,
 					"plugin"
 				);
 				config.run = require( path ).main;
+			} else {
+				config.run = config.main;
 			}
 			
 			const key: string = config.cmdKey;
@@ -167,6 +177,71 @@ export default class Plugin {
 		bot.file.writeYAML( "commands", data );
 		return commands;
 	}
+}
+
+// 1、获取本地清单文件内容 manifestData
+// 2、传递本地清单文件调用接口，接口：获取线上清单目录文件，diff算法对比两个清单文件差异性，返回差异性部分
+// 3、依次下载清单文件列表文件，每下载完成一个时更新 manifestData 内容
+// 4、下载完毕后以 manifestData 内容更新本地清单文件
+async function checkUpdate( pluginName: string, assets: PluginSetting["assets"], bot: BOT ): Promise<void> {
+	if ( !assets ) return;
+	const baseUrl = `${ pluginName }/${ getConfigValue( assets, "saveTarget", "static_assets" ) }`;
+	const manifestName = `${ baseUrl }/manifest`;
+	const manifest = <IOssListObject[]>( bot.file.loadYAML( manifestName, "plugin" ) || [] );
+	let res: AxiosResponse<{
+		code: number;
+		data: IOssListObject[];
+		msg: string;
+	}>;
+	
+	try {
+		res = await axios.post( "https://api-kozakura.marrydream.top/common/adachi/v1/oss/update/files", {
+			url: typeof assets === "string" ? assets : assets.manifestUrl,
+			list: manifest
+		} );
+	} catch ( error: any ) {
+		if ( ( <AxiosError>error ).response?.status === 415 ) {
+			bot.logger.error( getConfigValue( assets, "overflowPrompt", "更新文件数量超过阈值，请手动更新资源包" ) );
+		} else {
+			bot.logger.error( ( <Error>error ).stack );
+		}
+		return;
+	}
+	const data = res.data.data;
+	// 不存在更新项，返回
+	if ( !data.length ) {
+		bot.logger.info( `未检测到 ${ pluginName } 可更新静态资源` );
+	}
+	const progress = new Progress(`下载 ${ pluginName } 静态资源`, data.length);
+	
+	let downloadNum: number = 0;
+	// 更新图片promise列表
+	const updatePromiseList: Promise<void>[] = data.map( async file => {
+		try {
+			const fileRes = await axios.get( file.url, {
+				responseType: "arraybuffer"
+			} );
+			const fileBuffer: Buffer = Buffer.from( fileRes.data );
+			bot.file.createFileRecursion( `${ baseUrl }/${ file.name }`, fileBuffer, "plugin" );
+			// 删除本地清单文件中已存在的当前项
+			const key = manifest.findIndex( item => item.name === file.name );
+			if ( key !== -1 ) {
+				manifest.splice( key, 1 );
+			}
+			manifest.push( file );
+			downloadNum ++;
+			progress.renderer( downloadNum, bot.config.webConsole.enable );
+			
+		} catch ( error ) {
+			bot.logger.error( `静态资源 ${ file.name } 更新失败：${ ( <Error>error ).message }` );
+		}
+	} );
+	
+	// 遍历下载资源文件
+	await Promise.all( updatePromiseList );
+	
+	// 写入清单文件
+	bot.file.writeYAML( manifestName, manifest, "plugin" );
 }
 
 /* 获取插件渲染页的路由对象 */

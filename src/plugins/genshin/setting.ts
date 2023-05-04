@@ -375,10 +375,15 @@ export default <PluginSetting>{
 		privateToggleNote, privateNoteEvent, privateNowNote,
 		privateAbyssQuery, privateLedger
 	],
-	render: {
-		mainFiles: [ "index", "app" ]
+	renderer: {
+		mainFiles: ["index", "app"]
 	},
 	server: {
 		routers: serverRouters
+	},
+	assets: {
+		manifestUrl: "https://oss.marrydream.top/Version2/adachi_assets_manifest.yml",
+		saveTarget: "static_assets",
+		overflowPrompt: "更新文件数量超过阈值，请手动前往 https://github.com/SilveryStar/Adachi-BOT/release 更新资源包"
 	}
 };

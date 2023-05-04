@@ -64,7 +64,7 @@ export default class Refreshable implements RefreshableMethod {
 				let message: string = "";
 				if ( setting.type === "file" ) {
 					const { fileName, place } = setting;
-					const config = bot.file.loadYAML( fileName, place );
+					const config: any = bot.file.loadYAML( fileName, place ) || {};
 					message = await setting.target.refresh( config );
 				} else {
 					message = await setting.target.refresh();

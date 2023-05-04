@@ -22,9 +22,10 @@ interface ManagementMethod {
 	createDir( dirName: string, place?: PresetPlace, recursive?: boolean ): boolean;
 	getDirFiles( dirName: string, place?: PresetPlace ): string[];
 	createFile( fileName: string, data: any, place?: PresetPlace ): boolean;
+	createFileRecursion( fileName: string, data: any, place?: PresetPlace ): boolean;
 	createYAML( ymlName: string, data: any, place?: PresetPlace ): boolean;
 	loadFile( fileName: string, place?: PresetPlace ): any;
-	loadYAML( ymlName: string, place?: PresetPlace ): any;
+	loadYAML( ymlName: string, place?: PresetPlace ): Record<string, any> | null;
 	writeYAML( ymlName: string, data: any, place?: PresetPlace ): void;
 	writeFile( fileName: string, data: any, place?: PresetPlace ): void;
 	updateYAML( ymlName: string, data: any, place?: PresetPlace, ...index: string[] ): void;
@@ -123,6 +124,17 @@ export default class FileManagement implements ManagementMethod {
 		return exist;
 	}
 	
+	public createFileRecursion( fileName: string, data: any, place: PresetPlace = "config" ): boolean {
+		const fileList = fileName.split( "/" );
+		// 遍历创建父级目录
+		const filePath = fileList.reduce( ( prev, cur  ) => {
+			this.createDir( prev, place );
+			return `${prev}/${cur}`;
+		} );
+		const exist: boolean = this.createFile(filePath, data, place);
+		return exist;
+	}
+	
 	public createYAML( ymlName: string, data: any, place: PresetPlace = "config" ): boolean {
 		const path: string = this.getFilePath( ymlName, place ) + ".yml";
 		const exist: boolean = this.isExist( path );
@@ -134,13 +146,21 @@ export default class FileManagement implements ManagementMethod {
 	
 	public loadFile( fileName: string, place: PresetPlace = "config" ): string {
 		const path: string = this.getFilePath( fileName, place );
-		return fs.readFileSync( path, "utf-8" );
+		try {
+			return fs.readFileSync( path, "utf-8" );
+		} catch {
+			return "";
+		}
 	}
 	
-	public loadYAML( ymlName: string, place: PresetPlace = "config" ): any {
+	public loadYAML( ymlName: string, place: PresetPlace = "config" ): Record<string, any> | null {
 		const path: string = this.getFilePath( ymlName, place ) + ".yml";
-		const file: string = fs.readFileSync( path, "utf-8" );
-		return parse( file ) || {};
+		try {
+			const file: string = fs.readFileSync( path, "utf-8" );
+			return parse( file ) || null;
+		} catch {
+			return null;
+		}
 	}
 	
 	public writeFile( fileName: string, data: any, place: PresetPlace = "config" ): void {
@@ -163,7 +183,7 @@ export default class FileManagement implements ManagementMethod {
 		place: PresetPlace = "config",
 		...index: string[]
 	): void {
-		const oldData: any = this.loadYAML( ymlName, place );
+		const oldData: any = this.loadYAML( ymlName, place ) || {};
 		// @ts-ignore
 		const newData: any = set( oldData, index, data );
 		this.writeYAML( ymlName, newData, place );

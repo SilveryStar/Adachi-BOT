@@ -34,7 +34,7 @@ export class AlmanacClass {
 		} else {
 			const res: Record<string, FortuneData[]> = bot.file.loadYAML(
 				"genshin/data/almanac", "plugin"
-			);
+			) || {};
 			this.auspicious = res.auspicious;
 			this.inauspicious = res.inauspicious;
 		}

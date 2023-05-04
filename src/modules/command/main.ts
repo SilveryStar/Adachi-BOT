@@ -131,7 +131,7 @@ export default class Command {
 		this.pUnionReg = Command.initAuthObject();
 		this.gUnionReg = Command.initAuthObject();
 		
-		this.cmdKeys = without( Object.keys( file.loadYAML( "commands" ) ), "tips" );
+		this.cmdKeys = without( Object.keys( ( file.loadYAML( "commands" ) || {} ) ), "tips" );
 	}
 	
 	private static initAuthObject(): Record<AuthLevel, any> {

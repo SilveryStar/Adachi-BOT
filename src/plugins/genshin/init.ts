@@ -4,8 +4,6 @@ import { BOT } from "@/main";
 import { PluginSetting, PluginSubSetting, SubInfo } from "@/modules/plugin";
 import GenshinConfig from "./module/config";
 import * as m from "./module";
-import { apis } from "#/genshin/utils/api";
-import { FetchServer } from "@/utils/request";
 
 export let config: GenshinConfig;
 
@@ -62,7 +60,8 @@ export async function subInfo(): Promise<PluginSubSetting> {
 	}
 }
 
-export async function init( { file, renderer: botRenderer, refresh, config: botConfig }: BOT ): Promise<PluginSetting> {
+export async function init( i: BOT ): Promise<PluginSetting> {
+	const { file, renderer: botRenderer, refresh, config: botConfig } = i;
 	/* 加载 genshin.yml 配置 */
 	const configData = botConfig.register( file, "genshin", GenshinConfig.init );
 	config = new GenshinConfig( configData );

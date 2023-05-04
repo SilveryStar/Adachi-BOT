@@ -19,6 +19,7 @@ dist-ssr
 /logs/
 /src/data/
 /src/plugins/genshin/data/
+/src/plugins/*/static_assets
 
 # Editor directories and files
 .vscode/*
