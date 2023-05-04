@@ -19,6 +19,7 @@
 
 <script lang="ts" setup>
 import { computed } from "vue";
+import { getAssetsFile } from "#/genshin/front-utils/pub-use";
 
 const props = withDefaults( defineProps<{
 	d: Record<string, any>;
@@ -38,7 +39,7 @@ function toString( num ) {
 }
 
 const boxBackground = computed( () => {
-	return `/genshin/public/images/item/${ toString( props.d.rank ) }Background.png`;
+	return getAssetsFile( `public/images/item/${ toString( props.d.rank ) }Background.png` );
 } );
 const mainImage = computed( () => {
 	const type = props.d.type === "武器" ? "weapon" : "character";
@@ -46,10 +47,10 @@ const mainImage = computed( () => {
 } );
 const typeIcon = computed( () => {
 	const type = props.d.type === "武器" ? "type" : "element";
-	return `/genshin/public/images/${ type }/${ props.d.el }.png`;
+	return getAssetsFile( `public/images/${ type }/${ props.d.el }.png` );
 } );
 const rankIcon = computed( () => {
-	return `/genshin/public/images/item/${ toString( props.d.rank ) }Star.png`;
+	return getAssetsFile( `public/images/item/${ toString( props.d.rank ) }Star.png` );
 } );
 </script>
 

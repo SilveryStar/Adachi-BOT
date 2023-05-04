@@ -1,6 +1,6 @@
 <template>
 	<div v-if="data" id="app" class="wish">
-		<img class="background" src="/genshin/public/images/item/background.png" alt="ERROR"/>
+		<img class="background" :src="getAssetsFile('public/images/item/background.png')" alt="ERROR"/>
 		<p class="time">@{{ data.nickname }} at {{ fullDate }}</p>
 		<div class="wish-list">
 			<WishBox v-for="d in data.result"
@@ -16,6 +16,7 @@ import $https from "#/genshin/front-utils/api";
 import { getFullDate } from "#/genshin/front-utils/date";
 import { urlParamsGet } from "@/utils/common";
 import WishBox from "./box.vue";
+import { getAssetsFile } from "#/genshin/front-utils/pub-use";
 
 const urlParams = urlParamsGet( location.href );
 

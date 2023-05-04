@@ -11,7 +11,7 @@ import $https from "#/genshin/front-utils/api";
 import Base from "./base.vue";
 import AbyssOverview from "./overview.vue";
 import { urlParamsGet } from "@/utils/common";
-import { Abyss, AbyssFloor } from "#/genshin/types";
+import { Abyss, AbyssFloors } from "#/genshin/types";
 
 export type OverviewData = Omit<Abyss, "scheduleId" | "startTime" | "totalWinTimes" | "floors" | "isUnlock"> & {
 	floor: "0";
@@ -21,7 +21,7 @@ export type OverviewData = Omit<Abyss, "scheduleId" | "startTime" | "totalWinTim
 export interface FloorData {
 	floor: string;
 	info: string;
-	data: AbyssFloor
+	data: AbyssFloors
 }
 
 type AbyssData = FloorData & OverviewData;

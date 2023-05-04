@@ -26,7 +26,6 @@ export default class WebConsole {
 	}
 	
 	private async createConsole( tcp: number ) {
-		this.app.use( express.static( resolve( __dirname, "./frontend" ) ) );
 		this.app.use( "/oicq/data", express.static( resolve( process.cwd(), "data" ) ) );
 		this.app.use( express.json() );
 		this.app.use( express.urlencoded( { extended: false } ) );
