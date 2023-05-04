@@ -188,11 +188,7 @@ async function addMsgToList( msg: LogMessage[] ) {
 function runWS() {
 	let protocol = document.location.protocol === "https:" ? "wss:" : "ws:";
 	ws.value = new WebSocket( `${ protocol }//${ document.location.host }/ws/log` );
-	ws.value!.onopen = () => {
-		console.log("日志服务器链接成功");
-	}
 	ws.value!.onmessage = event => {
-		console.log(event, "???")
 		const msg: LogMessage[] = filterWsLogs( JSON.parse( event.data ) );
 		if ( msg.length === 0 ) {
 			return;
@@ -225,7 +221,7 @@ function filterWsLogs( logs ) {
 			return false;
 		}
 		/* 过滤消息类型 */
-		if ( !Number.isNaN( msgType ) ) {
+		if ( typeof msgType === "number" ) {
 			const reg = /^(?:send to|recv from): \[(Group|Private): .*?(\d+)/;
 			const result = reg.exec( el.message );
 			if ( result ) {

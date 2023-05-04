@@ -1,10 +1,10 @@
 {
   "name": "vite-ssr-vue",
   "private": true,
-  "version": "3.0.0",
+  "version": "3.0.1",
   "scripts": {
-    "dev": "nodemon --exec ts-node-esm --typeCheck --experimental-specifier-resolution=node app.ts",
-    "win-start": "ts-node-esm --experimental-specifier-resolution=node app.ts",
+    "dev": "nodemon --exec ts-node --typeCheck app.ts",
+    "win-start": "ts-node app.ts",
     "start": "pm2 start adachi-bot.config.js",
     "docker-start": "pm2-runtime start adachi-bot.config.js",
     "restart": "npm i --registry https://registry.npmmirror.com && pm2 restart adachi-bot.config.js",

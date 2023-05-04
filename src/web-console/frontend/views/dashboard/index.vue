@@ -30,7 +30,7 @@
 <script lang="ts" setup>
 import $http from "&/api";
 import * as echarts from "echarts";
-import { onMounted, onUnmounted, reactive, nextTick, ref } from "vue";
+import { onMounted, onUnmounted, reactive, nextTick, ref, shallowRef } from "vue";
 import { WeekData } from "@/web-console/backend/routes/base";
 
 interface HourlyUsageItem {
@@ -157,7 +157,7 @@ function getDayData() {
 	return hourlyUsage.value[d];
 }
 
-const weekChart = ref<echarts.EChartsType | null>( null );
+const weekChart = shallowRef<echarts.EChartsType | null>( null );
 const weekOption = reactive<any>( JSON.parse( JSON.stringify( defaultOption ) ) );
 const weekChartRef = ref<HTMLDivElement | null>( null );
 
@@ -176,7 +176,7 @@ function initWeekChart() {
 	weekChart.value?.on( "click", dayChange );
 }
 
-const dayChart = ref<echarts.EChartsType | null>( null );
+const dayChart = shallowRef<echarts.EChartsType | null>( null );
 const dayOption = reactive<any>( JSON.parse( JSON.stringify( defaultOption ) ) );
 const dayChartRef = ref<HTMLDivElement | null>( null );
 
@@ -256,10 +256,14 @@ function initChart() {
 	nextTick( () => resizeCharts() );
 }
 
-onMounted( async () => {
+async function init() {
 	await getData( new Date() );
 	initChart();
 	addEventListener( "resize", resizeCharts );
+}
+
+onMounted( () => {
+	init();
 } );
 
 onUnmounted( () => {

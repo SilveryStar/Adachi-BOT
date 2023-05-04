@@ -7,15 +7,17 @@ import { RenderRoutes, ServerRouters } from "@/types/render";
 import * as process from "process";
 import BotConfig from "@/modules/config";
 import WebConsole from "@/web-console";
+import useWebsocket, { Application } from "express-ws";
 
 export default class RenderServer {
-	private readonly app: Express;
+	private readonly app: Application;
 	private serverRouters: Array<ServerRouters> = [];
 	private renderRoutes: Array<RenderRoutes> = [];
 	private isFirstListen: boolean = true;
 	
 	constructor( config: BotConfig, logger: Logger ) {
-		this.app = express();
+		const wsInstance = useWebsocket( express() );
+		this.app = wsInstance.app;
 		this.createServer( config, logger ).catch();
 	}
 	
