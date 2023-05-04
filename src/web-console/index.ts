@@ -3,17 +3,17 @@ import { scheduleJob } from "node-schedule";
 import { createServer } from "net";
 import { expressjwt as jwt } from "express-jwt";
 import BotConfig from "@/modules/config";
-import useWebsocket from "express-ws";
-import express, { Express, Router } from "express";
+import { Application } from "express-ws";
+import express, { Router } from "express";
 import * as r from "./backend/routes";
 import { getTokenByRequest } from "./backend/utils/request";
 import { LogMessage } from "@/types/logger";
 
 export default class WebConsole {
-	private readonly app: Express;
+	private readonly app: Application;
 	private readonly secret: string;
 	
-	constructor( app: Express, config: BotConfig ) {
+	constructor( app: Application, config: BotConfig ) {
 		this.app = app;
 		const cfg = config.webConsole;
 		
@@ -41,31 +41,28 @@ export default class WebConsole {
 		this.useApi( "/api/message", r.MessageRouter );
 		this.useApi( "/api/config", r.ConfigRouter );
 		
+		let messageCache: string = "";
+		this.app.ws( "/ws/log", ( ws, req ) => {
+			messageCache = "";
+			const cron: string = "*/2 * * * * ?";
+			const job = scheduleJob( cron, () => {
+				if ( messageCache.length !== 0 ) {
+					const data: LogMessage[] = messageCache.split( "__ADACHI__" )
+						.filter( el => el.length !== 0 )
+						.map( el => JSON.parse( el ) );
+					ws.send( JSON.stringify( data ) );
+					messageCache = "";
+				}
+			} );
+			ws.on( "close", () => job.cancel() && ws.close() );
+		} );
+		
 		/* 捕获错误 */
 		this.app.use( WebConsole.ApiErrorCatch );
-		
-		useWebsocket( this.app );
 		createServer( socket => {
-			let messageCache: string = "";
 			socket.setEncoding( "utf-8" );
 			socket.on( "data", res => {
 				messageCache += res;
-			} );
-			
-			// @ts-ignore
-			this.app.ws( "/ws/log", ( ws, req ) => {
-				messageCache = "";
-				const cron: string = "*/2 * * * * ?";
-				const job = scheduleJob( cron, () => {
-					if ( messageCache.length !== 0 ) {
-						const data: LogMessage[] = messageCache.split( "__ADACHI__" )
-							.filter( el => el.length !== 0 )
-							.map( el => JSON.parse( el ) );
-						ws.send( JSON.stringify( data ) );
-						messageCache = "";
-					}
-				} );
-				ws.on( "close", () => job.cancel() && ws.close() );
 			} );
 		} ).listen( tcp );
 	}
