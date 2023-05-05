@@ -59,7 +59,7 @@ const getThumb = ( type, name ) => `https://adachi-bot.oss-cn-beijing.aliyuncs.c
 /* 获取背景图 */
 const getThumbBg = rarity => {
 	return {
-		background: `url('/genshin/public/images/rarity/${ rarity }-Star.png')`, "background-size": "100% 100%"
+		background: `url('../../public/images/rarity/${ rarity }-Star.png')`, "background-size": "100% 100%"
 	}
 }
 

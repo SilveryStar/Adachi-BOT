@@ -9,6 +9,7 @@
 
 <script lang="ts" setup>
 import { computed } from "vue";
+import { getAssetsFile } from "#/genshin/front-utils/pub-use";
 
 const props = withDefaults( defineProps<{
 	data: Record<string, any>;
@@ -17,7 +18,7 @@ const props = withDefaults( defineProps<{
 } );
 
 const background = computed( () => {
-	return `/genshin/public/images/rarity/${ props.data.rank }-Star.png`;
+	return getAssetsFile( `public/images/rarity/${ props.data.rank }-Star.png` );
 } );
 const mainImage = computed( () => {
 	const type = props.data.type === "角色" ? "character" : "weapon";

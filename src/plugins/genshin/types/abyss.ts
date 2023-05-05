@@ -31,7 +31,7 @@ export interface Abyss {
 	takeDamageRank: AbyssCharacter[];
 	normalSkillRank: AbyssCharacter[];
 	energySkillRank: AbyssCharacter[];
-	floors: AbyssFloor[];
+	floors: AbyssFloors[];
 	isUnlock: boolean;
 }
 
@@ -46,7 +46,7 @@ export interface Abyss {
  * @levels 间挑战数据
  * @isUnlock 是否解锁
  * */
-export interface AbyssFloor {
+export interface AbyssFloors {
 	index: number;
 	icon: string;
 	star: number;

@@ -2,7 +2,7 @@ import fs from "fs";
 import { resolve } from "path";
 import express, { Express } from "express";
 import { Logger } from "log4js";
-import { createServer as createViteServer } from "vite";
+import { createServer as createViteServer, ViteDevServer } from "vite";
 import { RenderRoutes, ServerRouters } from "@/types/render";
 import * as process from "process";
 import BotConfig from "@/modules/config";
@@ -34,19 +34,28 @@ export default class RenderServer {
 	}
 	
 	public async createServer( config: BotConfig, logger: Logger ) {
-		// 以中间件模式创建 Vite 应用，这将禁用 Vite 自身的 HTML 服务逻辑
-		// 并让上级服务器接管控制
-		// 执行此方法后将会调用指定 root 目录下的 vite.config.ts
-		const vite = await createViteServer( {
-			base: "/",
-			root: process.cwd(),
-			server: { middlewareMode: true },
-			appType: "custom"
-		} );
+		const isProd = process.env.NODE_ENV === "production";
 		
-		// 使用 vite 的 Connect 实例作为中间件
-		// 如果你使用了自己的 express 路由（express.Router()），你应该使用 router.use
-		this.app.use( vite.middlewares );
+		let vite: ViteDevServer | null = null;
+		
+		if ( isProd ) {
+			// 为打包目录挂载静态资源服务
+			this.app.use( "/dist/", express.static( resolve( __dirname, "../../dist" ) ) );
+		} else {
+			// 以中间件模式创建 Vite 应用，这将禁用 Vite 自身的 HTML 服务逻辑
+			// 并让上级服务器接管控制
+			// 执行此方法后将会调用指定 root 目录下的 vite.config.ts
+			vite = await createViteServer( {
+				base: "/",
+				root: process.cwd(),
+				server: { middlewareMode: true },
+				appType: "custom"
+			} );
+			
+			// 使用 vite 的 Connect 实例作为中间件
+			// 如果你使用了自己的 express 路由（express.Router()），你应该使用 router.use
+			this.app.use( vite.middlewares );
+		}
 		
 		// 为插件目录挂载静态资源服务
 		this.app.use( express.static( resolve( __dirname, "../plugins" ) ) );
@@ -65,14 +74,20 @@ export default class RenderServer {
 			
 			// 是否是插件前端渲染路由
 			const isRenderRoute = this.renderRoutes.findIndex( r => r.path === baseUrl ) !== -1;
-			const htmlPath = isRenderRoute ? "../render/index.html" : "../web-console/index.html";
+			let htmlPath: string;
+			if ( vite ) {
+				htmlPath = isRenderRoute ? "../render/index.html" : "../web-console/index.html";
+			} else {
+				htmlPath = isRenderRoute ? "../../dist/src/render/index.html" : "../../dist/src/web-console/index.html";
+			}
 			
 			const url = req.originalUrl;
 			try {
 				let template = fs.readFileSync( resolve( __dirname, htmlPath ), "utf-8" );
-				// 应用 Vite HTML 转换。这将会注入 Vite HMR 客户端，同时也会从 Vite 插件应用 HTML 转换。
-				template = await vite.transformIndexHtml( url, template );
-				
+				if ( vite ) {
+					// 应用 Vite HTML 转换。这将会注入 Vite HMR 客户端，同时也会从 Vite 插件应用 HTML 转换。
+					template = await vite.transformIndexHtml( url, template );
+				}
 				// 注入生成的 vue-router 对象
 				if ( isRenderRoute ) {
 					template = template.replace( `<!--adachi-routes-->`, `window.__ADACHI_ROUTES__ = ${ JSON.stringify( this.renderRoutes ) }` );
@@ -83,7 +98,7 @@ export default class RenderServer {
 			} catch ( e ) {
 				// 捕获到了一个错误后，后让 Vite 修复该堆栈，并映射回实际源码中。
 				const err: Error = <Error>e;
-				vite.ssrFixStacktrace( err );
+				vite?.ssrFixStacktrace( err );
 				console.log( err.stack );
 				res.status( 500 ).end( err.stack );
 			}

@@ -8,6 +8,7 @@ export default ( env: any ) => {
 	
 	return defineConfig( {
 		root: __dirname,
+		base: "/dist",
 		publicDir: "./src/public",
 		plugins: [ vue() ],
 		resolve: {
@@ -22,7 +23,7 @@ export default ( env: any ) => {
 			rollupOptions: {
 				input: {
 					render: path.resolve(__dirname, "./src/render/index.html"),
-					console: path.resolve(__dirname, "./src/render/web-console/index.html"),
+					console: path.resolve(__dirname, "./src/web-console/index.html"),
 				},
 			},
 		}
