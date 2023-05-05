@@ -20,13 +20,14 @@ const currentYear: number = new Date().getFullYear();
 .footer-view {
 	padding: 0 12px;
 	height: var(--footer-height);
+	background: #fff;
 
 	.footer-content {
 		display: flex;
 		justify-content: center;
 		align-items: center;
 		height: 100%;
-		border-top: 1px solid #c6c6c6;
+		//border-top: 1px solid #c6c6c6;
 		font-family: Consolas, Liberation Mono, sans-serif;
 		text-align: center;
 		font-size: 0.9rem;

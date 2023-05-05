@@ -4,10 +4,10 @@
 			<el-menu :default-active="$route.path" router>
 				<a class="logo-box" href="https://github.com/SilveryStar/Adachi-BOT" target="_blank">
 					<img src="/image/logo-text.png" alt="ERROR" draggable="false">
-					<p>
-						<span class="login-title">Adachi-BOT</span>
-						<span class="login-desc">Admin</span>
-					</p>
+<!--					<p>-->
+						<p class="login-title">Adachi-BOT</p>
+						<p class="login-desc">Admin</p>
+<!--					</p>-->
 				</a>
 				<div v-for="(groupRoutes, groupName) in userRoutes" :key="groupName" class="routes-group">
 					<h3 class="group-title">{{ groupName }}</h3>

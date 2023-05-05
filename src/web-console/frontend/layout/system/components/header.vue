@@ -14,7 +14,12 @@
 					</transition-group>
 				</el-breadcrumb>
 			</div>
+
 			<ul class="nav-right">
+				<li class="nav-btn" @click.stop="changeThem">
+					<i v-if="isDark" class="icon-taiyang"></i>
+					<i v-else class="icon-yueliang"></i>
+				</li>
 				<el-button type="primary" :loading="state.refreshLoading" @click="configRefresh" link>刷新配置
 				</el-button>
 				<el-button type="primary" :loading="state.restartLoading" @click="botRestart" link>重启BOT</el-button>
@@ -28,11 +33,21 @@
 </template>
 
 <script lang="ts" setup>
-import { watch, reactive } from "vue";
+import { watch, reactive, ref } from "vue";
 import { useAppStore, useUserStore } from "&/store";
 import Tabs from "./tabs.vue";
 import { useRouter, useRoute, RouteLocationMatched } from "vue-router";
 import { ElNotification, ElMessageBox } from "element-plus";
+import { Sunny,Moon } from '@element-plus/icons-vue'
+import { useDark, useToggle } from "@vueuse/core";
+
+const isDark = useDark()
+
+const changeThem  = () => {
+	useToggle(isDark)
+	isDark.value = !isDark.value
+}
+
 
 interface IState {
 	breadcrumbs: RouteLocationMatched[];
@@ -139,6 +154,7 @@ const botRestart = () => {
 
 <style lang="scss" scoped>
 .header-view {
+	color: #000;
 	position: relative;
 	user-select: none;
 	flex-shrink: 0;

@@ -1,13 +1,17 @@
 <template>
-	<component :is="layout"></component>
+	<div>
+		<component :is="layout"></component>
+	</div>
 </template>
 
 <script lang="ts" setup>
+import { ref } from 'vue'
 import * as l from "./layout";
 import { useAppStore } from "./store";
-
 import { onBeforeMount, onUnmounted, computed, provide } from "vue";
 import { useRoute } from "vue-router";
+
+const drawer = ref(false)
 
 const route = useRoute();
 const layout = computed( () => {
@@ -50,3 +54,11 @@ onUnmounted( () => {
     window.removeEventListener( "resize", onLayoutResize );
 } );
 </script>
+
+<style lang="scss">
+.checkBtn{
+	position: absolute;
+	right: 0;
+	top: 200px;
+}
+</style>

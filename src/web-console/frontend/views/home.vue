@@ -1,5 +1,5 @@
 <template>
-	<div class="table-container no-background fix-height">
+	<div class="table-container fix-height">
 			<div class="home-content">
 				<p class="titleText">Hi~ 欢迎使用 Adachi-BOT 网页控制台</p>
 				<p>这是一个正在进行初步测试的功能模块 (ノへ￣、)</p>
@@ -19,12 +19,13 @@
 				<p>尽管我们为移动端进行了适配</p>
 				<p>但还是更建议你在 PC 上使用本功能</p>
 			</div>
-		<img :src="getAssetsFile('cover.jpg')" class="coverBg" alt="cover">
+<!--		<img :src="getAssetsFile('cover.jpg')" class="coverBg" alt="cover">-->
 	</div>
 </template>
 
 <script lang="ts" setup>
 import {getAssetsFile} from '&/utils/pub-use'
+
 
 </script>
 
@@ -35,7 +36,7 @@ import {getAssetsFile} from '&/utils/pub-use'
 }
 .coverBg {
 	position: absolute;
-	width: 450px;
+	width: 520px;
 	right: 0;
 	bottom: 0;
 }
@@ -45,7 +46,7 @@ import {getAssetsFile} from '&/utils/pub-use'
 	height: 100%;
 	top: 50%;
 	transform: translateY(-50%);
-	background: #fff;
+	//background: #fff;
 	overflow: hidden;
 
 	p {
@@ -73,7 +74,6 @@ import {getAssetsFile} from '&/utils/pub-use'
 		p {
 			z-index: 999;
 			//color: #000;
-			color: #000;
 			font-size: 16px;
 			font-weight: 500;
 		}

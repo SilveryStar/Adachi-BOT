@@ -1,0 +1,78 @@
+html.dark {
+    $--color-dark: #000;
+    $--color-auto: #fff;
+    .spread-form-item {
+        &:not([class*="open"]) {
+            cursor: pointer;
+            &:hover {
+                background-color: $--color-dark;
+            }
+        }
+        &.open {
+            background-color: $--color-dark;
+        }
+    }
+    .header-tab .tab-list > a.active, .header-tab .tab-list > a:hover {
+        color: $--color-auto;
+    }
+    div {
+        color: $--color-auto;
+    }
+    .el-table tr {
+        background-color: $--color-dark!important;
+    }
+    .table-container{
+        background-color: $--color-dark;
+    }
+    .footer-view {
+        background: $--color-dark;
+    }
+    .aside-view .el-menu .el-menu-item{
+        color: $--color-auto;
+    }
+    .aside-view .el-menu .el-menu-item.is-active {
+        color: $--color-dark !important;
+    }
+    .aside-view .el-menu .el-menu-item:hover {
+        background-color: rgba($--color-auto,0.5);
+    }
+
+    .home-content {
+        background: none;
+    }
+    .el-form-item .asterisk-left .form-item .spread-form-item {
+        color: $--color-auto!important;
+    }
+    .spread-form-item .spread-show-text {
+        color: $--color-auto!important;
+    }
+    .form-item > .el-form-item__label {
+        color: $--color-auto!important;
+    }
+    .user-detail {
+        background-color: $--color-dark;
+    }
+    .dialog-body > .section-info > .title {
+        color: $--color-auto;
+    }
+    .user-detail .user-base-info > .public-info .label {
+        color: $--color-auto;
+    }
+    .user-detail .management-info > .article-item > .label {
+        color: $--color-auto;
+    }
+    .el-input__inner {
+        color: $--color-auto;
+    }
+    .table-container .el-dialog {
+        background-color: $--color-dark;
+    }
+        /* 自定义深色背景颜色 */
+	--el-bg-color: $--color-dark;
+
+    @media (max-width: 768px) {
+        .el-menu {
+            background-color: $--color-dark;
+        }
+    }
+}
