@@ -6,16 +6,7 @@ import { parseZone } from "moment";
 import { formatMemories } from "../utils/format";
 import { restart } from "pm2";
 import si from "systeminformation";
-
-export interface DayData {
-	dayID: string;
-	data: { hour: string, detail: string }[];
-}
-
-export interface WeekData {
-	week: number;
-	data: DayData;
-}
+import { DayData, WeekData } from "@/web-console/types/stat";
 
 export default express.Router()
 	.get( "/stat", async ( req, res ) => {

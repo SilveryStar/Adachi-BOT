@@ -31,7 +31,7 @@
 import $http from "&/api";
 import * as echarts from "echarts";
 import { onMounted, onUnmounted, reactive, nextTick, ref, shallowRef } from "vue";
-import { WeekData } from "@/web-console/backend/routes/base";
+import { WeekData } from "@/web-console/types/stat";
 
 interface HourlyUsageItem {
 	value: [ string, number, Record<string, string> ]
