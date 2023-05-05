@@ -2,7 +2,7 @@ import * as sdk from "icqq";
 import { Logger } from "log4js";
 import moment from "moment";
 import FileManagement from "./modules/file";
-import BotConfig from "./modules/config";
+import BotConfigManager, { BotConfig } from "./modules/config";
 import Database from "./modules/database";
 import RenderServer from "./modules/server";
 import Plugin, { PluginReSubs } from "./modules/plugin";
@@ -75,8 +75,18 @@ export default class Adachi {
 		const file = new FileManagement( root );
 		Adachi.setEnv( file );
 		
+		const command = new Command( file );
+		const refresh = new RefreshConfig( file, command );
+		
 		/* 初始化应用模块 */
-		const config = new BotConfig( file );
+		const config: BotConfig = <any>(new Proxy(new BotConfigManager( file, refresh ), {
+			get( target: BotConfigManager, p: string, receiver: any ) {
+				if ( Object.keys(BotConfigManager.initConfig).includes(p) ) {
+					return target.value[p];
+				}
+				return target[p];
+			}
+		}));
 		new WebConfiguration( config );
 		
 		const client = sdk.createClient( {
@@ -102,8 +112,6 @@ export default class Adachi {
 		const auth = new Authorization( config, redis );
 		const message = new msg.default( config, client );
 		const mail = new MailManagement( config, logger );
-		const command = new Command( file );
-		const refresh = new RefreshConfig( file, command );
 		const whitelist = new WhiteList( file );
 		const renderer = new BasicRenderer();
 		
@@ -144,7 +152,7 @@ export default class Adachi {
 	
 	private static setEnv( file: FileManagement ): void {
 		file.createDir( "config", "root" );
-		const exist: boolean = file.createYAML( "setting", BotConfig.initObject );
+		const exist: boolean = file.createYAML( "setting", BotConfigManager.initConfig );
 		if ( exist ) {
 			return;
 		}
@@ -604,7 +612,7 @@ export default class Adachi {
 			];
 			if ( config.prompt ) {
 				promiseList.push(
-					this.bot.client.sendGroupMsg( groupID, [ sdk.segment.at( userID ), sdk.segment.text( " " + config.promptMsg ) ] )
+					this.bot.client.sendGroupMsg( groupID, [ sdk.segment.at( userID ), " " + config.promptMsg ] )
 				);
 			}
 			Promise.all( promiseList ).then();

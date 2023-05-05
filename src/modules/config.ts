@@ -2,80 +2,44 @@ import { AuthLevel } from "./management/auth";
 import FileManagement from "@/modules/file";
 import { getRandomString } from "@/utils/common";
 import { LogLevel } from "icqq";
+import bot from "ROOT";
+import RefreshConfig, { RefreshCatch } from "@/modules/management/refresh";
 
-export default class BotConfig {
-	public readonly qrcode: boolean;
-	public readonly number: number;
-	public readonly password: string;
-	public readonly master: number;
-	public readonly header: string;
-	public readonly platform: 1 | 2 | 3 | 4 | 5;
-	public readonly ffmpegPath: string;
-	public readonly ffprobePath: string;
-	public readonly atUser: boolean;
-	public readonly atBOT: boolean;
-	public readonly addFriend: boolean;
-	public readonly useWhitelist: boolean;
-	public readonly fuzzyMatch: boolean;
-	public readonly matchPrompt: boolean;
-	public readonly renderPort: number;
-	public readonly dbPort: number;
-	public readonly dbPassword: string;
-	public readonly inviteAuth: AuthLevel;
-	public readonly countThreshold: number;
-	public readonly ThresholdInterval: boolean;
-	public readonly groupIntervalTime: number;
-	public readonly privateIntervalTime: number;
-	public readonly helpMessageStyle: string;
-	public readonly callTimes: number;
-	public readonly logLevel: LogLevel;
+export type BotConfigValue = Omit<typeof BotConfigManager.initConfig, "inviteAuth"> & {
+	logLevel: LogLevel;
+	inviteAuth: AuthLevel
+}
+
+export type BotConfig = Omit<BotConfigManager, "value"> & BotConfigValue
+
+export class ConfigInstance<T extends Record<string, any>> {
+	private readonly filename: string;
+	private readonly setValueCallBack: ( config: T ) => T;
+	public value: T;
 	
-	public readonly mailConfig: {
-		readonly host: string;
-		readonly port: number;
-		readonly user: string;
-		readonly pass: string;
-		readonly secure: boolean;
-		readonly servername: string;
-		readonly rejectUnauthorized: boolean;
-		readonly logoutSend: boolean;
-		readonly sendDelay: number;
-		readonly retry: number;
-		readonly retryWait: number;
+	constructor( filename: string, cfg: T, setValueCallBack: ( config: T ) => T = config => config ) {
+		this.filename = filename;
+		this.value = setValueCallBack( cfg );
+		this.setValueCallBack = setValueCallBack;
 	}
 	
-	public readonly banScreenSwipe: {
-		readonly enable: boolean;
-		readonly limit: number;
-		readonly duration: number;
-		readonly prompt: boolean;
-		readonly promptMsg: string;
+	async refresh( config: T ) {
+		try {
+			this.value = this.setValueCallBack( config );
+			return `${ this.filename }.yml 重新加载完毕`;
+		} catch ( error ) {
+			throw <RefreshCatch>{
+				log: ( <Error>error ).stack,
+				msg: `${ this.filename }.yml 重新加载失败，请前往控制台查看日志`
+			};
+		}
 	}
+}
+
+export default class BotConfigManager {
+	public readonly value: BotConfigValue;
 	
-	public readonly banHeavyAt: {
-		readonly enable: boolean;
-		readonly limit: number;
-		readonly duration: number;
-		readonly prompt: boolean;
-		readonly promptMsg: string;
-	}
-	
-	public readonly webConsole: {
-		readonly enable: boolean;
-		readonly tcpLoggerPort: number;
-		readonly logHighWaterMark: number;
-		readonly jwtSecret: string;
-	};
-	
-	public readonly autoChat: {
-		readonly enable: boolean;
-		readonly type: number;
-		readonly audio: boolean;
-		readonly secretId: string;
-		readonly secretKey: string;
-	}
-	
-	static initObject = {
+	static initConfig = {
 		tip: "前往 https://docs.adachi.top/config 查看配置详情",
 		qrcode: false,
 		number: 123456789,
@@ -148,114 +112,75 @@ export default class BotConfig {
 		}
 	};
 	
-	constructor( file: FileManagement ) {
-		const config = this.register( file, "setting", BotConfig.initObject );
+	constructor( file: FileManagement, refresh: RefreshConfig ) {
+		const configInstance = this.register<BotConfigValue>( "setting", <any>BotConfigManager.initConfig, cfg => {
+			if ( !cfg.webConsole.jwtSecret ) {
+				cfg.webConsole.jwtSecret = getRandomString( 16 );
+			}
+			const authMap: Record<string, AuthLevel> = {
+				master: AuthLevel.Master,
+				manager: AuthLevel.Manager,
+				user: AuthLevel.User
+			}
+			
+			cfg.inviteAuth = authMap[cfg.inviteAuth] || AuthLevel.Master;
+			
+			const helpList: string[] = [ "message", "forward", "xml", "card" ];
+			cfg.helpMessageStyle = helpList.includes( cfg.helpMessageStyle )
+				? cfg.helpMessageStyle : "message";
+			
+			const logLevelList: string[] = [
+				"trace", "debug", "info", "warn",
+				"error", "fatal", "mark", "off"
+			];
+			cfg.logLevel = <any>( logLevelList.includes( cfg.logLevel )
+				? cfg.logLevel : "info" );
+			return cfg;
+		}, file, refresh );
 		
-		if ( !config.webConsole.jwtSecret ) {
-			config.webConsole.jwtSecret = getRandomString( 16 );
-			file.writeYAML( "setting", config );
-		}
-		
-		this.atBOT = config.atBOT;
-		this.qrcode = config.qrcode;
-		this.number = config.number;
-		this.master = config.master;
-		this.header = config.header;
-		this.dbPort = config.dbPort;
-		this.dbPassword = config.dbPassword;
-		this.atUser = config.atUser;
-		this.addFriend = config.addFriend;
-		this.useWhitelist = config.useWhitelist;
-		this.autoChat = config.autoChat;
-		this.fuzzyMatch = config.fuzzyMatch;
-		this.matchPrompt = config.matchPrompt;
-		this.renderPort = config.renderPort;
-		this.platform = <any>config.platform;
-		this.ffmpegPath = config.ffmpegPath;
-		this.ffprobePath = config.ffprobePath;
-		this.password = config.password;
-		this.callTimes = config.callTimes;
-		this.groupIntervalTime = config.groupIntervalTime;
-		this.privateIntervalTime = config.privateIntervalTime;
-		this.countThreshold = config.countThreshold;
-		this.ThresholdInterval = config.ThresholdInterval;
-		this.mailConfig = {
-			host: config.mailConfig.host,
-			port: config.mailConfig.port,
-			user: config.mailConfig.user,
-			pass: config.mailConfig.pass,
-			secure: config.mailConfig.secure,
-			servername: config.mailConfig.servername,
-			rejectUnauthorized: config.mailConfig.rejectUnauthorized,
-			logoutSend: config.mailConfig.logoutSend,
-			sendDelay: config.mailConfig.sendDelay,
-			retry: config.mailConfig.retry,
-			retryWait: config.mailConfig.retryWait
-		}
-		this.banScreenSwipe = {
-			enable: config.banScreenSwipe.enable,
-			limit: config.banScreenSwipe.limit,
-			duration: config.banScreenSwipe.duration,
-			prompt: config.banScreenSwipe.prompt,
-			promptMsg: config.banScreenSwipe.promptMsg
-		}
-		
-		this.banHeavyAt = {
-			enable: config.banHeavyAt.enable,
-			limit: config.banHeavyAt.limit,
-			duration: config.banHeavyAt.duration,
-			prompt: config.banHeavyAt.prompt,
-			promptMsg: config.banHeavyAt.promptMsg
-		}
-		
-		this.webConsole = {
-			enable: config.webConsole.enable,
-			tcpLoggerPort: config.webConsole.tcpLoggerPort,
-			logHighWaterMark: config.webConsole.logHighWaterMark,
-			jwtSecret: config.webConsole.jwtSecret?.toString()
-		}
-		
-		const authMap: Record<string, AuthLevel> = {
-			master: AuthLevel.Master,
-			manager: AuthLevel.Manager,
-			user: AuthLevel.User
-		}
-		
-		this.inviteAuth = authMap[config.inviteAuth] || AuthLevel.Master;
-		
-		const helpList: string[] = [ "message", "forward", "xml", "card" ];
-		this.helpMessageStyle = helpList.includes( config.helpMessageStyle )
-			? config.helpMessageStyle : "message";
-		
-		const logLevelList: string[] = [
-			"trace", "debug", "info", "warn",
-			"error", "fatal", "mark", "off"
-		];
-		this.logLevel = <any>( logLevelList.includes( config.logLevel )
-			? config.logLevel : "info" );
+		this.value = configInstance;
 	}
 	
-	public register<T extends Record<string, any>>( file: FileManagement, filename: string, initCfg: T ): T {
+	public register<T extends Record<string, any>>(
+		filename: string,
+		initCfg: T,
+		setValueCallBack: ( config: T ) => T = config => config,
+		file: FileManagement = bot.file,
+		refresh: RefreshConfig = bot.refresh
+	): T {
 		const path: string = file.getFilePath( `${ filename }.yml` );
 		const isExist: boolean = file.isExist( path );
-		if ( !isExist ) {
+		let cfg: T;
+		if ( isExist ) {
+			const config: any = file.loadYAML( filename ) || {};
+			cfg = this.resetConfigData( config, initCfg );
+		} else {
 			file.createYAML( filename, initCfg );
-			return initCfg;
+			cfg = initCfg;
 		}
+		const configInstance = new ConfigInstance( filename, cfg, setValueCallBack );
 		
-		const config: any = file.loadYAML( filename ) || {};
-		const keysNum = o => Object.keys( o ).length;
+		file.writeYAML( filename, configInstance.value );
+		refresh.registerRefreshableFile( filename, configInstance );
 		
-		/* 检查 defaultConfig 是否更新 */
-		if ( keysNum( config ) === keysNum( initCfg ) ) {
-			return config;
-		}
-		
-		const c: any = Object.fromEntries( Object.entries( initCfg ).map( ( [ k, v ] ) => {
+		return <T><any>( new Proxy( configInstance, {
+			get( target: ConfigInstance<T>, p: string ): any {
+				return configInstance.value[p];
+			}
+		} ) );
+	}
+	
+	private resetConfigData<T extends Record<string, any>>( config: Record<string, any>, initCfg: T ): T {
+		return <T>Object.fromEntries( Object.entries( initCfg ).map( ( [ k, v ] ) => {
+			const curItem = config[k];
+			if ( typeof v === "object" && v !== null ) {
+				if ( !curItem ) {
+					return [ k, v ];
+				}
+				return [ k, this.resetConfigData( curItem, v ) ];
+			}
 			return [ k, config[k] || v ];
 		} ) );
 		
-		file.writeYAML( filename, c );
-		return c;
 	}
 }

@@ -1,5 +1,5 @@
 import { BasicConfig, CommandInfo, Unmatch } from "./main";
-import BotConfig from "../config";
+import { BotConfig } from "../config";
 import { snakeCase } from "lodash";
 
 export interface EnquireMatchResult {
@@ -103,7 +103,7 @@ export class Enquire extends BasicConfig {
 			auth: this.auth,
 			scope: this.scope,
 			sentences: cfg.sentences,
-			enable: true
+			enable: this.enable
 		};
 	}
 	
@@ -111,6 +111,7 @@ export class Enquire extends BasicConfig {
 		cfg.auth = loaded.auth;
 		cfg.scope = loaded.scope;
 		cfg.sentences = loaded.sentences;
+		cfg.enable = loaded.enable;
 	}
 	
 	public match( content: string ): EnquireMatchResult | Unmatch {

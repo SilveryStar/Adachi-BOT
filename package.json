@@ -1,7 +1,7 @@
 {
   "name": "vite-ssr-vue",
   "private": true,
-  "version": "3.1.0",
+  "version": "3.2.0",
   "scripts": {
     "dev": "nodemon --exec ts-node --typeCheck app.ts",
     "win-start": "ts-node app.ts",

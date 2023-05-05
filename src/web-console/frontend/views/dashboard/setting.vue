@@ -447,9 +447,9 @@ import FormItem from "&/components/form-item/index.vue";
 import SpreadFormItem from "&/components/spread-form-item/index.vue";
 import SectionTitle from "&/components/section-title/index.vue";
 import { objectGet, objectSet } from "&/utils/utils";
-import { ref, onMounted, reactive } from "vue";
+import { ref, onMounted } from "vue";
 import { ElNotification } from "element-plus";
-import BotConfig from "@/modules/config";
+import { BotConfig } from "@/modules/config";
 
 
 const platformList = [ "安卓手机", "aPad", "安卓手表", "MacOS", "iPad" ];

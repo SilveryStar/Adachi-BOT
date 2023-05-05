@@ -61,10 +61,13 @@ const not_support_upgrade_plugins: string[] = [ "@help", "@management", "genshin
 
 export default class Plugin {
 	public static async load( bot: BOT ): Promise<PluginLoadResult> {
+		const commandConfig: Record<string, any> = bot.file.loadYAML( "commands" ) || {};
 		const plugins: string[] = bot.file.getDirFiles( "", "plugin" );
 		const renderRoutes: Array<RenderRoutes> = [];
 		const serverRouters: Array<ServerRouters> = [];
 		const registerCmd: BasicConfig[] = [];
+		// 要写入的 command.yml 配置文件内容
+		let cmdConfig = {};
 		
 		/* 从 plugins 文件夹从导入 init.ts 进行插件初始化 */
 		for ( let plugin of plugins ) {
@@ -97,7 +100,7 @@ export default class Plugin {
 					} )
 				}
 				//
-				const commands = Plugin.parse( bot, cfgList, pluginName );
+				const [ commands, cmdConfigItem ] = await Plugin.parse( bot, cfgList, pluginName, commandConfig );
 				PluginRawConfigs[pluginName] = cfgList;
 				if ( !not_support_upgrade_plugins.includes( pluginName ) ) {
 					PluginUpgradeServices[pluginName] = repo ?
@@ -112,6 +115,7 @@ export default class Plugin {
 					}
 				}
 				registerCmd.push( ...commands );
+				cmdConfig = { ...cmdConfig, ...cmdConfigItem };
 				// 检查更新插件静态资源
 				await checkUpdate( plugin, assets, bot );
 				bot.logger.info( `插件 ${ pluginName } 加载完成` );
@@ -119,63 +123,62 @@ export default class Plugin {
 				bot.logger.error( `插件 ${ plugin } 加载异常: ${ <string>error }` );
 			}
 		}
+		
+		bot.file.writeYAML( "commands", cmdConfig );
 		return { renderRoutes, serverRouters, registerCmd };
 	}
 	
-	public static parse(
+	public static async parse(
 		bot: BOT,
 		cfgList: cmd.ConfigType[],
-		pluginName: string
-	): cmd.BasicConfig[] {
+		pluginName: string,
+		configData: Record<string, any>
+	): Promise<[ cmd.BasicConfig[], Record<string, any> ]> {
 		const commands: cmd.BasicConfig[] = [];
-		const data: Record<string, any> = bot.file.loadYAML( "commands" ) || {};
+		const configList: Record<string, any> = {};
 		
 		/* 此处删除所有向后兼容代码 */
-		cfgList.forEach( config => {
-			/* 允许 main 传入函数 */
-			if ( typeof config.main === "string" ) {
-				const main: string = config.main || "index";
-				const path: string = bot.file.getFilePath(
-					pluginName + "/" + main,
-					"plugin"
-				);
-				config.run = require( path ).main;
-			} else {
-				config.run = config.main;
-			}
-			
-			const key: string = config.cmdKey;
-			const loaded = data[key];
-			if ( loaded && !loaded.enable ) {
-				return;
-			}
-			
-			/* 读取 commands.yml 配置，创建指令实例  */
-			try {
-				let command: cmd.BasicConfig;
-				switch ( config.type ) {
-					case "order":
-						if ( loaded ) cmd.Order.read( config, loaded );
-						command = new cmd.Order( config, bot.config, pluginName );
-						break;
-					case "switch":
-						if ( loaded ) cmd.Switch.read( config, loaded );
-						command = new cmd.Switch( config, bot.config, pluginName );
-						break;
-					case "enquire":
-						if ( loaded ) cmd.Enquire.read( config, loaded );
-						command = new cmd.Enquire( config, bot.config, pluginName );
-						break;
+		for ( const config of cfgList ) {
+			{
+				/* 允许 main 传入函数 */
+				if ( typeof config.main === "string" ) {
+					const main: string = config.main || "index";
+					const { main: entry } = await import(`#/${ pluginName }/${ main }`);
+					config.run = entry;
+				} else {
+					config.run = config.main;
 				}
-				data[key] = command.write();
-				commands.push( command );
-			} catch ( error ) {
-				bot.logger.error( <string>error );
+				
+				const key: string = config.cmdKey;
+				const loaded = configData[key];
+				
+				/* 读取 commands.yml 配置，创建指令实例  */
+				try {
+					let command: cmd.BasicConfig;
+					switch ( config.type ) {
+						case "order":
+							if ( loaded ) cmd.Order.read( config, loaded );
+							command = new cmd.Order( config, bot.config, pluginName );
+							break;
+						case "switch":
+							if ( loaded ) cmd.Switch.read( config, loaded );
+							command = new cmd.Switch( config, bot.config, pluginName );
+							break;
+						case "enquire":
+							if ( loaded ) cmd.Enquire.read( config, loaded );
+							command = new cmd.Enquire( config, bot.config, pluginName );
+							break;
+					}
+					if ( !loaded || loaded.enable ) {
+						commands.push( command );
+					}
+					configList[key] = command.write();
+				} catch ( error ) {
+					bot.logger.error( <string>error );
+				}
 			}
-		} );
-		
-		bot.file.writeYAML( "commands", data );
-		return commands;
+		}
+		return [ commands, configList ];
 	}
 }
 
@@ -212,7 +215,7 @@ async function checkUpdate( pluginName: string, assets: PluginSetting["assets"],
 	if ( !data.length ) {
 		bot.logger.info( `未检测到 ${ pluginName } 可更新静态资源` );
 	}
-	const progress = new Progress(`下载 ${ pluginName } 静态资源`, data.length);
+	const progress = new Progress( `下载 ${ pluginName } 静态资源`, data.length );
 	
 	let downloadNum: number = 0;
 	// 更新图片promise列表
@@ -229,7 +232,7 @@ async function checkUpdate( pluginName: string, assets: PluginSetting["assets"],
 				manifest.splice( key, 1 );
 			}
 			manifest.push( file );
-			downloadNum ++;
+			downloadNum++;
 			progress.renderer( downloadNum, bot.config.webConsole.enable );
 			
 		} catch ( error ) {

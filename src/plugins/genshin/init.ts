@@ -2,10 +2,20 @@ import pluginSetting from "./setting";
 import { Renderer } from "@/modules/renderer";
 import { BOT } from "@/main";
 import { PluginSetting, PluginSubSetting, SubInfo } from "@/modules/plugin";
-import GenshinConfig from "./module/config";
 import * as m from "./module";
+import { getRandomString } from "@/utils/common";
 
-export let config: GenshinConfig;
+const initConfig = {
+	cardWeaponStyle: "normal",
+	cardProfile: "random",
+	showCharScore: true,
+	wishLimitNum: 99,
+	verifyEnable: false,
+	verifyRepeat: 1,
+	verifyToken: getRandomString( 6 )
+};
+
+export let config: typeof initConfig;
 
 export let renderer: Renderer;
 export let artClass: m.ArtClass;
@@ -60,17 +70,13 @@ export async function subInfo(): Promise<PluginSubSetting> {
 	}
 }
 
-export async function init( i: BOT ): Promise<PluginSetting> {
-	const { file, renderer: botRenderer, refresh, config: botConfig } = i;
+export async function init( { renderer: botRenderer, refresh, config: botConfig }: BOT ): Promise<PluginSetting> {
 	/* 加载 genshin.yml 配置 */
-	const configData = botConfig.register( file, "genshin", GenshinConfig.init );
-	config = new GenshinConfig( configData );
+	config = botConfig.register( "genshin", initConfig );
 	/* 实例化渲染器 */
 	renderer = botRenderer.register( "/genshin", "#app" );
 	/* 初始化模块 */
 	initModules();
-	
-	refresh.registerRefreshableFile( "genshin", config );
 	refresh.registerRefreshableFile( "cookies", cookies );
 	
 	return pluginSetting;

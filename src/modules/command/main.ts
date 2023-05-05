@@ -51,6 +51,7 @@ export abstract class BasicConfig {
 	readonly detail: string;
 	readonly display: boolean;
 	readonly ignoreCase: boolean;
+	readonly enable: boolean;
 	readonly raw: ConfigType;
 	readonly run: CommandFunc;
 	readonly desc: [ string, string ];
@@ -65,7 +66,7 @@ export abstract class BasicConfig {
 	abstract getDesc(): string;
 	
 	protected static header( raw: string, h: string ): string {
-		if ( raw.substr( 0, 2 ) === "__" ) {
+		if ( raw.slice( 0, 2 ) === "__" ) {
 			return trimStart( raw, "_" );
 		} else {
 			return h + raw;
@@ -110,6 +111,7 @@ export abstract class BasicConfig {
 		this.detail = config.detail || "该指令暂无更多信息";
 		this.ignoreCase = config.ignoreCase !== false;
 		this.display = config.display !== false;
+		this.enable = config.enable !== false;
 		this.run = <CommandFunc>config.run;
 		this.pluginName = pluginName;
 		
@@ -149,11 +151,15 @@ export default class Command {
 			this.gUnionReg = Command.initAuthObject();
 			
 			const commands: BasicConfig[] = [];
-			for ( let name of Object.keys( PluginRawConfigs ) ) {
-				const raws: ConfigType[] = PluginRawConfigs[name];
-				const cmd: BasicConfig[] = Plugin.parse( bot, raws, name );
+			const commandConfig: Record<string, any> = bot.file.loadYAML( "commands" ) || {};
+			// 要写入的 command.yml 配置文件内容
+			let cmdConfig: Record<string, any> = {};
+			for ( const [ name, raws ] of Object.entries( PluginRawConfigs ) ) {
+				const [ cmd, cmdConfigItem ] = await Plugin.parse( bot, raws, name, commandConfig );
+				cmdConfig = { ...cmdConfig, ...cmdConfigItem };
 				commands.push( ...cmd );
 			}
+			bot.file.writeYAML( "commands", cmdConfig );
 			this.add( commands );
 			return "指令配置重新加载完毕";
 		} catch ( error ) {

@@ -1,4 +1,4 @@
-import BotConfig from "./config";
+import { BotConfig } from "./config";
 import { Configuration, addLayout, configure } from "log4js";
 import { parseZone } from "moment";
 

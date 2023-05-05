@@ -107,6 +107,7 @@ export async function init( bot: BOT ): Promise<PluginSetting> {
 ```
 
 > 仅指定目录下的第一级 .vue 文件与第一级文件中存在 index.vue 的目录进行加载，不会对不符合加载条件的文件/目录进行处理。
+> 需要注意的是，当你希望使用本地静态资源时，建议通过 `import.meta.url` 来获取静态资源路径。可以参考 `src/web-console/frontend/utils/pub-use.ts` 写法实现，或参考 [vite 官方文档](https://cn.vitejs.dev/guide/assets.html#importing-asset-as-url)。请避免使用 express 提供的静态资源服务加载资源，将会导致无法打包前端代码的严重问题。
 
 ### 公共 express-server
 
@@ -158,7 +159,11 @@ export async function init( bot: BOT ): Promise<PluginSetting> {
 
 ### 注册插件配置文件
 
-新增 `bot.config.register` 方法，该方法会自动创建配置文件，或与已存在的配置文件对比更新新增的配置项。返回处理后的配置项数据。
+新增 `bot.config.register` 方法，该方法会自动创建配置文件，或与已存在的配置文件做深层对比来更新新增的配置项。
+
+**返回值**
+
+返回处理后的配置项对象，该对象支持自动重载，你无需做任何操作该对象即可自动响应 #refresh 指令进行数据重载更新。
 
 **示例**
 
@@ -166,7 +171,7 @@ export async function init( bot: BOT ): Promise<PluginSetting> {
 /* test-plugin 插件 */
 export async function init( { file, config }: BOT ): Promise<PluginSetting> {
     // 创建 test-plugin.yml 配置文件 或是与已存在的 test-plugin.yml 进行对比，返回更新后的配置项内容
-	const configData = config.register( file, "test-plugin", { setting1: true, setting2: false } );
+	const configData = config.register( "test-plugin", { setting1: true, setting2: false } );
     console.log( configData ); // { setting1: true, setting2: false }
 }
 ```

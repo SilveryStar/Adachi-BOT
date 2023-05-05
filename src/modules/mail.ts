@@ -1,5 +1,5 @@
 import mail from "nodemailer";
-import BotConfig from "@/modules/config";
+import { BotConfig } from "@/modules/config";
 import { Logger } from "log4js";
 import { sleep } from "@/utils/common";
 

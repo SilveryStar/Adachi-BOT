@@ -1,5 +1,5 @@
 import { BasicConfig, CommandInfo, Unmatch } from "./main";
-import BotConfig from "@/modules/config";
+import { BotConfig } from "@/modules/config";
 import bot from "ROOT";
 import { escapeRegExp } from "lodash";
 
@@ -61,6 +61,7 @@ export class Order extends BasicConfig {
 		cfg.headers = loaded.headers;
 		cfg.auth = loaded.auth;
 		cfg.scope = loaded.scope;
+		cfg.enable = loaded.enable;
 	}
 	
 	public write() {
@@ -70,7 +71,7 @@ export class Order extends BasicConfig {
 			auth: this.auth,
 			scope: this.scope,
 			headers: cfg.headers,
-			enable: true
+			enable: this.enable
 		};
 	}
 	

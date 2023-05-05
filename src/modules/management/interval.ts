@@ -1,4 +1,4 @@
-import BotConfig from "@/modules/config";
+import { BotConfig } from "@/modules/config";
 import Database from "@/modules/database";
 
 export type IntervalType = "private" | "group";

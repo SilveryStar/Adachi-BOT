@@ -2,7 +2,7 @@ import { resolve } from "path";
 import { scheduleJob } from "node-schedule";
 import { createServer } from "net";
 import { expressjwt as jwt } from "express-jwt";
-import BotConfig from "@/modules/config";
+import { BotConfig } from "@/modules/config";
 import { Application } from "express-ws";
 import express, { Router } from "express";
 import * as r from "./backend/routes";

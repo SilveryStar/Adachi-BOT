@@ -1,11 +1,11 @@
 import fs from "fs";
 import { resolve } from "path";
-import express, { Express } from "express";
+import express from "express";
 import { Logger } from "log4js";
 import { createServer as createViteServer, ViteDevServer } from "vite";
 import { RenderRoutes, ServerRouters } from "@/types/render";
 import * as process from "process";
-import BotConfig from "@/modules/config";
+import { BotConfig } from "@/modules/config";
 import WebConsole from "@/web-console";
 import useWebsocket, { Application } from "express-ws";
 
@@ -67,7 +67,10 @@ export default class RenderServer {
 		this.app.use( '*', async ( req, res, next ) => {
 			const baseUrl = req.baseUrl;
 			// 如果是 render 注册路由，放行
-			const isRenderRouter = this.serverRouters.findIndex( r => r.path === baseUrl ) !== -1;
+			const isRenderRouter = this.serverRouters.findIndex( r => {
+				if ( r.path === baseUrl ) return true;
+				return findRouter(r.router, baseUrl, r.path) !== -1;
+			} ) !== -1;
 			if ( isRenderRouter ) {
 				return next();
 			}
@@ -113,4 +116,16 @@ export default class RenderServer {
 			} );
 		}
 	}
+}
+
+/* 查找 path 匹配的 express router */
+function findRouter(router: any, target: string, base: string) : number {
+	return router.stack.findIndex( r => {
+		if ( !r.route || r.route.path === "/" ) return false;
+		const itemBase = base + r.route.path;
+		if ( itemBase === target ) {
+			return true;
+		}
+		return findRouter(r.route, target, itemBase) !== -1;
+	} )
 }

@@ -1,5 +1,5 @@
 import { BasicConfig, CommandInfo, Unmatch } from "./main";
-import BotConfig from "@/modules/config";
+import { BotConfig } from "@/modules/config";
 import bot from "ROOT";
 import { escapeRegExp, trimStart } from "lodash";
 
@@ -85,7 +85,7 @@ export class Switch extends BasicConfig {
 			onKey: cfg.onKey,
 			offKey: cfg.offKey,
 			header: cfg.header,
-			enable: true
+			enable: this.enable
 		};
 	}
 	
@@ -96,6 +96,7 @@ export class Switch extends BasicConfig {
 		cfg.onKey = loaded.onKey;
 		cfg.offKey = loaded.offKey;
 		cfg.header = loaded.header;
+		cfg.enable = loaded.enable;
 	}
 	
 	public match( content: string ): SwitchMatchResult | Unmatch {

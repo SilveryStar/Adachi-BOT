@@ -6,7 +6,7 @@ import * as msg from "./message";
 import fetch from "node-fetch";
 import { Client } from "tencentcloud-sdk-nodejs-nlp/tencentcloud/services/nlp/v20190408/nlp_client";
 import { urlParamsParse } from "@/utils/common";
-import BotConfig from "@/modules/config";
+import { BotConfig } from "@/modules/config";
 import { Logger } from "log4js";
 import { Sendable, segment } from "icqq";
 
