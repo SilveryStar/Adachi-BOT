@@ -295,7 +295,6 @@ export async function getLedger(
 export async function getWishList(): Promise<ResponseBody<ApiType.WishList>> {
 	const { data: result } = await $https.FETCH_GACHA_LIST.get();
 	if ( !result.data ) {
-		console.log(result, 9)
 		throw result.message;
 	}
 	return toCamelCase( result );
@@ -318,10 +317,11 @@ const calc_query = {
 	uid: "100000000"
 };
 
+// 
+
 export async function getCalendarList(): Promise<ResponseBody<ApiType.CalendarList>> {
 	const { data: result } = await $https.FETCH_CALENDAR_LIST.get( calc_query );
 	if ( !result.data ) {
-		console.log(result, 7)
 		throw result.message;
 	}
 	return toCamelCase( result );
@@ -330,7 +330,6 @@ export async function getCalendarList(): Promise<ResponseBody<ApiType.CalendarLi
 export async function getCalendarDetail(): Promise<ResponseBody<ApiType.CalendarDetail>> {
 	const { data: result } = await $https.FETCH_CALENDAR_DETAIL.get( calc_query );
 	if ( !result.data ) {
-		console.log(result, 6)
 		throw result.message;
 	}
 	return toCamelCase( result );
@@ -454,7 +453,6 @@ export async function getSignInInfo( uid: string, region: string, cookie: string
 		}
 	} );
 	if ( !result.data ) {
-		console.log(result, 5)
 		throw result.message;
 	}
 	return toCamelCase( result );
@@ -578,7 +576,6 @@ export async function getCookieAccountInfoBySToken(
 	const { data: result } = await $https.FETCH_GET_COOKIE_TOKEN.get( param );
 	
 	if ( !result.data ) {
-		console.log(result, 4)
 		throw result.message;
 	}
 	
@@ -614,7 +611,6 @@ export async function getMultiTokenByLoginTicket( uid: number, loginTicket: stri
 	} );
 	
 	if ( !result.data ) {
-		console.log(result, 3)
 		throw result.message;
 	}
 	
@@ -635,7 +631,6 @@ export async function verifyLtoken( ltoken: string, ltuid: string ): Promise<Res
 		timeout: 5000
 	} );
 	if ( !result.data ) {
-		console.log(result, 2)
 		throw result.message;
 	}
 	return toCamelCase( result );
@@ -654,7 +649,6 @@ export async function getLTokenBySToken( stoken: string, mid: string ): Promise<
 		timeout: 5000
 	} );
 	if ( !result.data ) {
-		console.log(result, 1)
 		throw result.message;
 	}
 	return toCamelCase( result );

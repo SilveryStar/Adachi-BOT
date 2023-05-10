@@ -179,7 +179,7 @@ export default class BotConfigManager {
 				}
 				return [ k, this.resetConfigData( curItem, v ) ];
 			}
-			return [ k, config[k] || v ];
+			return [ k, config[k] ?? v ];
 		} ) );
 		
 	}
