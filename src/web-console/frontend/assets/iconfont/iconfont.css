@@ -1,8 +1,8 @@
 @font-face {
   font-family: "iconfont"; /* Project id 3436988 */
-  src: url('./font/iconfont.woff2?t=1683250445276') format('woff2'),
-       url('./font/iconfont.woff?t=1683250445276') format('woff'),
-       url('./font/iconfont.ttf?t=1683250445276') format('truetype');
+  src: url('./font/iconfont.woff2?t=1683684446774') format('woff2'),
+       url('./font/iconfont.woff?t=1683684446774') format('woff'),
+       url('./font/iconfont.ttf?t=1683684446774') format('truetype');
 }
 
 i[class^="icon-"], i[class*="icon-"] {
@@ -10,6 +10,14 @@ i[class^="icon-"], i[class*="icon-"] {
 	font-style: normal;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
+}
+
+.icon-shezhi:before {
+  content: "\e70f";
+}
+
+.icon-icon_buju-:before {
+  content: "\e604";
 }
 
 .icon-taiyang:before {

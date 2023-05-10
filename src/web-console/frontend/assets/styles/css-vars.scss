@@ -36,6 +36,12 @@ html.dark {
     .aside-view .el-menu .el-menu-item:hover {
         background-color: rgba($--color-auto,0.5);
     }
+    //.canvas-operate {
+    //    background: $--color-auto;
+    //}
+    .operate-item{
+        box-shadow: rgba(255, 255, 255) 0px 1px 1px -1px, rgba(255, 255, 255) 0px 0px 0px 1px!important;
+    }
 
     .home-content {
         background: none;
