@@ -452,7 +452,7 @@ import { ElNotification } from "element-plus";
 import { BotConfig } from "@/modules/config";
 
 
-const platformList = [ "安卓手机", "aPad", "安卓手表", "MacOS", "iPad" ];
+const platformList = [ "安卓手机", "aPad", "安卓手表", "MacOS", "iPad", "旧版安卓" ];
 const authList = [ "master", "manager", "user" ];
 const helpStyleList = [ {
 	label: "单条文字",

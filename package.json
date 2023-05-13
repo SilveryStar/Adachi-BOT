@@ -21,7 +21,7 @@
     "express": "^4.18.2",
     "express-jwt": "^8.4.1",
     "express-ws": "^5.0.2",
-    "icqq": "^0.3.1",
+    "icqq": "^0.3.10",
     "jsonwebtoken": "^9.0.0",
     "lodash": "^4.17.21",
     "log4js": "^6.9.1",

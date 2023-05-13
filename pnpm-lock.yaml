@@ -26,8 +26,8 @@ dependencies:
     specifier: ^5.0.2
     version: 5.0.2(express@4.18.2)
   icqq:
-    specifier: ^0.3.1
-    version: 0.3.1
+    specifier: ^0.3.10
+    version: 0.3.10
   jsonwebtoken:
     specifier: ^9.0.0
     version: 9.0.0
@@ -2406,17 +2406,16 @@ packages:
     dev: true
     optional: true
 
-  /icqq@0.3.1:
-    resolution: {integrity: sha512-fYqBCa9g+VaD9rUsS771iVS0qoCiWr+eoVjkyP8XRMv8Hgvx8fTCqND64WLv8nRymmPivaJTcQVWOGnWPNAdHA==}
+  /icqq@0.3.10:
+    resolution: {integrity: sha512-54MO74jSZgwXNpr0VBx7akp50IM6qNGYV8ZrCs9PDfcrtb3jpxhxwW9xHBBBgzzHFdbWv6/WggJjuexEttQRKQ==}
     engines: {node: '>= v14'}
     dependencies:
       axios: 1.3.6
-      lodash: 4.17.21
       log4js: 6.9.1
       long: 4.0.0
       pngjs: 6.0.0
       probe-image-size: 7.2.3
-      triptrap: 0.0.16
+      triptrap: 0.0.17
     transitivePeerDependencies:
       - debug
       - supports-color
@@ -4047,8 +4046,8 @@ packages:
     resolution: {integrity: sha512-N3WMsuqV66lT30CrXNbEjx4GEwlow3v6rr4mCcv6prnfwhS01rkgyFdjPNBYd9br7LpXV1+Emh01fHnq2Gdgrw==}
     dev: false
 
-  /triptrap@0.0.16:
-    resolution: {integrity: sha512-H6qIpE51+nU3/kl0hqOWuWkW8nmgG4tZHiqRopwL3VEGaEU/GsRsyQ2ZmsrTYTTKt+vDM/6A49KWR4y4o/Kjrw==}
+  /triptrap@0.0.17:
+    resolution: {integrity: sha512-hXc5npX73EeFc64PX1fyofdeyMVyXrNwLNbxAkirymK3AoTcn+xfbeYjfXOJl8iuKsciYQf1Q6VusAK1FUVcGw==}
     dev: false
 
   /ts-node@10.9.1(@types/node@18.16.1)(typescript@5.0.4):
