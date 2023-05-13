@@ -8,7 +8,7 @@ export default class BotConfig {
 	public readonly password: string;
 	public readonly master: number;
 	public readonly header: string;
-	public readonly platform: 1 | 2 | 3 | 4 | 5;
+	public readonly platform: 1 | 2 | 3 | 4 | 5 | 6;
 	public readonly ffmpegPath: string;
 	public readonly ffprobePath: string;
 	public readonly atUser: boolean;
