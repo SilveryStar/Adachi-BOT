@@ -99,7 +99,7 @@ export class ArtClass {
 		} );
 	}
 	
-	private async getID( domainID: number = -1 ): Promise<number | string> {
+	private getID( domainID: number = -1 ): Promise<number | string> {
 		return new Promise( ( resolve, reject ) => {
 			if ( domainID === -1 ) {
 				const domainNum: number = this.suitNames.length;

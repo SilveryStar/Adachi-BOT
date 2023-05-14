@@ -100,7 +100,7 @@ export function getRandomNumber( min: number, max: number ) {
 }
 
 /* 获取指定长度的随机字符串 */
-export function getRandomString( length ) {
+export function getRandomString( length: number ) {
 	const charSet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ,.;></~?[]{}~!@#$%^&*()-=+1234567890";
 	return Array.from( { length }, () => {
 		const randNum = Math.floor( Math.random() * charSet.length );

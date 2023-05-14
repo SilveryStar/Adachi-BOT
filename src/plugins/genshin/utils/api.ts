@@ -367,12 +367,15 @@ export async function getWishConfig( type: string ): Promise<any> {
 
 export async function getAliasName(): Promise<any> {
 	const { data } = await $https.FETCH_ALIAS_SET.get();
-	return parse( data ).set;
+	return parse( data );
 }
 
 export async function getDailyMaterial(): Promise<DailyMaterial> {
-	const { data } = await $https.FETCH_DAILY_MAP.get();
-	return parse( data );
+	const res = await $https.FETCH_DAILY_MAP.get();
+	const data: Record<string, Record<string, string[]>> = parse( res.data );
+	return <DailyMaterial>Object.fromEntries(Object.entries(data).map(([key, value]) => {
+		return [key, Object.values(value).flat()]
+	}))
 }
 
 /* 文本来源 可莉特调 https: //genshin.pub/ */

@@ -14,8 +14,8 @@ export class AliasClass {
 		this.list = new Map();
 		async function parseData(): Promise<Map<string, string>> {
 			const list = new Map();
-			const set: AliasMap[] = await getAliasName();
-			for ( let el of set ) {
+			const alias: Record<string, AliasMap[]> = await getAliasName();
+			for ( let el of Object.values(alias).flat() ) {
 				for ( let alias of el.aliasNames ) {
 					list.set( alias, el.realName );
 				}

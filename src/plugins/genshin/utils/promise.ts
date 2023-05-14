@@ -4,7 +4,7 @@ import bot from "ROOT";
 import { Cookies } from "#/genshin/module";
 import { omit, pick, set } from "lodash";
 import { characterID, cookies } from "../init";
-import { CharacterCon } from "../types";
+import { CharacterCon, ResponseBody } from "../types";
 import { getCalendarDetail, getCalendarList, getLTokenBySToken, getMultiTokenByLoginTicket, verifyLtoken } from "./api";
 import { Order } from "@/modules/command";
 import { checkCookieInvalidReason, cookie2Obj } from "#/genshin/utils/cookie";
@@ -48,32 +48,26 @@ export async function baseInfoPromise(
 		mysID, cookie ? cookie : cookies.get()
 	);
 	
-	return new Promise( async ( resolve, reject ) => {
-		if ( retcode === 10001 ) {
-			reject( Cookies.checkExpired( cookie ) );
-			return;
-		} else if ( retcode !== 0 ) {
-			reject( await checkQueryTimes( ErrorMsg.FORM_MESSAGE + message ) );
-			return;
-		} else if ( !data.list || data.list.length === 0 ) {
-			reject( ErrorMsg.NOT_FOUND );
-			return;
-		}
-		
-		const genshinInfo: ApiType.Game | undefined = data.list.find( el => el.gameId === 2 );
-		if ( !genshinInfo ) {
-			reject( ErrorMsg.NOT_FOUND );
-			return;
-		}
-		
-		const { gameRoleId, nickname, region, level } = genshinInfo;
-		
-		const uid: number = parseInt( gameRoleId );
-		
-		await bot.redis.setString( `silvery-star.user-querying-id-${ userID }`, uid );
-		await bot.redis.setHash( `silvery-star.card-data-${ uid }`, { nickname, uid, level } );
-		resolve( region );
-	} );
+	if ( retcode === 10001 ) {
+		throw Cookies.checkExpired( cookie );
+	} else if ( retcode !== 0 ) {
+		throw await checkQueryTimes( ErrorMsg.FORM_MESSAGE + message );
+	} else if ( !data.list || data.list.length === 0 ) {
+		throw ErrorMsg.NOT_FOUND;
+	}
+	
+	const genshinInfo: ApiType.Game | undefined = data.list.find( el => el.gameId === 2 );
+	if ( !genshinInfo ) {
+		throw ErrorMsg.NOT_FOUND;
+	}
+	
+	const { gameRoleId, nickname, region, level } = genshinInfo;
+	
+	const uid: number = parseInt( gameRoleId );
+	
+	await bot.redis.setString( `silvery-star.user-querying-id-${ userID }`, uid );
+	await bot.redis.setHash( `silvery-star.card-data-${ uid }`, { nickname, uid, level } );
+	return region;
 }
 
 export async function detailInfoPromise(
@@ -166,17 +160,17 @@ export async function characterInfoPromise(
 	
 	const charList: ApiType.Avatar[] = data.avatars;
 	for ( const char of charList ) {
-		const base: ApiType.CharacterBase = omit(
+		const base: ApiType.CharacterBase = <any>omit(
 			char, [ "image", "weapon", "reliquaries", "constellations" ]
 		);
-		const weapon: ApiType.CharacterWeapon = {
+		const weapon: ApiType.CharacterWeapon = <any>{
 			...omit( char.weapon, [ "id", "type", "promoteLevel", "typeName" ] ),
 			image: `https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/weapon/${ encodeURI( char.weapon.name ) }.png`
 		};
-		const artifacts: ApiType.CharacterArt = char.reliquaries.map( el => {
+		const artifacts: ApiType.CharacterArt = <any>char.reliquaries.map( el => {
 			return pick( el, [ "pos", "rarity", "icon", "level" ] );
 		} );
-		const constellations: ApiType.CharacterCon = {
+		const constellations: ApiType.CharacterCon = <any>{
 			detail: char.constellations.map( el => {
 				return pick( el, [ "name", "icon", "isActived" ] )
 			} ),
@@ -244,31 +238,28 @@ export async function mysAvatarDetailInfoPromise(
 ): Promise<ApiType.Skills> {
 	const { retcode, message, data } = await api.getAvatarDetailInfo( uid, avatar, server, cookie );
 	
-	return new Promise( async ( resolve, reject ) => {
-		if ( retcode !== 0 ) {
-			reject( ErrorMsg.FORM_MESSAGE + message );
-			return;
-		}
-		
-		const skills = data.skillList
-			.filter( el => el.levelCurrent !== 0 && el.maxLevel !== 1 )
-			.map( el => {
-				const temp: ApiType.Skills[number] = pick( el, [ "name", "icon", "levelCurrent" ] );
-				constellation.upSkills.forEach( v => {
-					if ( temp.name === v.skillName && constellation.activedNum >= v.requirementNum ) {
-						temp.levelCurrent += v.level;
-					}
-				} );
-				
-				if ( /^普通攻击·(.+?)/.test( temp.name ) ) {
-					temp.name = temp.name.slice( 5 );
+	if ( retcode !== 0 ) {
+		throw ErrorMsg.FORM_MESSAGE + message;
+	}
+	
+	const skills = data.skillList
+		.filter( el => el.levelCurrent !== 0 && el.maxLevel !== 1 )
+		.map( el => {
+			const temp: ApiType.Skills[number] = <any>pick( el, [ "name", "icon", "levelCurrent" ] );
+			constellation.upSkills.forEach( v => {
+				if ( temp.name === v.skillName && constellation.activedNum >= v.requirementNum ) {
+					temp.levelCurrent += v.level;
 				}
-				
-				return temp;
 			} );
-		
-		resolve( skills );
-	} );
+			
+			if ( /^普通攻击·(.+?)/.test( temp.name ) ) {
+				temp.name = temp.name.slice( 5 );
+			}
+			
+			return temp;
+		} );
+	
+	return skills;
 }
 
 export async function abyssInfoPromise(
@@ -355,20 +346,15 @@ export async function ledgerPromise(
 	}
 	const { retcode, message, data } = await api.getLedger( uid, server, month, cookie );
 	
-	return new Promise( async ( resolve, reject ) => {
-		if ( retcode === 10001 ) {
-			reject( Cookies.checkExpired( cookie ) );
-			return;
-		} else if ( retcode !== 0 ) {
-			reject( await checkQueryTimes( ErrorMsg.FORM_MESSAGE + message ) );
-			return;
-		}
-		
-		await bot.redis.setString( dbKey, JSON.stringify( data ) );
-		await bot.redis.setTimeout( dbKey, 21600 );
-		bot.logger.info( `用户 ${ uid } 的札记数据查询成功，数据已缓存` );
-		resolve();
-	} );
+	if ( retcode === 10001 ) {
+		throw Cookies.checkExpired( cookie );
+	} else if ( retcode !== 0 ) {
+		throw await checkQueryTimes( ErrorMsg.FORM_MESSAGE + message );
+	}
+	
+	await bot.redis.setString( dbKey, JSON.stringify( data ) );
+	await bot.redis.setTimeout( dbKey, 21600 );
+	bot.logger.info( `用户 ${ uid } 的札记数据查询成功，数据已缓存` );
 }
 
 export async function dailyNotePromise(
@@ -376,30 +362,23 @@ export async function dailyNotePromise(
 	server: string,
 	cookie: string
 ): Promise<ApiType.Note> {
-	return new Promise( async ( resolve, reject ) => {
-		try {
-			const { retcode, message, data } = await api.getDailyNoteInfo(
-				parseInt( uid ), server, cookie
-			);
-			
-			if ( retcode === 10001 ) {
-				reject( Cookies.checkExpired( cookie ) );
-				return;
-			} else if ( retcode !== 0 ) {
-				const errMsg = retcode === 1034 ? "便笺信息查询触发米游社验证码机制" : ErrorMsg.FORM_MESSAGE + message;
-				reject( errMsg );
-				return;
-			}
-			
-			bot.logger.info( `用户 ${ uid } 的实时便笺数据查询成功` );
-			resolve( data );
-		} catch ( error ) {
-			bot.logger.error( `用户 ${ uid } 的实时便笺数据查询失败，错误：${ (<Error>error).stack }` );
-			const CALL = <Order>bot.command.getSingle( "adachi.call" );
-			const appendMsg = CALL ? `私聊使用 ${ CALL.getHeaders()[0] } ` : "";
-			reject( `便笺数据查询错误，可能服务器出现了网络波动或米游社API故障，请${ appendMsg }联系持有者进行反馈` );
-		}
-	} );
+	let res: ResponseBody<ApiType.Note>;
+	try {
+		res = await api.getDailyNoteInfo( parseInt( uid ), server, cookie );
+	} catch ( error ) {
+		bot.logger.error( `用户 ${ uid } 的实时便笺数据查询失败，错误：${ (<Error>error).stack }` );
+		const CALL = <Order>bot.command.getSingle( "adachi.call" );
+		const appendMsg = CALL ? `私聊使用 ${ CALL.getHeaders()[0] } ` : "";
+		throw `便笺数据查询错误，可能服务器出现了网络波动或米游社API故障，请${ appendMsg }联系持有者进行反馈`;
+	}
+	if ( res.retcode === 10001 ) {
+		throw Cookies.checkExpired( cookie );
+	} else if ( res.retcode !== 0 ) {
+		throw res.retcode === 1034 ? "便笺信息查询触发米游社验证码机制" : ErrorMsg.FORM_MESSAGE + res.message;
+	}
+	
+	bot.logger.info( `用户 ${ uid } 的实时便笺数据查询成功` );
+	return res.data;
 }
 
 export async function signInInfoPromise(
@@ -409,18 +388,14 @@ export async function signInInfoPromise(
 ): Promise<ApiType.SignInInfo> {
 	const { retcode, message, data } = await api.getSignInInfo( uid, server, cookie );
 	
-	return new Promise( ( resolve, reject ) => {
-		if ( retcode === -100 ) {
-			reject( Cookies.checkExpired( cookie ) );
-			return;
-		} else if ( retcode !== 0 ) {
-			reject( ErrorMsg.FORM_MESSAGE + message );
-			return;
-		}
-		
-		bot.logger.info( `用户 ${ uid } 的米游社签到数据查询成功` );
-		resolve( data );
-	} );
+	if ( retcode === -100 ) {
+		throw Cookies.checkExpired( cookie );
+	} else if ( retcode !== 0 ) {
+		throw ErrorMsg.FORM_MESSAGE + message;
+	}
+	
+	bot.logger.info( `用户 ${ uid } 的米游社签到数据查询成功` );
+	return data;
 }
 
 export async function signInResultPromise(
@@ -430,21 +405,16 @@ export async function signInResultPromise(
 ): Promise<ApiType.SignInResult> {
 	const { retcode, message, data } = await api.mihoyoBBSSignIn( uid, server, cookie );
 	
-	return new Promise( ( resolve, reject ) => {
-		if ( retcode === -100 ) {
-			reject( Cookies.checkExpired( cookie ) );
-			return;
-		} else if ( retcode !== 0 ) {
-			reject( ErrorMsg.FORM_MESSAGE + message );
-			return;
-		} else if ( data.gt || data.success !== 0 ) {
-			reject( ErrorMsg.VERIFICATION_CODE );
-			return;
-		}
-		
-		bot.logger.info( `用户 ${ uid } 今日米游社签到成功` );
-		resolve( data );
-	} );
+	if ( retcode === -100 ) {
+		throw Cookies.checkExpired( cookie );
+	} else if ( retcode !== 0 ) {
+		throw ErrorMsg.FORM_MESSAGE + message;
+	} else if ( data.gt || data.success !== 0 ) {
+		throw ErrorMsg.VERIFICATION_CODE;
+	}
+	
+	bot.logger.info( `用户 ${ uid } 今日米游社签到成功` );
+	return data;
 }
 
 export async function calendarPromise(): Promise<ApiType.CalendarData[]> {
@@ -564,15 +534,13 @@ export async function getCookieTokenBySToken(
 	uid: string ): Promise<{ uid: string, cookie_token: string }> {
 	const { retcode, message, data } = await api.getCookieAccountInfoBySToken( stoken, mid, uid );
 	
-	return new Promise( ( resolve, reject ) => {
-		if ( retcode === -100 || retcode !== 0 ) {
-			return reject( checkCookieInvalidReason( message, parseInt( uid ) ) );
-		}
-		resolve( {
-			uid: data.uid,
-			cookie_token: data.cookieToken
-		} );
-	} );
+	if ( retcode === -100 || retcode !== 0 ) {
+		throw checkCookieInvalidReason( message, parseInt( uid ) );
+	}
+	return {
+		uid: data.uid,
+		cookie_token: data.cookieToken
+	};
 }
 
 export async function getMultiToken( mysID, cookie ): Promise<any> {
@@ -609,22 +577,18 @@ export async function getMultiToken( mysID, cookie ): Promise<any> {
 
 export async function getMidByLtoken( ltoken: string, ltuid: string ): Promise<string> {
 	const { retcode, message, data } = await verifyLtoken( ltoken, ltuid );
-
-	return new Promise( ( resolve, reject ) => {
-		if ( retcode === 1001 || retcode !== 0 ) {
-			return reject( checkCookieInvalidReason( message, ltuid ) );
-		}
-		resolve( data.userInfo.mid );
-	} );
+	
+	if ( retcode === 1001 || retcode !== 0 ) {
+		throw checkCookieInvalidReason( message, ltuid );
+	}
+	return data.userInfo.mid;
 }
 
 export async function getLtoken( stoken: string, mid: string ): Promise<string> {
 	const { retcode, message, data } = await getLTokenBySToken( stoken, mid );
 	
-	return new Promise( ( resolve, reject ) => {
-		if ( retcode === 1001 || retcode !== 0 ) {
-			return reject( checkCookieInvalidReason( message ) );
-		}
-		resolve( data.ltoken );
-	} );
+	if ( retcode === 1001 || retcode !== 0 ) {
+		throw checkCookieInvalidReason( message );
+	}
+	return data.ltoken;
 }
