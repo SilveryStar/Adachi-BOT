@@ -8,12 +8,12 @@ import {
 	ResponseBody
 } from "#/genshin/types";
 import { SlipDetail } from "#/genshin/module/slip";
-import { DailyMaterial } from "#/genshin/module/daily";
 import { FortuneData } from "#/genshin/module/almanac";
 import * as ApiType from "#/genshin/types";
 import { config } from "#/genshin/init";
 import { getRandomString, randomSleep } from "@/utils/common";
 import { register } from "@/utils/request";
+import { DailyMaterial, OssArtifact, OssDomain } from "@/types/ossMeta";
 
 export const apis = {
 	FETCH_ROLE_ID: "https://api-takumi-record.mihoyo.com/game_record/app/card/wapi/getGameRecordCard",
@@ -24,6 +24,7 @@ export const apis = {
 	FETCH_ROLE_AVATAR_DETAIL: "https://api-takumi.mihoyo.com/event/e20200928calculate/v1/sync/avatar/detail",
 	FETCH_GACHA_LIST: "https://webstatic.mihoyo.com/hk4e/gacha_info/cn_gf01/gacha/list.json",
 	FETCH_GACHA_DETAIL: "https://webstatic.mihoyo.com/hk4e/gacha_info/cn_gf01/$/zh-cn.json",
+	FETCH_DOMAIN: "https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/artifact/domain.yml",
 	FETCH_ARTIFACT: "https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/artifact/artifact.yml",
 	FETCH_SLIP: "https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/slip/index.yml",
 	FETCH_WISH_CONFIG: "https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/wish/config/$.json",
@@ -350,7 +351,12 @@ export async function checkGuideExist( name: string ): Promise<boolean | string>
 	}
 }
 
-export async function getArtifact(): Promise<any> {
+export async function getDomain(): Promise<OssDomain> {
+	const { data } = await $https.FETCH_DOMAIN.get();
+	return parse( data );
+}
+
+export async function getArtifact(): Promise<OssArtifact> {
 	const { data } = await $https.FETCH_ARTIFACT.get();
 	return parse( data );
 }
@@ -373,9 +379,9 @@ export async function getAliasName(): Promise<any> {
 export async function getDailyMaterial(): Promise<DailyMaterial> {
 	const res = await $https.FETCH_DAILY_MAP.get();
 	const data: Record<string, Record<string, string[]>> = parse( res.data );
-	return <DailyMaterial>Object.fromEntries(Object.entries(data).map(([key, value]) => {
+	return <any>Object.fromEntries(Object.entries(data).map(([key, value]) => {
 		return [key, Object.values(value).flat()]
-	}))
+	}));
 }
 
 /* 文本来源 可莉特调 https: //genshin.pub/ */

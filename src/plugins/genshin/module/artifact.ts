@@ -1,6 +1,7 @@
-import { getArtifact } from "../utils/api";
+import { getArtifact, getDomain } from "../utils/api";
 import Database from "@/modules/database";
 import { getRandomNumber } from "@/utils/common";
+import { OssArtifact, OssDomain } from "@/types/ossMeta";
 
 interface Domain {
 	name: string;
@@ -47,24 +48,42 @@ export class ArtClass {
 	/* type=0表示初始数据，type=1表示满级数据 */
 	private static mainStatData( stat: number, type: number ): number {
 		switch ( stat ) {
-			case 0:  return type === 0 ? 717 : 4780;     // 固定生命值
-			case 1:  return type === 0 ? 0.070 : 0.466;  // 生命值百分比
-			case 3:  return type === 0 ? 0.087 : 0.583;  // 防御力百分比
-			case 4:  return type === 0 ? 0.078 : 0.518;  // 元素充能效率
-			case 5:  return type === 0 ? 28 : 187;       // 元素精通
-			case 6:  return type === 0 ? 47 : 311;       // 固定攻击力
-			case 7:  return type === 0 ? 0.070 : 0.466;  // 攻击力百分比
-			case 8:  return type === 0 ? 0.093 : 0.622;  // 暴击伤害
-			case 9:  return type === 0 ? 0.047 : 0.311;  // 暴击率
-			case 10: return type === 0 ? 0.054 : 0.359;  // 治疗加成
-			case 11: return type === 0 ? 0.087 : 0.583;  // 物理伤害加成
-			case 12: return type === 0 ? 0.070 : 0.466;  // 风元素伤害加成
-			case 13: return type === 0 ? 0.070 : 0.466;  // 冰元素伤害加成
-			case 14: return type === 0 ? 0.070 : 0.466;  // 雷元素伤害加成
-			case 15: return type === 0 ? 0.070 : 0.466;  // 岩元素伤害加成
-			case 16: return type === 0 ? 0.070 : 0.466;  // 水元素伤害加成
-			case 17: return type === 0 ? 0.070 : 0.466;  // 火元素伤害加成
-			default: return -1;
+			case 0:
+				return type === 0 ? 717 : 4780;     // 固定生命值
+			case 1:
+				return type === 0 ? 0.070 : 0.466;  // 生命值百分比
+			case 3:
+				return type === 0 ? 0.087 : 0.583;  // 防御力百分比
+			case 4:
+				return type === 0 ? 0.078 : 0.518;  // 元素充能效率
+			case 5:
+				return type === 0 ? 28 : 187;       // 元素精通
+			case 6:
+				return type === 0 ? 47 : 311;       // 固定攻击力
+			case 7:
+				return type === 0 ? 0.070 : 0.466;  // 攻击力百分比
+			case 8:
+				return type === 0 ? 0.093 : 0.622;  // 暴击伤害
+			case 9:
+				return type === 0 ? 0.047 : 0.311;  // 暴击率
+			case 10:
+				return type === 0 ? 0.054 : 0.359;  // 治疗加成
+			case 11:
+				return type === 0 ? 0.087 : 0.583;  // 物理伤害加成
+			case 12:
+				return type === 0 ? 0.070 : 0.466;  // 风元素伤害加成
+			case 13:
+				return type === 0 ? 0.070 : 0.466;  // 冰元素伤害加成
+			case 14:
+				return type === 0 ? 0.070 : 0.466;  // 雷元素伤害加成
+			case 15:
+				return type === 0 ? 0.070 : 0.466;  // 岩元素伤害加成
+			case 16:
+				return type === 0 ? 0.070 : 0.466;  // 水元素伤害加成
+			case 17:
+				return type === 0 ? 0.070 : 0.466;  // 火元素伤害加成
+			default:
+				return -1;
 		}
 	}
 	
@@ -86,14 +105,16 @@ export class ArtClass {
 	}
 	
 	private weights: any;
-	private suitNames: string[][] = [];
-	private domains: Domain[] = [];
+	private suits: OssArtifact["suits"] = {};
+	private domains: OssDomain = [];
 	private values: number[][] = [];
 	
 	constructor() {
-		getArtifact().then( ( data: any ) => {
-			this.domains = data.domains;
-			this.suitNames = data.suits;
+		getDomain().then( data => {
+			this.domains = data;
+		} )
+		getArtifact().then( data => {
+			this.suits = data.suits;
 			this.weights = data.data.weights;
 			this.values = data.data.values;
 		} );
@@ -102,10 +123,11 @@ export class ArtClass {
 	private getID( domainID: number = -1 ): Promise<number | string> {
 		return new Promise( ( resolve, reject ) => {
 			if ( domainID === -1 ) {
-				const domainNum: number = this.suitNames.length;
-				resolve( getRandomNumber( 0, domainNum - 1 ) );
+				const artifactIds: string[] = Object.keys( this.suits );
+				const domainNum: number = getRandomNumber( 0, artifactIds.length - 1 );
+				resolve( Number.parseInt( artifactIds[domainNum] ) );
 			} else if ( domainID < this.domains.length ) {
-				resolve( this.domains[domainID].product[getRandomNumber( 0, 1 )] );
+				resolve( this.domains[domainID].artifact[getRandomNumber( 0, 1 )] );
 			} else {
 				reject( "未知的秘境ID" );
 			}
@@ -175,7 +197,7 @@ export class ArtClass {
 	): Artifact[] {
 		const par: Artifact = {
 			image: `https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/artifact/${ id }/${ slot }.png`,
-			name: this.suitNames[id][slot],
+			name: this.suits[id].suit[slot],
 			slot: ArtClass.slotName[slot],
 			mainStat: {
 				name: ArtClass.propertyName[main],
@@ -249,15 +271,8 @@ export class ArtClass {
 	}
 	
 	public domainInfo(): string {
-		const len: number = this.domains.length;
-		
-		let str = "";
-		for ( let i = 0; i < len; i++ ) {
-			str += `${ i + 1 }. ${ this.domains[i].name }`;
-			if ( i !== len - 1 ) {
-				str += "\n";
-			}
-		}
-		return str;
+		return this.domains.map( ( domain, index ) => {
+			return `${ index + 1 }. ${ domain.name }`
+		} ).join( "\n" );
 	}
 }

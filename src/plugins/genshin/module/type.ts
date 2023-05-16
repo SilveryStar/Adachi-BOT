@@ -1,21 +1,30 @@
 import { getArtifact, getWishConfig } from "../utils/api";
 import { scheduleJob } from "node-schedule";
+import { OssArtifact } from "@/types/ossMeta";
 
 export class TypeData {
 	public weapon: any;
 	public character: any;
-	public artifact: any;
+	public artifact = <OssArtifact & { suitNames: string[] }>{};
 	
 	constructor() {
-		getArtifact().then( result => this.artifact = result );
+		this.formatArtifact().then( result => this.artifact = result );
 		getWishConfig( "character" ).then( result => this.character = result );
 		getWishConfig( "weapon" ).then( result => this.weapon = result );
 		
 		scheduleJob( "0 0 0 * * *", async () => {
 			this.weapon = await getWishConfig( "weapon" );
 			this.character = await getWishConfig( "character" );
-			this.artifact = await getArtifact();
+			this.artifact = await this.formatArtifact();
 		} );
+	}
+	
+	private async formatArtifact() {
+		const result = await getArtifact();
+		return {
+			...result,
+			suitNames: Object.values(result.suits).map( suit => suit.name )
+		}
 	}
 	
 	public getNameList(): string[] {

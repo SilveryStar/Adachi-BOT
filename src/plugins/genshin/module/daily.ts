@@ -10,12 +10,7 @@ import { calendarPromise } from "#/genshin/utils/promise";
 import { Order } from "@/modules/command";
 import { Sendable } from "icqq";
 import { getRandomNumber } from "@/utils/common";
-
-export interface DailyMaterial {
-	"Mon&Thu": string[];
-	"Tue&Fri": string[];
-	"Wed&Sat": string[];
-}
+import { DailyMaterial } from "@/types/ossMeta";
 
 export type DailyDataMaterial = {
 	[K in keyof DailyMaterial]: InfoResponse[]

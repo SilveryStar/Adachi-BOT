@@ -19,7 +19,7 @@ export async function main(
 	if ( result.definite ) {
 		const info = <string>result.info;
 		const checked = ( list: any ) => list.includes( info );
-		console.log(info)
+		
 		if ( !checked( Object.keys( typeData.character ) ) && isSkillPage ) {
 			await sendMessage( "仅角色支持查看技能详情" );
 		} else {
