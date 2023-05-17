@@ -1,6 +1,5 @@
 import { AuthLevel } from "@/modules/management/auth";
 import { OrderConfig, SwitchConfig } from "@/modules/command";
-import { PluginSetting } from "@/modules/plugin";
 
 const manager: SwitchConfig = {
 	type: "switch",
@@ -111,12 +110,10 @@ const upgrade_plugins: OrderConfig = {
 		"不指定插件名将更新全部支持热更新的插件"
 }
 
-export async function init(): Promise<PluginSetting> {
-	return {
-		pluginName: "@management",
-		cfgList: [
-			manager, ban, limit, interval,
-			refresh, upgrade, restart, upgrade_plugins
-		]
-	}
-}
+export default definePlugin( {
+	name: "@management",
+	cfgList: [
+		manager, ban, limit, interval,
+		refresh, upgrade, restart, upgrade_plugins
+	]
+} );

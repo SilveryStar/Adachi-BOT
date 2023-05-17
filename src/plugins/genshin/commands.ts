@@ -1,9 +1,6 @@
 import { AuthLevel } from "@/modules/management/auth";
 import { MessageScope } from "@/modules/message";
-import { OrderConfig, SwitchConfig } from "@/modules/command";
-import { PluginSetting } from "@/modules/plugin";
-import { Router } from "express";
-import * as r from "./routes";
+import { ConfigType, OrderConfig, SwitchConfig } from "@/modules/command";
 
 const bind: OrderConfig = {
 	type: "order",
@@ -349,41 +346,14 @@ const privateLedger: OrderConfig = {
 		"只填写一个参数时将被视为月份"
 };
 
-const serverRouters: Record<string, Router> = {
-	"/api/card": r.CardRouter,
-	"/api/artifact": r.ArtifactRouter,
-	"/api/wish": r.WishRouter,
-	"/api/info": r.InfoRouter,
-	"/api/note": r.NoteRouter,
-	"/api/char": r.CharacterRouter,
-	"/api/abyss": r.AbyssRouter,
-	"/api/daily": r.DailyRouter,
-	"/api/almanac": r.AlmanacRouter,
-	"/api/ledger": r.LedgerRouter,
-}
-
-export default <PluginSetting>{
-	pluginName: "genshin",
-	cfgList: [
-		bind, today, privateCharQuery, daily,
-		guide, information, alias, domain,
-		getArtifact, impArtifact, wish, choosePool,
-		epitomizedPath, slip, uidQuery, privateMysQuery,
-		almanac, privateMysSetAppoint, privateSubscribe, privateReplace,
-		privateConfirm, privateCancel, privateRemove,
-		privateSubList, privateReorder, privateToggleSign,
-		privateToggleNote, privateNoteEvent, privateNowNote,
-		privateAbyssQuery, privateLedger
-	],
-	renderer: {
-		mainFiles: ["index", "app"]
-	},
-	server: {
-		routers: serverRouters
-	},
-	assets: {
-		manifestUrl: "https://mari-plugin.oss-cn-beijing.aliyuncs.com/Version3/genshin/adachi_assets_manifest.yml",
-		saveTarget: "static_assets",
-		overflowPrompt: "更新文件数量超过阈值，请手动前往 https://github.com/SilveryStar/Adachi-BOT/release 更新资源包"
-	}
-};
+export default <ConfigType[]>[
+	bind, today, privateCharQuery, daily,
+	guide, information, alias, domain,
+	getArtifact, impArtifact, wish, choosePool,
+	epitomizedPath, slip, uidQuery, privateMysQuery,
+	almanac, privateMysSetAppoint, privateSubscribe, privateReplace,
+	privateConfirm, privateCancel, privateRemove,
+	privateSubList, privateReorder, privateToggleSign,
+	privateToggleNote, privateNoteEvent, privateNowNote,
+	privateAbyssQuery, privateLedger
+];

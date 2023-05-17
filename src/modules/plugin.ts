@@ -8,6 +8,8 @@ import { Router } from "express";
 import { IOssListObject } from "@/types/oss";
 import axios, { AxiosError, AxiosResponse } from "axios";
 import Progress from "@/utils/progress";
+import { util } from "icqq/lib/core/protobuf/protobuf.min";
+import global = util.global;
 
 export interface PluginLoadResult {
 	renderRoutes: Array<RenderRoutes>;
@@ -26,7 +28,7 @@ export type PluginSubSetting = {
 }
 
 export interface PluginSetting {
-	pluginName: string;
+	name: string;
 	cfgList: cmd.ConfigType[];
 	aliases?: string[];
 	renderer?: boolean | {
@@ -46,6 +48,7 @@ export interface PluginSetting {
 		saveTarget?: string; // 保存到本地的目标目录名
 		overflowPrompt?: string; // 超出最大更新数量后给予的提示消息
 	};
+	completed?: ( bot: BOT ) => void; // 更新完毕后的回调函数
 }
 
 export const PluginReSubs: Record<string, PluginSubSetting> = {};
@@ -61,6 +64,8 @@ const not_support_upgrade_plugins: string[] = [ "@help", "@management", "genshin
 
 export default class Plugin {
 	public static async load( bot: BOT ): Promise<PluginLoadResult> {
+		globalThis.definePlugin = ( config ) => config;
+		
 		const commandConfig: Record<string, any> = bot.file.loadYAML( "commands" ) || {};
 		const plugins: string[] = bot.file.getDirFiles( "", "plugin" );
 		const renderRoutes: Array<RenderRoutes> = [];
@@ -72,12 +77,14 @@ export default class Plugin {
 		/* 从 plugins 文件夹从导入 init.ts 进行插件初始化 */
 		for ( let plugin of plugins ) {
 			try {
-				const { init, subInfo } = await import( `#/${ plugin }/init.ts` );
-				const { pluginName, renderer, server, cfgList, repo, aliases, assets }: PluginSetting = await init( bot );
-				if ( subInfo ) {
-					const { reSub, subs }: PluginSubSetting = await subInfo( bot );
-					PluginReSubs[pluginName] = { reSub, subs };
-				}
+				const init = await import( `#/${ plugin }/init.ts` );
+				const { name, renderer, server, cfgList, repo, aliases, assets, completed }: PluginSetting = init.default;
+				// 检查更新插件静态资源
+				await checkUpdate( plugin, assets, bot );
+				// if ( subInfo ) {
+				// 	const { reSub, subs }: PluginSubSetting = await subInfo( bot );
+				// 	PluginReSubs[name] = { reSub, subs };
+				// }
 				// 加载前端渲染页面路由
 				if ( renderer ) {
 					const renderDir = getConfigValue( renderer, "dirname", "views" );
@@ -100,10 +107,10 @@ export default class Plugin {
 					} )
 				}
 				//
-				const [ commands, cmdConfigItem ] = await Plugin.parse( bot, cfgList, pluginName, commandConfig );
-				PluginRawConfigs[pluginName] = cfgList;
-				if ( !not_support_upgrade_plugins.includes( pluginName ) ) {
-					PluginUpgradeServices[pluginName] = repo ?
+				const [ commands, cmdConfigItem ] = await Plugin.parse( bot, cfgList, name, commandConfig );
+				PluginRawConfigs[name] = cfgList;
+				if ( !not_support_upgrade_plugins.includes( name ) ) {
+					PluginUpgradeServices[name] = repo ?
 						typeof repo === "string" ?
 							`https://api.github.com/repos/${ repo }/commits` :
 							`https://api.github.com/repos/${ repo.owner }/${ repo.repoName }/commits${ repo.ref ? "/" + repo.ref : "" }`
@@ -111,14 +118,18 @@ export default class Plugin {
 				}
 				if ( aliases && aliases.length > 0 ) {
 					for ( let alias of aliases ) {
-						PluginAlias[alias] = pluginName;
+						PluginAlias[alias] = name;
 					}
 				}
 				registerCmd.push( ...commands );
 				cmdConfig = { ...cmdConfig, ...cmdConfigItem };
-				// 检查更新插件静态资源
-				await checkUpdate( plugin, assets, bot );
-				bot.logger.info( `插件 ${ pluginName } 加载完成` );
+				
+				// 生命周期：插件加载完成
+				if ( completed ) {
+					completed( bot );
+				}
+				
+				bot.logger.info( `插件 ${ name } 加载完成` );
 			} catch ( error ) {
 				bot.logger.error( `插件 ${ plugin } 加载异常: ${ <string>error }` );
 			}
@@ -197,20 +208,22 @@ async function checkUpdate( pluginName: string, assets: PluginSetting["assets"],
 		msg: string;
 	}>;
 	
+	let data: IOssListObject[];
+	
 	try {
 		res = await axios.post( "https://api-kozakura.marrydream.top/common/adachi/v1/oss/update/files", {
 			url: typeof assets === "string" ? assets : assets.manifestUrl,
 			list: manifest
 		} );
+		data = res.data.data;
 	} catch ( error: any ) {
 		if ( ( <AxiosError>error ).response?.status === 415 ) {
-			bot.logger.error( getConfigValue( assets, "overflowPrompt", "更新文件数量超过阈值，请手动更新资源包" ) );
+			throw getConfigValue( assets, "overflowPrompt", "更新文件数量超过阈值，请手动更新资源包" );
 		} else {
-			bot.logger.error( ( <Error>error ).stack );
+			data = [];
+			bot.logger.error( `检查更新失败，远程服务器异常：${ <string>error }` )
 		}
-		return;
 	}
-	const data = res.data.data;
 	// 不存在更新项，返回
 	if ( !data.length ) {
 		bot.logger.info( `未检测到 ${ pluginName } 可更新静态资源` );
@@ -229,10 +242,10 @@ async function checkUpdate( pluginName: string, assets: PluginSetting["assets"],
 			}
 			manifest.push( file );
 		} catch ( error ) {
-			errorNum ++;
+			errorNum++;
 		}
 		downloadNum++;
-		progress.renderer( downloadNum, `下载失败：${errorNum}` , bot.config.webConsole.enable );
+		progress.renderer( downloadNum, `下载失败：${ errorNum }`, bot.config.webConsole.enable );
 	} );
 	
 	// 遍历下载资源文件

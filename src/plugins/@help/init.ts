@@ -1,7 +1,5 @@
-import { PluginSetting } from "@/modules/plugin";
 import { OrderConfig } from "@/modules/command";
 import { Renderer } from "@/modules/renderer";
-import { BOT } from "@/main";
 import * as r from "./routes";
 import { Router } from "express";
 
@@ -44,19 +42,18 @@ const serverRouters: Record<string, Router> = {
 
 export let renderer: Renderer;
 
-export async function init( bot: BOT ): Promise<PluginSetting> {
-	/* 未启用卡片帮助时不启动服务 */
-	if ( bot.config.helpMessageStyle === "card" ) {
-		/* 实例化渲染器 */
-		renderer = bot.renderer.register("/@help", "#app" );
-	}
-	
-	return {
-		pluginName: "@help",
-		cfgList: [ help, detail, call ],
-		renderer: true,
-		server: {
-			routers: serverRouters
+export default definePlugin( {
+	name: "@help",
+	cfgList: [ help, detail, call ],
+	renderer: true,
+	server: {
+		routers: serverRouters
+	},
+	completed( bot ) {
+		/* 未启用卡片帮助时不启动服务 */
+		if ( bot.config.helpMessageStyle === "card" ) {
+			/* 实例化渲染器 */
+			renderer = bot.renderer.register("/@help", "#app" );
 		}
-	};
-}
+	}
+} );

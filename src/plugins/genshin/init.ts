@@ -1,9 +1,10 @@
-import pluginSetting from "./setting";
+import cfgList from "./commands";
 import { Renderer } from "@/modules/renderer";
 import { BOT } from "@/main";
-import { PluginSetting, PluginSubSetting, SubInfo } from "@/modules/plugin";
+import { PluginSubSetting, SubInfo } from "@/modules/plugin";
 import * as m from "./module";
 import { getRandomString } from "@/utils/common";
+import routers from "#/genshin/routes";
 
 const initConfig = {
 	cardWeaponStyle: "normal",
@@ -50,19 +51,6 @@ export async function subs( { redis }: BOT ): Promise<SubInfo[]> {
 	} ]
 }
 
-function initModules() {
-	artClass = new m.ArtClass();
-	cookies = new m.Cookies();
-	typeData = new m.TypeData();
-	aliasClass = new m.AliasClass();
-	almanacClass = new m.AlmanacClass();
-	wishClass = new m.WishClass();
-	dailyClass = new m.DailyClass();
-	slipClass = new m.SlipClass();
-	privateClass = new m.PrivateClass();
-	characterID = new m.CharacterId();
-}
-
 export async function subInfo(): Promise<PluginSubSetting> {
 	return {
 		subs: subs,
@@ -70,14 +58,37 @@ export async function subInfo(): Promise<PluginSubSetting> {
 	}
 }
 
-export async function init( { renderer: botRenderer, refresh, config: botConfig }: BOT ): Promise<PluginSetting> {
-	/* 加载 genshin.yml 配置 */
-	config = botConfig.register( "genshin", initConfig );
-	/* 实例化渲染器 */
-	renderer = botRenderer.register( "/genshin", "#app" );
+export default definePlugin({
+	name: "genshin",
+	cfgList,
+	renderer: {
+		mainFiles: ["index", "app"]
+	},
+	server: {
+		routers
+	},
+	assets: {
+		manifestUrl: "https://mari-plugin.oss-cn-beijing.aliyuncs.com/Version3/genshin/adachi_assets_manifest.yml",
+		saveTarget: "static_assets",
+		overflowPrompt: "更新文件数量超过阈值，请手动前往 https://github.com/SilveryStar/Adachi-BOT/release 更新资源包"
+	},
 	/* 初始化模块 */
-	initModules();
-	refresh.registerRefreshableFile( "cookies", cookies );
-	
-	return pluginSetting;
-}
+	completed( bot ) {
+		/* 加载 genshin.yml 配置 */
+		config = bot.config.register( "genshin", initConfig );
+		/* 实例化渲染器 */
+		renderer = bot.renderer.register( "/genshin", "#app" );
+		bot.refresh.registerRefreshableFile( "cookies", cookies );
+		
+		artClass = new m.ArtClass();
+		cookies = new m.Cookies();
+		typeData = new m.TypeData();
+		aliasClass = new m.AliasClass();
+		almanacClass = new m.AlmanacClass();
+		wishClass = new m.WishClass();
+		dailyClass = new m.DailyClass();
+		slipClass = new m.SlipClass();
+		privateClass = new m.PrivateClass();
+		characterID = new m.CharacterId();
+	}
+});

@@ -1,4 +1,3 @@
-import { PluginSetting } from "@/modules/plugin";
 import { OrderConfig } from "@/modules/command";
 
 const dice: OrderConfig = {
@@ -13,9 +12,7 @@ const dice: OrderConfig = {
 		"例子: d6 r5d10 r10d6k2",
 };
 
-export async function init(): Promise<PluginSetting> {
-	return {
-		pluginName: "tools",
-		cfgList: [ dice ]
-	};
-}
+export default definePlugin( {
+	name: "tools",
+	cfgList: [ dice ]
+} );

@@ -9,8 +9,15 @@ import AlmanacRouter from "./almanac-route";
 import CharacterRouter from "./character-route";
 import LedgerRouter from "./ledger";
 
-export {
-	CardRouter, WishRouter, AbyssRouter, ArtifactRouter,
-	NoteRouter, InfoRouter, DailyRouter, CharacterRouter,
-	AlmanacRouter, LedgerRouter
-};
+export default {
+	"/api/card": CardRouter,
+	"/api/artifact": ArtifactRouter,
+	"/api/wish": WishRouter,
+	"/api/info": InfoRouter,
+	"/api/note": NoteRouter,
+	"/api/char": CharacterRouter,
+	"/api/abyss": AbyssRouter,
+	"/api/daily": DailyRouter,
+	"/api/almanac": AlmanacRouter,
+	"/api/ledger": LedgerRouter,
+}
