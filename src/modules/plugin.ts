@@ -10,6 +10,7 @@ import axios, { AxiosError, AxiosResponse } from "axios";
 import Progress from "@/utils/progress";
 import { util } from "icqq/lib/core/protobuf/protobuf.min";
 import global = util.global;
+import { getLogger } from "log4js";
 
 export interface PluginLoadResult {
 	renderRoutes: Array<RenderRoutes>;

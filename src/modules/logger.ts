@@ -56,7 +56,10 @@ export default class WebConfiguration {
 			appenders: { console: appConsole, network: appNetwork, logFile },
 			categories: {
 				default: Default,
-				progress: Device,
+				"[progress]": {
+					appenders: [ "network" ],
+					level: logLevel
+				},
 				[this.deviceName]: Device,
 				"[icqq]": Device
 			},

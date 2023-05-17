@@ -3,7 +3,7 @@ import { getLogger, Logger } from "log4js";
 
 
 export default class Progress {
-	private logger: Logger = getLogger("progress");
+	private logger: Logger = getLogger("[progress]");
 	constructor(
 		private description: string,
 		private total: number,

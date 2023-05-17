@@ -97,6 +97,7 @@ import { useRoute } from "vue-router";
 import { ElMessage, ElNotification, ElScrollbar } from "element-plus";
 import { LogMessage } from "@/types/logger";
 import { LogLevel } from "icqq";
+import { add } from "lodash";
 
 interface QueryParams {
 	logLevel: Uppercase<LogLevel> | "";
@@ -173,11 +174,35 @@ const pageNum = computed( () => {
 
 /* 向列表添加 ws 通讯所得数据，若出现新一页，跳转最新页 */
 async function addMsgToList( msg: LogMessage[] ) {
-	const newPage = list.value.length + msg.length > pageSize.value;
+	const addMsg: LogMessage[] = [];
+	// 合并进度条数据后存放
+	msg.reduce( ( prev, cur ) => {
+		if ( cur.category !== "[progress]" ) {
+			addMsg.push( cur );
+			if ( prev.category === "[progress]" ) {
+				addMsg.push( prev );
+			}
+		}
+		return cur;
+	} );
+
+	console.log(addMsg, "???")
+
+	// 此时说明全都为进度条，为其添加最后一条数据
+	if ( !addMsg.length ) {
+		addMsg.push( msg[msg.length - 1] );
+	}
+
+	// 当要添加的第一条数据与数据列表中的最后一条数据都为进度条，清除列表中的最后一条数据
+	if ( addMsg[0].category === "[progress]" && list.value[list.value.length - 1].category === "[progress]" ) {
+		list.value.splice( -1, 1 );
+	}
+
+	const newPage = list.value.length + addMsg.length > pageSize.value;
 	if ( newPage && autoBottom.value ) {
 		await scrollToBottom();
 	} else {
-		list.value.push( ...msg.map( m => ( {
+		list.value.push( ...addMsg.map( m => ( {
 			...m,
 			message: formatMessage( m.message )
 		} ) ) );
@@ -194,13 +219,13 @@ function runWS() {
 			return;
 		}
 		totalLog.value += msg.length;
-		addMsgToList( msg ).then(() => {
+		addMsgToList( msg ).then( () => {
 			nextTick( () => {
 				if ( autoBottom.value ) {
 					scrollToBottom();
 				}
 			} );
-		});
+		} );
 	};
 }
 
