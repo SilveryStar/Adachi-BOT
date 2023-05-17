@@ -21,7 +21,6 @@ export class AlmanacClass {
 		const ymlPath: string = bot.file.getFilePath(
 			"genshin/data/almanac.yml", "plugin"
 		);
-		bot.file.createDir( "genshin/data", "plugin" );
 		
 		if ( !bot.file.isExist( ymlPath ) ) {
 			getAlmanacText().then( res => {

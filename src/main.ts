@@ -151,8 +151,7 @@ export default class Adachi {
 	}
 	
 	private static setEnv( file: FileManagement ): void {
-		file.createDir( "config", "root" );
-		const exist: boolean = file.createYAML( "setting", BotConfigManager.initConfig );
+		const { exist } = file.createYAML( "setting", BotConfigManager.initConfig );
 		if ( exist ) {
 			return;
 		}
@@ -243,7 +242,6 @@ export default class Adachi {
 			// 创建空的ticket.txt
 			const dirName = `src/data/${ number }`;
 			const ticketPath = `${ dirName }/ticket.txt`;
-			this.bot.file.createDir( dirName, "root", true );
 			this.bot.file.createFile( ticketPath, "", "root" );
 			
 			// 定时去查看ticket文件是否已写入ticket
@@ -277,7 +275,6 @@ export default class Adachi {
 				// 创建空的code.txt
 				const dirName = `src/data/${ number }`;
 				const codePath = `${ dirName }/code.txt`;
-				this.bot.file.createDir( dirName, "root", true );
 				this.bot.file.createFile( codePath, "", "root" );
 				
 				// 定时去查看ticket文件是否已写入ticket

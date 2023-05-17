@@ -11,14 +11,14 @@ export default class Progress {
 	) {
 	}
 	
-	public renderer( completed: number, tcp: boolean = false) {
+	public renderer( completed: number, extra: string = "", tcp: boolean = false) {
 		const cellNum: number = Math.floor( completed / this.total * this.length );
 		
 		const processStr: string = Array.from( { length: this.length }, ( _, index ) => {
 			return index < cellNum ? "█" : "░";
 		} ).join( "" );
 		
-		const cmdText = `${ this.description }: ${ processStr }  ${ completed }/${ this.total }`;
+		const cmdText = `${ this.description }: ${ processStr }  ${ completed }/${ this.total } ${ extra }`;
 		
 		if ( tcp ) {
 			this.logger.info( cmdText );

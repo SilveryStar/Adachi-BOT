@@ -217,27 +217,22 @@ async function checkUpdate( pluginName: string, assets: PluginSetting["assets"],
 	}
 	const progress = new Progress( `下载 ${ pluginName } 静态资源`, data.length );
 	
-	let downloadNum: number = 0;
+	let downloadNum: number = 0, errorNum: number = 0;
 	// 更新图片promise列表
 	const updatePromiseList: Promise<void>[] = data.map( async file => {
 		try {
-			const fileRes = await axios.get( file.url, {
-				responseType: "arraybuffer"
-			} );
-			const fileBuffer: Buffer = Buffer.from( fileRes.data );
-			bot.file.createFileRecursion( `${ baseUrl }/${ file.name }`, fileBuffer, "plugin" );
+			await bot.file.downloadFile( file.url, `${ baseUrl }/${ file.name }` );
 			// 删除本地清单文件中已存在的当前项
 			const key = manifest.findIndex( item => item.name === file.name );
 			if ( key !== -1 ) {
 				manifest.splice( key, 1 );
 			}
 			manifest.push( file );
-			downloadNum++;
-			progress.renderer( downloadNum, bot.config.webConsole.enable );
-			
 		} catch ( error ) {
-			bot.logger.error( `静态资源 ${ file.name } 更新失败：${ ( <Error>error ).message }` );
+			errorNum ++;
 		}
+		downloadNum++;
+		progress.renderer( downloadNum, `下载失败：${errorNum}` , bot.config.webConsole.enable );
 	} );
 	
 	// 遍历下载资源文件

@@ -21,6 +21,10 @@ export default express.Router().get( "/", async ( req, res ) => {
 	try {
 		if ( bot.file.isExist( path ) ) {
 			const file = await bot.file.readFileByStream( fileName, "root", bot.config.webConsole.logHighWaterMark );
+			if ( !file ) {
+				res.status( 500 ).send( { code: 500, data: {}, msg: "读取日志文件失败" } );
+				return;
+			}
 			const fullData = file.split( /[\n\r]/g ).filter( el => el.length !== 0 );
 			const respData = fullData
 				.map( el => JSON.parse( el ) )

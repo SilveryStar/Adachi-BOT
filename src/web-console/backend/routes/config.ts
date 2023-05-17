@@ -66,13 +66,8 @@ export default express.Router()
 			return;
 		}
 		
-		const dirName = `src/data/${ bot.config.number }`;
-		const codePath = `${ dirName }/code.txt`;
-		bot.file.createDir( dirName, "root", true );
-		const exist = bot.file.createFile( codePath, data, "root" );
-		if ( exist ) {
-			bot.file.writeFile( codePath, data, "root" );
-		}
+		const codePath = `src/data/${ bot.config.number }/code.txt`;
+		bot.file.writeFile( codePath, data, "root" );
 		res.status( 200 ).send( { code: 200, data: {}, msg: "Success" } );
 	} )
 	.post( "/set/ticket", ( req, res ) => {
@@ -82,13 +77,8 @@ export default express.Router()
 			return;
 		}
 		
-		const dirName = `src/data/${ bot.config.number }`;
-		const ticketPath = `${ dirName }/ticket.txt`;
-		bot.file.createDir( dirName, "root", true );
-		const exist = bot.file.createFile( ticketPath, data, "root" );
-		if ( exist ) {
-			bot.file.writeFile( ticketPath, data, "root" );
-		}
+		const ticketPath = `src/data/${ bot.config.number }/ticket.txt`;
+		bot.file.writeFile( ticketPath, data, "root" );
 		res.status( 200 ).send( { code: 200, data: {}, msg: "Success" } );
 	} )
 	.get( "/plugins", ( req, res ) => {

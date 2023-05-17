@@ -382,7 +382,7 @@ export default <PluginSetting>{
 		routers: serverRouters
 	},
 	assets: {
-		manifestUrl: "https://oss.marrydream.top/Version2/adachi_assets_manifest.yml",
+		manifestUrl: "https://mari-plugin.oss-cn-beijing.aliyuncs.com/Version3/genshin/adachi_assets_manifest.yml",
 		saveTarget: "static_assets",
 		overflowPrompt: "更新文件数量超过阈值，请手动前往 https://github.com/SilveryStar/Adachi-BOT/release 更新资源包"
 	}

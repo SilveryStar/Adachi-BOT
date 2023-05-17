@@ -1,10 +1,16 @@
-import { resolve } from "path"
+import { resolve, isAbsolute, dirname } from "path"
 import { parse, stringify } from "yaml";
 import * as fs from "fs";
+import axios from "axios";
 
 export type PresetPlace = "config" | "plugin" | "root";
 
 export type FileType = "directory" | "file" | null;
+
+export interface CreateResponse {
+	exist: boolean;
+	path: string;
+}
 
 type Tuple<T, N extends number, L extends any[] = []> =
 	L["length"] extends N ? L : Tuple<T, N, [ ...L, T ]>;
@@ -17,18 +23,18 @@ interface ManagementMethod {
 	getFileType( path: string ): FileType;
 	getFilePath( path: string, place?: PresetPlace ): string;
 	renameFile( fileName: string, newName: string, place?: PresetPlace ): void;
-	readFile( fileName: string, place: PresetPlace ): string;
-	readFileByStream( fileName: string, place: PresetPlace, highWaterMark?: number ): Promise<string>;
-	createDir( dirName: string, place?: PresetPlace, recursive?: boolean ): boolean;
+	readFile( fileName: string, place: PresetPlace ): string | null;
+	readFileByStream( fileName: string, place: PresetPlace, highWaterMark?: number ): Promise<string | null>;
+	createDir( dirName: string, place?: PresetPlace, recursive?: boolean ): CreateResponse;
 	getDirFiles( dirName: string, place?: PresetPlace ): string[];
-	createFile( fileName: string, data: any, place?: PresetPlace ): boolean;
-	createFileRecursion( fileName: string, data: any, place?: PresetPlace ): boolean;
-	createYAML( ymlName: string, data: any, place?: PresetPlace ): boolean;
+	createFile( fileName: string, data: any, place?: PresetPlace ): CreateResponse;
+	createYAML( ymlName: string, data: any, place?: PresetPlace ): CreateResponse;
 	loadFile( fileName: string, place?: PresetPlace ): any;
 	loadYAML( ymlName: string, place?: PresetPlace ): Record<string, any> | null;
-	writeYAML( ymlName: string, data: any, place?: PresetPlace ): void;
-	writeFile( fileName: string, data: any, place?: PresetPlace ): void;
-	updateYAML( ymlName: string, data: any, place?: PresetPlace, ...index: string[] ): void;
+	writeYAML( ymlName: string, data: any, place?: PresetPlace ): string;
+	writeFile( fileName: string, data: any, place?: PresetPlace ): string;
+	updateYAML( ymlName: string, data: any, place?: PresetPlace, ...index: string[] ): string;
+	downloadFile( url: string, savePath: string, place?: PresetPlace, retry?: number ): Promise<string>;
 	// updateYAMLs( ymlName: string, data: Array<{ index: UpdateIndex, data: any }>, place?: PresetPlace ): void;
 }
 
@@ -39,8 +45,8 @@ export default class FileManagement implements ManagementMethod {
 	
 	constructor( root: string ) {
 		this.root = root;
-		this.config = resolve( root, "config" );
-		this.plugin = resolve( root, "src/plugins" );
+		this.config = this.createDir( "config", "root" ).path;
+		this.plugin = this.createDir( "src/plugins", "root" ).path;
 	}
 	
 	public isExist( path: string ): boolean {
@@ -55,7 +61,7 @@ export default class FileManagement implements ManagementMethod {
 	public getFileType( fileName: string, place: PresetPlace = "config" ): FileType {
 		try {
 			const path: string = this.getFilePath( fileName, place );
-			const stats = fs.statSync(path);
+			const stats = fs.statSync( path );
 			if ( stats.isFile() ) {
 				return "file";
 			} else {
@@ -78,12 +84,16 @@ export default class FileManagement implements ManagementMethod {
 		fs.renameSync( oldPath, newPath );
 	}
 	
-	public readFile( fileName: string, place: PresetPlace ): string {
+	public readFile( fileName: string, place: PresetPlace ): string | null {
 		const path: string = this.getFilePath( fileName, place );
-		return fs.readFileSync( path, "utf-8" );
+		try {
+			return fs.readFileSync( path, "utf-8" );
+		} catch {
+			return null;
+		}
 	}
 	
-	public readFileByStream( fileName: string, place: PresetPlace, highWaterMark: number = 64 ): Promise<string> {
+	public readFileByStream( fileName: string, place: PresetPlace, highWaterMark: number = 64 ): Promise<string | null> {
 		return new Promise( ( resolve, reject ) => {
 			const path: string = this.getFilePath( fileName, place );
 			const rs = fs.createReadStream( path, { highWaterMark: highWaterMark * 1024 } );
@@ -96,52 +106,52 @@ export default class FileManagement implements ManagementMethod {
 				resolve( data );
 			} )
 			rs.on( "error", ( error ) => {
-				reject( error );
+				resolve( null );
 			} );
 		} )
 	}
 	
-	public createDir( dirName: string, place: PresetPlace = "config", recursive: boolean = false ): boolean {
+	public createDir( dirName: string, place: PresetPlace = "config", recursive: boolean = true ): CreateResponse {
 		const path: string = this.getFilePath( dirName, place );
 		const exist: boolean = this.isExist( path );
 		if ( !exist ) {
 			fs.mkdirSync( path, { recursive } );
 		}
-		return exist;
+		return { path, exist };
+	}
+	
+	// 创建父级目录
+	private createParentDir( fileName: string, place: PresetPlace ): CreateResponse {
+		const parentDir: string = dirname( fileName );
+		this.createDir( parentDir, place );
+		const path: string = this.getFilePath( fileName, place );
+		const exist = this.isExist( path );
+		return { path, exist };
 	}
 	
 	public getDirFiles( dirName: string, place: PresetPlace = "config" ): string[] {
-		const path: string = this.getFilePath( dirName, place );
-		return fs.readdirSync( path );
-	}
-	
-	public createFile( fileName: string, data: any, place: PresetPlace = "config" ): boolean {
-		const path: string = this.getFilePath( fileName, place );
-		const exist: boolean = this.isExist( path );
-		if ( !exist ) {
-			this.writeFile( fileName, data, place );
+		try {
+			const path: string = this.getFilePath( dirName, place );
+			return fs.readdirSync( path );
+		} catch {
+			return [];
 		}
-		return exist;
 	}
 	
-	public createFileRecursion( fileName: string, data: any, place: PresetPlace = "config" ): boolean {
-		const fileList = fileName.split( "/" );
-		// 遍历创建父级目录
-		const filePath = fileList.reduce( ( prev, cur  ) => {
-			this.createDir( prev, place );
-			return `${prev}/${cur}`;
-		} );
-		const exist: boolean = this.createFile(filePath, data, place);
-		return exist;
-	}
-	
-	public createYAML( ymlName: string, data: any, place: PresetPlace = "config" ): boolean {
-		const path: string = this.getFilePath( ymlName, place ) + ".yml";
-		const exist: boolean = this.isExist( path );
+	public createFile( fileName: string, data: any, place: PresetPlace = "config" ): CreateResponse {
+		const { path, exist } = this.createParentDir( fileName, place );
 		if ( !exist ) {
-			this.writeYAML( ymlName, data, place );
+			fs.writeFileSync( path, data );
 		}
-		return exist;
+		return { path, exist };
+	}
+	
+	public createYAML( ymlName: string, data: any, place: PresetPlace = "config" ): CreateResponse {
+		const { path, exist } = this.createParentDir( ymlName + ".yml", place );
+		if ( !exist ) {
+			fs.writeFileSync( path, stringify( data ) );
+		}
+		return { path, exist };
 	}
 	
 	public loadFile( fileName: string, place: PresetPlace = "config" ): string {
@@ -163,18 +173,16 @@ export default class FileManagement implements ManagementMethod {
 		}
 	}
 	
-	public writeFile( fileName: string, data: any, place: PresetPlace = "config" ): void {
-		const path: string = this.getFilePath( fileName, place );
-		const opened: number = fs.openSync( path, "w" );
-		fs.writeSync( opened, data );
-		fs.closeSync( opened );
+	public writeFile( fileName: string, data: any, place: PresetPlace = "config" ): string {
+		const { path } = this.createParentDir( fileName, place );
+		fs.writeFileSync( path, data );
+		return path;
 	}
 	
-	public writeYAML( ymlName: string, data: any, place: PresetPlace = "config" ): void {
-		const path: string = this.getFilePath( ymlName, place ) + ".yml";
-		const opened: number = fs.openSync( path, "w" );
-		fs.writeSync( opened, stringify( data ) );
-		fs.closeSync( opened );
+	public writeYAML( ymlName: string, data: any, place: PresetPlace = "config" ): string {
+		const { path } = this.createParentDir( ymlName + ".yml", place );
+		fs.writeFileSync( path, stringify( data ) );
+		return path;
 	}
 	
 	public updateYAML(
@@ -182,11 +190,29 @@ export default class FileManagement implements ManagementMethod {
 		data: any,
 		place: PresetPlace = "config",
 		...index: string[]
-	): void {
+	): string {
 		const oldData: any = this.loadYAML( ymlName, place ) || {};
 		// @ts-ignore
 		const newData: any = set( oldData, index, data );
-		this.writeYAML( ymlName, newData, place );
+		return this.writeYAML( ymlName, newData, place );
+	}
+	
+	public async downloadFile( url: string, savePath: string, place: PresetPlace = "plugin", retry = 3 ): Promise<string> {
+		try {
+			const fileRes = await axios.get( url, {
+				responseType: "arraybuffer",
+				maxContentLength: Infinity,
+				timeout: 10000
+			} );
+			const buffer: Buffer = Buffer.from( fileRes.data );
+			return this.writeFile( savePath, buffer, place );
+		} catch ( error ) {
+			if ( retry > 0 ) {
+				retry--;
+				return await this.downloadFile( url, savePath, place, retry );
+			}
+			throw error;
+		}
 	}
 	
 	// public updateYAMLs(
