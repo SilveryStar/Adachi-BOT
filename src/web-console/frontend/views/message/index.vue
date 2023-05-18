@@ -48,8 +48,8 @@ import { ElMessageBox } from "element-plus";
 import { parseTime } from "&/utils/format";
 import NavSearch from "&/components/nav-search/index.vue";
 import SendMessage from "./send-message.vue"
-import { IMessage } from "@/web-console/backend/routes/message";
 import { SearchItem } from "&/components/nav-search/nav-form.vue";
+import { IMessage } from "@/web-console/types/message";
 
 
 const searchList = ref<SearchItem[]>( [

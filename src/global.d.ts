@@ -1,5 +1,4 @@
-import { RenderRoutes } from "@/types/render";
-import { PluginSetting } from "@/modules/plugin";
+import { PluginSetting, RenderRoutes } from "@/modules/plugin";
 
 declare global {
 	var __ADACHI_ROUTES__: Array<RenderRoutes>;

@@ -1,11 +1,6 @@
 import bot from "ROOT";
 import express from "express";
-
-export interface IMessage {
-	user: number;
-	content: string;
-	date: number;
-}
+import { IMessage } from "@/web-console/types/message";
 
 const dbKey = "adachi.call-list";
 

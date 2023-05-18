@@ -1,7 +1,7 @@
 import { getArtifact, getDomain } from "../utils/api";
 import Database from "@/modules/database";
 import { getRandomNumber } from "@/utils/common";
-import { OssArtifact, OssDomain } from "@/types/ossMeta";
+import { OssArtifact, OssDomain } from "#/genshin/types/ossMeta";
 
 interface Domain {
 	name: string;

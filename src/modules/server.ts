@@ -3,7 +3,7 @@ import { resolve } from "path";
 import express from "express";
 import { Logger } from "log4js";
 import { createServer as createViteServer, ViteDevServer } from "vite";
-import { RenderRoutes, ServerRouters } from "@/types/render";
+import { RenderRoutes, ServerRouters } from "@/modules/plugin";
 import * as process from "process";
 import { BotConfig } from "@/modules/config";
 import WebConsole from "@/web-console";
@@ -79,7 +79,7 @@ export default class RenderServer {
 			const isRenderRoute = this.renderRoutes.findIndex( r => r.path === baseUrl ) !== -1;
 			let htmlPath: string;
 			if ( vite ) {
-				htmlPath = isRenderRoute ? "../render/index.html" : "../web-console/index.html";
+				htmlPath = isRenderRoute ? "../render/index.html" : "../web-console/frontend/index.html";
 			} else {
 				htmlPath = isRenderRoute ? "../../dist/src/render/index.html" : "../../dist/src/web-console/index.html";
 			}

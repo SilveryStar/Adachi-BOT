@@ -34,7 +34,7 @@ import $http from "&/api";
 import { computed, ref } from "vue";
 import { ElMessage } from "element-plus";
 import { isValidUrl } from "&/utils/url";
-import { IMessage } from "@/web-console/backend/routes/message";
+import { IMessage } from "@/web-console/types/message";
 
 interface IProps {
 	messageInfo: IMessage | null

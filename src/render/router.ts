@@ -2,10 +2,10 @@ import {
 	createRouter,
 	createWebHistory
 } from "vue-router";
-import { RenderRoutes } from "@/types/render";
+import { RenderRoutes } from "@/modules/plugin";
 
 const routes: Array<RenderRoutes> = globalThis.__ADACHI_ROUTES__ || [];
-console.log(routes)
+
 const router = createRouter( {
 	history: createWebHistory(),
 	routes: routes.map( ( { path, componentData: { plugin, renderDir, fileDir, fileName } } ) => {

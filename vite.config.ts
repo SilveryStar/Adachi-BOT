@@ -9,7 +9,7 @@ export default ( env: any ) => {
 	return defineConfig( {
 		root: __dirname,
 		base: "/dist",
-		publicDir: "./src/public",
+		publicDir: "./public",
 		plugins: [ vue() ],
 		resolve: {
 			alias: {
@@ -23,8 +23,8 @@ export default ( env: any ) => {
 			rollupOptions: {
 				input: {
 					render: path.resolve(__dirname, "./src/render/index.html"),
-					console: path.resolve(__dirname, "./src/web-console/index.html"),
-				},
+					console: path.resolve(__dirname, "./src/web-console/frontend/index.html"),
+				}
 			},
 		}
 	} )

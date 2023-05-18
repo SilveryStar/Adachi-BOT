@@ -111,8 +111,8 @@ import { ref, watch } from "vue";
 import { ElMessage } from "element-plus";
 import $http from "&/api/index.js";
 import { formatRole } from "&/utils/format";
-import { UserInfo } from "@/web-console/backend/routes/user";
 import { AuthLevel } from "&/views/user/group/index.vue";
+import { UserInfo } from "@/web-console/types/user";
 
 const emits = defineEmits<{
 	( e: "reloadData" ): void;

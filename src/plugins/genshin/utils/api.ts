@@ -13,7 +13,7 @@ import * as ApiType from "#/genshin/types";
 import { config } from "#/genshin/init";
 import { getRandomString, randomSleep } from "@/utils/common";
 import { register } from "@/utils/request";
-import { DailyMaterial, OssArtifact, OssDomain } from "@/types/ossMeta";
+import { DailyMaterial, OssArtifact, OssDomain } from "#/genshin/types/ossMeta";
 
 export const apis = {
 	FETCH_ROLE_ID: "https://api-takumi-record.mihoyo.com/game_record/app/card/wapi/getGameRecordCard",

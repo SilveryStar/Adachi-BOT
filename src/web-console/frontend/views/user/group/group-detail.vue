@@ -91,8 +91,8 @@ import $http from "&/api"
 import { formatRole } from "&/utils/format";
 import { ref, watch } from "vue";
 import { ElMessage } from "element-plus";
-import { GroupData } from "@/web-console/backend/routes/group";
 import { AuthLevel } from "./index.vue";
+import { GroupData } from "@/web-console/types/group";
 
 const emits = defineEmits<{
 	( e: "reloadData" ): void;

@@ -71,7 +71,7 @@ import UserDetail from "./user-detail.vue";
 import { useAppStore } from "&/store";
 import { SearchItem } from "&/components/nav-search/nav-form.vue";
 import { AuthLevel } from "&/views/user/group/index.vue";
-import { UserInfo } from "@/web-console/backend/routes/user";
+import { UserInfo } from "@/web-console/types/user";
 
 const subOptions = [
 	{ label: "已订阅", value: 1 },

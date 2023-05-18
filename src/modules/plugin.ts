@@ -3,14 +3,24 @@ import { BasicConfig } from "./command";
 import { BOT } from "@/main";
 import { getConfigValue } from "@/utils/common";
 import { extname } from "path";
-import { RenderRoutes, ServerRouters } from "@/types/render";
 import { Router } from "express";
-import { IOssListObject } from "@/types/oss";
 import axios, { AxiosError, AxiosResponse } from "axios";
 import Progress from "@/utils/progress";
-import { util } from "icqq/lib/core/protobuf/protobuf.min";
-import global = util.global;
-import { getLogger } from "log4js";
+
+export interface RenderRoutes {
+	path: string;
+	componentData: {
+		plugin: string;
+		renderDir: string;
+		fileDir?: string;
+		fileName: string;
+	};
+}
+
+export interface ServerRouters {
+	path: string;
+	router: Router;
+}
 
 export interface PluginLoadResult {
 	renderRoutes: Array<RenderRoutes>;
@@ -192,6 +202,17 @@ export default class Plugin {
 		}
 		return [ commands, configList ];
 	}
+}
+
+interface IOssListObject {
+	name: string;
+	url: string;
+	lastModified: string;
+	etag: string;
+	type: string;
+	size: number;
+	storageClass: string;
+	owner: null;
 }
 
 // 1、获取本地清单文件内容 manifestData

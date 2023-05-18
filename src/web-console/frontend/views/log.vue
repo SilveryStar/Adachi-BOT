@@ -95,9 +95,8 @@ import $http from "&/api";
 import { onMounted, computed, reactive, watch, ref, nextTick } from "vue";
 import { useRoute } from "vue-router";
 import { ElMessage, ElNotification, ElScrollbar } from "element-plus";
-import { LogMessage } from "@/types/logger";
+import { LogMessage } from "@/web-console/types/logger";
 import { LogLevel } from "icqq";
-import { add } from "lodash";
 
 interface QueryParams {
 	logLevel: Uppercase<LogLevel> | "";

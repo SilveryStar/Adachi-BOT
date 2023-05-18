@@ -5,18 +5,7 @@ import { MemberInfo } from "icqq";
 import { BOT } from "@/main";
 import { PluginReSubs, SubInfo } from "@/modules/plugin";
 import { sleep, getRandomNumber } from "@/utils/common";
-
-export interface UserInfo {
-	userID: number;
-	avatar: string;
-	nickname: string;
-	isFriend: boolean;
-	botAuth: AuthLevel;
-	interval: number;
-	limits: string[];
-	groupInfoList: ( string | MemberInfo )[];
-	subInfo?: string[]
-}
+import { UserInfo } from "@/web-console/types/user";
 
 export default express.Router()
 	.get( "/list", async ( req, res ) => {

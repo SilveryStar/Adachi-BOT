@@ -4,7 +4,6 @@ import { Md5 } from "md5-typescript";
 import { getTokenByRequest } from "../utils/request";
 import { validateToken } from "../utils/jwt";
 
-
 export default express.Router()
 	.get( "/", ( req, res ) => {
 		const token: string = getTokenByRequest( req ) || "";

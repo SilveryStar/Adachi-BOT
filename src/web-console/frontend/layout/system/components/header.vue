@@ -22,7 +22,7 @@
 				</li>
 				<el-button type="primary" :loading="state.refreshLoading" @click="configRefresh" link>刷新配置
 				</el-button>
-				<el-button type="primary" :loading="state.restartLoading" @click="botRestart" link>重启BOT</el-button>
+<!--				<el-button type="primary" :loading="state.restartLoading" @click="botRestart" link>重启BOT</el-button>-->
 				<li class="nav-btn" @click="accountLogout">
 					<i class="icon-exit"></i>
 				</li>

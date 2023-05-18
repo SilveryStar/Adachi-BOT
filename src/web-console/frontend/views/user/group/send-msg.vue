@@ -36,7 +36,7 @@ import $http from "&/api";
 import { batchMsgSession } from "&/utils/session";
 import { onMounted, ref } from "vue";
 import { ElNotification, ElMessage, ElMessageBox } from "element-plus";
-import { GroupData } from "@/web-console/backend/routes/group";
+import { GroupData } from "@/web-console/types/group";
 
 const emits = defineEmits<{
 	( e: "closeDialog" ): void;

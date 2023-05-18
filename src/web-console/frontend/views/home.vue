@@ -69,7 +69,7 @@ import {getAssetsFile} from '&/utils/pub-use'
 	}
 	.home-content {
 		z-index: 0;
-		background: linear-gradient(rgba(255,255,255,0.7), rgba(255,255,255, 0.7)), url('/assets/image/cover.jpg') no-repeat 10px 100px;
+		background: linear-gradient(rgba(255,255,255,0.7), rgba(255,255,255, 0.7)), url('&/assets/image/cover.jpg') no-repeat 10px 100px;
 		background-size: cover;
 		p {
 			z-index: 999;

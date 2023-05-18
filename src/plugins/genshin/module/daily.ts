@@ -10,7 +10,7 @@ import { calendarPromise } from "#/genshin/utils/promise";
 import { Order } from "@/modules/command";
 import { Sendable } from "icqq";
 import { getRandomNumber } from "@/utils/common";
-import { DailyMaterial } from "@/types/ossMeta";
+import { DailyMaterial } from "#/genshin/types/ossMeta";
 
 export type DailyDataMaterial = {
 	[K in keyof DailyMaterial]: InfoResponse[]

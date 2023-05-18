@@ -104,7 +104,7 @@ export default express.Router()
 		}
 	} )
 
-function getFileData( fileName: string ): any {
+function getFileData( fileName: string ): FileData {
 	const path = bot.file.getFilePath( `${ fileName }.yml` );
 	const exist = bot.file.isExist( path );
 	if ( !exist ) {

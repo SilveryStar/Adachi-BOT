@@ -3,16 +3,7 @@ import express from "express";
 import { AuthLevel } from "@/modules/management/auth";
 import { GroupInfo, GroupRole, MemberInfo } from "icqq";
 import { sleep, getRandomNumber } from "@/utils/common";
-
-export interface GroupData {
-	groupId: number;
-	groupAvatar: string;
-	groupName: string;
-	groupAuth: AuthLevel;
-	groupRole: GroupRole;
-	interval: number;
-	limits: string[];
-}
+import { GroupData } from "@/web-console/types/group";
 
 export default express.Router()
 	.get( "/list", async ( req, res ) => {

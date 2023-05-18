@@ -67,9 +67,9 @@ import { formatRole } from "&/utils/format.js";
 import NavSearch from "&/components/nav-search/index.vue";
 import GroupDetail from "./group-detail.vue";
 import SendMsg from "./send-msg.vue";
-import { GroupData } from "@/web-console/backend/routes/group";
 import { useAppStore } from "&/store";
 import { SearchItem } from "&/components/nav-search/nav-form.vue";
+import { GroupData } from "@/web-console/types/group";
 
 export interface AuthLevel {
 	label: string;

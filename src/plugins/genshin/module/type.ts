@@ -1,6 +1,6 @@
 import { getArtifact, getWishConfig } from "../utils/api";
 import { scheduleJob } from "node-schedule";
-import { OssArtifact } from "@/types/ossMeta";
+import { OssArtifact } from "#/genshin/types/ossMeta";
 
 export class TypeData {
 	public weapon: any;
