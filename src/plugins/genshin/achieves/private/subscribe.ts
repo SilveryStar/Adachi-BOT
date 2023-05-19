@@ -40,10 +40,17 @@ async function confirm(
 	if ( !tempSubscriptionList.some( el => el === userID ) ) {
 		return `你还未申请私人服务，请先使用「${ SUBSCRIBE.getHeaders()[0] }」`;
 	}
-	/* 对Cookie进行简化保留 */
-	const { uid, cookie, stoken } = await checkMysCookieInvalid( rawCookie );
-	pull( tempSubscriptionList, userID );
-	return await privateClass.addPrivate( uid, cookie, userID, stoken );
+	try {
+		/* 对Cookie进行简化保留 */
+		const { uid, cookie, stoken } = await checkMysCookieInvalid( rawCookie );
+		pull( tempSubscriptionList, userID );
+		return await privateClass.addPrivate( uid, cookie, userID, stoken );
+	} catch ( error: any ) {
+		if ( typeof error === "string" ) {
+			return error;
+		}
+		throw error;
+	}
 }
 
 export async function main(

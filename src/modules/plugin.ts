@@ -1,11 +1,12 @@
 import * as cmd from "./command";
-import { BasicConfig } from "./command";
+import { BasicConfig, InputParameter } from "./command";
 import { BOT } from "@/main";
 import { getConfigValue } from "@/utils/common";
 import { extname } from "path";
 import { Router } from "express";
 import axios, { AxiosError, AxiosResponse } from "axios";
 import Progress from "@/utils/progress";
+import { Renderer } from "@/modules/renderer";
 
 export interface RenderRoutes {
 	path: string;
@@ -38,6 +39,15 @@ export type PluginSubSetting = {
 	reSub: ( userId: number, bot: BOT ) => Promise<void>;
 }
 
+export type RenderRegister = ( defaultSelector: string ) => Renderer;
+
+export type PluginParameter = {
+	renderRegister: RenderRegister;
+	configRegister: <T extends Record<string, any>>( initCfg: T, setValueCallBack?: ( config: T ) => T ) => T;
+} & BOT;
+
+export type PluginHook = ( input: PluginParameter ) => void | Promise<void>;
+
 export interface PluginSetting {
 	name: string;
 	cfgList: cmd.ConfigType[];
@@ -47,7 +57,7 @@ export interface PluginSetting {
 		mainFiles?: string[];
 	};
 	server?: {
-		routers?: Record<string, Router>
+		routers?: Record<string, Router>;
 	};
 	repo?: string | {
 		owner: string;// 仓库拥有者名称
@@ -59,7 +69,7 @@ export interface PluginSetting {
 		saveTarget?: string; // 保存到本地的目标目录名
 		overflowPrompt?: string; // 超出最大更新数量后给予的提示消息
 	};
-	completed?: ( bot: BOT ) => void; // 更新完毕后的回调函数
+	completed?: PluginHook; // 更新完毕后的回调函数
 }
 
 export const PluginReSubs: Record<string, PluginSubSetting> = {};
@@ -135,9 +145,17 @@ export default class Plugin {
 				registerCmd.push( ...commands );
 				cmdConfig = { ...cmdConfig, ...cmdConfigItem };
 				
+				const configRegister = <T extends Record<string, any>>(initCfg: T, setValueCallBack: ( config: T ) => T = config => config): T => {
+					return bot.config.register( plugin, initCfg, setValueCallBack );
+				}
+				
+				const renderRegister = ( defaultSelector: string ) => {
+					return bot.renderer.register( `/${plugin}`, defaultSelector );
+				}
+				
 				// 生命周期：插件加载完成
 				if ( completed ) {
-					completed( bot );
+					completed( { ...bot, renderRegister, configRegister } );
 				}
 				
 				bot.logger.info( `插件 ${ name } 加载完成` );
@@ -317,4 +335,14 @@ function setRenderRoute( bot: BOT, plugin: string, renderDir: string, mainFiles:
 	}
 	
 	return route;
+}
+
+type name<T extends Record<string, any> = any> = {
+	foo(v: T): T;
+}
+
+const a: name = {
+	foo( v: { a: 1 } ) {
+		return v;
+	}
 }

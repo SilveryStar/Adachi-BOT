@@ -59,7 +59,7 @@ export async function subInfo(): Promise<PluginSubSetting> {
 }
 
 export default definePlugin( {
-	name: "genshin",
+	name: "原神",
 	cfgList,
 	renderer: {
 		mainFiles: [ "index", "app" ]
@@ -73,12 +73,12 @@ export default definePlugin( {
 		overflowPrompt: "更新文件数量超过阈值，请手动前往 https://github.com/SilveryStar/Adachi-BOT/release 更新资源包"
 	},
 	/* 初始化模块 */
-	completed( bot ) {
+	completed( param ) {
 		/* 加载 genshin.yml 配置 */
-		config = bot.config.register( "genshin", initConfig );
+		config = param.configRegister( initConfig );
 		/* 实例化渲染器 */
-		renderer = bot.renderer.register( "/genshin", "#app" );
-		bot.refresh.registerRefreshableFile( "cookies", cookies );
+		renderer = param.renderRegister( "#app" );
+		param.refresh.registerRefreshableFile( "cookies", cookies );
 		
 		artClass = new m.ArtClass();
 		cookies = new m.Cookies();
