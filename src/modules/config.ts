@@ -113,7 +113,7 @@ export default class BotConfigManager {
 	};
 	
 	constructor( file: FileManagement, refresh: RefreshConfig ) {
-		const configInstance = this.register<BotConfigValue>( "setting", <any>BotConfigManager.initConfig, cfg => {
+		this.value = this.register<BotConfigValue>( "setting", <any>BotConfigManager.initConfig, cfg => {
 			if ( !cfg.webConsole.jwtSecret ) {
 				cfg.webConsole.jwtSecret = getRandomString( 16 );
 			}
@@ -137,8 +137,6 @@ export default class BotConfigManager {
 				? cfg.logLevel : "info" );
 			return cfg;
 		}, file, refresh );
-		
-		this.value = configInstance;
 	}
 	
 	public register<T extends Record<string, any>>(
@@ -161,7 +159,7 @@ export default class BotConfigManager {
 		const configInstance = new ConfigInstance( filename, cfg, setValueCallBack );
 		
 		file.writeYAML( filename, configInstance.value );
-		refresh.registerRefreshableFile( filename, configInstance );
+		refresh.register( filename, configInstance );
 		
 		return <T><any>( new Proxy( configInstance, {
 			get( target: ConfigInstance<T>, p: string ): any {

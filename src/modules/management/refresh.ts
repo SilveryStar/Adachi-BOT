@@ -2,9 +2,16 @@ import FileManagement, { PresetPlace } from "@/modules/file";
 import Command from "@/modules/command/main";
 import bot from "ROOT";
 
-export type RefreshTarget =
-	{ [ key: string ]: any } &
-	{ refresh( ...args: any ): Promise<string> };
+interface RefreshTargetFun {
+	( ...args: any[] ): Promise<string | void> | string | void;
+}
+
+interface RefreshTargetFile {
+	[P: string]: any;
+	refresh: RefreshTargetFun;
+}
+
+export type RefreshTarget<T extends "fun" | "file"> = T extends "fun" ? RefreshTargetFun : RefreshTargetFile;
 
 export interface RefreshCatch {
 	log: string;
@@ -15,19 +22,25 @@ interface RefreshableFile {
 	type: "file";
 	fileName: string;
 	place: PresetPlace;
-	target: RefreshTarget;
+	target: RefreshTarget<"file">;
+}
+
+interface RefreshableObj {
+	type: "obj";
+	target: RefreshTarget<"file">;
 }
 
 interface RefreshableFunc {
 	type: "func";
-	target: RefreshTarget;
+	target: RefreshTarget<"fun">;
 }
 
-type RefreshableSetting = RefreshableFile | RefreshableFunc;
+type RefreshableSetting = RefreshableFile | RefreshableFunc | RefreshableObj;
 
 interface RefreshableMethod {
-	registerRefreshableFile( fileName: string, target: RefreshTarget, place?: PresetPlace ): void;
-	registerRefreshableFunc( target: RefreshTarget ): void;
+	register( fileName: string, target: RefreshTarget<"file">, place?: PresetPlace ): void;
+	register( target: RefreshTarget<"file"> ): void;
+	register( target: RefreshTarget<"fun"> ): void;
 }
 
 export default class Refreshable implements RefreshableMethod {
@@ -44,16 +57,18 @@ export default class Refreshable implements RefreshableMethod {
 		this.isRefreshing = false;
 	}
 	
-	public registerRefreshableFile(
-		fileName: string,
-		target: RefreshTarget,
+	public register(
+		fileNameOrTarget: string | RefreshTarget<"fun"> | RefreshTarget<"file">,
+		target?: RefreshTarget<"file">,
 		place: PresetPlace = "config"
 	): void {
-		this.include.push( { type: "file", fileName, place, target } );
-	}
-	
-	public registerRefreshableFunc( target: RefreshTarget ): void {
-		this.include.push( { type: "func", target } );
+		if ( typeof fileNameOrTarget === "string" ) {
+			target && this.include.push( { type: "file", fileName: fileNameOrTarget, place, target } );
+		} else if ( typeof fileNameOrTarget === "function" ) {
+			this.include.push( { type: "func", target: fileNameOrTarget } );
+		} else {
+			this.include.push( { type: "obj", target: fileNameOrTarget } );
+		}
 	}
 	
 	public async do(): Promise<string[]> {
@@ -61,15 +76,19 @@ export default class Refreshable implements RefreshableMethod {
 		const respList: string[] = [];
 		for ( let setting of this.include ) {
 			try {
-				let message: string = "";
+				let message: string | void;
 				if ( setting.type === "file" ) {
 					const { fileName, place } = setting;
 					const config: any = bot.file.loadYAML( fileName, place ) || {};
 					message = await setting.target.refresh( config );
+				} else if ( setting.type === "func" ) {
+					message = await setting.target();
 				} else {
 					message = await setting.target.refresh();
 				}
-				respList.push( message );
+				if ( message ) {
+					respList.push( message );
+				}
 			} catch ( error ) {
 				const err = <RefreshCatch>error;
 				respList.push( err.msg );

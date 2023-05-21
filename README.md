@@ -21,8 +21,15 @@
 ### 新的插件配置项
 
 ```ts
+type PluginParameter = {
+    renderRegister: RenderRegister;
+    configRegister: <T extends Record<string, any>>( initCfg: T, setValueCallBack?: ( config: T ) => T ) => T;
+} & BOT;
+
+type PluginHook = ( input: PluginParameter ) => void | Promise<void>;
+
 interface PluginSetting {
-    pluginName: string;
+    name: string;
     cfgList: cmd.ConfigType[];
     aliases?: string[];
     renderer?: boolean | {
@@ -41,18 +48,45 @@ interface PluginSetting {
         manifestUrl: string; // 线上 manifest.yml 文件地址
         saveTarget?: string; // 保存到本地的目标目录名
         overflowPrompt?: string; // 超出最大更新数量后给予的提示消息
+        replacePath?: ( path: string ) => string; // 修改下载后的文件路径
     };
+    completed?: PluginHook; // 更新完毕后的回调函数
 }
 ```
 
-**renderer**
+#### renderer
 
-是否启用框架的 vue-router 前端路由服务，默认不启用。传入 `true` 或配置对象后开启。
+可选配置，是否启用框架的 vue-router 前端路由服务，默认不启用。传入 `true` 或配置对象后开启。
 
 | 属性名       | 说明                                                   | 类型       | 默认值          |
 |-----------|------------------------------------------------------|----------|--------------|
 | dirname   | 从插件目录下的第一级子文件中，指定插件渲染页面存放目录                          | string   | views        |
 | mainFiles | 从指定 dirname 下的第一级子目录内，自动查找的 .vue 文件名称列表，将以左往右的顺序依次尝试 | string[] | \[ "index" ] |
+
+详情见 [公共 vue-router](#公共-vue-router)。
+
+**server**
+
+可选配置，通过 `server.routers` 向公共 express-server 注册插件自用路由。
+
+详情见 [公共 express-server](#公共-express-server)。
+
+**assets**
+
+可选配置，是否启用框架自带的 oss 自动更新静态资源支持。传入**对象**或**指向 oss 清单文件的 url**来开启。
+
+| 属性名            | 说明               | 类型                         | 默认值                 |
+|----------------|------------------|----------------------------|---------------------|
+| manifestUrl    | oss 线上清单文件文件 url | string                     | -                   |
+| saveTarget     | 下载后保存到本地的目标目录名   | string                     | static_assets       |
+| overflowPrompt | 超出最大更新数量后给予的提示消息 | string                     | 更新文件数量超过阈值，请手动更新资源包 |
+| replacePath    | 修改下载后的文件路径       | ( path: string ) => string | -                   |
+
+详情见 [自动更新插件静态资源](#自动更新插件静态资源)。
+
+#### completed
+
+将在插件加载生命周期的最后后执行，支持同步或异步方法，接受类型为 `PluginParameter` 的形参，包含 `BOT` 工具类与额外的配置项注册方法 `configRegister` 与渲染器注册方法 `renderRegister`。
 
 ### 公共 vue-router
 
@@ -61,7 +95,7 @@ interface PluginSetting {
 加载规则：
 
 1、对于 `.vue` 文件，直接按文件名加载路由。  
-2、对于目录，按照配置项 `renderer -> mainFiles` 给出的列表，以从左到右的优先级在目录的第一级文件内查找并加载。例如对于配置项默认值 `[ "index" ]`，将会加载目录内的 `index.vue`。加载的路由路径将以**插件名称**即 `PluginSetting.pluginName` 起始。
+2、对于目录，按照配置项 `renderer -> mainFiles` 给出的列表，以从左到右的优先级在目录的第一级文件内查找并加载。例如对于配置项默认值 `[ "index" ]`，将会加载目录内的 `index.vue`。加载的路由路径将以**插件名称**即插件目录名称起始。
 
 **示例**
 
@@ -82,7 +116,7 @@ test-plugin/init.ts：
 ```ts
 export async function init( bot: BOT ): Promise<PluginSetting> {
     return {
-        pluginName: "test-plugin",
+        name: "test-plugin",
         cfgList: [],
         renderer: {
             dirname: "views"
@@ -124,12 +158,41 @@ const serverRouters: Record<string, Router> = {
 
 export async function init( bot: BOT ): Promise<PluginSetting> {
     return {
-        pluginName: "genshin",
+        name: "genshin",
         cfgList: [],
         server: {
             routers: serverRouters
         }
     }
+}
+```
+
+### 自动更新插件静态资源
+
+v3 中为插件提供了自动更新静态资源支持，该功能基于 oss 实现，可通过比对本地与线上的清单文件来进行插件静态资源的自动更新与下载。
+
+你需要生成一个 `yaml` 格式清单文件的在线 url，并将其提供给 `PluginSetting.assets` 或 `PluginSetting.assets.manifestUrl` 来使用此功能，清单文件的生成可参考 [Node.js列举文件 listV2](https://help.aliyun.com/document_detail/111389.html) 来实现。
+
+#### 更新限制
+
+为了防止用户恶意消下载耗流量，比对资源差异的服务存在**最大更新 200 个文件**的限制，若超出限制则会返回 415 报错。此时你可以通过配置 `PluginSetting.assets.overflowPrompt` 来提示用户做一些操作比如前往你提供的地址进行资源的整包下载。
+
+#### 下载路径目录过多嵌套问题
+
+oss 生成的清单文件可能存在路径多层嵌套的问题，下载时将会按路径依次嵌套目录。
+
+如果你不希望出现过多的目录嵌套，可以配置 `PluginSetting.assets.replacePath` 来对路径进行处理，该配置项为一个方法，接受原路径为形参，返回处理后的路径。
+
+下面的配置方式将会将路径 `Version3/genshin/artifact/冒险家/data.json` 重置为 `artifact/冒险家/data.json`。避免创建无用目录 `Version3`、 `genshin`。
+
+```ts
+export default definePlugin {
+    assets: {
+        manifestUrl: "https://xxx/";
+        replacePath: path => {
+            return path.replace( "Version3/genshin/", "" );
+        }
+    };
 }
 ```
 
@@ -157,24 +220,70 @@ export async function init( bot: BOT ): Promise<PluginSetting> {
 }
 ```
 
+> 如果你使用 vue 编写渲染页面，则不建议你使用此种方式加载静态资源。
+
 ### 注册插件配置文件
 
-新增 `bot.config.register` 方法，该方法会自动创建配置文件，或与已存在的配置文件做深层对比来更新新增的配置项。
+新增 `PluginSetting.config.register` 方法，该方法会自动创建配置文件，或与已存在的配置文件做深层对比来更新新增的配置项。
+
+**类型**
+
+```ts
+interface BotConfigManager {
+    register<T extends Record<string, any>>( filename: string, initCfg: T, setValueCallBack?: ( config: T ) => T, file?: FileManagement, refresh?: RefreshConfig );
+}
+```
 
 **返回值**
 
-返回处理后的配置项对象，该对象支持自动重载，你无需做任何操作该对象即可自动响应 #refresh 指令进行数据重载更新。
+返回处理后的配置项对象，通过自动推导传入的对象的来获得 ts 类型。该对象支持自动重载，你无需做任何操作该对象即可自动响应 `#refresh` 指令进行数据重载更新。
 
 **示例**
 
 ```ts
-/* test-plugin 插件 */
-export async function init( { file, config }: BOT ): Promise<PluginSetting> {
-    // 创建 test-plugin.yml 配置文件 或是与已存在的 test-plugin.yml 进行对比，返回更新后的配置项内容
-	const configData = config.register( "test-plugin", { setting1: true, setting2: false } );
-    console.log( configData ); // { setting1: true, setting2: false }
-}
+import bot from "ROOT";
+
+// 在 config 目录下创建 test-plugin.yml 配置文件 或是与已存在的 test-plugin.yml 进行对比，返回更新后的配置项内容
+const configData = bot.config.register( "test-plugin", { setting1: true, setting2: false } );
+console.log( configData ); // { setting1: true, setting2: false }
 ```
+
+若你不满足于自动推导得来的类型，或是你希望来进行一些关于初始值的限制与操作，该方法还支持传入第三个参数。
+
+其接受一个 `config` 形参，即传入的配置对象，返回由你自行处理过的配置对象。
+
+```ts
+interface MyConfig {
+    setting1: "msg" | "card";
+    setting2: boolean;
+}
+
+const configData = <MyConfig>bot.config.register( "test-plugin", { setting1: "msg", setting2: false }, config => {
+    if ( !["msg", "card"].includes( config.setting1 ) ) config.setting1 = "msg";
+    return config;
+} );
+```
+
+当然我们还为插件提供了更方便的配置文件注册方法，你可以在插件的 `completed` 生命周期钩子中使用 `params.configRegister` 来快速创建以插件名（插件目录名）命名的配置文件。
+
+该方法除了免去了提供第一个参数 `fileName` 外行为与 `bot.config.register` 一致。
+
+```ts
+/* test-plugin 插件 */
+export default definePlugin( {
+    completed( params ) {
+        // 在 config 目录下创建 test-plugin.yml 配置文件
+        const configData = params.configRegister( { setting1: true, setting2: false } );
+        console.log( configData ); // { setting1: true, setting2: false }
+    }
+} );
+```
+
+### renderRegister
+
+在 `completed` 生命周期钩子函数的参数中提供， `PluginSetting.renderer.register` 的插件便捷使用方式。
+
+免去了提供第一个参数 `route`，自动以 `/插件名（插件目录名）` 作为基地址来注册渲染器。
 
 ### 通用工具 utils
 
@@ -346,6 +455,55 @@ export default <FetchServer<keyof typeof apis, FetchResponse>><unknown>request;
 定义类型后，请求所得的响应对象将会变为 `FetchResponse` 类型。
 
 ## brake change
+
+### 插件配置结构变更
+
+新版插件不再以 `init` 函数的方式配置插件配置项，改为默认导出一个变量的方式。你可以通过 `definePlugin` 宏函数进行一层包装，来获取完善的 ts 类型支持。
+该宏函数已全局注入，无需导入即可使用。
+
+```ts
+// test-plugin/init.ts
+export default definePlugin( {
+    name: "测试插件",
+    cfgList: [],
+    completed() {
+        // 插件行为
+    }
+} );
+```
+
+> 我们强烈推荐你在 `completed` 生命周期钩子函数中进行原来的插件的初始化行为。这样可以有效的避免一些加载顺序导致的变量未定义情况，例如其他文件在通过 `import bot from "ROOT"` 使用框架库时提示 `bot 未定义`。
+
+### fileName 配置项变更
+
+配置项 `fileName` 重命名为 `name`，仅用于加载插件的信息提示与 help 中的插件名称展示，可随你的喜好配置中文/英文。
+
+### refresh 注册方法变更
+
+合并 `refresh.registerRefreshableFunc` 与 `refresh.registerRefreshableFile` 为 `refresh.register`。
+
+包含三种类型参数，`obj`、`file` 与 `func`，前两者对应 `refresh.registerRefreshableFunc` 与 `refresh.registerRefreshableFile` 的参数格式，`func` 则直接传入回调函数即可。
+
+刷新函数类型变更，允许使用同步函数，不再强制要求返回 `string` 类型的值。
+
+```ts
+interface RefreshTargetFun {
+    ( ...args: any[] ): Promise<string | void> | string | void;
+}
+
+interface RefreshTargetFile {
+    [P: string]: any;
+    refresh: RefreshTargetFun;
+}
+
+type RefreshTarget<T extends "fun" | "file"> = T extends "fun" ? RefreshTargetFun : RefreshTargetFile;
+
+interface RefreshableMethod {
+    register( fileName: string, target: RefreshTarget<"file">, place?: PresetPlace ): void;
+    register( target: RefreshTarget<"file"> ): void;
+    register( target: RefreshTarget<"fun"> ): void;
+}
+```
 
 ### renderer.asCqCode 方法名称变更
 

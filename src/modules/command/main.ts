@@ -154,8 +154,8 @@ export default class Command {
 			const commandConfig: Record<string, any> = bot.file.loadYAML( "commands" ) || {};
 			// 要写入的 command.yml 配置文件内容
 			let cmdConfig: Record<string, any> = {};
-			for ( const [ name, raws ] of Object.entries( PluginRawConfigs ) ) {
-				const [ cmd, cmdConfigItem ] = await Plugin.parse( bot, raws, name, commandConfig );
+			for ( const [ plugin, raws ] of Object.entries( PluginRawConfigs ) ) {
+				const [ cmd, cmdConfigItem ] = await Plugin.parse( bot, raws.cfgList, plugin, raws.name, commandConfig );
 				cmdConfig = { ...cmdConfig, ...cmdConfigItem };
 				commands.push( ...cmd );
 			}

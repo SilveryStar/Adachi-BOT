@@ -121,8 +121,8 @@ export default class Adachi {
 			interval, config, refresh, renderer,
 			whitelist
 		};
-		refresh.registerRefreshableFile( "whitelist", whitelist );
-		refresh.registerRefreshableFunc( renderer );
+		refresh.register( "whitelist", whitelist );
+		refresh.register( renderer );
 	}
 	
 	public run(): BOT {

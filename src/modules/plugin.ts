@@ -1,5 +1,5 @@
 import * as cmd from "./command";
-import { BasicConfig, InputParameter } from "./command";
+import { BasicConfig } from "./command";
 import { BOT } from "@/main";
 import { getConfigValue } from "@/utils/common";
 import { extname } from "path";
@@ -68,13 +68,14 @@ export interface PluginSetting {
 		manifestUrl: string; // 线上 manifest.yml 文件地址
 		saveTarget?: string; // 保存到本地的目标目录名
 		overflowPrompt?: string; // 超出最大更新数量后给予的提示消息
+		replacePath?: ( path: string ) => string; // 修改下载后的文件路径
 	};
 	completed?: PluginHook; // 更新完毕后的回调函数
 }
 
 export const PluginReSubs: Record<string, PluginSubSetting> = {};
 
-export const PluginRawConfigs: Record<string, cmd.ConfigType[]> = {};
+export const PluginRawConfigs: Record<string, Pick<PluginSetting, "name" | "cfgList">> = {};
 
 export const PluginUpgradeServices: Record<string, string> = {};
 
@@ -99,7 +100,16 @@ export default class Plugin {
 		for ( let plugin of plugins ) {
 			try {
 				const init = await import( `#/${ plugin }/init.ts` );
-				const { name, renderer, server, cfgList, repo, aliases, assets, completed }: PluginSetting = init.default;
+				const {
+					name,
+					renderer,
+					server,
+					cfgList,
+					repo,
+					aliases,
+					assets,
+					completed
+				}: PluginSetting = init.default;
 				// 检查更新插件静态资源
 				await checkUpdate( plugin, assets, bot );
 				// if ( subInfo ) {
@@ -128,8 +138,8 @@ export default class Plugin {
 					} )
 				}
 				//
-				const [ commands, cmdConfigItem ] = await Plugin.parse( bot, cfgList, name, commandConfig );
-				PluginRawConfigs[name] = cfgList;
+				const [ commands, cmdConfigItem ] = await Plugin.parse( bot, cfgList, plugin, name, commandConfig );
+				PluginRawConfigs[plugin] = { name, cfgList };
 				if ( !not_support_upgrade_plugins.includes( name ) ) {
 					PluginUpgradeServices[name] = repo ?
 						typeof repo === "string" ?
@@ -145,17 +155,17 @@ export default class Plugin {
 				registerCmd.push( ...commands );
 				cmdConfig = { ...cmdConfig, ...cmdConfigItem };
 				
-				const configRegister = <T extends Record<string, any>>(initCfg: T, setValueCallBack: ( config: T ) => T = config => config): T => {
+				const configRegister = <T extends Record<string, any>>( initCfg: T, setValueCallBack: ( config: T ) => T = config => config ): T => {
 					return bot.config.register( plugin, initCfg, setValueCallBack );
 				}
 				
 				const renderRegister = ( defaultSelector: string ) => {
-					return bot.renderer.register( `/${plugin}`, defaultSelector );
+					return bot.renderer.register( `/${ plugin }`, defaultSelector );
 				}
 				
 				// 生命周期：插件加载完成
 				if ( completed ) {
-					completed( { ...bot, renderRegister, configRegister } );
+					await completed( { ...bot, renderRegister, configRegister } );
 				}
 				
 				bot.logger.info( `插件 ${ name } 加载完成` );
@@ -171,6 +181,7 @@ export default class Plugin {
 	public static async parse(
 		bot: BOT,
 		cfgList: cmd.ConfigType[],
+		pluginPath: string,
 		pluginName: string,
 		configData: Record<string, any>
 	): Promise<[ cmd.BasicConfig[], Record<string, any> ]> {
@@ -183,7 +194,7 @@ export default class Plugin {
 				/* 允许 main 传入函数 */
 				if ( typeof config.main === "string" ) {
 					const main: string = config.main || "index";
-					const { main: entry } = await import(`#/${ pluginName }/${ main }`);
+					const { main: entry } = await import(`#/${ pluginPath }/${ main }`);
 					config.run = entry;
 				} else {
 					config.run = config.main;
@@ -274,7 +285,9 @@ async function checkUpdate( pluginName: string, assets: PluginSetting["assets"],
 	// 更新图片promise列表
 	const updatePromiseList: Promise<void>[] = data.map( async file => {
 		try {
-			await bot.file.downloadFile( file.url, `${ baseUrl }/${ file.name }` );
+			const replacePath = getConfigValue( assets, "replacePath", null );
+			const filePath = replacePath ? replacePath( file.name ) : file.name;
+			await bot.file.downloadFile( file.url, `${ baseUrl }/${ filePath }` );
 			// 删除本地清单文件中已存在的当前项
 			const key = manifest.findIndex( item => item.name === file.name );
 			if ( key !== -1 ) {
@@ -338,7 +351,7 @@ function setRenderRoute( bot: BOT, plugin: string, renderDir: string, mainFiles:
 }
 
 type name<T extends Record<string, any> = any> = {
-	foo(v: T): T;
+	foo( v: T ): T;
 }
 
 const a: name = {

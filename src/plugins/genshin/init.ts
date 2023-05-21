@@ -30,6 +30,19 @@ export let slipClass: m.SlipClass;
 export let privateClass: m.PrivateClass;
 export let characterID: m.CharacterId;
 
+function initModules() {
+	artClass = new m.ArtClass();
+	cookies = new m.Cookies();
+	typeData = new m.TypeData();
+	aliasClass = new m.AliasClass();
+	almanacClass = new m.AlmanacClass();
+	wishClass = new m.WishClass();
+	dailyClass = new m.DailyClass();
+	slipClass = new m.SlipClass();
+	privateClass = new m.PrivateClass();
+	characterID = new m.CharacterId();
+}
+
 /* 删除好友后清除订阅服务 */
 async function decreaseFriend( userId: number, { redis }: BOT ) {
 	await privateClass.delBatchPrivate( userId );
@@ -70,7 +83,10 @@ export default definePlugin( {
 	assets: {
 		manifestUrl: "https://mari-plugin.oss-cn-beijing.aliyuncs.com/Version3/genshin_assets_manifest.yml",
 		saveTarget: "static_assets",
-		overflowPrompt: "更新文件数量超过阈值，请手动前往 https://github.com/SilveryStar/Adachi-BOT/release 更新资源包"
+		overflowPrompt: "更新文件数量超过阈值，请手动前往 https://github.com/SilveryStar/Adachi-BOT/release 更新资源包",
+		replacePath: path => {
+			return path.replace( "Version3/genshin/", "" );
+		}
 	},
 	/* 初始化模块 */
 	completed( param ) {
@@ -78,17 +94,8 @@ export default definePlugin( {
 		config = param.configRegister( initConfig );
 		/* 实例化渲染器 */
 		renderer = param.renderRegister( "#app" );
-		param.refresh.registerRefreshableFile( "cookies", cookies );
-		
-		artClass = new m.ArtClass();
-		cookies = new m.Cookies();
-		typeData = new m.TypeData();
-		aliasClass = new m.AliasClass();
-		almanacClass = new m.AlmanacClass();
-		wishClass = new m.WishClass();
-		dailyClass = new m.DailyClass();
-		slipClass = new m.SlipClass();
-		privateClass = new m.PrivateClass();
-		characterID = new m.CharacterId();
+		initModules();
+		param.refresh.register( "cookies", cookies );
+		param.refresh.register( initModules );
 	}
 } );
