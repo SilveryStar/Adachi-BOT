@@ -1,3 +1,9 @@
+<script lang="ts" setup>
+defineProps<{
+	showSubTitle?: boolean;
+}>();
+</script>
+
 <template>
 	<div class="section-title" :class="{hasSub: showSubTitle}">
 	<span class="main-title">
@@ -8,12 +14,6 @@
 	</span>
 	</div>
 </template>
-
-<script lang="ts" setup>
-defineProps<{
-	showSubTitle: boolean;
-}>();
-</script>
 
 <style lang="scss" scoped>
 .section-title {
@@ -32,7 +32,7 @@ defineProps<{
 		content: "";
 		flex: 1;
 		margin: 10px 0;
-		background: url("https://adachi-bot.oss-cn-beijing.aliyuncs.com/images/card/card_title_line.png") no-repeat;
+		background: url("/assets/genshin/resource/card/card_title_line.png") no-repeat;
 		transform: rotateY(180deg);
 		overflow: hidden;
 	}

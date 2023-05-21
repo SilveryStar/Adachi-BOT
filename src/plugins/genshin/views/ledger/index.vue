@@ -1,3 +1,48 @@
+<script lang="ts" setup>
+import { onMounted, ref, Ref } from "vue";
+import $https from "#/genshin/front-utils/api";
+import SectionTitle from "#/genshin/components/section-title/index.vue";
+import DataPiece from "./data-piece.vue"
+import DataChart from "./data-chart.vue"
+import { urlParamsGet } from "@/utils/common";
+
+const urlParams = urlParamsGet( location.href );
+const data = ref<Record<string, any> | null>( null );
+
+function getPieceData( data: Record<string, any> ) {
+	return {
+		dayMora: {
+			prev: data.dayData.lastMora,
+			next: data.dayData.currentMora
+		},
+		dayPrimogems: {
+			prev: data.dayData.lastPrimogems,
+			next: data.dayData.currentPrimogems
+		},
+		monthMora: {
+			prev: data.monthData.lastMora,
+			next: data.monthData.currentMora
+		},
+		monthPrimogems: {
+			prev: data.monthData.lastPrimogems,
+			next: data.monthData.currentPrimogems
+		}
+	}
+}
+
+const getData = async () => {
+	const res = await $https.LEDGER.get( { uid: urlParams.uid } );
+	data.value = {
+		...res,
+		pieceData: getPieceData( res )
+	};
+}
+
+onMounted( () => {
+	getData();
+} );
+</script>
+
 <template>
 	<div v-if="data" id="app" class="ledger-base">
 		<header>
@@ -40,57 +85,12 @@
 			<p class="time">记录日期 {{ data.date }}</p>
 		</main>
 		<footer>
-			<p>Created by Chaichai-BOT</p>
+			<p>Created by Adachi-BOT</p>
 		</footer>
 	</div>
 </template>
 
-<script lang="ts" setup>
-import { onMounted, ref, Ref } from "vue";
-import $https from "#/genshin/front-utils/api";
-import SectionTitle from "#/genshin/components/section-title/index.vue";
-import DataPiece from "./data-piece.vue"
-import DataChart from "./data-chart.vue"
-import { urlParamsGet } from "@/utils/common";
-
-const urlParams = urlParamsGet( location.href );
-const data = ref<Record<string, any> | null>( null );
-
-function getPieceData( data ) {
-	return {
-		dayMora: {
-			prev: data.dayData.lastMora,
-			next: data.dayData.currentMora
-		},
-		dayPrimogems: {
-			prev: data.dayData.lastPrimogems,
-			next: data.dayData.currentPrimogems
-		},
-		monthMora: {
-			prev: data.monthData.lastMora,
-			next: data.monthData.currentMora
-		},
-		monthPrimogems: {
-			prev: data.monthData.lastPrimogems,
-			next: data.monthData.currentPrimogems
-		}
-	}
-}
-
-const getData = async () => {
-	const res = await $https.LEDGER.get( { uid: urlParams.uid } );
-	data.value = {
-		...res,
-		pieceData: getPieceData( res )
-	};
-}
-
-onMounted( () => {
-	getData();
-} );
-</script>
-
-<style src="../../public/styles/reset.css"></style>
+<style src="../../assets/styles/reset.css"></style>
 
 <style lang="scss" scoped>
 #app {
@@ -100,7 +100,7 @@ onMounted( () => {
 .ledger-base {
 	padding: 0 20px;
 	position: relative;
-	background: url("https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/ledger/background/ledger-bg.jpg") center center no-repeat;
+	background: url("/assets/genshin/resource/ledger/background/ledger-bg.jpg") center center no-repeat;
 	background-size: cover;
 	overflow: hidden;
 	color: #fff;

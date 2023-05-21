@@ -1,3 +1,9 @@
+<script lang="ts" setup>
+defineProps<{
+	data: Record<string, any>;
+}>()
+</script>
+
 <template>
 	<div class="info box">
 		<img :src="data.icon" alt="ERROR"/>
@@ -8,12 +14,6 @@
 		<p class="data" :class="{ mini: data.miniFontSize }">{{ data.value }}</p>
 	</div>
 </template>
-
-<script lang="ts" setup>
-defineProps<{
-	data: Record<string, any>;
-}>()
-</script>
 
 <style lang="scss" scoped>
 .info {

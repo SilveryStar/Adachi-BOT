@@ -1,3 +1,51 @@
+<script lang="ts" setup>
+import { computed } from "vue";
+
+const props = withDefaults( defineProps<{
+	data: Record<string, any>;
+	urlParams: Record<string, any>;
+	infoList: any[];
+}>(), {
+	data: () => ( {} ),
+	urlParams: () => ( {} ),
+	infoList: () => [],
+} );
+
+const profile = props.urlParams.profile;
+
+const avatars = props.data.avatars;
+const level = props.data.level;
+
+for ( let info of props.infoList ) {
+	if ( info.value === "-" ) {
+		info.value = "0-0";
+	}
+}
+
+/* 获取头像 */
+function getProImg( name ) {
+	return `/assets/genshin/character/${ name }/image/face.png`;
+}
+
+const defaultAvatar = computed( () => {
+	const avatarList = avatars?.length ? avatars : [ { name: "荧" }, { name: "空" } ];
+	return profile === "random" || props.urlParams.stranger === "true"
+		? getProImg( avatarList[Math.floor( Math.random() * avatarList.length )].name )
+		: `https://q1.qlogo.cn/g?b=qq&s=640&nk=${ props.urlParams.qq }`;
+} );
+
+/* 计算世界等级 */
+const worldLevel = computed( () => {
+	if ( parseInt( level ) < 20 ) {
+		return 0;
+	}
+	if ( parseInt( level ) === 60 ) {
+		return 8;
+	}
+	return Math.floor( ( parseInt( level ) - 15 ) / 5 );
+} );
+</script>
+
 <template>
 	<div class="header-base">
 		<div
@@ -30,54 +78,6 @@
 	</div>
 </template>
 
-<script lang="ts" setup>
-import { computed } from "vue";
-
-const props = withDefaults( defineProps<{
-	data: Record<string, any>;
-	urlParams: Record<string, any>;
-	infoList: any[];
-}>(), {
-	data: () => ( {} ),
-	urlParams: () => ( {} ),
-	infoList: () => [],
-} );
-
-const profile = props.urlParams.profile;
-
-const avatars = props.data.avatars;
-const level = props.data.level;
-
-for ( let info of props.infoList ) {
-	if ( info.value === "-" ) {
-		info.value = "0-0";
-	}
-}
-
-/* 获取头像 */
-function getProImg( name ) {
-	return `https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/thumb/character/${ name }.png`;
-}
-
-const defaultAvatar = computed( () => {
-	const avatarList = avatars?.length ? avatars : [ { name: "荧" }, { name: "空" } ];
-	return profile === "random" || props.urlParams.stranger === "true"
-		? getProImg( avatarList[Math.floor( Math.random() * avatarList.length )].name )
-		: `https://q1.qlogo.cn/g?b=qq&s=640&nk=${ props.urlParams.qq }`;
-} );
-
-/* 计算世界等级 */
-const worldLevel = computed( () => {
-	if ( parseInt( level ) < 20 ) {
-		return 0;
-	}
-	if ( parseInt( level ) === 60 ) {
-		return 8;
-	}
-	return Math.floor( ( parseInt( level ) - 15 ) / 5 );
-} );
-</script>
-
 <style lang="scss" scoped>
 .header-base {
 	position: relative;
@@ -86,7 +86,7 @@ const worldLevel = computed( () => {
 	height: 280px;
 	padding-bottom: 12px;
 	border-radius: 12px 12px 0 0;
-	background: url("https://adachi-bot.oss-cn-beijing.aliyuncs.com/images/card/user-top-bg.jpg") center no-repeat;
+	background: url("/assets/genshin/resource/card/user-top-bg.jpg") center no-repeat;
 	background-size: cover;
 	box-shadow: 0 2px 8px #666;
 	color: #fff;
@@ -112,7 +112,7 @@ const worldLevel = computed( () => {
 		bottom: 0;
 		border-style: solid;
 		border-width: 50px 50px 0;
-		border-image: url("https://adachi-bot.oss-cn-beijing.aliyuncs.com/images/card/card-base-bg.png") 70 fill;
+		border-image: url("/assets/genshin/resource/card/card-base-bg.png") 70 fill;
 	}
 
 	> div {

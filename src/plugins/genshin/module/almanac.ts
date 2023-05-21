@@ -1,5 +1,5 @@
 import bot from "ROOT";
-import { getAlmanacText } from "../utils/api";
+import { getAlmanacText } from "#/genshin/utils/meta";
 
 export interface FortuneData {
 	name: string;
@@ -14,29 +14,13 @@ export interface FortuneUnit {
 type AlmanacType = "auspicious" | "inauspicious";
 
 export class AlmanacClass {
-	private auspicious: FortuneData[] = [];
-	private inauspicious: FortuneData[] = [];
+	private readonly auspicious: FortuneData[] = [];
+	private readonly inauspicious: FortuneData[] = [];
 	
 	constructor() {
-		const ymlPath: string = bot.file.getFilePath(
-			"genshin/data/almanac.yml", "plugin"
-		);
-		
-		if ( !bot.file.isExist( ymlPath ) ) {
-			getAlmanacText().then( res => {
-				this.auspicious = res.auspicious;
-				this.inauspicious = res.inauspicious;
-				bot.file.createYAML(
-					"genshin/data/almanac", res, "plugin"
-				);
-			} );
-		} else {
-			const res: Record<string, FortuneData[]> = bot.file.loadYAML(
-				"genshin/data/almanac", "plugin"
-			) || {};
-			this.auspicious = res.auspicious;
-			this.inauspicious = res.inauspicious;
-		}
+		const data = getAlmanacText();
+		this.auspicious = data.auspicious;
+		this.inauspicious = data.inauspicious;
 	}
 	
 	private static getDailyNumber(): number {

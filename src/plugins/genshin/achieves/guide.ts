@@ -1,7 +1,7 @@
 import { InputParameter } from "@/modules/command";
 import { getRealName, NameResult } from "#/genshin/utils/name";
-import { checkGuideExist } from "#/genshin/utils/api";
 import { segment, Sendable } from "icqq";
+import { getCharacterGuide } from "#/genshin/utils/meta";
 
 export async function main( { sendMessage, messageData }: InputParameter ): Promise<void> {
 	const name: string = messageData.raw_message;
@@ -11,12 +11,11 @@ export async function main( { sendMessage, messageData }: InputParameter ): Prom
 	
 	if ( result.definite ) {
 		/* 检查是否存在该攻略图 */
-		const check: boolean | string = await checkGuideExist( <string>result.info );
-		if ( typeof check === "boolean" ) {
-			message = check ? segment.image( `https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/guide/${ result.info }.png` )
-				: `未查询到关于「${ result.info }」的攻略图，请等待西风驿站上传后再次查询，或前往 github.com/SilveryStar/Adachi-BOT 进行反馈`;
+		const data = getCharacterGuide( <string>result.info );
+		if ( data ) {
+			message = segment.image( Buffer.from( data, "binary" ) );
 		} else {
-			message = "获取西风攻略图出错：" + check;
+			message = `未查询到关于「${ result.info }」的攻略图，请等待西风驿站上传后再次查询，或前往 github.com/SilveryStar/Adachi-BOT 进行反馈`;
 		}
 	} else if ( result.info === "" ) {
 		message = `暂无关于「${ name }」的信息，若确认名称输入无误，请前往 github.com/SilveryStar/Adachi-BOT 进行反馈`;

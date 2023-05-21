@@ -3,11 +3,12 @@ import * as api from "./api";
 import bot from "ROOT";
 import { Cookies } from "#/genshin/module";
 import { omit, pick, set } from "lodash";
-import { characterID, cookies } from "../init";
+import { characterMap, cookies } from "../init";
 import { CharacterCon, ResponseBody } from "../types";
 import { getCalendarDetail, getCalendarList, getLTokenBySToken, getMultiTokenByLoginTicket, verifyLtoken } from "./api";
 import { Order } from "@/modules/command";
 import { checkCookieInvalidReason, cookie2Obj } from "#/genshin/utils/cookie";
+import { getUidHome } from "#/genshin/utils/meta";
 
 export enum ErrorMsg {
 	NOT_FOUND = "未查询到角色数据，请检查米哈游通行证（非UID）是否有误或是否设置角色信息公开",
@@ -96,7 +97,7 @@ export async function detailInfoPromise(
 	}
 	const { retcode, message, data } = await api.getDetailInfo( uid, server, cookie );
 	
-	const allHomes = await api.getUidHome();
+	const allHomes = getUidHome();
 	
 	if ( retcode === 10001 ) {
 		throw Cookies.checkExpired( cookie );
@@ -165,7 +166,7 @@ export async function characterInfoPromise(
 		);
 		const weapon: ApiType.CharacterWeapon = <any>{
 			...omit( char.weapon, [ "id", "type", "promoteLevel", "typeName" ] ),
-			image: `https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/weapon/${ encodeURI( char.weapon.name ) }.png`
+			image: `/assets/genshin/weapon/${ encodeURI( char.weapon.name ) }/image/thumb.png`
 		};
 		const artifacts: ApiType.CharacterArt = <any>char.reliquaries.map( el => {
 			return pick( el, [ "pos", "rarity", "icon", "level" ] );
@@ -294,22 +295,32 @@ export async function abyssInfoPromise(
 		throw await checkQueryTimes( ErrorMsg.FORM_MESSAGE + message );
 	}
 	
-	const idMap: Record<number, string> = {};
-	
-	for ( const name in characterID.map ) {
-		const id = characterID.map[name];
-		idMap[id] = name;
+	const getRankWithName = <T extends { id?: number; avatarId?: number }>( rankList: T[] ) => {
+		return <( T & { name: string } )[]>rankList
+			.map( r => {
+				const id = ( r.id || r.avatarId || "" ).toString();
+				const character = Object.values( characterMap.map ).find( c => c.id.toString().includes( id ) );
+				if ( !character ) return null;
+				return {
+					...r,
+					name: character.name
+				}
+			} )
+			.filter( r => !!r );
 	}
-	
-	const getRankWithName = <T extends { avatarId: number }>( rankList: T[] ) => rankList.map( r => {
-		return {
-			...r,
-			name: idMap[r.avatarId]
-		}
-	} )
 	
 	data = {
 		...data,
+		floors: data.floors.map( f => ( {
+			...f,
+			levels: f.levels.map( l => ( {
+				...l,
+				battles: l.battles.map( b => ( {
+					...b,
+					avatars: getRankWithName( b.avatars )
+				} ) )
+			} ) )
+		} ) ),
 		revealRank: getRankWithName( data.revealRank ),
 		defeatRank: getRankWithName( data.defeatRank ),
 		takeDamageRank: getRankWithName( data.takeDamageRank ),
@@ -366,7 +377,7 @@ export async function dailyNotePromise(
 	try {
 		res = await api.getDailyNoteInfo( parseInt( uid ), server, cookie );
 	} catch ( error ) {
-		bot.logger.error( `用户 ${ uid } 的实时便笺数据查询失败，错误：${ (<Error>error).stack }` );
+		bot.logger.error( `用户 ${ uid } 的实时便笺数据查询失败，错误：${ ( <Error>error ).stack }` );
 		const CALL = <Order>bot.command.getSingle( "adachi.call" );
 		const appendMsg = CALL ? `私聊使用 ${ CALL.getHeaders()[0] } ` : "";
 		throw `便笺数据查询错误，可能服务器出现了网络波动或米游社API故障，请${ appendMsg }联系持有者进行反馈`;

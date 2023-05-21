@@ -1,12 +1,8 @@
-import { getArtifact, getDomain } from "../utils/api";
 import Database from "@/modules/database";
 import { getRandomNumber } from "@/utils/common";
 import { OssArtifact, OssDomain } from "#/genshin/types/ossMeta";
-
-interface Domain {
-	name: string;
-	product: number[];
-}
+import { getArtifact, getDomain } from "#/genshin/utils/meta";
+import { ArtifactRouter } from "#/genshin/types/artifact";
 
 interface PairData {
 	property: number;
@@ -16,20 +12,6 @@ interface PairData {
 interface Property {
 	entry: number;
 	stage: number;
-}
-
-interface ArtProp {
-	name: string;
-	value: number | string;
-}
-
-interface Artifact {
-	name: string;
-	slot: string;
-	image: string;
-	mainStat: ArtProp;
-	subStats: ArtProp[];
-	level: number;
 }
 
 export class ArtClass {
@@ -106,18 +88,14 @@ export class ArtClass {
 	
 	private weights: any;
 	private suits: OssArtifact["suits"] = {};
-	private domains: OssDomain = [];
+	private domains: OssDomain = getDomain();
 	private values: number[][] = [];
 	
 	constructor() {
-		getDomain().then( data => {
-			this.domains = data;
-		} )
-		getArtifact().then( data => {
-			this.suits = data.suits;
-			this.weights = data.data.weights;
-			this.values = data.data.values;
-		} );
+		const data = getArtifact();
+		this.suits = data.suits;
+		this.weights = data.data.weights;
+		this.values = data.data.values;
 	}
 	
 	private getID( domainID: number = -1 ): Promise<number | string> {
@@ -194,10 +172,11 @@ export class ArtClass {
 	private getResult(
 		id: number, slot: number, started: number,
 		main: number, sub: Property[], improves: any[]
-	): Artifact[] {
-		const par: Artifact = {
-			image: `https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/artifact/${ id }/${ slot }.png`,
+	): ArtifactRouter[] {
+		const par: ArtifactRouter = {
 			name: this.suits[id].suit[slot],
+			icon: slot.toString(),
+			shirt: this.suits[id].name,
 			slot: ArtClass.slotName[slot],
 			mainStat: {
 				name: ArtClass.propertyName[main],
@@ -207,7 +186,7 @@ export class ArtClass {
 			level: -1
 		};
 		
-		const initArt: Artifact = JSON.parse( JSON.stringify( par ) );
+		const initArt: ArtifactRouter = JSON.parse( JSON.stringify( par ) );
 		initArt.level = 0;
 		initArt.mainStat.value = this.toString( ArtClass.mainStatData( main, 0 ) );
 		for ( let i = 0; i < started; i++ ) {
@@ -219,7 +198,7 @@ export class ArtClass {
 			} );
 		}
 		
-		const reinArt: Artifact = JSON.parse( JSON.stringify( par ) );
+		const reinArt: ArtifactRouter = JSON.parse( JSON.stringify( par ) );
 		reinArt.level = 20;
 		reinArt.mainStat.value = this.toString( ArtClass.mainStatData( main, 1 ) );
 		for ( let i = 0; i < 4; i++ ) {

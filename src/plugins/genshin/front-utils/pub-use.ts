@@ -1,4 +1,4 @@
 export function getAssetsFile( url: string ) {
 // @ts-ignore
-	return new URL(`../${url}`, import.meta.url).href;
+	return new URL(`../static_assets/${url}`, import.meta.url).href;
 }

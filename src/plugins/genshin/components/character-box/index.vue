@@ -9,7 +9,7 @@
 			/>
 			<span v-if="char.activedConstellationNum" class="constellation">{{ char.activedConstellationNum }}</span>
 			<div v-if="char.name !== '旅行者'" class="fetter-box">
-				<img src="https://adachi-bot.oss-cn-beijing.aliyuncs.com/images/common/Item_Companionship_EXP.png"
+				<img src="/assets/genshin/resource/common/icon/Item_Companionship_EXP.png"
 				     alt="ERROR"/>
 				<span>{{ char.fetter }}</span>
 				<span>{{ char.fetter }}</span>
@@ -49,19 +49,17 @@ const props = withDefaults( defineProps<{
 } );
 
 /* 针对埃洛伊处理 */
-function getRarity( rarity ) {
-	rarity = rarity === 105 ? "5" : rarity;
-	return `https://adachi-bot.oss-cn-beijing.aliyuncs.com/images/stars/Icon_${ rarity }_Stars.png`;
+function getRarity( rarity: number ) {
+	return `/assets/genshin/resource/rarity/icon/Icon_${ rarity === 105 ? "5" : rarity }_Stars.png`;
 }
 
-function getRarityBg( rarity ) {
-	rarity = rarity === 105 ? "5a" : rarity;
-	return `url(https://adachi-bot.oss-cn-beijing.aliyuncs.com/images/rarity_bg/Background_Item_${ rarity }_Star.png)`;
+function getRarityBg( rarity: number ) {
+	return `url(/assets/genshin/resource/rarity/bg/Background_Item_${ rarity === 105 ? "5a" : rarity }_Star.png)`;
 }
 
 /* 获取属性图标 */
-function getElementIcon( element ) {
-	return `https://adachi-bot.oss-cn-beijing.aliyuncs.com/images/element/Element_${ element }.png`;
+function getElementIcon( element: string ) {
+	return `/assets/genshin/resource/element/${ element.toLowerCase() }.png`;
 }
 </script>
 

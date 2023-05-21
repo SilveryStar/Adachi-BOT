@@ -13,13 +13,13 @@ withDefaults( defineProps<{
 	data: {
 		icon: string;
 		label: string;
-		value: string;
+		value: number;
 	};
 }>(), {
 	data: () => ( {
 		icon: "",
 		label: "",
-		value: ""
+		value: 0
 	} )
 } );
 </script>
@@ -30,7 +30,7 @@ withDefaults( defineProps<{
 	align-items: center;
 	width: 28.8em;
 	height: 7.5em;
-	background: url("https://adachi-bot.oss-cn-beijing.aliyuncs.com/images/card/data_item_bg.png") no-repeat;
+	background: url("/assets/genshin/resource/card/data_item_bg.png") no-repeat;
 	background-size: contain;
 	font-size: 10px;
 

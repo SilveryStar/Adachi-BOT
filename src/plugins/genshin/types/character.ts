@@ -1,3 +1,5 @@
+import { Skills } from "#/genshin/types/avatar";
+
 /**
  * @interface
  * 角色数据
@@ -177,3 +179,30 @@ export type ArtifactSetStat = {
 	effect: ArtifactAffixes[];
 	icon: string;
 };
+
+export interface EffectsShirt {
+	name: string;
+	num: string;
+	icon: string;
+}
+
+export interface ScoreItem {
+	label: string;
+	percentage: number;
+}
+
+export interface EvaluateScore {
+	list: ScoreItem[];
+	total: number;
+}
+
+/**
+ * @interface
+ * 前端请求所得数据
+ */
+export interface CharacterRouter extends Omit<CharacterInformation, "effects"> {
+	uid: string;
+	effects: EffectsShirt[];
+	skills: Skills;
+	score: EvaluateScore;
+}

@@ -1,19 +1,3 @@
-<template>
-	<div v-if="data" id="app" class="note">
-		<p class="uid">实时便笺 UID{{ data.uid }}</p>
-		<div class="list-info">
-			<NoteInfo v-for="d in data.dataList" :data="d"/>
-		</div>
-		<div class="expedition-box box">
-			<p class="title expedition-title">
-				探索派遣限制 （{{ data.currentExpeditionNum }}/{{ data.maxExpeditionNum }}）
-			</p>
-			<NoteExpedition v-for="e in data.expeditions" :data="e"/>
-		</div>
-		<p class="author">Created by Chaichai-BOT</p>
-	</div>
-</template>
-
 <script lang="ts" setup>
 import moment from "moment";
 import "moment/dist/locale/zh-cn";
@@ -61,32 +45,32 @@ function getTransformerSubtitle( data ) {
 
 function getDataList( data ) {
 	const resin = {
-		icon: "https://adachi-bot.oss-cn-beijing.aliyuncs.com/images/common/Item_Fragile_Resin.png",
+		icon: "/assets/genshin/resource/material/原粹树脂.png",
 		title: "原粹树脂",
 		subtitle: data.resinRecoveryTime !== "0" ? `预计将在 ${ getTimePoint( data.resinRecoveryTime ) } 全部恢复` : "原粹树脂已满",
 		value: `${ data.currentResin }/${ data.maxResin }`
 	};
 	const commission = {
-		icon: "https://adachi-bot.oss-cn-beijing.aliyuncs.com/images/common/Icon_Commission.png",
+		icon: "/assets/genshin/resource/common/icon/Icon_Commission.png",
 		title: "每日委托任务",
 		subtitle: `「每日委托」奖励${ data.isExtraTaskRewardReceived ? "已" : "未" }领取`,
 		value: `${ data.finishedTaskNum }/${ data.totalTaskNum }`
 	};
 	const weekly = {
-		icon: "https://adachi-bot.oss-cn-beijing.aliyuncs.com/images/common/Emblem_Domains.png",
+		icon: "/assets/genshin/resource/common/icon/Emblem_Domains.png",
 		title: "值得铭记的强敌",
 		subtitle: "本周已使用消耗减半次数",
 		value: `${ data.resinDiscountNumLimit - data.remainResinDiscountNum }/${ data.resinDiscountNumLimit }`
 	};
 	const homes = {
-		icon: "https://adachi-bot.oss-cn-beijing.aliyuncs.com/images/common/Item_Serenitea_Pot.png",
+		icon: "/assets/genshin/resource/material/尘歌壶.png",
 		title: "洞天财瓮 - 洞天宝钱",
 		subtitle: getHomeCoinSubtitle( data ),
 		value: getHomeCoinValue( data ),
 		miniFontSize: data.maxHomeCoin !== 0
 	};
 	const transformer = {
-		icon: "https://adachi-bot.oss-cn-beijing.aliyuncs.com/images/common/Item_Parametric_Transformer.png",
+		icon: "/assets/genshin/resource/material/参量质变仪.png",
 		title: "参量质变仪",
 		subtitle: getTransformerSubtitle( data ),
 		value: getTransformerValue( data )
@@ -129,7 +113,23 @@ onMounted( () => {
 } );
 </script>
 
-<style src="../../public/styles/reset.css"></style>
+<template>
+	<div v-if="data" id="app" class="note">
+		<p class="uid">实时便笺 UID{{ data.uid }}</p>
+		<div class="list-info">
+			<NoteInfo v-for="d in data.dataList" :data="d"/>
+		</div>
+		<div class="expedition-box box">
+			<p class="title expedition-title">
+				探索派遣限制 （{{ data.currentExpeditionNum }}/{{ data.maxExpeditionNum }}）
+			</p>
+			<NoteExpedition v-for="e in data.expeditions" :data="e"/>
+		</div>
+		<p class="author">Created by Adachi-BOT</p>
+	</div>
+</template>
+
+<style src="../../assets/styles/reset.css"></style>
 
 <style lang="scss" scoped>
 #app {

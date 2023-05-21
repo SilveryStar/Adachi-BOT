@@ -1,8 +1,11 @@
 import express from "express";
-import { getInfo } from "#/genshin/utils/api";
+import { getInfo } from "#/genshin/utils/meta";
 
 export default express.Router().get( "/", async ( req, res ) => {
 	const name: string = <string>req.query.name;
-	const data: any = await getInfo( name );
-	res.send( data );
+	const data = await getInfo( name );
+	if ( !data ) {
+		return res.status( 404 ).send( "Not Found" );
+	}
+	res.status( 200 ).send( data );
 } );

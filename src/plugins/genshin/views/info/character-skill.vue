@@ -1,50 +1,33 @@
+<script lang="ts" setup>
+import InfoCard from "./info-card.vue";
+import { CharacterInfo } from "#/genshin/types";
+import { computed } from "vue";
+
+const props = defineProps<{
+	data: CharacterInfo;
+}>();
+
+const skill = computed(() => {
+	return props.data.skills.find( sk => sk.icon === "skill_2" )!;
+});
+
+const burst = computed(() => {
+	return props.data.skills.find( sk => sk.icon === "skill_4" )!;
+});
+</script>
+
 <template>
 	<div class="character-skill">
 		<info-card class="skill-card">
-			<h3 class="skill-card-title">{{ data.skill.title }}</h3>
-			<div class="skill-card-content" v-html="data.skill.description"></div>
+			<h3 class="skill-card-title">{{ skill.name }}</h3>
+			<div class="skill-card-content" v-html="skill.desc"></div>
 		</info-card>
 		<info-card class="burst-card">
-			<h3 class="skill-card-title">{{ data.burst.title }}</h3>
-			<div class="skill-card-content" v-html="data.burst.description"></div>
+			<h3 class="skill-card-title">{{ burst.name }}</h3>
+			<div class="skill-card-content" v-html="burst.desc"></div>
 		</info-card>
 	</div>
 </template>
-
-<script lang="ts" setup>
-import InfoCard from "./info-card.vue";
-import { CharacterData } from "#/genshin/views/info/index.vue";
-
-const props = withDefaults( defineProps<{
-	data: CharacterData;
-}>(), {
-	data: () => ( {
-		birthday: "",
-		element: "",
-		cv: "",
-		constellationName: "",
-		rarity: null,
-		mainStat: "",
-		mainValue: "",
-		baseHP: null,
-		baseATK: null,
-		baseDEF: null,
-		ascensionMaterials: [],
-		levelUpMaterials: [],
-		talentMaterials: [],
-		constellations: [],
-		skill: {
-			title: "",
-			description: ""
-		},
-		burst: {
-			title: "",
-			description: ""
-		},
-		time: ""
-	} )
-} );
-</script>
 
 <style lang="scss" scoped>
 .character-skill {
@@ -55,8 +38,7 @@ const props = withDefaults( defineProps<{
 	.info-card {
 		width: 400px;
 
-		&.skill-card > .card-content,
-		&.burst-card > .card-content {
+		> ::v-deep(.card-content) {
 			padding: 20px;
 			height: 100%;
 			min-height: 415px;
@@ -69,7 +51,7 @@ const props = withDefaults( defineProps<{
 			color: var(--light-color);
 		}
 
-		.skill-card-content {
+		::v-deep(.skill-card-content) {
 			word-break: break-all;
 			font-size: 14px;
 			color: #666;

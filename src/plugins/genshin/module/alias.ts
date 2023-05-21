@@ -1,10 +1,12 @@
 import bot from "ROOT";
-import { getAliasName } from "../utils/api";
 import { scheduleJob } from "node-schedule";
+import { getAliasName } from "#/genshin/utils/meta";
 
-interface AliasMap {
-	realName: string;
-	aliasNames: string[];
+export interface AliasMap {
+	[ P: string ]: {
+		realName: string;
+		aliasNames: string[];
+	}
 }
 
 export class AliasClass {
@@ -14,7 +16,7 @@ export class AliasClass {
 		this.list = new Map();
 		async function parseData(): Promise<Map<string, string>> {
 			const list = new Map();
-			const alias: Record<string, AliasMap[]> = await getAliasName();
+			const alias: AliasMap = getAliasName();
 			for ( let el of Object.values(alias).flat() ) {
 				for ( let alias of el.aliasNames ) {
 					list.set( alias, el.realName );

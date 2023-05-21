@@ -1,6 +1,12 @@
+<script lang="ts" setup>
+defineProps<{
+	data: string;
+}>();
+</script>
+
 <template>
 	<div class="almanac-footer">
-		<img class="dire-title" src="../../public/images/almanac/direction.svg" alt="ERROR"/>
+		<img class="dire-title" src="/assets/genshin/resource/almanac/direction.svg" alt="ERROR"/>
 		<div class="dire-content">
 			<p>面朝{{ data }}玩原神<br/>稀有掉落概率up</p>
 		</div>
@@ -8,12 +14,6 @@
 		<p class="author">Created by Adachi-BOT</p>
 	</div>
 </template>
-
-<script lang="ts" setup>
-defineProps<{
-	data: string;
-}>();
-</script>
 
 <style lang="scss" scoped>
 .dire-title {
@@ -25,7 +25,7 @@ defineProps<{
 	position: relative;
 	width: 250px;
 	height: 140px;
-	background: url("../../public/images/almanac/direction-bg.png");
+	background: url("/assets/genshin/resource/almanac/direction-bg.png");
 	background-size: 250px;
 	margin: auto;
 

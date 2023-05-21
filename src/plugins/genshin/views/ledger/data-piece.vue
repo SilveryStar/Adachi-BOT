@@ -1,27 +1,3 @@
-<template>
-	<div class="data-piece">
-		<div class="icon-box">
-			<img :src="pieceIcon" alt="ERROR">
-		</div>
-		<ul class="piece-content">
-			<li class="prev-data">
-				<p>{{ prevLabel }}</p>
-				<p>{{ data.prev }}</p>
-			</li>
-			<li class="next-data">
-				<p>{{ nextLabel }}</p>
-				<p>{{ data.next }}</p>
-			</li>
-		</ul>
-		<div class="piece-footer">
-			<p>
-				<span>较{{ prevLabel }}{{ increaseData.label }}: </span>
-				<span :style="{ color: increaseData.color }">{{ increaseData.num }}</span>
-			</p>
-		</div>
-	</div>
-</template>
-
 <script lang="ts" setup>
 import { computed } from "vue";
 
@@ -46,7 +22,7 @@ const props = withDefaults( defineProps<{
 
 /* 获取图标 */
 const pieceIcon = computed( () => {
-	return `https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/ledger/image/item_${ props.type }.png`
+	return `/assets/genshin/resource/ledger/image/item_${ props.type }.png`
 } );
 
 const prevLabel = computed( () => {
@@ -67,6 +43,30 @@ const increaseData = computed( () => {
 	}
 } )
 </script>
+
+<template>
+	<div class="data-piece">
+		<div class="icon-box">
+			<img :src="pieceIcon" alt="ERROR">
+		</div>
+		<ul class="piece-content">
+			<li class="prev-data">
+				<p>{{ prevLabel }}</p>
+				<p>{{ data.prev }}</p>
+			</li>
+			<li class="next-data">
+				<p>{{ nextLabel }}</p>
+				<p>{{ data.next }}</p>
+			</li>
+		</ul>
+		<div class="piece-footer">
+			<p>
+				<span>较{{ prevLabel }}{{ increaseData.label }}: </span>
+				<span :style="{ color: increaseData.color }">{{ increaseData.num }}</span>
+			</p>
+		</div>
+	</div>
+</template>
 
 <style lang="scss" scoped>
 .data-piece {

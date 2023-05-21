@@ -1,22 +1,12 @@
 import { InputParameter, Order } from "@/modules/command";
 import { Private } from "#/genshin/module/private/main";
 import { RenderResult } from "@/modules/renderer";
-import { CharacterInformation, Skills } from "#/genshin/types";
+import { CharacterInformation, EffectsShirt, EvaluateScore, ScoreItem, Skills } from "#/genshin/types";
 import { getRealName, NameResult } from "#/genshin/utils/name";
 import { mysAvatarDetailInfoPromise, mysInfoPromise } from "#/genshin/utils/promise";
 import { getPrivateAccount } from "#/genshin/utils/private";
-import { characterID, config, renderer } from "#/genshin/init";
+import { characterMap, config, renderer, typeData } from "#/genshin/init";
 import bot from "ROOT";
-
-interface ScoreItem {
-	label: string;
-	percentage: number;
-}
-
-interface EvaluateScore {
-	list: ScoreItem[];
-	total: number;
-}
 
 function evaluate( obj: { rarity: number; level: number }, max: number = 5 ): number {
 	return ( obj.rarity / max ) * obj.level;
@@ -34,7 +24,7 @@ export async function main(
 		return;
 	}
 	
-	const [ ,idMsg, name ] = execRes;
+	const [ , idMsg, name ] = execRes;
 	
 	const info: Private | string = await getPrivateAccount( userID, idMsg, auth );
 	if ( typeof info === "string" ) {
@@ -53,7 +43,7 @@ export async function main(
 		return;
 	}
 	const realName: string = <string>result.info;
-	const charID: number = characterID.map[realName];
+	const charID: number = characterMap.map[realName].id;
 	
 	try {
 		await mysInfoPromise( userID, mysID, cookie );
@@ -98,15 +88,29 @@ export async function main(
 			) / 24
 		} ];
 		
+		const effects: EffectsShirt[] = charInfo.effects.map( effect => {
+			const [ name, num ] = effect.name.split( " " );
+			const artifact = typeData.artifact.suits[name];
+			return {
+				name, num,
+				icon: artifact
+					? artifact.suit.length === 1
+						? "4"
+						: "0"
+					: "0"
+			}
+		} )
+		
 		const score: EvaluateScore = {
 			list,
 			total: list.reduce( ( pre, cur, i ) => {
 				return pre + cur.percentage * coefficients[i]
 			}, 0 )
 		};
-
+		
 		await redis.setString( dbKey, JSON.stringify( {
 			...charInfo,
+			effects,
 			skills,
 			score,
 			uid

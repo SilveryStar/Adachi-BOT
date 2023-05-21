@@ -2,7 +2,7 @@ import { Private } from "#/genshin/module/private/main";
 import { InputParameter } from "@/modules/command";
 import { MysQueryService } from "#/genshin/module/private/mys";
 import { NameResult, getRealName } from "#/genshin/utils/name";
-import { characterID, privateClass } from "#/genshin/init";
+import { characterMap, privateClass } from "#/genshin/init";
 
 export async function main( { sendMessage, messageData }: InputParameter ): Promise<void> {
 	const userID: number = messageData.user_id;
@@ -23,7 +23,7 @@ export async function main( { sendMessage, messageData }: InputParameter ): Prom
 		if ( result.definite ) {
 			const realName: string = <string>result.info;
 			await ( <MysQueryService>single.services[MysQueryService.FixedField] ).modifyAppointChar(
-				characterID.map[realName].toString()
+				characterMap.map[realName].id.toString()
 			);
 			await sendMessage( "卡片头像指定成功" );
 		} else {

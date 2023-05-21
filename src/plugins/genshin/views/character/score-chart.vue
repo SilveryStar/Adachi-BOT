@@ -1,31 +1,16 @@
-<template>
-	<div class="score-chart">
-		<v-chart class="chart" :key="chartKey" :option="chartOption"></v-chart>
-		<p>评分：
-			<span class="score" :style="{ color: color.text }">{{ score }}</span>
-		</p>
-		<p class="desc">*根据等级以及星级评分，仅供娱乐参考</p>
-	</div>
-</template>
-
 <script lang="ts" setup>
 import { ref, onMounted, computed, Ref } from "vue";
 import "echarts";
-import vChart from "vue-echarts";
+import VChart from "vue-echarts";
+import { EvaluateScore } from "#/genshin/types";
 
-const props = withDefaults( defineProps<{
-	data: Record<string, any>;
+const props = defineProps<{
+	data: EvaluateScore;
 	color: {
 		graphic: string;
 		text: string;
 	};
-}>(), {
-	data: () => ( {} ),
-	color: () => ( {
-		graphic: "#333",
-		text: "#333"
-	} )
-} );
+}>();
 
 const chartKey = ref( 0 );
 
@@ -99,6 +84,16 @@ onMounted( () => {
 	}, 20 )
 } );
 </script>
+
+<template>
+	<div class="score-chart">
+		<v-chart class="chart" :key="chartKey" :option="chartOption"></v-chart>
+		<p>评分：
+			<span class="score" :style="{ color: color.text }">{{ score }}</span>
+		</p>
+		<p class="desc">*根据等级以及星级评分，仅供娱乐参考</p>
+	</div>
+</template>
 
 <style lang="scss" scoped>
 .score-chart {

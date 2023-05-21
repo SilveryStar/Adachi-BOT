@@ -1,7 +1,7 @@
 import moment from "moment";
 import bot from "ROOT";
-import { getSlip } from "../utils/api";
 import { getRandomNumber } from "@/utils/common";
+import { getSlip } from "#/genshin/utils/meta";
 
 export interface SlipDetail {
 	SlipInfo: string[];
@@ -12,12 +12,11 @@ export class SlipClass {
 	private slipNum: number = 0;
 	
 	constructor() {
-		getSlip().then( ( data: SlipDetail ) => {
-			this.slipNum = data.SlipInfo.length;
-			for ( let el of data.SlipInfo ) {
-				this.slip.push( Buffer.from( el, "base64" ).toString() );
-			}
-		} );
+		const data = getSlip();
+		this.slipNum = data.SlipInfo.length;
+		for ( let el of data.SlipInfo ) {
+			this.slip.push( Buffer.from( el, "base64" ).toString() );
+		}
 	}
 	
 	public async get( userID: number ): Promise<string> {

@@ -1,9 +1,3 @@
-<template>
-	<div class="data-chart">
-		<VChart class="chart" :option="chartOption" :key="chartKey"></VChart>
-	</div>
-</template>
-
 <script lang="ts" setup>
 import { ref, onMounted, computed } from "vue";
 import "echarts";
@@ -67,6 +61,12 @@ onMounted( () => {
 	}, 20 )
 } );
 </script>
+
+<template>
+	<div class="data-chart">
+		<VChart class="chart" :option="chartOption" :key="chartKey"></VChart>
+	</div>
+</template>
 
 <style lang="scss" scoped>
 .data-chart {

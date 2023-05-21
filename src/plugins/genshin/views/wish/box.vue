@@ -1,25 +1,5 @@
-<template>
-	<div class="wish-box">
-		<img class="box-background" :src="boxBackground" alt="ERROR"/>
-		<div class="character" v-if="d.type === '角色'">
-			<img class="type" :src="typeIcon" alt="ERROR"/>
-			<img class="main" :src="mainImage" alt="ERROR"/>
-		</div>
-		<div class="weapon" v-else>
-			<img class="main" :src="mainImage" alt="ERROR"/>
-			<img class="main shadow" :src="mainImage" alt="ERROR"/>
-			<img class="type" :src="typeIcon" alt="ERROR"/>
-		</div>
-		<p class="times" v-if="d.rank === 5">
-			「{{ d.times }}抽」
-		</p>
-		<img class="rank" :src="rankIcon" alt="ERROR"/>
-	</div>
-</template>
-
 <script lang="ts" setup>
 import { computed } from "vue";
-import { getAssetsFile } from "#/genshin/front-utils/pub-use";
 
 const props = withDefaults( defineProps<{
 	d: Record<string, any>;
@@ -39,20 +19,39 @@ function toString( num ) {
 }
 
 const boxBackground = computed( () => {
-	return getAssetsFile( `public/images/item/${ toString( props.d.rank ) }Background.png` );
+	return `/assets/genshin/resource/wish/${ toString( props.d.rank ) }Background.png`;
 } );
 const mainImage = computed( () => {
 	const type = props.d.type === "武器" ? "weapon" : "character";
-	return `https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/wish/${ type }/${ props.d.name }.png`;
+	return `/assets/genshin/${ type }/${ props.d.name }/image/gacha_card.png`;
 } );
 const typeIcon = computed( () => {
 	const type = props.d.type === "武器" ? "type" : "element";
-	return getAssetsFile( `public/images/${ type }/${ props.d.el }.png` );
+	return `/assets/genshin/resource/${ type }/${ props.d.el.toLowerCase() }.png`;
 } );
 const rankIcon = computed( () => {
-	return getAssetsFile( `public/images/item/${ toString( props.d.rank ) }Star.png` );
+	return `/assets/genshin/resource/wish/${ toString( props.d.rank ) }Star.png`;
 } );
 </script>
+
+<template>
+	<div class="wish-box">
+		<img class="box-background" :src="boxBackground" alt="ERROR"/>
+		<div class="character" v-if="d.type === '角色'">
+			<img class="type" :src="typeIcon" alt="ERROR"/>
+			<img class="main" :src="mainImage" alt="ERROR"/>
+		</div>
+		<div class="weapon" v-else>
+			<img class="main" :src="mainImage" alt="ERROR"/>
+			<img class="main shadow" :src="mainImage" alt="ERROR"/>
+			<img class="type" :src="typeIcon" alt="ERROR"/>
+		</div>
+		<p class="times" v-if="d.rank === 5">
+			「{{ d.times }}抽」
+		</p>
+		<img class="rank" :src="rankIcon" alt="ERROR"/>
+	</div>
+</template>
 
 <style lang="scss" scoped>
 .wish-box {

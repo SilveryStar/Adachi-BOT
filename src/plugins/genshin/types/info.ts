@@ -1,35 +1,73 @@
+export type InfoFullResponse = InfoResponse | ArtifactInfo;
+
 export type InfoResponse = WeaponInfo | CharacterInfo;
 
 /**
  * @interface
+ * 圣遗物信息数据
+ * @name 名称
+ * @icon 默认图标为几号位
+ * @id id
+ * @levelList 可出现等级列表
+ * @
+ */
+export interface ArtifactInfo {
+	"type": "圣遗物";
+	"id": number;
+	"name": string;
+	"icon": number;
+	"levelList": number[];
+	"access": string[];
+	"effects": {
+		[P in 1 | 2 | 4]: string;
+	};
+	suit: {
+		[P in 0 | 1 | 2 | 3 | 4]: {
+			name: string;
+			description: string;
+		}
+	}
+}
+
+/**
+ * @interface
  * 武器信息数据
- * @title 武器类型
- * @name. 武器名
- * @introduce 武器介绍
- * @access 武器获取方式
+ * @id 角色 ID
+ * @name 武器名
+ * @weaponType 武器类型
+ * @fetter.access 武器获取方式
+ * @fetter.introduce 武器介绍
  * @rarity 稀有度
- * @mainStat 主词条属性
- * @mainValue 主词条数值
- * @baseATK 最大基础攻击力
- * @ascensionMaterials 突破材料
+ * @props 武器属性（各等级）
+ * @updateCost.ascensionMaterials 突破材料
+ * @updateCost.coins 摩拉花费
  * @time 材料获取时间
- * @skillName 武器技能名
- * @skillContent 武器技能描述
+ * @skill.name 武器技能名
+ * @skill.content 武器技能描述
  * */
 export interface WeaponInfo {
 	type: "武器";
-	title: "弓" | "长柄武器" | "单手剑" | "双手剑" | "法器";
+	id: number;
 	name: string;
-	introduce: string;
-	access: string;
+	weaponType: {
+		id: string;
+		label: string;
+	};
+	fetter: {
+		access: string;
+		introduce: string;
+	}
 	rarity: number;
-	mainStat: string;
-	mainValue: string;
-	baseATK: number;
-	ascensionMaterials: string[][];
-	time: string;
-	skillName: string;
-	skillContent: string;
+	props: Record<string, InfoProps<"weapon">>
+	updateCost: {
+		ascensionMaterials: InfoMaterial[];
+		coins: number;
+	}
+	time: number[];
+	skill: {
+		name: string;
+		content: string;
+	} | null
 }
 
 /**
@@ -37,39 +75,83 @@ export interface WeaponInfo {
  * 角色信息数据
  * @title 角色外号
  * @id 角色 ID
- * @name. 角色名
- * @introduce 角色介绍
- * @birthday 角色生日
- * @element 角色神之眼属性
- * @cv 角色配音演员
- * @constellationName 命之座名称
  * @rarity 稀有度
- * @mainStat 突破属性
- * @mainValue 突破属性数值
- * @baseATK 最大基础攻击力
+ * @weapon 武器种类
+ * @name 角色名
+ * @birthday 角色生日
+ * @element 角色神之眼类型
+ * @fetter 角色来历相关
+ * @cv 角色配音演员
+ * @props 人物属性（各等级）
  * @ascensionMaterials 突破材料
- * @levelUpMaterials 升级材料
  * @talentMaterials 天赋培养材料
  * @time 材料获取时间
- * @constellations 命之座描述
+ * @skill 普通攻击/元素战技/元素爆发
+ * @talents 固有天赋
+ * @constellations 命之座
  * */
 export interface CharacterInfo {
 	type: "角色";
-	title: string;
 	id: number;
-	name: string;
-	introduce: string;
-	birthday: string;
-	element: string;
-	cv: string;
-	constellationName: string;
 	rarity: number;
-	mainStat: string;
-	mainValue: string;
+	weapon: {
+		id: string;
+		label: string;
+	}
+	name: string;
+	birthday: [ number, number ];
+	element: {
+		id: string;
+		label: string;
+	};
+	fetter: {
+		title: string;
+		native: string;
+		constellation: string;
+		introduce: string
+	}
+	cv: {
+		CHS: string;
+		EN: string;
+		JP: string;
+		KR: string;
+	};
+	props: Record<string, InfoProps<"avatar">>
+	updateCost: {
+		ascensionMaterials: InfoMaterial[];
+		talentMaterials: InfoMaterial[];
+		coins: number;
+	}
+	time: number[];
+	skills: InfoTalent[];
+	talents: InfoTalent[];
+	constellations: InfoTalent[];
+}
+
+interface BaseProps {
 	baseATK: number;
-	ascensionMaterials: string[];
-	levelUpMaterials: string[];
-	talentMaterials: string[];
-	time: string;
-	constellations: string[];
+	baseHP: number;
+	baseDEF: number;
+	extraProp?: {
+		name: string;
+		value: string;
+	}
+}
+
+/**
+ * @interface
+ * 角色武器属性
+ */
+export type InfoProps<T extends "avatar" | "weapon"> = T extends "avatar" ? BaseProps : Omit<BaseProps, "baseHP" | "baseDEF">;
+
+export interface InfoMaterial {
+	name: string;
+	rank: number;
+	count: number;
+}
+
+export interface InfoTalent {
+	icon: string;
+	name: string;
+	desc: string;
 }

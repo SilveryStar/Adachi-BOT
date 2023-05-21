@@ -1,3 +1,42 @@
+<script lang="ts" setup>
+import { computed, onMounted, ref } from "vue";
+import Header from "./header.vue";
+import SectionTitle from "./section-title.vue";
+import HomeBox from "#/genshin/components/home-box/index.vue";
+import CharacterBox from "#/genshin/components/character-box/index.vue";
+import ExplorationBox from "#/genshin/components/exploration-box/index.vue";
+import StatusBox from "#/genshin/components/status-box/index.vue";
+import $https from "#/genshin/front-utils/api";
+import { sizeClass, cardDataParser } from "#/genshin/front-utils/data-parser";
+import { urlParamsGet } from "@/utils/common";
+
+const urlParams = urlParamsGet( location.href );
+
+const data = ref<Record<string, any> | null>( null );
+
+const getData = async () => {
+	const res = await $https.CARD.get( { qq: urlParams.qq } );
+	res.avatars.splice( 8 );
+	const parsed = cardDataParser( res );
+	parsed.statsList.base = parsed.statsList.base.filter( ( { label } ) => label !== "获得角色" );
+	data.value = {
+		...res,
+		...parsed
+	}
+};
+
+onMounted( () => {
+	getData();
+} );
+
+/* 是否显示角色列表 */
+const showAvatars = computed( () => {
+	return !!data.value?.avatars?.length;
+} );
+
+const sizeClassFun = sizeClass( 3 );
+</script>
+
 <template>
 	<div id="app" class="card-base" v-if="data">
 		<Header
@@ -63,51 +102,12 @@
 			<p v-if="!showAvatars" class="empty-avatar-tip">tips：请前往米游社公开展示「角色详情数据」来展示所持有角色</p>
 		</main>
 		<footer>
-			<p class="sign">Created by Chaichai-BOT</p>
+			<p class="sign">Created by Adachi-BOT</p>
 		</footer>
 	</div>
 </template>
 
-<script lang="ts" setup>
-import { computed, onMounted, ref } from "vue";
-import Header from "./header.vue";
-import SectionTitle from "./section-title.vue";
-import HomeBox from "#/genshin/components/home-box/index.vue";
-import CharacterBox from "#/genshin/components/character-box/index.vue";
-import ExplorationBox from "#/genshin/components/exploration-box/index.vue";
-import StatusBox from "#/genshin/components/status-box/index.vue";
-import $https from "#/genshin/front-utils/api";
-import { sizeClass, cardDataParser } from "#/genshin/front-utils/data-parser";
-import { urlParamsGet } from "@/utils/common";
-
-const urlParams = urlParamsGet( location.href );
-
-const data = ref<Record<string, any> | null>( null );
-
-const getData = async () => {
-	const res = await $https.CARD.get( { qq: urlParams.qq } );
-	res.avatars.splice( 8 );
-	const parsed = cardDataParser( res );
-	parsed.statsList.base = parsed.statsList.base.filter( ( { label } ) => label !== "获得角色" );
-	data.value = {
-		...res,
-		...parsed
-	}
-};
-
-onMounted( () => {
-	getData();
-} );
-
-/* 是否显示角色列表 */
-const showAvatars = computed( () => {
-	return !!data.value?.avatars?.length;
-} );
-
-const sizeClassFun = sizeClass( 3 );
-</script>
-
-<style src="../../public/styles/reset.css"></style>
+<style src="../../assets/styles/reset.css"></style>
 
 <style lang="scss" scoped>
 #app {
@@ -141,7 +141,7 @@ const sizeClassFun = sizeClass( 3 );
 		padding-top: 54px;
 		border-style: solid;
 		border-width: 0 50px 50px 50px;
-		border-image: url("https://adachi-bot.oss-cn-beijing.aliyuncs.com/images/card/card-base-bg.png") 70 fill;
+		border-image: url("/assets/genshin/resource/card/card-base-bg.png") 70 fill;
 
 		> section {
 			&:last-of-type {

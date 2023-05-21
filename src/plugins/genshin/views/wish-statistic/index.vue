@@ -1,3 +1,29 @@
+<script lang="ts" setup>
+import { ref, onMounted } from "vue";
+import $https from "#/genshin/front-utils/api";
+import { getFullDate } from "#/genshin/front-utils/date";
+import { urlParamsGet } from "@/utils/common";
+import StatisticItem from "./item.vue";
+
+const urlParams = urlParamsGet( location.href );
+const data = ref<Record<string, any> | null>( null );
+
+const fullDate = getFullDate();
+
+const getData = async () => {
+	const res = await $https.WISH_STATISTIC.get( { qq: urlParams.qq } );
+	data.value = {
+		...res,
+		weaponCount: res.weapon.reduce( ( pre, cur ) => pre + cur.count, 0 ),
+		charCount: res.character.reduce( ( pre, cur ) => pre + cur.count, 0 )
+	}
+};
+
+onMounted( () => {
+	getData();
+} );
+</script>
+
 <template>
 	<div v-if="data" id="app" class="statistic-box">
 		<p class="time">@{{ data.nickname }} at {{ fullDate }}</p>
@@ -21,37 +47,11 @@
 				<StatisticItem v-for="el in data.weapon" :data="el"/>
 			</div>
 		</div>
-		<p class="author">Created by Chaichai-BOT</p>
+		<p class="author">Created by Adachi-BOT</p>
 	</div>
 </template>
 
-<script lang="ts" setup>
-import { defineComponent, ref, Ref, onMounted } from "vue";
-import $https from "#/genshin/front-utils/api";
-import { getFullDate } from "#/genshin/front-utils/date";
-import { urlParamsGet } from "@/utils/common";
-import StatisticItem from "./item.vue";
-
-const urlParams = urlParamsGet( location.href );
-const data: Ref<Record<string, any> | null> = ref( null );
-
-const fullDate = getFullDate();
-
-const getData = async () => {
-	const res = await $https.WISH_STATISTIC.get( { qq: urlParams.qq } );
-	data.value = {
-		...res,
-		weaponCount: res.weapon.reduce( ( pre, cur ) => pre + cur.count, 0 ),
-		charCount: res.character.reduce( ( pre, cur ) => pre + cur.count, 0 )
-	}
-};
-
-onMounted( () => {
-	getData();
-} );
-</script>
-
-<style src="../../public/styles/reset.css"></style>
+<style src="../../assets/styles/reset.css"></style>
 
 <style lang="scss" scoped>
 #app {

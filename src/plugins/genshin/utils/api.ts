@@ -1,19 +1,14 @@
 import bot from "ROOT";
-import { parse } from "yaml";
 import { toCamelCase } from "./camel-case";
 import { guid } from "#/genshin/utils/guid";
 import { generateDS, getDS, getDS2 } from "./ds";
 import {
-	InfoResponse,
 	ResponseBody
 } from "#/genshin/types";
-import { SlipDetail } from "#/genshin/module/slip";
-import { FortuneData } from "#/genshin/module/almanac";
 import * as ApiType from "#/genshin/types";
 import { config } from "#/genshin/init";
 import { getRandomString, randomSleep } from "@/utils/common";
 import { register } from "@/utils/request";
-import { DailyMaterial, OssArtifact, OssDomain } from "#/genshin/types/ossMeta";
 
 export const apis = {
 	FETCH_ROLE_ID: "https://api-takumi-record.mihoyo.com/game_record/app/card/wapi/getGameRecordCard",
@@ -24,17 +19,7 @@ export const apis = {
 	FETCH_ROLE_AVATAR_DETAIL: "https://api-takumi.mihoyo.com/event/e20200928calculate/v1/sync/avatar/detail",
 	FETCH_GACHA_LIST: "https://webstatic.mihoyo.com/hk4e/gacha_info/cn_gf01/gacha/list.json",
 	FETCH_GACHA_DETAIL: "https://webstatic.mihoyo.com/hk4e/gacha_info/cn_gf01/$/zh-cn.json",
-	FETCH_DOMAIN: "https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/artifact/domain.yml",
-	FETCH_ARTIFACT: "https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/artifact/artifact.yml",
-	FETCH_SLIP: "https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/slip/index.yml",
-	FETCH_WISH_CONFIG: "https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/wish/config/$.json",
-	FETCH_INFO: "https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/info/docs/$.json",
-	FETCH_GUIDE: "https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/guide/$.png",
-	FETCH_ALIAS_SET: "https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/alias/alias.yml",
-	FETCH_DAILY_MAP: "https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/daily/daily.yml",
-	FETCH_ALMANAC: "https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/almanac/almanac.yml",
-	FETCH_CHARACTER_ID: "https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/character/id.yml",
-	FETCH_UID_HOME: "https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/home/home.yml",
+	
 	FETCH_SIGN_IN: "https://api-takumi.mihoyo.com/event/bbs_sign_reward/sign",
 	FETCH_SIGN_INFO: "https://api-takumi.mihoyo.com/event/bbs_sign_reward/info",
 	FETCH_LEDGER: "https://hk4e-api.mihoyo.com/event/ys_ledger/monthInfo",
@@ -318,8 +303,6 @@ const calc_query = {
 	uid: "100000000"
 };
 
-// 
-
 export async function getCalendarList(): Promise<ResponseBody<ApiType.CalendarList>> {
 	const { data: result } = await $https.FETCH_CALENDAR_LIST.get( calc_query );
 	if ( !result.data ) {
@@ -334,70 +317,6 @@ export async function getCalendarDetail(): Promise<ResponseBody<ApiType.Calendar
 		throw result.message;
 	}
 	return toCamelCase( result );
-}
-
-/* OSS API */
-export async function getInfo( name: string ): Promise<InfoResponse> {
-	const { data } = await $https.FETCH_INFO.get( {}, url => url.replace( "$", encodeURI( name ) ) );
-	return data;
-}
-
-export async function checkGuideExist( name: string ): Promise<boolean | string> {
-	try {
-		const { status } = await $https.FETCH_GUIDE.get( {}, url => url.replace( "$", encodeURI( name ) ) );
-		return status !== 404;
-	} catch ( error: any ) {
-		return error.message;
-	}
-}
-
-export async function getDomain(): Promise<OssDomain> {
-	const { data } = await $https.FETCH_DOMAIN.get();
-	return parse( data );
-}
-
-export async function getArtifact(): Promise<OssArtifact> {
-	const { data } = await $https.FETCH_ARTIFACT.get();
-	return parse( data );
-}
-
-export async function getSlip(): Promise<SlipDetail> {
-	const { data } = await $https.FETCH_SLIP.get();
-	return parse( data );
-}
-
-export async function getWishConfig( type: string ): Promise<any> {
-	const { data } = await $https.FETCH_WISH_CONFIG.get( {}, url => url.replace( "$", type ) );
-	return data;
-}
-
-export async function getAliasName(): Promise<any> {
-	const { data } = await $https.FETCH_ALIAS_SET.get();
-	return parse( data );
-}
-
-export async function getDailyMaterial(): Promise<DailyMaterial> {
-	const res = await $https.FETCH_DAILY_MAP.get();
-	const data: Record<string, Record<string, string[]>> = parse( res.data );
-	return <any>Object.fromEntries(Object.entries(data).map(([key, value]) => {
-		return [key, Object.values(value).flat()]
-	}));
-}
-
-/* 文本来源 可莉特调 https: //genshin.pub/ */
-export async function getAlmanacText(): Promise<Record<string, FortuneData[]>> {
-	const { data } = await $https.FETCH_ALMANAC.get();
-	return parse( data );
-}
-
-export async function getCharacterID(): Promise<Record<string, number>> {
-	const { data } = await $https.FETCH_CHARACTER_ID.get();
-	return parse( data );
-}
-
-export async function getUidHome(): Promise<any> {
-	const { data } = await $https.FETCH_UID_HOME.get();
-	return parse( data ).list;
 }
 
 /* 参考 https://github.com/DGP-Studio/DGP.Genshin.MiHoYoAPI/blob/main/Sign/SignInProvider.cs */

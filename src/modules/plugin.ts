@@ -66,7 +66,6 @@ export interface PluginSetting {
 	}; // 设置为非必须兼容低版本插件
 	assets?: string | { // 是否从线上同步更新静态资源
 		manifestUrl: string; // 线上 manifest.yml 文件地址
-		saveTarget?: string; // 保存到本地的目标目录名
 		overflowPrompt?: string; // 超出最大更新数量后给予的提示消息
 		replacePath?: ( path: string ) => string; // 修改下载后的文件路径
 	};
@@ -250,9 +249,9 @@ interface IOssListObject {
 // 4、下载完毕后以 manifestData 内容更新本地清单文件
 async function checkUpdate( pluginName: string, assets: PluginSetting["assets"], bot: BOT ): Promise<void> {
 	if ( !assets ) return;
-	const baseUrl = `${ pluginName }/${ getConfigValue( assets, "saveTarget", "static_assets" ) }`;
+	const baseUrl = `public/assets/${ pluginName }`;
 	const manifestName = `${ baseUrl }/manifest`;
-	const manifest = <IOssListObject[]>( bot.file.loadYAML( manifestName, "plugin" ) || [] );
+	const manifest = <IOssListObject[]>( bot.file.loadYAML( manifestName, "root" ) || [] );
 	let res: AxiosResponse<{
 		code: number;
 		data: IOssListObject[];
@@ -305,7 +304,7 @@ async function checkUpdate( pluginName: string, assets: PluginSetting["assets"],
 	await Promise.all( updatePromiseList );
 	
 	// 写入清单文件
-	bot.file.writeYAML( manifestName, manifest, "plugin" );
+	bot.file.writeYAML( manifestName, manifest, "root" );
 }
 
 /* 获取插件渲染页的路由对象 */

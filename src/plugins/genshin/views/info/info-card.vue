@@ -1,3 +1,12 @@
+<script lang="ts" setup>
+withDefaults( defineProps<{
+	title?: string;
+	direction: "row" | "col";
+}>(), {
+	direction: "col"
+} );
+</script>
+
 <template>
 	<div class="info-card" :class="direction">
 		<h3 v-if="title" class="card-title">{{ title }}</h3>
@@ -6,15 +15,6 @@
 		</div>
 	</div>
 </template>
-
-<script lang="ts" setup>
-withDefaults( defineProps<{
-	title: string;
-	direction: "row" | "col";
-}>(), {
-	direction: "col"
-} );
-</script>
 
 <style lang="scss" scoped>
 .info-card {

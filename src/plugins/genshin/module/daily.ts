@@ -1,9 +1,7 @@
 import bot from "ROOT"
 import { getRealName, NameResult } from "../utils/name";
 import { scheduleJob } from "node-schedule";
-import { isCharacterInfo, isWeaponInfo, InfoResponse, CalendarData } from "../types";
-import { getDailyMaterial, getInfo } from "../utils/api";
-import { take } from "lodash";
+import { isCharacterInfo, isWeaponInfo, InfoResponse, CalendarData, InfoMaterial } from "../types";
 import { RenderResult } from "@/modules/renderer";
 import { renderer } from "#/genshin/init";
 import { calendarPromise } from "#/genshin/utils/promise";
@@ -11,19 +9,16 @@ import { Order } from "@/modules/command";
 import { Sendable } from "icqq";
 import { getRandomNumber } from "@/utils/common";
 import { DailyMaterial } from "#/genshin/types/ossMeta";
+import { getDailyMaterial, getInfo } from "#/genshin/utils/meta";
+import { DailyInfo } from "@/web-console/types/daily";
 
 export type DailyDataMaterial = {
 	[K in keyof DailyMaterial]: InfoResponse[]
 }
 
-interface DailyInfo {
-	name: string;
-	rarity: number;
-}
-
 export class DailySet {
-	private readonly weaponSet: Record<string, DailyInfo[]>;
-	private readonly characterSet: Record<string, DailyInfo[]>;
+	private readonly weaponSet: DailyInfo<"weapon">;
+	private readonly characterSet: DailyInfo<"character">;
 	private readonly eventData: CalendarData[];
 	
 	constructor( data: InfoResponse[], events: CalendarData[] ) {
@@ -32,25 +27,31 @@ export class DailySet {
 		this.eventData = events;
 		
 		for ( let d of data ) {
-			const { name, rarity }: { name: string, rarity: number } = d;
 			if ( isCharacterInfo( d ) ) {
-				this.add( take( d.talentMaterials, 3 ), { name, rarity }, "character" );
+				const dailyMaterial = d.updateCost.talentMaterials.find( material => material.rank === 4 );
+				if ( dailyMaterial ) {
+					this.add( dailyMaterial, d, "character" );
+				}
 			} else if ( isWeaponInfo( d ) ) {
-				this.add( d.ascensionMaterials[0], { name, rarity }, "weapon" );
+				const dailyMaterial = d.updateCost.ascensionMaterials.find( material => material.rank === 5 );
+				if ( dailyMaterial ) {
+					this.add( dailyMaterial, d, "weapon" );
+				}
 			}
 		}
 	}
 	
-	private add( keyAsArr: string[], value: any, type: string ): void {
+	private add( material: InfoMaterial, value: InfoResponse, type: string ): void {
 		const name: string = `${ type }Set`;
-		const keys: string[] = Object.keys( this[name] );
-		const key: string = JSON.stringify( keyAsArr );
-		const find: string | undefined = keys.find( el => el === key );
-		
-		if ( !find ) {
-			this[name][key] = [ value ];
+		const setData = this[name][material.name];
+		if ( setData ) {
+			setData.units.push( value );
 		} else {
-			this[name][key].push( value );
+			this[name][material.name] = {
+				name: material.name,
+				rank: material.rank,
+				units: [ value ]
+			}
 		}
 	}
 	
@@ -73,16 +74,11 @@ async function getRenderResult( id: number, subState: boolean, week?: number ): 
 }
 
 export class DailyClass {
-	private detail: DailyMaterial;
-	private allData: DailyDataMaterial;
+	private detail: DailyMaterial = getDailyMaterial();
+	private allData: DailyDataMaterial = { "Mon&Thu": [], "Tue&Fri": [], "Wed&Sat": [] };
 	private eventData: CalendarData[] = [];
 	
 	constructor() {
-		this.detail = { "Mon&Thu": [], "Tue&Fri": [], "Wed&Sat": [] };
-		this.allData = { "Mon&Thu": [], "Tue&Fri": [], "Wed&Sat": [] };
-		getDailyMaterial().then( ( result: DailyMaterial ) => {
-			this.detail = result;
-		} );
 		calendarPromise().then( ( result: CalendarData[] ) => {
 			this.eventData = result;
 		} )
@@ -96,7 +92,7 @@ export class DailyClass {
 		} );
 		
 		scheduleJob( "0 0 0 * * *", async () => {
-			this.detail = await getDailyMaterial();
+			this.detail = getDailyMaterial();
 		} );
 		
 		scheduleJob( "0 0 6 * * *", async () => {
@@ -182,8 +178,8 @@ export class DailyClass {
 		}
 		for ( let targetName of set ) {
 			try {
-				const data = await getInfo( targetName );
-				if ( typeof data !== "string" ) {
+				const data = getInfo( targetName );
+				if ( data ) {
 					this.getDataSet( week ).push( data );
 				}
 			} catch ( e ) {

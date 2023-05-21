@@ -19,6 +19,8 @@ const initConfig = {
 export let config: typeof initConfig;
 
 export let renderer: Renderer;
+export let characterMap: m.CharacterMap;
+export let weaponMap: m.WeaponMap;
 export let artClass: m.ArtClass;
 export let cookies: m.Cookies;
 export let typeData: m.TypeData;
@@ -28,9 +30,10 @@ export let wishClass: m.WishClass;
 export let dailyClass: m.DailyClass;
 export let slipClass: m.SlipClass;
 export let privateClass: m.PrivateClass;
-export let characterID: m.CharacterId;
 
 function initModules() {
+	characterMap = new m.CharacterMap();
+	weaponMap = new m.WeaponMap();
 	artClass = new m.ArtClass();
 	cookies = new m.Cookies();
 	typeData = new m.TypeData();
@@ -40,7 +43,6 @@ function initModules() {
 	dailyClass = new m.DailyClass();
 	slipClass = new m.SlipClass();
 	privateClass = new m.PrivateClass();
-	characterID = new m.CharacterId();
 }
 
 /* 删除好友后清除订阅服务 */
@@ -82,7 +84,6 @@ export default definePlugin( {
 	},
 	assets: {
 		manifestUrl: "https://mari-plugin.oss-cn-beijing.aliyuncs.com/Version3/genshin_assets_manifest.yml",
-		saveTarget: "static_assets",
 		overflowPrompt: "更新文件数量超过阈值，请手动前往 https://github.com/SilveryStar/Adachi-BOT/release 更新资源包",
 		replacePath: path => {
 			return path.replace( "Version3/genshin/", "" );

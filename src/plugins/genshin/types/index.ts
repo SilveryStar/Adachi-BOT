@@ -1,5 +1,6 @@
 export * from "./avatar";
 export * from "./abyss";
+export * from "./artifact";
 export * from "./hoyobbs";
 export * from "./user-info";
 export * from "./response";

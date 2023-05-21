@@ -1,40 +1,10 @@
-<template>
-	<div class="room">
-		<header class="room-header">
-			<span class="room-title">第{{ ["一", "二", "三"][data.index - 1] }}间</span>
-			<span class="room-date">{{ stamp2date }}</span>
-		</header>
-		<article class="room-content">
-			<template v-if="!isEmpty">
-				<ul class="chara-list">
-					<li v-for="(b, bKey) of data.battles">
-						<div v-for="(c, cKey) of b.avatars" :key="cKey" class="chara-box">
-							<span>{{ c.level }}</span>
-							<img :src="getSideIcon(c.id)" alt="ERROR">
-						</div>
-					</li>
-				</ul>
-				<div class="star-box">
-					<img v-for="(s, sKey) of data.maxStar" :key="sKey" :class="{'star-crush': s > data.star}"
-					     src="https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/abyss/star.png" alt="ERROR"/>
-				</div>
-			</template>
-			<p v-else class="empty-massage">暂无挑战数据</p>
-		</article>
-	</div>
-</template>
-
 <script lang="ts" setup>
 import { computed } from "vue";
+import { AbyssRoom } from "#/genshin/types";
 
-const props = withDefaults( defineProps<{
-	data: Record<string, any>;
-}>(), {
-	data: () => ( {
-		index: 0,
-		battles: []
-	} )
-} );
+const props = defineProps<{
+	data: AbyssRoom;
+}>();
 
 /* 是否为空数据 */
 const isEmpty = computed( () => !props.data?.battles || !props.data?.battles.length );
@@ -47,8 +17,34 @@ const stamp2date = computed( () => {
 } );
 
 /* 获取角色小头 */
-const getSideIcon = code => `https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/sides/${ code }.png`;
+const getSideIcon = name => `/assets/genshin/character/${ name }/image/side.png`;
 </script>
+
+<template>
+	<div class="room">
+		<header class="room-header">
+			<span class="room-title">第{{ [ "一", "二", "三" ][data.index - 1] }}间</span>
+			<span class="room-date">{{ stamp2date }}</span>
+		</header>
+		<article class="room-content">
+			<template v-if="!isEmpty">
+				<ul class="chara-list">
+					<li v-for="(b, bKey) of data.battles" :key="bKey">
+						<div v-for="(c, cKey) of b.avatars" :key="cKey" class="chara-box">
+							<span>{{ c.level }}</span>
+							<img :src="getSideIcon(c.name)" alt="ERROR">
+						</div>
+					</li>
+				</ul>
+				<div class="star-box">
+					<img v-for="(s, sKey) of data.maxStar" :key="sKey" :class="{'star-crush': s > data.star}"
+					     src="/assets/genshin/resource/abyss/star.png" alt="ERROR"/>
+				</div>
+			</template>
+			<p v-else class="empty-massage">暂无挑战数据</p>
+		</article>
+	</div>
+</template>
 
 <style lang="scss" scoped>
 .room {
@@ -121,16 +117,12 @@ const getSideIcon = code => `https://adachi-bot.oss-cn-beijing.aliyuncs.com/Vers
 						background-color: rgba(255, 255, 255, .1);
 						box-shadow: 1px 1px 1px 1px rgba(0, 0, 0, .15);
 					}
-
-					.chara-box {
-						width: 25%;
-						position: relative;
-						left: 6px;
-					}
 				}
 
 				.chara-box {
 					position: relative;
+					left: 6px;
+					width: 25%;
 
 					span {
 						position: absolute;

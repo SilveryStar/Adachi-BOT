@@ -57,6 +57,10 @@ export default class Refreshable implements RefreshableMethod {
 		this.isRefreshing = false;
 	}
 	
+	public register( fileName: string, target: RefreshTarget<"file">, place?: PresetPlace ): void;
+	public register( target: RefreshTarget<"file"> ): void;
+	public register( target: RefreshTarget<"fun"> ): void;
+	
 	public register(
 		fileNameOrTarget: string | RefreshTarget<"fun"> | RefreshTarget<"file">,
 		target?: RefreshTarget<"file">,

@@ -1,43 +1,3 @@
-<template>
-	<div class="abyss-single" id="app" v-if="data">
-		<header>
-			<div class="user-info-box">
-				<div class="user-info-container">
-					<img :src="avatar" alt="ERROR">
-					<div class="user-info">
-						<p>{{ data.userName }}</p>
-						<p>UID {{ data.uid }}</p>
-					</div>
-				</div>
-				<ul class="tag-list">
-					<li>
-						<img src="https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/abyss/star.png" alt="ERROR">
-						<span>{{ data.totalStar }}</span>
-					</li>
-					<li>
-						<span>最深抵达</span>
-						<span>{{ data.maxFloor }}</span>
-					</li>
-					<li>
-						<span>挑战次数</span>
-						<span>{{ data.totalBattleTimes }}</span>
-					</li>
-				</ul>
-			</div>
-			<Reveal :data="data.reveals"></Reveal>
-		</header>
-		<main>
-			<Overview v-if="data.showData" :data="data.dataList"></Overview>
-			<div class="floors-data">
-				<Floor v-for="(f, fKey) of data.floors" :key="fKey" :data="f"></Floor>
-			</div>
-		</main>
-		<footer>
-			<p class="author">Created by Chaichai-BOT</p>
-		</footer>
-	</div>
-</template>
-
 <script lang="ts" setup>
 import { onMounted, computed, ref } from "vue";
 import $https from "#/genshin/front-utils/api";
@@ -45,13 +5,14 @@ import Reveal from "./reveal.vue";
 import Overview from "./overview.vue";
 import Floor from "./floor.vue";
 import { urlParamsGet } from "@/utils/common";
-import { abyssDataParser } from "#/genshin/front-utils/data-parser";
+import { abyssDataParser, AbyssParser } from "#/genshin/front-utils/data-parser";
+import { AbyssRouterSingle } from "#/genshin/types";
 
 const urlParams = <{ qq: string }>urlParamsGet( location.href );
 
 /* 获取9-12层数据，无数据使用默认数据填充 */
-function getFloors( data: Record<string, any> ) {
-	return new Array( 4 ).fill( '' ).map( ( fake, fKey ) => {
+function getFloors( data: AbyssRouterSingle ) {
+	return Array.from( { length: 4 } ).map( ( fake, fKey ) => {
 		const index = fKey + 9;
 		const floor = data?.floors?.find( f => f.index === index );
 		return floor || {
@@ -64,21 +25,65 @@ function getFloors( data: Record<string, any> ) {
 /* 获取头像 */
 const avatar = computed( () => `https://q1.qlogo.cn/g?b=qq&s=640&nk=${ urlParams.qq }` );
 
-const data = ref<Record<string, any> | null>( null );
+const data = ref<AbyssRouterSingle | null>( null );
+const parser = ref<AbyssParser | null>( null );
 
 onMounted( async () => {
 	const res = await $https.ABYSS_SINGLE.get( { qq: urlParams.qq } );
+	parser.value = abyssDataParser( res );
+
 	data.value = {
 		...res,
-		...abyssDataParser( res ),
 		...getFloors( res )
 	}
 } );
 </script>
 
-<style src="../../public/styles/reset.css"></style>
+<template>
+	<div class="abyss-single" id="app">
+		<header>
+			<div class="user-info-box">
+				<div class="user-info-container">
+					<img :src="avatar" alt="ERROR">
+					<div class="user-info">
+						<p>{{ data && data.userName }}</p>
+						<p>UID {{ data && data.uid }}</p>
+					</div>
+				</div>
+				<ul class="tag-list">
+					<li>
+						<img src="/assets/genshin/resource/abyss/star.png" alt="ERROR">
+						<span>{{ data && data.totalStar }}</span>
+					</li>
+					<li>
+						<span>最深抵达</span>
+						<span>{{ data && data.maxFloor }}</span>
+					</li>
+					<li>
+						<span>挑战次数</span>
+						<span>{{ data && data.totalBattleTimes }}</span>
+					</li>
+				</ul>
+			</div>
+			<Reveal v-if="parser" :data="parser.reveals"></Reveal>
+		</header>
+		<main>
+			<Overview v-if="parser && parser.showData" :data="parser.dataList"></Overview>
+			<div class="floors-data">
+				<template v-if="data">
+					<Floor v-for="(f, fKey) of data.floors" :key="fKey" :data="f"></Floor>
+				</template>
+			</div>
+		</main>
+		<footer>
+			<p class="author">Created by Adachi-BOT</p>
+		</footer>
+	</div>
+</template>
 
-<style lang="scss" scoped>
+<style src="../../assets/styles/reset.css"></style>
+
+<style lang="scss">
 ul, p {
 	margin: 0;
 	padding: 0;
@@ -95,7 +100,7 @@ ul {
 }
 
 .abyss-single {
-	background: url("https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/abyss/top-background.jpg") top center #131425 no-repeat;
+	background: url("/assets/genshin/resource/abyss/top-background.jpg") top center #131425 no-repeat;
 	background-size: contain;
 	overflow: hidden;
 	line-height: 1;

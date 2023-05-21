@@ -13,13 +13,13 @@ dist-ssr
 *.local
 
 # adachi
+/public/assets/
 /config/
 /data/
 /database/
 /logs/
 /src/data/
 /src/plugins/genshin/data/
-/src/plugins/*/static_assets
 
 # Editor directories and files
 .vscode/*

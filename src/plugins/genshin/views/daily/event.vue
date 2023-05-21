@@ -1,62 +1,24 @@
-<template>
-	<div class="daily-event" :class="{ hidden: !showEvent }">
-		<div v-if="showEvent && showMaterial" class="title">
-			<common-title :data="{ title: '活动日历' }"/>
-		</div>
-		<div class="container">
-			<div v-if="showEvent" class="event-container">
-				<div class="title-list">
-					<div v-for="(d, dKey) of dateList" :key="dKey" class="title-item" :class="{ today: dKey === 2 }">
-						<p>{{ d.format('dddd M.DD') }}</p>
-					</div>
-				</div>
-				<div class="event-list">
-					<template v-if="effectEvents.length">
-						<div class="column-list">
-							<div v-for="(_, dKey) of dateList" :key="dKey" class="column-item"
-							     :class="{ today: dKey === 2 }"></div>
-						</div>
-						<div v-for="(e, eKey) of effectEvents" :key="eKey" class="event-item">
-							<div class="event-item-container" :style="getEventLineStyle(e)">
-								<p>{{ e.title }}</p>
-								<p>{{ getTimeStr(e.startTime) }}~{{ getTimeStr(e.endTime) }}</p>
-								<div v-if="showEndTime(e)" class="end-time">{{ getEndTimeStr(e.endTime) }} 结束</div>
-								<img :src="e.banner" alt="ERROR">
-							</div>
-						</div>
-					</template>
-					<p v-else class="event-empty">暂无举办中的活动</p>
-				</div>
-			</div>
-			<p v-else class="author">Create by Adachi-BOT</p>
-		</div>
-	</div>
-</template>
-
 <script lang="ts" setup>
 import moment, { Moment } from "moment";
 import { computed } from "vue";
 import CommonTitle from "./common-title.vue";
+import { DailyEvent } from "#/genshin/types/daily";
 
-const props = withDefaults(defineProps<{
-	showEvent: boolean;
-	showMaterial: boolean;
-	events: any[];
+const props = withDefaults( defineProps<{
+	showEvent?: boolean;
+	showMaterial?: boolean;
+	events: DailyEvent[];
 }>(), {
 	showEvent: true,
-	showMaterial: true,
-	events: () => []
-});
+	showMaterial: true
+} );
 
 /* 获取日期列表 */
 const dateList = computed( () => {
-	const list: Moment[] = [];
 	const first = moment().subtract( 3, "days" );
-	for ( let i = 0; i < 8; i++ ) {
-		const current = moment( first.add( 1, "days" ) );
-		list.push( current );
-	}
-	return list;
+	return Array.from( { length: 8 }, () => {
+		return moment( first.add( 1, "days" ) );
+	} );
 } )
 
 /* 过滤不在区间范围内的活动 */
@@ -72,9 +34,9 @@ const getTimeStr = time => moment( time ).format( "M.DD" );
 const getEndTimeStr = time => moment( time ).add( 1, "minute" ).format( "HH:mm" );
 
 /* 是否显示结束小时分钟 */
-const showEndTime = e => {
+const showEndTime = ( event: DailyEvent ) => {
 	const list = dateList.value;
-	return e.endTime < list[list.length - 1].valueOf();
+	return event.endTime < list[list.length - 1].valueOf();
 }
 
 /* 获取活动条的左右定位距离 */
@@ -98,6 +60,41 @@ const getEventLineStyle = ( { startTime, endTime } ) => {
 	}
 }
 </script>
+
+<template>
+	<div class="daily-event" :class="{ hidden: !showEvent }">
+		<div v-if="showEvent && showMaterial" class="title">
+			<common-title :data="{ title: '活动日历' }"/>
+		</div>
+		<div class="container">
+			<div v-if="showEvent" class="event-container">
+				<div class="title-list">
+					<div v-for="(d, dKey) of dateList" :key="dKey" class="title-item" :class="{ today: dKey === 2 }">
+						<p>{{ d.format( 'dddd M.DD' ) }}</p>
+					</div>
+				</div>
+				<div class="event-list">
+					<template v-if="effectEvents.length">
+						<div class="column-list">
+							<div v-for="(_, dKey) of dateList" :key="dKey" class="column-item"
+							     :class="{ today: dKey === 2 }"></div>
+						</div>
+						<div v-for="(e, eKey) of effectEvents" :key="eKey" class="event-item">
+							<div class="event-item-container" :style="getEventLineStyle(e)">
+								<p>{{ e.title }}</p>
+								<p>{{ getTimeStr( e.startTime ) }}~{{ getTimeStr( e.endTime ) }}</p>
+								<div v-if="showEndTime(e)" class="end-time">{{ getEndTimeStr( e.endTime ) }} 结束</div>
+								<img :src="e.banner" alt="ERROR">
+							</div>
+						</div>
+					</template>
+					<p v-else class="event-empty">暂无举办中的活动</p>
+				</div>
+			</div>
+			<p v-else class="author">Create by Adachi-BOT</p>
+		</div>
+	</div>
+</template>
 
 <style lang="scss" scoped>
 .daily-event {

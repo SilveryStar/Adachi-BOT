@@ -1,21 +1,21 @@
+<script lang="ts" setup>
+import { AbyssParser } from "#/genshin/front-utils/data-parser";
+
+defineProps<{
+	data: AbyssParser["reveals"];
+}>()
+
+const getSideIcon = name => `/assets/genshin/character/${ name }/image/side.png`;
+</script>
+
 <template>
 	<ul class="reveal">
 		<li v-for="(d , dKey) of data" :key="dKey">
-			<img :src="getSideIcon(d.avatarId)" alt="ERROR">
+			<img :src="getSideIcon(d.name)" alt="ERROR">
 			<span>{{ d.value }} 次</span>
 		</li>
 	</ul>
 </template>
-
-<script lang="ts" setup>
-const props = withDefaults( defineProps<{
-	data: any[];
-}>(), {
-	data: () => []
-} );
-
-const getSideIcon = code => `https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/sides/${ code }.png`;
-</script>
 
 <style lang="scss" scoped>
 .reveal {
@@ -25,7 +25,7 @@ const getSideIcon = code => `https://adachi-bot.oss-cn-beijing.aliyuncs.com/Vers
 	display: flex;
 	border-radius: 16px;
 	background-color: rgba(97, 102, 184, .3);
-	box-shadow: 0px 3px 8px 1px rgba(0, 0, 0, .3);
+	box-shadow: 0 3px 8px 1px rgba(0, 0, 0, .3);
 	flex-wrap: wrap;
 	align-items: center;
 

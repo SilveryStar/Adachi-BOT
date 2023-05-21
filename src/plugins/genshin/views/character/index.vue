@@ -1,87 +1,24 @@
-<template>
-	<div id="app" class="character-base" v-if="data">
-		<main>
-			<div class="portrait-box">
-				<img class="portrait" :src="portrait" alt="ERROR">
-			</div>
-			<span class="uid-box">UID {{ data.uid }}</span>
-			<div class="chara-name">
-				<img :src="elementIconSrc" alt="ERROR">
-				<h3>{{ data.name }}</h3>
-				<span>lv{{ data.level }}</span>
-				<span>好感度： {{ data.fetter }}</span>
-			</div>
-			<score-chart v-if="showScore && data.score" :data="data.score" :color="chartColor"></score-chart>
-			<div class="artifact-list">
-				<character-equipment v-for="(a, aKey) of artifacts" :key="aKey" :src="a.icon" :rarity="a.rarity"
-				                     :level="a.level" :emptyIcon="artifactsFontIcon[aKey]"></character-equipment>
-			</div>
-			<info-card title="套装效果" class="suit-list">
-				<template v-if="effectList.length">
-					<div v-for="(e, eKey) of effectList" :key="eKey" class="suit-item">
-						<CharacterEquipment :src="e.icon"></CharacterEquipment>
-						<p class="suit-info">
-							<span class="title">{{ e.name }}</span>
-							<span class="suit-type">{{ e.num }}件套</span>
-						</p>
-					</div>
-				</template>
-				<p v-else>当前没有圣遗物套装效果</p>
-			</info-card>
-			<info-card v-if="data.skills" title="天赋" class="suit-list">
-				<div v-for="(s, sKey) of data.skills" :key="sKey" class="suit-item">
-					<div class="circle-image-icon">
-						<img class="center" :src="s.icon" alt="ERROR">
-					</div>
-					<p class="suit-info">
-						<span class="title">{{ s.name }}</span>
-						<span class="suit-type">Lv.{{ s.levelCurrent }}</span>
-					</p>
-				</div>
-			</info-card>
-			<info-card v-if="data.constellations.detail" :title="'命之座('+ data.activedConstellationNum +'/6)'"
-			           class="constellations-list">
-				<div v-for="(c, cKey) of data.constellations.detail" :key="cKey" class="circle-image-icon"
-				     :class="{ locked: cKey >= data.activedConstellationNum }">
-					<img class="center" :src="c.icon" alt="ERROR">
-					<i class="icon-lock center"></i>
-				</div>
-			</info-card>
-			<info-card v-if="data.weapon" class="weapon-card">
-				<div class="weapon-info-box">
-					<CharacterEquipment :src="data.weapon.icon" emptyIcon="icon-weapon"></CharacterEquipment>
-					<div class="weapon-info-content">
-						<div class="weapon-info">
-							<h3>{{ data.weapon.name }}</h3>
-							<span class="weapon-level">Lv{{ data.weapon.level }}</span>
-							<span class="weapon-affixLevel">精炼{{ data.weapon.affixLevel }}阶</span>
-						</div>
-						<div class="star-box">
-							<img v-for="(s, sKey) of data.weapon.rarity" :key="sKey"
-							     src="https://adachi-bot.oss-cn-beijing.aliyuncs.com/images/stars/Icon_1_Stars.png"
-							     alt="ERROR">
-						</div>
-					</div>
-				</div>
-				<p class="weapon-desc">{{ weaponDesc }}</p>
-			</info-card>
-		</main>
-		<footer>
-			<p class="sign">Created by Chaichai-BOT</p>
-		</footer>
-	</div>
-</template>
-
 <script lang="ts" setup>
-import { onMounted, computed, ref, Ref } from "vue";
+import { onMounted, computed, ref } from "vue";
 import $https from "#/genshin/front-utils/api";
 import CharacterEquipment from "./equipment.vue";
 import InfoCard from "./info-card.vue";
 import ScoreChart from "./score-chart.vue";
 import { urlParamsGet } from "@/utils/common";
+import { CharacterRouter } from "#/genshin/types";
 
 const urlParams = urlParamsGet( location.href );
-const data: Ref<Record<string, any> | null> = ref( null );
+const data = ref<CharacterRouter | null>( null );
+
+const getData = async () => {
+	const res = await $https.CHAR.get( { qq: urlParams.qq } )
+	setCommonStyle( res.element );
+	data.value = res;
+}
+
+onMounted( () => {
+	getData();
+} );
 
 /* 是否显示评分 */
 const showScore = computed( () => {
@@ -89,7 +26,7 @@ const showScore = computed( () => {
 } )
 
 /* echart图表颜色 */
-const chartColor: Ref<{ graphic: string, text: string } | null> = ref( null );
+const chartColor = ref<{ graphic: string, text: string } | null>( null );
 
 function setStyle( colorList ) {
 	document.documentElement.style.setProperty( "--baseInfoColor", colorList[0] );
@@ -101,15 +38,19 @@ function setStyle( colorList ) {
 }
 
 const elementIconSrc = computed( () => {
-	return data.value ? `https://adachi-bot.oss-cn-beijing.aliyuncs.com/images/element/Element_${ data.value.element }.png` : ""
+	if ( !data.value ) return "";
+	return `/assets/genshin/resource/element/${ data.value!.element.toLowerCase() }.png`;
 } );
 const portrait = computed( () => {
-	return data.value ? `https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/portrait/${ data.value.id }.png` : "";
+	if ( !data.value ) return "";
+	return `/assets/genshin/character/${ data.value!.name }/image/gacha_splash.png`;
 } );
 
 /* 武器描述处理 */
 const weaponDesc = computed( () => {
-	return data.value?.weapon?.desc?.replace( /[\\r\\n]/g, "" );
+	const desc = data.value?.weapon?.desc;
+	if ( !desc ) return "";
+	return desc.replace( /[\\r\\n]/g, "" );
 } )
 
 // 圣遗物默认图标
@@ -120,19 +61,11 @@ const artifacts = computed( () => {
 	const d = data.value;
 	if ( !d ) return [];
 	if ( d.artifacts.length >= 5 ) return d.artifacts
-	const list = new Array( 5 )
-	list.fill( {} )
+	const list = Array.from( { length: 5 }, () => ( {} ) );
 	for ( const a of d.artifacts ) {
 		list.splice( a.pos - 1, 1, a )
 	}
 	return list;
-} )
-
-const effectList = computed( () => {
-	return ( data.value?.effects || [] ).map( effect => {
-		const [ key, num ] = effect.name.split( ' ' )
-		return { name: key, num, icon: effect.icon }
-	} )
 } )
 
 function setCommonStyle( element: string ) {
@@ -163,20 +96,95 @@ function setCommonStyle( element: string ) {
 			break;
 	}
 }
-
-const getData = async () => {
-	const res = await $https.CHAR.get( { qq: urlParams.qq } )
-	setCommonStyle( res.element );
-	data.value = res;
-}
-
-onMounted( () => {
-	getData();
-} );
 </script>
 
-<style src="../../public/styles/reset.css"></style>
-<style src="../../public/styles/icon.css"></style>
+<template>
+	<div id="app" class="character-base">
+		<main>
+			<div class="portrait-box">
+				<img class="portrait" :src="portrait" alt="ERROR">
+			</div>
+			<span class="uid-box">UID {{ data?.uid }}</span>
+			<div class="chara-name">
+				<img :src="elementIconSrc" alt="ERROR">
+				<h3>{{ data?.name }}</h3>
+				<span>lv{{ data?.level }}</span>
+				<span>好感度： {{ data?.fetter }}</span>
+			</div>
+			<score-chart
+				v-if="showScore && chartColor && data?.score"
+				:data="data.score"
+				:color="chartColor"></score-chart>
+			<div class="artifact-list">
+				<character-equipment
+					v-for="(a, aKey) of artifacts"
+					:key="aKey"
+					:src="a.icon"
+					:rarity="a.rarity"
+					:level="a.level"
+					:emptyIcon="artifactsFontIcon[aKey]"
+				/>
+			</div>
+			<info-card title="套装效果" class="suit-list">
+				<template v-if="data?.effects.length">
+					<div v-for="(e, eKey) of data.effects" :key="eKey" class="suit-item">
+						<character-equipment :src="`/assets/genshin/artifact/${e.name}/image/${e.icon}.png`"/>
+						<p class="suit-info">
+							<span class="title">{{ e.name }}</span>
+							<span class="suit-type">{{ e.num }}件套</span>
+						</p>
+					</div>
+				</template>
+				<p v-else>当前没有圣遗物套装效果</p>
+			</info-card>
+			<info-card v-if="data?.skills" title="天赋" class="suit-list">
+				<div v-for="(s, sKey) of data.skills" :key="sKey" class="suit-item">
+					<div class="circle-image-icon">
+						<img class="center" :src="s.icon" alt="ERROR">
+					</div>
+					<p class="suit-info">
+						<span class="title">{{ s.name }}</span>
+						<span class="suit-type">Lv.{{ s.levelCurrent }}</span>
+					</p>
+				</div>
+			</info-card>
+			<info-card
+				v-if="data?.constellations.detail"
+				:title="'命之座('+ data.activedConstellationNum +'/6)'"
+				class="constellations-list">
+				<div v-for="(c, cKey) of data.constellations.detail" :key="cKey" class="circle-image-icon"
+				     :class="{ locked: cKey >= data.activedConstellationNum }">
+					<img class="center" :src="c.icon" alt="ERROR">
+					<i class="icon-lock center"></i>
+				</div>
+			</info-card>
+			<info-card v-if="data?.weapon" class="weapon-card">
+				<div class="weapon-info-box">
+					<character-equipment :src="data.weapon.image" emptyIcon="icon-weapon"/>
+					<div class="weapon-info-content">
+						<div class="weapon-info">
+							<h3>{{ data!.weapon.name }}</h3>
+							<span class="weapon-level">Lv{{ data!.weapon.level }}</span>
+							<span class="weapon-affixLevel">精炼{{ data!.weapon.affixLevel }}阶</span>
+						</div>
+						<div class="star-box">
+							<img v-for="s of data.weapon.rarity" :key="s"
+							     src="/assets/genshin/resource/rarity/icon/Icon_1_Stars.png"
+							     alt="ERROR">
+						</div>
+					</div>
+				</div>
+				<p class="weapon-desc">{{ weaponDesc }}</p>
+			</info-card>
+		</main>
+		<footer>
+			<p class="sign">Created by Adachi-BOT</p>
+		</footer>
+	</div>
+</template>
+
+<style src="../../assets/styles/reset.css"></style>
+<style src="../../assets/styles/icon.css"></style>
 
 <style lang="scss" scoped>
 #app {
@@ -200,9 +208,9 @@ onMounted( () => {
 		right: 0;
 		bottom: 0;
 		border: 40px solid;
-		border-image: url("https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/common/base-border.png") 55 fill;
-		background: url('https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/common/stand-bg.png') center 105px no-repeat,
-		url("https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/common/base-bg.png");
+		border-image: url("/assets/genshin/resource/common/base-border.png") 55 fill;
+		background: url('/assets/genshin/resource/common/stand-bg.png') center 105px no-repeat,
+		url("/assets/genshin/resource/common/base-bg.png");
 		background-size: 523px 518px, auto;
 		filter: hue-rotate(var(--hue-rotate));
 	}
@@ -255,7 +263,7 @@ onMounted( () => {
 			height: 76px;
 			border-style: solid;
 			border-width: 12px 140px 12px 150px;
-			border-image: url("https://adachi-bot.oss-cn-beijing.aliyuncs.com/images/card/chara-title-bg..png") 12 140 12 150 fill;
+			border-image: url("/assets/genshin/resource/card/chara-title-bg..png") 12 140 12 150 fill;
 			box-sizing: border-box;
 			color: #fff;
 

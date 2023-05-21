@@ -1,15 +1,42 @@
+<script lang="ts" setup>
+import { infoDataParser, initBaseColor } from "#/genshin/front-utils/data-parser";
+import $https from "#/genshin/front-utils/api";
+import { computed, onMounted, ref } from "vue";
+import { urlParamsGet } from "@/utils/common";
+import { ArtifactInfo } from "#/genshin/types";
+
+const urlParams = urlParamsGet( location.href );
+
+const data = ref<ArtifactInfo | null>( null );
+
+const parse = computed( () => {
+	const value = data.value;
+	if ( !value ) return null;
+	return infoDataParser( value );
+} )
+
+const getData = async () => {
+	data.value = await $https.INFO.get( { name: urlParams.name } );
+	initBaseColor( data.value! );
+};
+
+onMounted( () => {
+	getData();
+} );
+</script>
+
 <template>
 	<div id="app" class="info-artifact">
 		<template v-if="data">
 			<header>
 				<p class="title-and-name">
-					「<span v-show="data.title">{{ data.title }}·</span>{{ data.name }}」
+					「{{ data.name }}」
 				</p>
-				<img :src="data.rarityIcon" alt="ERROR" class="rarity-icon">
+				<img v-if="parse" :src="parse.rarityIcon" alt="ERROR" class="rarity-icon">
 			</header>
 			<main>
 				<div class="avatar-box">
-					<img :src="data.mainImage" alt="ERROR"/>
+					<img v-if="parse" :src="parse.mainImage" alt="ERROR"/>
 				</div>
 				<div class="main-content">
 					<div class="shirt-title">{{ data.name }}</div>
@@ -19,41 +46,15 @@
 					</template>
 				</div>
 				<div class="main-content">
-					<p class="access">获取途径: {{ data.access }}</p>
+					<p class="access">获取途径: {{ data.access.join("、") }}</p>
 				</div>
 			</main>
-			<footer class="author">Created by Chaichai-BOT</footer>
+			<footer class="author">Created by Adachi-BOT</footer>
 		</template>
 	</div>
 </template>
 
-<script lang="ts" setup>
-import { infoDataParser } from "#/genshin/front-utils/data-parser";
-import $https from "#/genshin/front-utils/api";
-import { onMounted, ref } from "vue";
-import { urlParamsGet } from "@/utils/common";
-
-const urlParams = urlParamsGet( location.href );
-
-const data = ref<Record<string, any> | null>( null );
-
-const getData = async () => {
-	const res = await $https.INFO.get( { name: urlParams.name } );
-	const parser = infoDataParser( res );
-	parser.initBaseColor( res );
-	data.value = {
-		...res,
-		...parser
-	}
-};
-
-onMounted( () => {
-	getData();
-} )
-
-</script>
-
-<style src="../../public/styles/reset.css"></style>
+<style src="../../assets/styles/reset.css"></style>
 
 <style lang="scss" scoped>
 #app {
@@ -73,8 +74,8 @@ onMounted( () => {
 		right: 0;
 		bottom: 0;
 		border: 40px solid;
-		border-image: url("https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/common/base-border.png") 55 fill;
-		background-image: url('https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/common/base-bg.png');
+		border-image: url("/assets/genshin/resource/common/base-border.png") 55 fill;
+		background-image: url('/assets/genshin/resource/common/base-bg.png');
 		filter: hue-rotate(var(--hue-rotate));
 	}
 
@@ -119,7 +120,7 @@ onMounted( () => {
 				top: 0;
 				right: 0;
 				bottom: 0;
-				background: url('https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/common/stand-bg.png') center no-repeat;
+				background: url('/assets/genshin/resource/common/stand-bg.png') center no-repeat;
 				background-size: contain;
 				filter: hue-rotate(var(--hue-rotate));
 			}

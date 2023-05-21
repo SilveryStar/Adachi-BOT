@@ -3,8 +3,7 @@
 		<p class="floor-number">{{ floor }}</p>
 		<main v-if="data && data.data && data.data.levels">
 			<template v-for="r in 3" :key="r">
-				<abyss-room v-if="data.data.levels[r - 1]" :roomData="data.data.levels[r - 1]"
-				           :floor="floor"/>
+				<abyss-room v-if="data.data.levels[r - 1]" :roomData="data.data.levels[r - 1]" :floor="floor"/>
 			</template>
 		</main>
 	</div>
@@ -13,18 +12,16 @@
 <script lang="ts" setup>
 import { computed } from "vue";
 import AbyssRoom from "./room.vue";
-import { FloorData } from "#/genshin/views/abyss/index.vue";
+import { AbyssRouterFloor } from "#/genshin/types";
 
-const props = withDefaults(defineProps<{
-	data: FloorData | null;
-}>(), {
-	data: null
-});
+const props = defineProps<{
+	data: AbyssRouterFloor;
+}>();
 
-const floor = computed(() => {
+const floor = computed( () => {
 	if ( !props.data ) return "";
-	return Number.parseInt(props.data.floor);
-});
+	return props.data.floor;
+} );
 </script>
 
 <style lang="scss" scoped>

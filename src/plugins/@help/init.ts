@@ -49,6 +49,12 @@ export default definePlugin( {
 	server: {
 		routers: serverRouters
 	},
+	assets: {
+		manifestUrl: "https://mari-plugin.oss-cn-beijing.aliyuncs.com/Version3/help_assets_manifest.yml",
+		replacePath: path => {
+			return path.replace( "Version3/help/", "" );
+		}
+	},
 	completed( bot ) {
 		/* 未启用卡片帮助时不启动服务 */
 		if ( bot.config.helpMessageStyle === "card" ) {

@@ -1,39 +1,12 @@
-<template>
-	<div class="abyss-room" v-if="roomData">
-		<SectionTitle showSubTitle>
-			<template #default>第{{ ["一", "二", "三"][roomData.index - 1] }}间</template>
-			<template #sub>
-				<img v-for="item of roomData.maxStar" :key="item" :class="{'star-crush': item > roomData.star}"
-				     src="https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/abyss/star.png" alt="ERROR"/>
-			</template>
-		</SectionTitle>
-		<span class="time">{{ stamp2date }}</span>
-		<div class="room-info">
-			<div v-for="(harf, harfIndex) of roomData.battles" :key="harfIndex" class="room-info-half">
-				<h3>{{ ["上半", "下半"][harfIndex] }}</h3>
-				<div class="character-list">
-					<template v-for="(char, index) in harf.avatars" :key="index">
-						<CharacterItem class="character-item" :char="char" type="level"/>
-						<img src="https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/abyss/diamond.png"
-						     alt="ERROR"/>
-					</template>
-				</div>
-			</div>
-		</div>
-	</div>
-</template>
-
 <script lang="ts" setup>
 import { computed } from "vue";
 import SectionTitle from "#/genshin/components/section-title/index.vue";
 import CharacterItem from "./character-item.vue";
 import { AbyssRoom } from "#/genshin/types";
 
-const props = withDefaults(defineProps<{
-	roomData: AbyssRoom | null;
-}>(), {
-	roomData: null
-});
+const props = defineProps<{
+	roomData: AbyssRoom;
+}>();
 
 const stamp2date = computed( () => {
 	if ( !props.roomData ) return "";
@@ -41,6 +14,37 @@ const stamp2date = computed( () => {
 	return date.toLocaleDateString().replace( /\//g, "-" ) + " " + date.toTimeString().split( " " )[0];
 } );
 </script>
+
+<template>
+	<div class="abyss-room" v-if="roomData">
+		<SectionTitle showSubTitle>
+			<template #default>第{{ [ "一", "二", "三" ][roomData.index - 1] }}间</template>
+			<template #sub>
+				<img
+					v-for="item of roomData.maxStar"
+					:key="item"
+					:class="{'star-crush': item > roomData.star}"
+					src="/assets/genshin/resource/abyss/star.png" alt="ERROR"
+				>
+			</template>
+		</SectionTitle>
+		<span class="time">{{ stamp2date }}</span>
+		<div class="room-info">
+			<div v-for="(harf, harfIndex) of roomData.battles" :key="harfIndex" class="room-info-half">
+				<h3>{{ [ "上半", "下半" ][harfIndex] }}</h3>
+				<div class="character-list">
+					<template v-for="(char, index) in harf.avatars" :key="index">
+						<CharacterItem class="character-item" :char="char" type="level"/>
+						<img
+							src="/assets/genshin/resource/abyss/diamond.png"
+							alt="ERROR"
+						/>
+					</template>
+				</div>
+			</div>
+		</div>
+	</div>
+</template>
 
 <style lang="scss" scoped>
 .abyss-room {

@@ -1,10 +1,38 @@
+<script lang="ts" setup>
+import { abyssDataParser } from "#/genshin/front-utils/data-parser";
+import SectionTitle from "#/genshin/components/section-title/index.vue";
+import CharacterItem from "./character-item.vue";
+import { computed } from "vue";
+import { AbyssRouterOverview } from "#/genshin/types";
+
+const props = defineProps<{
+	data: AbyssRouterOverview
+}>();
+
+const parsed = computed( () => {
+	if ( !props.data ) return null;
+	return abyssDataParser( props.data );
+} );
+
+const reveals = computed( () => {
+	const reveals = parsed.value?.reveals;
+	if ( !reveals ) return [];
+	return reveals.map( el => {
+		return {
+			...el,
+			icon: el.avatarIcon
+		};
+	} );
+} );
+</script>
+
 <template>
 	<div v-if="parsed && parsed.showData" class="overview">
 		<ul class="info">
 			<li>最深抵达： {{ data.maxFloor }}</li>
 			<li>挑战次数： {{ data.totalBattleTimes }}</li>
 			<li>
-				<img class="star-img" src="https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/abyss/star.png"
+				<img class="star-img" src="/assets/genshin/resource/abyss/star.png"
 				     alt="ERROR"/>
 				<span class="star-num">{{ data.totalStar }}</span>
 			</li>
@@ -29,36 +57,6 @@
 		<p>暂无挑战数据</p>
 	</div>
 </template>
-
-<script lang="ts" setup>
-import { abyssDataParser } from "#/genshin/front-utils/data-parser";
-import SectionTitle from "#/genshin/components/section-title/index.vue";
-import CharacterItem from "./character-item.vue";
-import { OverviewData } from "#/genshin/views/abyss/index.vue";
-import { computed } from "vue";
-
-const props = withDefaults(defineProps<{
-	data: OverviewData | null
-}>(), {
-	data: null
-});
-
-const parsed = computed(() => {
-	if ( !props.data ) return null;
-	return abyssDataParser( props.data );
-});
-
-const reveals = computed(() => {
-	const reveals = parsed.value?.reveals;
-	if ( !reveals ) return [];
-	return reveals.map( el => {
-		return {
-			...el,
-			icon: el.avatarIcon
-		};
-	} );
-});
-</script>
 
 <style lang="scss" scoped>
 .overview {

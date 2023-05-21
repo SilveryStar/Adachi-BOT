@@ -1,3 +1,25 @@
+<script lang="ts" setup>
+import SectionTitle from "#/genshin/components/section-title/index.vue";
+import { AbyssParser } from "#/genshin/front-utils/data-parser";
+
+const props = defineProps<{
+	data: AbyssParser["dataList"];
+}>();
+
+const formatData: any[] = [];
+
+for ( const dKey in props.data ) {
+	const d = props.data[dKey];
+	if ( !d ) continue;
+	formatData.push( {
+		...d,
+		label: dKey,
+		avatarIcon: `/assets/genshin/character/${ d.name }/image/face.png`,
+		className: `rarity-${ d.rarity }`
+	} );
+}
+</script>
+
 <template>
 	<section-title>战斗数据</section-title>
 	<ul class="overview">
@@ -10,31 +32,6 @@
 		</li>
 	</ul>
 </template>
-
-<script lang="ts" setup>
-import SectionTitle from "#/genshin/components/section-title/index.vue";
-
-const props = withDefaults( defineProps<{
-	data: any[];
-}>(), {
-	data: () => []
-} );
-
-const data: any[] = props.data;
-
-const formatData: any[] = [];
-
-for ( const dKey in data ) {
-	const d: Record<string, any> = data[dKey];
-	if ( !d ) continue;
-	formatData.push( {
-		...d,
-		label: dKey,
-		avatarIcon: `https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/thumb/character/${ d.name }.png`,
-		className: `rarity-${ d.rarity }`
-	} );
-}
-</script>
 
 <style lang="scss" scoped>
 .overview {
@@ -56,12 +53,14 @@ for ( const dKey in data ) {
 			border-radius: 50%;
 
 			&.rarity-4 {
-				background: linear-gradient(0deg, #917ab1 0%, #6c6192 100%) #917ab1;
+				background: url("/assets/genshin/resource/rarity/bg/Background_Item_4_Star.png") no-repeat;
+				background-size: cover;
 				box-shadow: 0 0 0 9px rgba(177, 215, 255, .2);
 			}
 
 			&.rarity-5 {
-				background: linear-gradient(0deg, #de9552 0%, #9a6d43 100%) #9a6d43;
+				background: url("/assets/genshin/resource/rarity/bg/Background_Item_5_Star.png") no-repeat;
+				background-size: cover;
 				box-shadow: 0 0 0 9px rgba(255, 215, 135, .2);
 			}
 

@@ -2,9 +2,9 @@
 	<div id="app" class="help">
 		<template v-if="data">
 			<header>
-				<img src="https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/help/top-bg.png" alt="top-bg">
+				<img src="/assets/@help/resource/top-bg.png" alt="top-bg">
 				<div class="left-header">
-					<p>Chaichai-BOT</p>
+					<p>Adachi-BOT</p>
 					<p>{{ model === "keys" ? "指令key值表" : "使用文档" }}</p>
 				</div>
 				<div class="right-header">
@@ -28,7 +28,7 @@
 				</section>
 			</main>
 			<footer>
-				<p class="sign">Created by Chaichai-BOT</p>
+				<p class="sign">Created by Adachi-BOT</p>
 			</footer>
 		</template>
 	</div>
@@ -64,7 +64,7 @@ onMounted( () => {
 } );
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
 * {
 	margin: 0;
 	padding: 0;
@@ -85,7 +85,7 @@ html {
 
 @font-face {
 	font-family: GenshinUsedFont;
-	src: url("../public/fonts/HYWenHei-85W.ttf");
+	src: url("/assets/@help/fonts/HYWenHei-85W.ttf");
 }
 </style>
 

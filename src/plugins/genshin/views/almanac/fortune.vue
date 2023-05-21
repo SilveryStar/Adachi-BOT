@@ -1,3 +1,12 @@
+<script lang="ts" setup>
+import { AlmanacItem } from "#/genshin/types/almanac";
+
+defineProps<{
+	data: AlmanacItem[];
+	isTop?: boolean;
+}>();
+</script>
+
 <template>
 	<div class="almanac-fortune" :class="{ top: isTop }">
 		<div class="fortune-type">
@@ -11,13 +20,6 @@
 		</div>
 	</div>
 </template>
-
-<script lang="ts" setup>
-defineProps<{
-	data: Record<string, any>;
-	isTop: boolean;
-}>();
-</script>
 
 <style lang="scss" scoped>
 .top {

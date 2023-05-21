@@ -1,3 +1,69 @@
+<script lang="ts" setup>
+import InfoLine from "./info-line.vue";
+import InfoCard from "./info-card.vue";
+import MaterialsList from "./materials-list.vue"
+import { computed } from "vue";
+import { CharacterInfo, InfoMaterial } from "#/genshin/types";
+
+const props = defineProps<{
+	data: CharacterInfo;
+}>();
+
+const numCN = [ "壹", "贰", "肆", "陆" ];
+
+const weekMap = [ "一", "二", "三", "四", "五", "六", "日" ];
+
+const materialsTitle = computed( () => `材料消耗【周${ props.data.time.map( t => weekMap[t - 1] ).join( "/" ) }】` );
+
+const baseInfo = computed( () => [
+	{
+		生日: `${ props.data.birthday[0] }月${ props.data.birthday[1] }日`,
+		神之眼: props.data.element.label
+	},
+	{
+		声优: `${ props.data.cv.CHS } | ${ props.data.cv.JP }`
+	},
+	{
+		命之座: props.data.fetter.constellation
+	}
+] );
+
+const dataBlockInfo = computed( () => {
+	const maxProp = Object.values( props.data.props ).slice( -1 )[0];
+	return [
+		{
+			生命: maxProp.baseHP,
+			防御: maxProp.baseDEF
+		},
+		{
+			攻击: maxProp.baseATK,
+			[maxProp.extraProp?.name]: maxProp.extraProp?.value
+		}
+	]
+} );
+
+const materialsInfo = computed( () => {
+	const tempObj: Record<string, InfoMaterial> = {};
+	for ( const material of [ ...props.data.updateCost.ascensionMaterials, ...props.data.updateCost.talentMaterials ] ) {
+		if ( tempObj[material.name] ) {
+			tempObj[material.name].count += material.count;
+		} else {
+			tempObj[material.name] = material;
+		}
+	}
+	tempObj["摩拉"] = {
+		name: "摩拉",
+		rank: 1,
+		count: props.data.updateCost.coins
+	}
+	return [ {
+		label: "",
+		value: Object.values( tempObj ),
+		showTitle: true
+	} ]
+} );
+</script>
+
 <template>
 	<div class="character-normal">
 		<div class="info-top">
@@ -11,101 +77,17 @@
 		</div>
 		<div class="info-bottom">
 			<info-card class="talents-card" title="天赋信息" direction="row">
-				<p class="talents-item" v-for="(t, tKey) of data.talents" :key="tKey">{{ t }}</p>
+				<p class="talents-item" v-for="(t, tKey) of data.talents" :key="tKey">{{ t.desc }}</p>
 			</info-card>
 			<info-card class="constellations-card" title="命座信息" direction="row">
 				<div class="constellations-item" v-for="i in 4" :key="i">
 					<p class="level">{{ numCN[i - 1] }}</p>
-					<p class="content">{{ data.constellations[i - 1] }}</p>
+					<p class="content">{{ data.constellations[i - 1].desc }}</p>
 				</div>
 			</info-card>
 		</div>
 	</div>
 </template>
-
-<script lang="ts" setup>
-import InfoLine from "./info-line.vue";
-import InfoCard from "./info-card.vue";
-import MaterialsList from "./materials-list.vue"
-import { computed } from "vue";
-import { CharacterData } from "#/genshin/views/info/index.vue";
-
-const props = withDefaults( defineProps<{
-	data: CharacterData;
-}>(), {
-	data: () => ( {
-		birthday: "",
-		element: "",
-		cv: "",
-		constellationName: "",
-		rarity: null,
-		mainStat: "",
-		mainValue: "",
-		baseHP: null,
-		baseATK: null,
-		baseDEF: null,
-		ascensionMaterials: [],
-		levelUpMaterials: [],
-		talentMaterials: [],
-		constellations: [],
-		skill: {
-			title: "",
-			description: ""
-		},
-		burst: {
-			title: "",
-			description: ""
-		},
-		time: ""
-	} )
-} );
-
-const numCN = [ "壹", "贰", "肆", "陆" ];
-
-const materialsTitle = computed( () => `材料消耗${ props.data.time }` );
-
-const baseInfo = computed( () => [
-	{
-		生日: props.data.birthday,
-		神之眼: props.data.element
-	},
-	{
-		声优: props.data.cv
-	},
-	{
-		命之座: props.data.constellationName
-	}
-] );
-
-const dataBlockInfo = computed( () => [
-	{
-		生命: props.data.baseHP,
-		防御: props.data.baseDEF
-	},
-	{
-		攻击: props.data.baseATK,
-		[props.data.mainStat]: props.data.mainValue
-	}
-] );
-
-const materialsInfo = computed( () => [
-	{
-		label: "升级",
-		value: props.data.levelUpMaterials,
-		showTitle: false,
-	},
-	{
-		label: "天赋",
-		value: props.data.talentMaterials,
-		showTitle: true,
-	},
-	{
-		label: "突破",
-		value: props.data.ascensionMaterials,
-		showTitle: false,
-	},
-] );
-</script>
 
 <style lang="scss" scoped>
 .character-normal {
@@ -126,7 +108,7 @@ const materialsInfo = computed( () => [
 		.materials-card {
 			.materials-list {
 				&:last-child {
-					.list-data {
+					::v-deep(.list-data) {
 						&::after {
 							display: none;
 						}

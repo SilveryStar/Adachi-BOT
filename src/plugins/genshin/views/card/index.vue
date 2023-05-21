@@ -1,3 +1,29 @@
+<script lang="ts" setup>
+import { onMounted, ref, Ref } from "vue";
+import CardHeader from "./card-header.vue";
+import HomeBox from "#/genshin/components/home-box/index.vue";
+import CharacterBox from "#/genshin/components/character-box/index.vue";
+import ExplorationBox from "#/genshin/components/exploration-box/index.vue";
+import StatusBox from "#/genshin/components/status-box/index.vue";
+import $https from "#/genshin/front-utils/api";
+import { cardDataParser, sizeClass } from "#/genshin/front-utils/data-parser";
+import { urlParamsGet } from "@/utils/common";
+
+const urlParams = urlParamsGet( location.href );
+
+const data: Ref<Record<string, any> | null> = ref( null );
+
+onMounted( async () => {
+	const res = await $https.CARD.get( { qq: urlParams.qq } );
+	data.value = {
+		...res,
+		...cardDataParser( res )
+	}
+} );
+
+const getSizeClass = sizeClass( 3 );
+</script>
+
 <template>
 	<div v-if="data" id="app" class="card-base">
 		<card-header
@@ -56,39 +82,13 @@
 						:type="urlParams.style"
 					/>
 				</div>
-				<p class="sign">Created by Chaichai-BOT</p>
+				<p class="sign">Created by Adachi-BOT</p>
 			</section>
 		</main>
 	</div>
 </template>
 
-<script lang="ts" setup>
-import { onMounted, ref, Ref } from "vue";
-import CardHeader from "./card-header.vue";
-import HomeBox from "#/genshin/components/home-box/index.vue";
-import CharacterBox from "#/genshin/components/character-box/index.vue";
-import ExplorationBox from "#/genshin/components/exploration-box/index.vue";
-import StatusBox from "#/genshin/components/status-box/index.vue";
-import $https from "#/genshin/front-utils/api";
-import { cardDataParser, sizeClass } from "#/genshin/front-utils/data-parser";
-import { urlParamsGet } from "@/utils/common";
-
-const urlParams = urlParamsGet( location.href );
-
-const data: Ref<Record<string, any> | null> = ref( null );
-
-onMounted( async () => {
-	const res = await $https.CARD.get( { qq: urlParams.qq } );
-	data.value = {
-		...res,
-		...cardDataParser( res )
-	}
-} );
-
-const getSizeClass = sizeClass( 3 );
-</script>
-
-<style src="../../public/styles/reset.css"></style>
+<style src="../../assets/styles/reset.css"></style>
 
 <style lang="scss" scoped>
 #app {
@@ -137,7 +137,7 @@ const getSizeClass = sizeClass( 3 );
 		padding: 40px 16px 0;
 		border-style: solid;
 		border-width: 0 70px 70px 70px;
-		border-image: url("https://adachi-bot.oss-cn-beijing.aliyuncs.com/images/card/card-base-bg.png") 70 fill;
+		border-image: url("/assets/genshin/resource/card/card-base-bg.png") 70 fill;
 	}
 
 	/* 用户信息页 */

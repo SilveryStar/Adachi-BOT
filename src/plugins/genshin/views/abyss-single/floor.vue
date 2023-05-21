@@ -1,3 +1,22 @@
+<script lang="ts" setup>
+import Room from "./room.vue";
+import { AbyssFloors, AbyssRoom } from "#/genshin/types";
+
+const props = defineProps<{
+	data: AbyssFloors;
+}>();
+
+/* 获取三间数据，无数据使用默认数据填充 */
+const levels = Array.from( { length: 3 } ).map( ( fake, lKey ) => {
+	const index = lKey + 1;
+	const level = props.data.levels?.find( f => f.index === index );
+	return level || <AbyssRoom>{
+		index,
+		battles: []
+	}
+} )
+</script>
+
 <template>
 	<div class="floor">
 		<header class="floor-title">第{{ data.index }}层</header>
@@ -6,30 +25,6 @@
 		</section>
 	</div>
 </template>
-
-<script lang="ts" setup>
-import { defineComponent } from "vue";
-import Room from "./room.vue";
-
-const props = withDefaults( defineProps<{
-	data: Record<string, any>;
-}>(), {
-	data: () => ( {
-		index: 0,
-		battles: []
-	} )
-} );
-
-/* 获取三间数据，无数据使用默认数据填充 */
-const levels = new Array( 3 ).fill( '' ).map( ( fake, lKey ) => {
-	const index = lKey + 1;
-	const level = props.data.levels?.find( f => f.index === index );
-	return level || {
-		index,
-		battles: []
-	}
-} )
-</script>
 
 <style lang="scss" scoped>
 .floor {

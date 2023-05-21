@@ -1,24 +1,12 @@
-<template>
-	<div v-if="data" id="app" class="almanac">
-		<almanac-header/>
-		<div class="today-fortune">
-			<div class="container">
-				<almanac-fortune :data="data.auspicious" :isTop="true"/>
-				<almanac-fortune :data="data.inauspicious"/>
-			</div>
-		</div>
-		<almanac-footer :d="data.direction"/>
-	</div>
-</template>
-
 <script lang="ts" setup>
-import { defineComponent, onMounted, ref, Ref } from "vue";
+import { onMounted, ref, Ref } from "vue";
 import $https from "#/genshin/front-utils/api";
 import AlmanacHeader from "./header.vue";
 import AlmanacFortune from "./fortune.vue";
 import AlmanacFooter from "./footer.vue";
+import { Almanac } from "#/genshin/types/almanac";
 
-const data: Ref<Record<string, any> | null> = ref( null );
+const data: Ref<Almanac | null> = ref( null );
 
 const getData = async () => {
 	data.value = await $https.ALMANAC.get();
@@ -29,7 +17,20 @@ onMounted( () => {
 } );
 </script>
 
-<style src="../../public/styles/reset.css"></style>
+<template>
+	<div id="app" class="almanac">
+		<almanac-header/>
+		<div class="today-fortune">
+			<div class="container">
+				<almanac-fortune v-if="data" :data="data.auspicious" :isTop="true"/>
+				<almanac-fortune v-if="data" :data="data.inauspicious"/>
+			</div>
+		</div>
+		<almanac-footer v-if="data" :data="data.direction"/>
+	</div>
+</template>
+
+<style src="../../assets/styles/reset.css"></style>
 
 <style lang="scss" scoped>
 #app {

@@ -4,7 +4,7 @@ import { MysQueryService } from "#/genshin/module/private/mys";
 import { RenderResult } from "@/modules/renderer";
 import { mysInfoPromise } from "#/genshin/utils/promise";
 import { getPrivateAccount } from "#/genshin/utils/private";
-import { characterID, config, renderer } from "#/genshin/init";
+import { characterMap, config, renderer } from "#/genshin/init";
 import bot from "ROOT";
 
 export async function main(
@@ -31,8 +31,8 @@ export async function main(
 	let appointName: string = "empty";
 	
 	if ( appointId !== "empty" ) {
-		for ( const name in characterID.map ) {
-			const mapId = characterID.map[name];
+		for ( const id in characterMap.map ) {
+			const { id: mapId, name } = characterMap.map[id];
 			if ( mapId === parseInt( appointId ) ) {
 				appointName = name;
 				break;

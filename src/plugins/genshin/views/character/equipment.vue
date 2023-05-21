@@ -1,30 +1,24 @@
+<script lang="ts" setup>
+const props = withDefaults( defineProps<{
+	src: string;
+	rarity?: number;
+	level?: number;
+	emptyIcon?: string;
+}>(), {
+	emptyIcon: "icon-lock"
+} );
+</script>
+
 <template>
 	<div class="equipment-box" :class="{ empty: !src }">
 		<template v-if="src">
 			<img class="content image" :src="src" alt="ERROR">
 			<span v-if="level || level === 0" class="level">+{{ level }}</span>
-			<img v-if="rarity" class="star" :src="starImgSrc" alt="ERROR">
+			<img v-if="rarity" class="star" :src="`/assets/genshin/resource/rarity/icon/Icon_${ rarity }_Stars.png`" alt="ERROR">
 		</template>
 		<i v-else :class="emptyIcon" class="content icon"></i>
 	</div>
 </template>
-
-<script lang="ts" setup>
-import { computed, defineComponent } from "vue";
-
-const props = withDefaults( defineProps<{
-	src: string;
-	rarity: number;
-	level: number;
-	emptyIcon: string;
-}>(), {
-	emptyIcon: "icon-lock"
-} );
-
-const starImgSrc = computed( () => {
-	return `https://adachi-bot.oss-cn-beijing.aliyuncs.com/images/stars/Icon_${ props.rarity }_Stars.png`;
-} );
-</script>
 
 <style lang="scss" scoped>
 .equipment-box {

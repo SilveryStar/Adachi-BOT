@@ -1,29 +1,68 @@
-import { getArtifact, getWishConfig } from "../utils/api";
 import { scheduleJob } from "node-schedule";
 import { OssArtifact } from "#/genshin/types/ossMeta";
+import { getArtifact } from "#/genshin/utils/meta";
+import { characterMap, weaponMap } from "#/genshin/init";
+
+export interface CharacterList {
+	[P: string]: {
+		id: number;
+		name: string;
+		element: string;
+		weaponType: string;
+		rarity: number;
+	}
+}
+
+export interface WeaponList {
+	[P: string]: {
+		id: number;
+		name: string;
+		type: string;
+		rarity: number;
+	}
+}
 
 export class TypeData {
-	public weapon: any;
-	public character: any;
-	public artifact = <OssArtifact & { suitNames: string[] }>{};
+	public weapon = this.getWeaponList();
+	public character = this.getCharacterList();
+	public artifact = this.formatArtifact();
 	
 	constructor() {
-		this.formatArtifact().then( result => this.artifact = result );
-		getWishConfig( "character" ).then( result => this.character = result );
-		getWishConfig( "weapon" ).then( result => this.weapon = result );
 		
 		scheduleJob( "0 0 0 * * *", async () => {
-			this.weapon = await getWishConfig( "weapon" );
-			this.character = await getWishConfig( "character" );
-			this.artifact = await this.formatArtifact();
+			this.weapon = this.getWeaponList();
+			this.character = this.getCharacterList();
+			this.artifact = this.formatArtifact();
 		} );
 	}
 	
-	private async formatArtifact() {
-		const result = await getArtifact();
+	private getCharacterList() {
+		const list: Record<string, string> = {};
+		Object.values( characterMap.map ).forEach( chara => {
+			list[chara.name] = chara.element;
+		} );
+		return list;
+	}
+	
+	private getWeaponList() {
+		const list: Record<string, string> = {};
+		Object.values( weaponMap.map ).forEach( weapon => {
+			list[weapon.name] = weapon.type;
+		} );
+		return list;
+	}
+	
+	private formatArtifact() {
+		const result = getArtifact();
 		return {
 			...result,
-			suitNames: Object.values(result.suits).map( suit => suit.name )
+			suits: {
+				...result.suits,
+				...Object.fromEntries( Object.values( result.suits ).map( art => {
+					return [ art.name, art ];
+				} ) )
+			},
+			suitNames: Object.values( result.suits ).map( suit => suit.name )
 		}
 	}
 	

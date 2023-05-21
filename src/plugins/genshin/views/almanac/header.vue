@@ -1,15 +1,3 @@
-<template>
-	<div class="almanac-header">
-		<img class="title" src="../../public/images/almanac/title.svg" alt="ERROR"/>
-		<div class="time">
-			<p class="year">{{ year }}</p>
-			<p class="day">{{ day }}</p>
-			<p class="month">{{ month }}</p>
-			<div class="just-a-box"/>
-		</div>
-	</div>
-</template>;
-
 <script lang="ts" setup>
 const nums = [
 	"", "一", "二", "三", "四", "五", "六", "七", "八", "九", "十",
@@ -23,6 +11,18 @@ const year = d.getFullYear();
 const month = nums[d.getMonth() + 1] + ( d.getMonth() < 10 ? "月" : "" );
 const day = nums[d.getDate()] + ( d.getDate() <= 10 ? "日" : "" );
 </script>
+
+<template>
+	<div class="almanac-header">
+		<img class="title" src="/assets/genshin/resource/almanac/title.svg" alt="ERROR"/>
+		<div class="time">
+			<p class="year">{{ year }}</p>
+			<p class="day">{{ day }}</p>
+			<p class="month">{{ month }}</p>
+			<div class="just-a-box"/>
+		</div>
+	</div>
+</template>
 
 <style lang="scss" scoped>
 .title {

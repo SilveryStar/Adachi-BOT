@@ -1,15 +1,5 @@
-<template>
-	<div class="statistic-item">
-		<img class="background" :src="background" alt="ERROR"/>
-		<img class="main" :src="mainImage" alt="ERROR"/>
-		<div class="corner"/>
-		<div class="count">{{ data.count }} 次</div>
-	</div>
-</template>
-
 <script lang="ts" setup>
 import { computed } from "vue";
-import { getAssetsFile } from "#/genshin/front-utils/pub-use";
 
 const props = withDefaults( defineProps<{
 	data: Record<string, any>;
@@ -18,13 +8,22 @@ const props = withDefaults( defineProps<{
 } );
 
 const background = computed( () => {
-	return getAssetsFile( `public/images/rarity/${ props.data.rank }-Star.png` );
+	return `/assets/genshin/resource/rarity/bg/Background_Item_${ props.data.rank }_Star.png`;
 } );
 const mainImage = computed( () => {
-	const type = props.data.type === "角色" ? "character" : "weapon";
-	return `https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/thumb/${ type }/${ props.data.name }.png`;
+	if ( props.data.type === "角色" ) return `/assets/genshin/character/${ props.data.name }/image/face.png`;
+	return `/assets/genshin/weapon/${ props.data.name }/image/thumb.png`;
 } );
 </script>
+
+<template>
+	<div class="statistic-item">
+		<img class="background" :src="background" alt="ERROR"/>
+		<img class="main" :src="mainImage" alt="ERROR"/>
+		<div class="corner"/>
+		<div class="count">{{ data.count }} 次</div>
+	</div>
+</template>
 
 <style lang="scss" scoped>
 .statistic-item {

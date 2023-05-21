@@ -1,3 +1,20 @@
+<script lang="ts" setup>
+import { infoDataParser } from "#/genshin/front-utils/data-parser";
+import { computed } from "vue";
+import { InfoResponse, isCharacterInfo } from "#/genshin/types";
+
+const props = defineProps<{
+	data: InfoResponse;
+}>();
+
+const parsed = computed( () => infoDataParser( props.data ) );
+
+/* 元素 icon */
+const elementIcon = computed( () => {
+	return isCharacterInfo( props.data ) ? `/assets/genshin/resource/element/${ props.data.element.id.toLowerCase() }.png` : "";
+} )
+</script>
+
 <template>
 	<div class="info-base">
 		<header class="info-title">
@@ -5,66 +22,22 @@
 				<img :src="elementIcon" alt="ERROR">
 			</div>
 			<p class="title-and-name">
-				「<span v-show="data.title">{{ data.title }}·</span>{{ data.name }}」
+				「<span v-if="isCharacterInfo(data)">{{ data.fetter.title }}·</span>{{ data.name }}」
 			</p>
 			<img :src="parsed.rarityIcon" alt="ERROR" class="rarity-icon">
 		</header>
 		<main>
 			<div class="avatar-box" :class="{ weapon: data.type !== '角色' }">
 				<img :src="parsed.mainImage" alt="ERROR"/>
-				<p class="introduce">{{ data.introduce || '暂无介绍' }}</p>
+				<p class="introduce">{{ data.fetter.introduce || '暂无介绍' }}</p>
 			</div>
 			<div class="main-content">
 				<slot></slot>
 			</div>
 		</main>
-		<footer class="author">Created by Chaichai-BOT</footer>
+		<footer class="author">Created by Adachi-BOT</footer>
 	</div>
 </template>
-
-<script lang="ts" setup>
-import { infoDataParser } from "#/genshin/front-utils/data-parser";
-import { computed } from "vue";
-
-const props = withDefaults( defineProps<{
-	data: {
-		rarity: number | null;
-		name: string;
-		id: number | null;
-		type: string;
-		title: string;
-		introduce: string;
-		element: string;
-	}
-}>(), {
-	data: () => ( {
-		rarity: null,
-		name: "",
-		id: null,
-		type: "",
-		title: "",
-		introduce: "",
-		element: ""
-	} )
-} );
-
-const parsed = computed( () => infoDataParser( props.data ) );
-
-const elementFormat = {
-	"风元素": "Anemo",
-	"冰元素": "Cryo",
-	"草元素": "Dendro",
-	"雷元素": "Electro",
-	"岩元素": "Geo",
-	"水元素": "Hydro",
-	"火元素": "Pyro"
-};
-
-/* 元素 icon */
-const elementIcon = computed( () => {
-	return props.data.element ? `https://adachi-bot.oss-cn-beijing.aliyuncs.com/images/element/Element_${ elementFormat[props.data.element] }.png` : "";
-} )
-</script>
 
 <style lang="scss" scoped>
 .info-base {
@@ -79,8 +52,8 @@ const elementIcon = computed( () => {
 		right: 0;
 		bottom: 0;
 		border: 40px solid;
-		border-image: url("https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/common/base-border.png") 55 fill;
-		background-image: url("https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/common/base-bg.png");
+		border-image: url("/assets/genshin/resource/common/base-border.png") 55 fill;
+		background-image: url("/assets/genshin/resource/common/base-bg.png");
 		filter: hue-rotate(var(--hue-rotate));
 	}
 
@@ -154,7 +127,7 @@ const elementIcon = computed( () => {
 				top: 0;
 				right: 0;
 				bottom: 0;
-				background: url('https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/common/stand-bg.png') center no-repeat;
+				background: url('/assets/genshin/resource/common/stand-bg.png') center no-repeat;
 				background-size: contain;
 				filter: hue-rotate(var(--hue-rotate));
 			}
@@ -164,6 +137,7 @@ const elementIcon = computed( () => {
 				width: 413px;
 				height: 413px;
 				border-radius: 50%;
+				object-fit: cover;
 			}
 
 			.introduce {

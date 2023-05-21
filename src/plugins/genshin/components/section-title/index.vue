@@ -11,7 +11,7 @@
 
 <script lang="ts" setup>
 defineProps<{
-	showSubTitle: boolean;
+	showSubTitle?: boolean;
 }>();
 </script>
 
@@ -41,7 +41,7 @@ defineProps<{
 		content: "";
 		flex: 1;
 		margin: 10px 0;
-		background: url("https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/abyss/abyss_title_line.png") no-repeat;
+		background: url("/assets/genshin/resource/abyss/abyss_title_line.png") no-repeat;
 		transform: rotateY(180deg);
 		overflow: hidden;
 	}

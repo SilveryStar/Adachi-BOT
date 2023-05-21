@@ -17,7 +17,7 @@
 </template>
 
 <script lang="ts" setup>
-import { defineComponent, computed } from "vue";
+import { computed } from "vue";
 
 const props = withDefaults( defineProps<{
 	data: Record<string, any>;
@@ -26,10 +26,10 @@ const props = withDefaults( defineProps<{
 } );
 
 const backgroundImage = computed( () => {
-	return `https://adachi-bot.oss-cn-beijing.aliyuncs.com/item/${ props.data.name }.png`;
+	return `/assets/genshin/resource/home/${ props.data.name }.png`;
 } );
 const lockIcon = computed( () => {
-	return "https://adachi-bot.oss-cn-beijing.aliyuncs.com/item/lock.png";
+	return "/assets/genshin/resource/common/icon/lock.png";
 } );
 </script>
 

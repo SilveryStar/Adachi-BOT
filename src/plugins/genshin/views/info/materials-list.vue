@@ -1,31 +1,34 @@
+<script lang="ts" setup>
+import MaterialsItem from "./materials-item.vue"
+import { InfoMaterial } from "#/genshin/types";
+
+defineProps<{
+	data: {
+		label: string;
+		value: InfoMaterial[];
+		showTitle: boolean;
+	};
+}>();
+</script>
+
 <template>
 	<div class="materials-list">
 		<div v-if="data.label" class="list-label">{{ data.label }}</div>
 		<div class="list-data">
-			<materials-item v-for="(m, mKey) of data.value" :key="mKey" :name="m"
-			                :showTitle="data.showTitle"></materials-item>
+			<materials-item
+				v-for="(d, dKey) of data.value"
+				:key="dKey"
+				:data="d"
+				:showTitle="data.showTitle">
+			</materials-item>
 		</div>
 	</div>
 </template>
 
-<script lang="ts" setup>
-import MaterialsItem from "./materials-item.vue"
-
-withDefaults( defineProps<{
-	data: Record<string, any>;
-}>(), {
-	data: () => ({})
-} );
-
-function icon( name ) {
-	return `https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/info/image/${ name }.png`;
-}
-</script>
-
 <style lang="scss" scoped>
 .materials-list {
 	position: relative;
-	padding: 0 20px 0 40px;
+	padding: 0 20px;
 
 	.list-label {
 		position: absolute;

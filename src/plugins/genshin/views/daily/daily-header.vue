@@ -1,27 +1,13 @@
-<template>
-	<header class="header">
-		<div class="container">
-			<span v-if="isToday" class="time">{{ timeStr }}</span>
-			<div class="title">
-				<p>{{ title }}</p>
-				<p v-if="subState">（用户 {{ user }} 的订阅数据）</p>
-			</div>
-			<span v-if="showEvent" class="author">Created by Chaichai-BOT</span>
-		</div>
-	</header>
-</template>
-
 <script lang="ts" setup>
 import { computed } from "vue";
 import moment from "moment";
 
 const props = withDefaults( defineProps<{
 	user: string;
-	week: string;
-	showEvent: boolean;
-	subState: boolean;
+	week?: string;
+	showEvent?: boolean;
+	subState?: boolean;
 }>(), {
-	user: "",
 	week: "today",
 	showEvent: true,
 	subState: true
@@ -37,6 +23,19 @@ const title = computed( () => {
 	return isToday.value ? "今日素材/活动日历" : `周${ weekList[props.week] }素材`;
 } )
 </script>
+
+<template>
+	<header class="header">
+		<div class="container">
+			<span v-if="isToday" class="time">{{ timeStr }}</span>
+			<div class="title">
+				<p>{{ title }}</p>
+				<p v-if="subState">（用户 {{ user }} 的订阅数据）</p>
+			</div>
+			<span v-if="showEvent" class="author">Created by Adachi-BOT</span>
+		</div>
+	</header>
+</template>
 
 <style lang="scss" scoped>
 .header {

@@ -29,7 +29,7 @@ interface ManagementMethod {
 	getDirFiles( dirName: string, place?: PresetPlace ): string[];
 	createFile( fileName: string, data: any, place?: PresetPlace ): CreateResponse;
 	createYAML( ymlName: string, data: any, place?: PresetPlace ): CreateResponse;
-	loadFile( fileName: string, place?: PresetPlace ): any;
+	loadFile( fileName: string, place?: PresetPlace, encoding?: BufferEncoding ): any;
 	loadYAML( ymlName: string, place?: PresetPlace ): Record<string, any> | null;
 	writeYAML( ymlName: string, data: any, place?: PresetPlace ): string;
 	writeFile( fileName: string, data: any, place?: PresetPlace ): string;
@@ -154,10 +154,10 @@ export default class FileManagement implements ManagementMethod {
 		return { path, exist };
 	}
 	
-	public loadFile( fileName: string, place: PresetPlace = "config" ): string {
+	public loadFile( fileName: string, place: PresetPlace = "config", encoding: BufferEncoding = "utf-8" ): string {
 		const path: string = this.getFilePath( fileName, place );
 		try {
-			return fs.readFileSync( path, "utf-8" );
+			return fs.readFileSync( path, encoding );
 		} catch {
 			return "";
 		}
@@ -197,7 +197,7 @@ export default class FileManagement implements ManagementMethod {
 		return this.writeYAML( ymlName, newData, place );
 	}
 	
-	public async downloadFile( url: string, savePath: string, place: PresetPlace = "plugin", retry = 3 ): Promise<string> {
+	public async downloadFile( url: string, savePath: string, place: PresetPlace = "root", retry = 3 ): Promise<string> {
 		try {
 			const fileRes = await axios.get( url, {
 				responseType: "arraybuffer",

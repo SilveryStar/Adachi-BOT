@@ -11,26 +11,26 @@
 
 <script lang="ts" setup>
 import { AbyssBattleAvatar } from "#/genshin/types";
+import { computed } from "vue";
 
-const props = withDefaults(defineProps<{
-	char: AbyssBattleAvatar | null;
-	type: "reveal" | "level"
+const props = withDefaults( defineProps<{
+	char: AbyssBattleAvatar;
+	type?: "reveal" | "level"
 }>(), {
-	char: null,
 	type: "level"
-});
+} );
 
 /* 针对埃洛伊处理 */
-function getRarityBg() {
+const getRarityBg = computed(() => {
 	if ( !props.char ) return "";
 	const rarity = props.char.rarity === 105 ? "5a" : props.char.rarity;
-	return `url(https://adachi-bot.oss-cn-beijing.aliyuncs.com/images/rarity_bg/Background_Item_${ rarity }_Star.png)`;
-}
+	return `url(/assets/genshin/resource/rarity/bg/Background_Item_${ rarity }_Star.png)`;
+});
 
-const getStr = () => {
+const getStr = computed( () => {
 	if ( !props.char ) return "";
 	return props.type === "level" ? "Lv." + props.char.level : props.char.value + "次";
-};
+} );
 </script>
 
 <style lang="scss" scoped>

@@ -1,3 +1,17 @@
+<script lang="ts">
+import { defineComponent } from "vue";
+
+export default defineComponent( {
+	inheritAttrs: false
+} );
+</script>
+
+<script lang="ts" setup>
+defineProps<{
+	title?: string;
+}>();
+</script>
+
 <template>
 	<div class="info-card">
 		<h3 v-if="title">
@@ -8,12 +22,6 @@
 		</div>
 	</div>
 </template>
-
-<script lang="ts" setup>
-defineProps<{
-	title: string;
-}>();
-</script>
 
 <style lang="scss" scoped>
 .info-card {

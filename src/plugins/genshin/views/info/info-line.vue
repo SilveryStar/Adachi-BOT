@@ -1,3 +1,15 @@
+<script lang="ts" setup>
+withDefaults( defineProps<{
+	title: string;
+	width: string;
+	data: any[];
+}>(), {
+	title: "卡片标题",
+	width: "362px",
+	data: () => []
+} );
+</script>
+
 <template>
 	<div class="info-line">
 		<h3 class="line-title">{{ title }}</h3>
@@ -11,18 +23,6 @@
 		</ul>
 	</div>
 </template>
-
-<script lang="ts" setup>
-withDefaults( defineProps<{
-	title: string;
-	width: string;
-	data: any[];
-}>(), {
-	title: "卡片标题",
-	width: "362px",
-	data: () => []
-} );
-</script>
 
 <style lang="scss" scoped>
 .info-line {

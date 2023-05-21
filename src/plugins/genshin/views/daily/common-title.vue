@@ -1,23 +1,23 @@
+<script lang="ts" setup>
+defineProps<{
+	data: {
+		icon?: {
+			url: string;
+			rank: number;
+		};
+		title: string;
+	};
+}>();
+</script>
+
 <template>
 	<div class="common-title">
-		<img v-if="data.icon" :src="data.icon" alt="ERROR" class="icon">
+		<div v-if="data.icon" class="icon" :style="{ backgroundImage: `url(/assets/genshin/resource/rarity/bg/Background_Item_${ data.icon.rank }_Star.png)` }">
+			<img :src="data.icon.url" alt="ERROR">
+		</div>
 		<div class="title">{{ data.title }}</div>
 	</div>
 </template>
-
-<script lang="ts" setup>
-withDefaults(defineProps<{
-	data: {
-		icon: string;
-		title: string;
-	};
-}>(), {
-	data: () => ({
-		icon: "",
-		title: ""
-	})
-});
-</script>
 
 <style lang="scss" scoped>
 .common-title {
@@ -28,11 +28,15 @@ withDefaults(defineProps<{
 	.icon {
 		flex: 0 0 auto;
 		margin-right: -24px;
-		width: 42px;
-		height: 42px;
 		border: 2px solid var(--primary-base);
-		filter: drop-shadow(0 2px 2px var(--shadow-dark));
 		border-radius: 50%;
+		background-repeat: no-repeat;
+		background-size: cover;
+		filter: drop-shadow(0 2px 2px var(--shadow-dark));
+		img {
+			width: 42px;
+			height: 42px;
+		}
 	}
 
 	.title {

@@ -89,6 +89,7 @@ export interface AbyssBattleAvatar {
 	icon: string;
 	level: number;
 	rarity: number;
+	value: number;
 }
 
 /**
@@ -104,4 +105,49 @@ export interface AbyssCharacter {
 	avatarIcon: string;
 	value: number;
 	rarity: number;
+}
+
+/**
+ * @interface
+ * 深渊路由返回前端数据
+ */
+export interface AbyssRouter extends Abyss{
+	revealRank: AbyssRouterCharacter[];
+	defeatRank: AbyssRouterCharacter[];
+	damageRank: AbyssRouterCharacter[];
+	takeDamageRank: AbyssRouterCharacter[];
+	normalSkillRank: AbyssRouterCharacter[];
+	energySkillRank: AbyssRouterCharacter[];
+}
+
+export interface AbyssRouterCharacter extends AbyssCharacter{
+	name: string;
+}
+
+/**
+ * @interface
+ * 单页深渊
+ */
+export interface AbyssRouterSingle extends AbyssRouter{
+	uid: string;
+	userName: string;
+}
+
+/**
+ * @interface
+ * 多页深渊总览
+ */
+export interface AbyssRouterOverview extends AbyssRouter{
+	floor: string;
+	info: string;
+}
+
+/**
+ * @interface
+ * 多页深渊单层
+ */
+export interface AbyssRouterFloor {
+	floor: string;
+	info: string;
+	data: AbyssFloors
 }

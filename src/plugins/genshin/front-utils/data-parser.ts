@@ -1,11 +1,19 @@
-import { Abyss } from "#/genshin/types";
+import {
+	AbyssRouter,
+	AbyssRouterCharacter, AbyssRouterOverview, AbyssRouterSingle,
+	InfoFullResponse,
+	isArtifactInfo,
+	isCharacterInfo,
+	isWeaponInfo
+} from "#/genshin/types";
 
-type OverviewData = Omit<Abyss, "scheduleId" | "startTime" | "totalWinTimes" | "floors" | "isUnlock"> & {
-	floor: "0";
-	info: string;
+export interface AbyssParser {
+	dataList: Record<string, AbyssRouterCharacter>;
+	reveals: AbyssRouterCharacter[];
+	showData: boolean;
 }
 
-export function abyssDataParser( data: OverviewData ) {
+export function abyssDataParser( data: AbyssRouterSingle | AbyssRouterOverview ): AbyssParser {
 	const dataList = {
 		最强一击: data.damageRank[0],
 		击破数: data.defeatRank[0],
@@ -53,40 +61,40 @@ export function cardDataParser( data ) {
 			value: stats.domainNumber
 		} ],
 		chest: [ {
-			icon: "https://adachi-bot.oss-cn-beijing.aliyuncs.com/images/chest/treasure_chest_1.png",
+			icon: "/assets/genshin/resource/chest/treasure_chest_1.png",
 			label: "普通宝箱",
 			value: stats.commonChestNumber
 		}, {
-			icon: "https://adachi-bot.oss-cn-beijing.aliyuncs.com/images/chest/treasure_chest_2.png",
+			icon: "/assets/genshin/resource/chest/treasure_chest_2.png",
 			label: "精致宝箱",
 			value: stats.exquisiteChestNumber
 		}, {
-			icon: "https://adachi-bot.oss-cn-beijing.aliyuncs.com/images/chest/treasure_chest_3.png",
+			icon: "/assets/genshin/resource/chest/treasure_chest_3.png",
 			label: "珍贵宝箱",
 			value: stats.preciousChestNumber
 		}, {
-			icon: "https://adachi-bot.oss-cn-beijing.aliyuncs.com/images/chest/treasure_chest_4.png",
+			icon: "/assets/genshin/resource/chest/treasure_chest_4.png",
 			label: "华丽宝箱",
 			value: stats.luxuriousChestNumber
 		}, {
-			icon: "https://adachi-bot.oss-cn-beijing.aliyuncs.com/images/chest/treasure_chest_5.png",
+			icon: "/assets/genshin/resource/chest/treasure_chest_5.png",
 			label: "奇馈宝箱",
 			value: stats.magicChestNumber
 		} ],
 		culus: [ {
-			icon: "https://adachi-bot.oss-cn-beijing.aliyuncs.com/images/culus/Anemoculus.png",
+			icon: "/assets/genshin/resource/material/散失的风神瞳.png",
 			label: "风神瞳数",
 			value: stats.anemoculusNumber
 		}, {
-			icon: "https://adachi-bot.oss-cn-beijing.aliyuncs.com/images/culus/Geoculus.png",
+			icon: "/assets/genshin/resource/material/散失的岩神瞳.png",
 			label: "岩神瞳数",
 			value: stats.geoculusNumber
 		}, {
-			icon: "https://adachi-bot.oss-cn-beijing.aliyuncs.com/images/culus/Electroculus.png",
+			icon: "/assets/genshin/resource/material/散失的雷神瞳.png",
 			label: "雷神瞳数",
 			value: stats.electroculusNumber
 		}, {
-			icon: "https://adachi-bot.oss-cn-beijing.aliyuncs.com/images/culus/Dendroculus.png",
+			icon: "/assets/genshin/resource/material/散失的草神瞳.png",
 			label: "草神瞳数",
 			value: stats.dendroculusNumber
 		} ]
@@ -138,20 +146,19 @@ export function cardDataParser( data ) {
 	};
 }
 
-export function infoDataParser( data ) {
+export function infoDataParser( data: InfoFullResponse ) {
 	/* 星级 icon */
-	const rarityIcon = `https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/info/icon/BaseStar${ data.rarity }.png`;
+	const rarityIcon = `/assets/genshin/resource/info/icon/BaseStar${ isArtifactInfo( data ) ? Math.max( ...data.levelList ) : data.rarity }.png`;
 	
 	const getMainImage = () => {
-		const baseURL = "https://adachi-bot.oss-cn-beijing.aliyuncs.com/Version2/";
-		switch ( data.type ) {
-			case "角色":
-				return baseURL + `character/${ data.id }.png`;
-			case "武器":
-				return baseURL + `weapon/${ data.name }.png`;
-			case "圣遗物":
-				return baseURL + `artifact/${ data.id }/${ data.icon }.png`;
+		const baseURL = "/assets/genshin/";
+		if ( isCharacterInfo( data ) ) {
+			return baseURL + `character/${ data.name }/image/gacha_splash.png`;
 		}
+		if ( isWeaponInfo( data ) ) {
+			return baseURL + `weapon/${ data.name }/image/portrait.png`;
+		}
+		return baseURL + `artifact/${ data.name }/image/${ data.icon }.png`;
 	};
 	
 	const mainImage = getMainImage();
@@ -162,7 +169,7 @@ export function infoDataParser( data ) {
 	};
 }
 
-export const initBaseColor = ( data ) => {
+export const initBaseColor = ( data: InfoFullResponse ) => {
 	const setStyle = ( colorList ) => {
 		document.body.style.setProperty( "--base-color", colorList[0] );
 		document.body.style.setProperty( "--shadow-color", colorList[1] );
@@ -170,7 +177,9 @@ export const initBaseColor = ( data ) => {
 		document.body.style.setProperty( "--hue-rotate", colorList[3] );
 	}
 	
-	switch ( data.rarity ) {
+	const rarity = isArtifactInfo( data ) ? Math.max( ...data.levelList ) : data.rarity;
+	
+	switch ( rarity ) {
 		case 5:
 			setStyle( [ "rgba(115, 90, 44, 1)", "rgba(198, 156, 80, 0.4)", "rgba(198, 156, 80, 1)", "0deg" ] );
 			break;

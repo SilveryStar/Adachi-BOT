@@ -46,7 +46,6 @@ interface PluginSetting {
     }; // 设置为非必须兼容低版本插件
     assets?: string | { // 是否从线上同步更新静态资源
         manifestUrl: string; // 线上 manifest.yml 文件地址
-        saveTarget?: string; // 保存到本地的目标目录名
         overflowPrompt?: string; // 超出最大更新数量后给予的提示消息
         replacePath?: ( path: string ) => string; // 修改下载后的文件路径
     };
@@ -78,7 +77,6 @@ interface PluginSetting {
 | 属性名            | 说明               | 类型                         | 默认值                 |
 |----------------|------------------|----------------------------|---------------------|
 | manifestUrl    | oss 线上清单文件文件 url | string                     | -                   |
-| saveTarget     | 下载后保存到本地的目标目录名   | string                     | static_assets       |
 | overflowPrompt | 超出最大更新数量后给予的提示消息 | string                     | 更新文件数量超过阈值，请手动更新资源包 |
 | replacePath    | 修改下载后的文件路径       | ( path: string ) => string | -                   |
 
@@ -141,7 +139,7 @@ export async function init( bot: BOT ): Promise<PluginSetting> {
 ```
 
 > 仅指定目录下的第一级 .vue 文件与第一级文件中存在 index.vue 的目录进行加载，不会对不符合加载条件的文件/目录进行处理。
-> 需要注意的是，当你希望使用本地静态资源时，建议通过 `import.meta.url` 来获取静态资源路径。可以参考 `src/web-console/frontend/utils/pub-use.ts` 写法实现，或参考 [vite 官方文档](https://cn.vitejs.dev/guide/assets.html#importing-asset-as-url)。请避免使用 express 提供的静态资源服务加载资源，将会导致无法打包前端代码的严重问题。
+> 需要注意的是，当你希望使用本地静态资源时，建议通过 **公共路径 public** 或 `import.meta.url` 来获取静态资源路径。可以参考 `src/web-console/frontend/utils/pub-use.ts` 写法实现，或参考 [vite 官方文档](https://cn.vitejs.dev/guide/assets.html#importing-asset-as-url)。请避免使用 express 提供的静态资源服务加载资源，将会导致无法打包前端代码的严重问题。
 
 ### 公共 express-server
 
@@ -172,6 +170,10 @@ export async function init( bot: BOT ): Promise<PluginSetting> {
 v3 中为插件提供了自动更新静态资源支持，该功能基于 oss 实现，可通过比对本地与线上的清单文件来进行插件静态资源的自动更新与下载。
 
 你需要生成一个 `yaml` 格式清单文件的在线 url，并将其提供给 `PluginSetting.assets` 或 `PluginSetting.assets.manifestUrl` 来使用此功能，清单文件的生成可参考 [Node.js列举文件 listV2](https://help.aliyun.com/document_detail/111389.html) 来实现。
+
+#### 下载地址
+
+资源将会被下载至 `public/assets/插件根目录名` 下，可通过 `/assets/插件根目录名/xxx.png` 的方式获取资源。
 
 #### 更新限制
 
