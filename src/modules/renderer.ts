@@ -1,5 +1,5 @@
 import { URL, URLSearchParams } from "url";
-import { ImageElem, segment, Sendable } from "icqq";
+import { segment, Sendable } from "icqq";
 import { RefreshCatch } from "@modules/management/refresh";
 import puppeteer from "puppeteer";
 import bot from "ROOT";
@@ -34,8 +34,8 @@ export interface RenderMethods {
 	restartBrowser(): Promise<void>;
 	refresh(): Promise<string>;
 	/* 截图 */
-	screenshot( url: string, viewPort: puppeteer.Viewport | null, selector: string ): Promise<string>;
-	screenshotForFunction( url: string, viewPort: puppeteer.Viewport | null, pageFunction: PageFunction ): Promise<string>
+	screenshot( url: string, viewPort: puppeteer.Viewport | null, selector: string, encoding: 'base64' | 'binary' ): Promise<Buffer | string | void>;
+	screenshotForFunction( url: string, viewPort: puppeteer.Viewport | null, pageFunction: PageFunction ): Promise<Buffer | string | void>
 }
 
 export class Renderer implements ScreenshotRendererMethods {
@@ -69,8 +69,8 @@ export class Renderer implements ScreenshotRendererMethods {
 	): Promise<RenderResult> {
 		try {
 			const url: string = this.getURL( route, params );
-			const base64: string = await bot.renderer.screenshot( url, viewPort, selector );
-			return { code: "ok", data: base64 };
+			const data: Buffer | string | void = await bot.renderer.screenshot( url, viewPort, selector, 'base64' );
+			return { code: "ok", data: data ? `base64://${ <string>data }` : "" };
 		} catch ( error ) {
 			const err = <string>( <Error>error ).stack;
 			return { code: "error", error: err };
@@ -85,9 +85,14 @@ export class Renderer implements ScreenshotRendererMethods {
 	): Promise<RenderResult> {
 		try {
 			const url: string = this.getURL( route, params );
-			const base64: string = await bot.renderer.screenshot( url, viewPort, selector );
-			const segmentImg: ImageElem = segment.image( base64 );
-			return { code: "ok", data: segmentImg };
+			const data: Buffer | string | void = await bot.renderer.screenshot( url, viewPort, selector, 'binary' );
+			if ( !data ) {
+				return { code: "ok", data: "" };
+			}
+			if ( typeof data === 'string' ) {
+				return { code: "ok", data: segment.image( `base64://${ data }` ) };
+			}
+			return { code: "ok", data: segment.image( data ) };
 		} catch ( error ) {
 			const err = <string>( <Error>error ).stack;
 			return { code: "error", error: err };
@@ -102,8 +107,14 @@ export class Renderer implements ScreenshotRendererMethods {
 	): Promise<RenderResult> {
 		try {
 			const url: string = this.getURL( route, params );
-			const data: string = await bot.renderer.screenshotForFunction( url, viewPort, pageFunction );
-			return { code: "ok", data };
+			const data: Buffer | string | void = await bot.renderer.screenshotForFunction( url, viewPort, pageFunction );
+			if ( !data ) {
+				return { code: "ok", data: "" };
+			}
+			if ( typeof data === 'string' ) {
+				return { code: "ok", data: segment.image( `base64://${ data }` ) };
+			}
+			return { code: "ok", data: segment.image( data ) };
 		} catch ( error ) {
 			const err = <string>( <Error>error ).stack;
 			return { code: "error", error: err };
@@ -187,7 +198,7 @@ export class BasicRenderer implements RenderMethods {
 		}, { timeout: 10000 } )
 	}
 	
-	public async screenshot( url: string, viewPort: puppeteer.Viewport | null, selector: string ): Promise<string> {
+	public async screenshot( url: string, viewPort: puppeteer.Viewport | null, selector: string, encoding: 'base64' | 'binary' ): Promise<Buffer | string | void> {
 		if ( !this.browser ) {
 			throw new Error( "浏览器未启动" );
 		}
@@ -203,10 +214,9 @@ export class BasicRenderer implements RenderMethods {
 			} );
 			await this.pageLoaded( page );
 			
-			const option: puppeteer.ScreenshotOptions = { encoding: "base64", type: 'jpeg', quality: 100 };
+			const option: puppeteer.ScreenshotOptions = { encoding, type: 'jpeg', quality: 100 };
 			const element = await page.$( selector );
-			const result = <string>await element?.screenshot( option );
-			const base64: string = `base64://${ result }`;
+			const result = await element?.screenshot( option );
 			await page.close();
 			
 			this.screenshotCount++;
@@ -214,14 +224,14 @@ export class BasicRenderer implements RenderMethods {
 				await bot.renderer.restartBrowser();
 			}
 			
-			return base64;
+			return result;
 		} catch ( err: any ) {
 			await page.close();
 			throw err;
 		}
 	}
 	
-	public async screenshotForFunction( url: string, viewPort: puppeteer.Viewport | null, pageFunction: PageFunction ): Promise<string> {
+	public async screenshotForFunction( url: string, viewPort: puppeteer.Viewport | null, pageFunction: PageFunction ): Promise<Buffer | string | void> {
 		if ( !this.browser ) {
 			throw new Error( "浏览器未启动" );
 		}
@@ -237,7 +247,7 @@ export class BasicRenderer implements RenderMethods {
 			} );
 			await this.pageLoaded( page );
 			
-			const result = await pageFunction( page );
+			const result: Buffer | string | void = await pageFunction( page );
 			await page.close();
 			
 			this.screenshotCount++;
@@ -245,7 +255,7 @@ export class BasicRenderer implements RenderMethods {
 				await bot.renderer.restartBrowser();
 			}
 			
-			return result === undefined ? "" : result.toString();
+			return result;
 		} catch ( err: any ) {
 			await page.close();
 			throw err;
