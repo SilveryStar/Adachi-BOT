@@ -48,8 +48,9 @@ function getHttps<T extends Record<string, string>>( apis: T, server: AxiosInsta
 							} else {
 								config.params = format;
 							}
+							return getServer<T, D>( server, url, params, m, config );
 						}
-						return getServer<T, D>( server, url, params, m, config );
+						return getServer<T, D>( server, url, params, m, urlFormat );
 					}
 				}
 			} )
