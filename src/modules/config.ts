@@ -29,53 +29,6 @@ export default class BotConfig {
 	public readonly callTimes: number;
 	public readonly logLevel: "trace" | "debug" | "info" | "warn" |
 		"error" | "fatal" | "mark" | "off";
-	
-	public readonly mailConfig: {
-		readonly host: string;
-		readonly port: number;
-		readonly user: string;
-		readonly pass: string;
-		readonly secure: boolean;
-		readonly servername: string;
-		readonly rejectUnauthorized: boolean;
-		readonly logoutSend: boolean;
-		readonly sendDelay: number;
-		readonly retry: number;
-		readonly retryWait: number;
-	}
-	
-	public readonly banScreenSwipe: {
-		readonly enable: boolean;
-		readonly limit: number;
-		readonly duration: number;
-		readonly prompt: boolean;
-		readonly promptMsg: string;
-	}
-	
-	public readonly banHeavyAt: {
-		readonly enable: boolean;
-		readonly limit: number;
-		readonly duration: number;
-		readonly prompt: boolean;
-		readonly promptMsg: string;
-	}
-	
-	public readonly webConsole: {
-		readonly enable: boolean;
-		readonly consolePort: number;
-		readonly tcpLoggerPort: number;
-		readonly logHighWaterMark: number;
-		readonly jwtSecret: string;
-	};
-	
-	public readonly autoChat: {
-		readonly enable: boolean;
-		readonly type: number;
-		readonly audio: boolean;
-		readonly secretId: string;
-		readonly secretKey: string;
-	}
-	
 	static initObject = {
 		tip: "前往 https://docs.adachi.top/config 查看配置详情",
 		qrcode: false,
@@ -101,6 +54,7 @@ export default class BotConfig {
 		helpMessageStyle: "message",
 		callTimes: 3,
 		logLevel: "info",
+		logKeepDays: 30,
 		dbPort: 56379,
 		dbPassword: "",
 		mailConfig: {
@@ -150,6 +104,53 @@ export default class BotConfig {
 		}
 	};
 	
+	public readonly mailConfig: {
+		readonly host: string;
+		readonly port: number;
+		readonly user: string;
+		readonly pass: string;
+		readonly secure: boolean;
+		readonly servername: string;
+		readonly rejectUnauthorized: boolean;
+		readonly logoutSend: boolean;
+		readonly sendDelay: number;
+		readonly retry: number;
+		readonly retryWait: number;
+	}
+	
+	public readonly banScreenSwipe: {
+		readonly enable: boolean;
+		readonly limit: number;
+		readonly duration: number;
+		readonly prompt: boolean;
+		readonly promptMsg: string;
+	}
+	
+	public readonly banHeavyAt: {
+		readonly enable: boolean;
+		readonly limit: number;
+		readonly duration: number;
+		readonly prompt: boolean;
+		readonly promptMsg: string;
+	}
+	
+	public readonly webConsole: {
+		readonly enable: boolean;
+		readonly consolePort: number;
+		readonly tcpLoggerPort: number;
+		readonly logHighWaterMark: number;
+		readonly jwtSecret: string;
+	};
+	
+	public readonly autoChat: {
+		readonly enable: boolean;
+		readonly type: number;
+		readonly audio: boolean;
+		readonly secretId: string;
+		readonly secretKey: string;
+	}
+	public readonly logKeepDays: number;
+	
 	constructor( file: FileManagement ) {
 		const config: any = file.loadYAML( "setting" );
 		const checkFields: Array<keyof BotConfig> = [
@@ -157,7 +158,7 @@ export default class BotConfig {
 			"helpPort", "autoChat", "callTimes",
 			"fuzzyMatch", "matchPrompt", "useWhitelist",
 			"banScreenSwipe", "banHeavyAt", "ThresholdInterval",
-			"ffmpegPath", "ffprobePath", "mailConfig"
+			"ffmpegPath", "ffprobePath", "mailConfig", "logKeepDays"
 		];
 		
 		for ( let key of checkFields ) {
@@ -249,5 +250,6 @@ export default class BotConfig {
 		];
 		this.logLevel = logLevelList.includes( config.logLevel )
 			? config.logLevel : "info";
+		this.logKeepDays = config.logKeepDays;
 	}
 }
