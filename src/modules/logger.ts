@@ -1,6 +1,7 @@
 import BotConfig from "./config";
-import { Configuration, addLayout, configure } from "log4js";
+import { addLayout, Configuration, configure, DateFileAppender } from "log4js";
 import { parseZone } from "moment";
+import util from "util";
 
 function getTimeString( date: Date ): string {
 	return parseZone( date ).local().format( "HH:mm:ss.SSS" );
@@ -16,39 +17,43 @@ export default class WebConfiguration {
 		this.tcpLoggerPort = config.webConsole.tcpLoggerPort;
 		this.deviceName = `[${ platformName[config.platform] }:${ config.number }]`;
 		this.setNetworkLayout();
-		const cfg = this.getConfiguration( config.webConsole.enable, config.logLevel );
+		const cfg = this.getConfiguration( config.webConsole.enable, config.logLevel, config.logKeepDays );
 		configure( cfg );
 	}
 	
 	private setNetworkLayout(): void {
-		addLayout( "JSON", config => event => JSON.stringify( {
+		addLayout( "JSON", _config => event => JSON.stringify( {
 			category: event.categoryName,
 			level: event.level.levelStr,
 			color: event.level.colour,
-			message: event.data[0],
+			message: util.format( ...event.data ),
 			time: getTimeString( event.startTime )
 		} ) );
 	}
 	
-	private getConfiguration( enable: boolean, logLevel: BotConfig["logLevel"] ): Configuration {
-		const appConsole = { type: "console" };
+	private getConfiguration( enable: boolean, logLevel: BotConfig["logLevel"], logKeepDays: number ): Configuration {
+		const appConsole = { type: "stdout" };
 		const appNetwork = {
 			type: "tcp",
 			port: this.tcpLoggerPort,
 			endMsg: "__ADACHI__",
 			layout: { type: "JSON" }
 		};
-		const logFile = {
+		const logFile: DateFileAppender = {
 			type: "dateFile",
 			filename: "logs/bot",
 			pattern: "yyyy-MM-dd.log",
 			alwaysIncludePattern: true,
-			layout: { type: "JSON" }
+			layout: { type: "JSON" },
+			daysToKeep: logKeepDays,
+			keepFileExt: true
 		};
 		
-		const Default = { appenders: [ "console" ], level: "off" };
+		const Default = { appenders: [ "console" ], level: logLevel };
+		const device_appenders = [ "logFile", "console" ];
+		enable && device_appenders.push( "network" );
 		const Device = {
-			appenders: [ "logFile", enable ? "network" : "console" ],
+			appenders: device_appenders,
 			level: logLevel
 		};
 		

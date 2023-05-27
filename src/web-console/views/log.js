@@ -212,7 +212,7 @@ export default defineComponent( {
 				}
 				/* 过滤消息类型 */
 				if ( !Number.isNaN( msgType ) ) {
-					const reg = /^(?:send to|recv from): \[(Group|Private): .*?(\d+)/;
+					const reg = /^(?:succeed to send|recv from): \[(Group|Private)(?:\(|: |: .*?)(\d+).*].*?/;
 					const result = reg.exec( el.message );
 					if ( result ) {
 						const type = result[1];
@@ -389,10 +389,10 @@ export default defineComponent( {
 				.toString()
 				.split( "\n\n" )
 				.map( el => {
-					el = el.replace( /\[(Android|aPad|Watch|iMac|iPad):\d+]/, "[$1:*****]" )
-						.replace( / - recv from: \[Private: \d+\((friend|group)\)] (.*)/, " [Recv] [Pri-$1] $2" )
-						.replace( / - recv from: \[Group: .*] (.*)/, " [Recv] [Group] $1" )
-						.replace( / - send to: \[(Group|Private): .*]/, " [Send] [$1] ---" )
+					el = el.replace( /\[(Android|aPad|Watch|iMac|iPad|Android_8.8.88):\d+]/g, "[$1:*****]" )
+						.replace( / - recv from: \[Private: \d+\((friend|group)\)] (.*)/g, " [Recv] [Pri-$1] $2" )
+						.replace( / - recv from: \[Group: .*] (.*)/g, " [Recv] [Group] $1" )
+						.replace( / - succeed to send: \[(Group|Private).*]/g, " [Send] [$1] ---" )
 						.replace( /(\[[A-Z]+]) - (.*)/, "$1 [Event] $2" )
 						.replace( /&#93;/g, "]" )
 						.replace( /&#91;/g, "[" );

@@ -31,7 +31,7 @@ export default express.Router().get( "/", async ( req, res ) => {
 					}
 					/* 过滤消息类型 */
 					if ( !Number.isNaN( msgType ) ) {
-						const reg = /^(?:send to|recv from): \[(Group|Private): .*?(\d+)/;
+						const reg = /^(?:succeed to send|recv from): \[(Group|Private)(?:\(|: |: .*?)(\d+).*].*?/;
 						const result = reg.exec( el.message );
 						if ( result ) {
 							const type = <'Group' | 'Private'>result[1];
