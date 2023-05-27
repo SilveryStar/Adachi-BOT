@@ -108,13 +108,7 @@ export class Renderer implements ScreenshotRendererMethods {
 		try {
 			const url: string = this.getURL( route, params );
 			const data: Buffer | string | void = await bot.renderer.screenshotForFunction( url, viewPort, pageFunction );
-			if ( !data ) {
-				return { code: "ok", data: "" };
-			}
-			if ( typeof data === 'string' ) {
-				return { code: "ok", data: segment.image( `base64://${ data }` ) };
-			}
-			return { code: "ok", data: segment.image( data ) };
+			return { code: "ok", data: data ? segment.image( data ) : "" };
 		} catch ( error ) {
 			const err = <string>( <Error>error ).stack;
 			return { code: "error", error: err };
@@ -253,6 +247,11 @@ export class BasicRenderer implements RenderMethods {
 			this.screenshotCount++;
 			if ( this.screenshotCount >= BasicRenderer.screenshotLimit ) {
 				await bot.renderer.restartBrowser();
+			}
+			
+			if ( result && typeof result === 'string' ) {
+				// 兼容低版本插件的返回
+				return result.startsWith( "base64://" ) ? result : `base64://${ result }`;
 			}
 			
 			return result;
