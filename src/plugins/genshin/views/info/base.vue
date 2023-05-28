@@ -7,6 +7,7 @@ const props = defineProps<{
 	data: InfoResponse;
 }>();
 
+const version = window.ADACHI_VERSION;
 const parsed = computed( () => infoDataParser( props.data ) );
 
 /* 元素 icon */
@@ -35,7 +36,7 @@ const elementIcon = computed( () => {
 				<slot></slot>
 			</div>
 		</main>
-		<footer class="author">Created by Adachi-BOT</footer>
+		<footer class="author">Created by Adachi-BOT v{{ version }}</footer>
 	</div>
 </template>
 

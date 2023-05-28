@@ -456,6 +456,10 @@ export default <FetchServer<keyof typeof apis, FetchResponse>><unknown>request;
 
 定义类型后，请求所得的响应对象将会变为 `FetchResponse` 类型。
 
+### 新的全局变量
+
+在 .vue 与 node 端环境全局挂载变量 `ADACHI_VERSION`，指向当前框架版本。可直接通过 `globalThis.ADACHI_VERSION` 或 `window.ADACHI_VERSION` 使用。
+
 ## brake change
 
 ### 插件配置结构变更

@@ -8,6 +8,7 @@ import { urlParamsGet } from "@/utils/common";
 
 const urlParams = urlParamsGet( location.href );
 const data = ref<Record<string, any> | null>( null );
+const version = window.ADACHI_VERSION;
 
 function getPieceData( data: Record<string, any> ) {
 	return {
@@ -85,7 +86,7 @@ onMounted( () => {
 			<p class="time">记录日期 {{ data.date }}</p>
 		</main>
 		<footer>
-			<p>Created by Adachi-BOT</p>
+			<p>Created by Adachi-BOT v{{ version }}</p>
 		</footer>
 	</div>
 </template>

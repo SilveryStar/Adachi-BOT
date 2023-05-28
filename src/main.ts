@@ -22,6 +22,9 @@ import { Job, JobCallback, scheduleJob } from "node-schedule";
 import { trim } from "lodash";
 import { unlinkSync } from "fs";
 import axios, { AxiosError } from "axios";
+import { isJsonString } from "@/utils/common";
+import { util } from "icqq/lib/core/protobuf/protobuf.min";
+import global = util.global;
 
 /**
  * @interface
@@ -151,6 +154,9 @@ export default class Adachi {
 	}
 	
 	private static setEnv( file: FileManagement ): void {
+		const packageData = file.loadFile( "package.json", "root" );
+		globalThis.ADACHI_VERSION = isJsonString( packageData ) ? JSON.parse( packageData ).version || "" : "";
+		
 		const { exist } = file.createYAML( "setting", BotConfigManager.initConfig );
 		if ( exist ) {
 			return;

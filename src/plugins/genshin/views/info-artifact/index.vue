@@ -8,6 +8,7 @@ import { ArtifactInfo } from "#/genshin/types";
 const urlParams = urlParamsGet( location.href );
 
 const data = ref<ArtifactInfo | null>( null );
+const version = window.ADACHI_VERSION;
 
 const parse = computed( () => {
 	const value = data.value;
@@ -49,7 +50,7 @@ onMounted( () => {
 					<p class="access">获取途径: {{ data.access.join("、") }}</p>
 				</div>
 			</main>
-			<footer class="author">Created by Adachi-BOT</footer>
+			<footer class="author">Created by Adachi-BOT v{{ version }}</footer>
 		</template>
 	</div>
 </template>

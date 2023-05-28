@@ -9,6 +9,7 @@ import { urlParamsGet } from "@/utils/common";
 
 const urlParams = urlParamsGet( location.href );
 const data = ref<Record<string, any> | null>( null );
+const version = window.ADACHI_VERSION;
 
 /* 获取洞天宝钱时间 */
 function getHomeCoinSubtitle( data ) {
@@ -125,7 +126,7 @@ onMounted( () => {
 			</p>
 			<NoteExpedition v-for="e in data.expeditions" :data="e"/>
 		</div>
-		<p class="author">Created by Adachi-BOT</p>
+		<p class="author">Created by Adachi-BOT v{{ version }}</p>
 	</div>
 </template>
 

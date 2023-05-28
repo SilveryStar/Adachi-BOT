@@ -8,6 +8,7 @@ import * as process from "process";
 import { BotConfig } from "@/modules/config";
 import WebConsole from "@/web-console";
 import useWebsocket, { Application } from "express-ws";
+import { isJsonString } from "@/utils/common";
 
 export default class RenderServer {
 	private readonly app: Application;
@@ -69,7 +70,7 @@ export default class RenderServer {
 			// 如果是 render 注册路由，放行
 			const isRenderRouter = this.serverRouters.findIndex( r => {
 				if ( r.path === baseUrl ) return true;
-				return findRouter(r.router, baseUrl, r.path) !== -1;
+				return findRouter( r.router, baseUrl, r.path ) !== -1;
 			} ) !== -1;
 			if ( isRenderRouter ) {
 				return next();
@@ -93,7 +94,10 @@ export default class RenderServer {
 				}
 				// 注入生成的 vue-router 对象
 				if ( isRenderRoute ) {
-					template = template.replace( `<!--adachi-routes-->`, `window.__ADACHI_ROUTES__ = ${ JSON.stringify( this.renderRoutes ) }` );
+					template = template.replace( `<!--adachi-routes-->`, `
+					window.__ADACHI_ROUTES__ = ${ JSON.stringify( this.renderRoutes ) };
+					window.ADACHI_VERSION = "${ globalThis.ADACHI_VERSION }"
+					` );
 				}
 				
 				// 6. 返回渲染后的 HTML。
@@ -119,13 +123,13 @@ export default class RenderServer {
 }
 
 /* 查找 path 匹配的 express router */
-function findRouter(router: any, target: string, base: string) : number {
+function findRouter( router: any, target: string, base: string ): number {
 	return router.stack.findIndex( r => {
 		if ( !r.route || r.route.path === "/" ) return false;
 		const itemBase = base + r.route.path;
 		if ( itemBase === target ) {
 			return true;
 		}
-		return findRouter(r.route, target, itemBase) !== -1;
+		return findRouter( r.route, target, itemBase ) !== -1;
 	} )
 }

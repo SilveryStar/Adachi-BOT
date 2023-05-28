@@ -22,6 +22,8 @@ function getFloors( data: AbyssRouterSingle ) {
 	} );
 }
 
+const version = window.ADACHI_VERSION;
+
 /* 获取头像 */
 const avatar = computed( () => `https://q1.qlogo.cn/g?b=qq&s=640&nk=${ urlParams.qq }` );
 
@@ -76,7 +78,7 @@ onMounted( async () => {
 			</div>
 		</main>
 		<footer>
-			<p class="author">Created by Adachi-BOT</p>
+			<p class="author">Created by Adachi-BOT v{{ version }}</p>
 		</footer>
 	</div>
 </template>

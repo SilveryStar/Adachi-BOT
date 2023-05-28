@@ -13,6 +13,8 @@ const urlParams = urlParamsGet( location.href );
 
 const data: Ref<Record<string, any> | null> = ref( null );
 
+const version = window.ADACHI_VERSION;
+
 onMounted( async () => {
 	const res = await $https.CARD.get( { qq: urlParams.qq } );
 	data.value = {
@@ -82,7 +84,7 @@ const getSizeClass = sizeClass( 3 );
 						:type="urlParams.style"
 					/>
 				</div>
-				<p class="sign">Created by Adachi-BOT</p>
+				<p class="sign">Created by Adachi-BOT v{{ version }}</p>
 			</section>
 		</main>
 	</div>

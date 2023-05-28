@@ -2,6 +2,8 @@
 defineProps<{
 	data: string;
 }>();
+
+const version = window.ADACHI_VERSION;
 </script>
 
 <template>
@@ -11,7 +13,7 @@ defineProps<{
 			<p>面朝{{ data }}玩原神<br/>稀有掉落概率up</p>
 		</div>
 		<p class="design">Designed by genshin.pub</p>
-		<p class="author">Created by Adachi-BOT</p>
+		<p class="author">Created by Adachi-BOT v{{ version }}</p>
 	</div>
 </template>
 

@@ -13,6 +13,8 @@ const props = withDefaults( defineProps<{
 	showMaterial: true
 } );
 
+const version = window.ADACHI_VERSION;
+
 /* 获取日期列表 */
 const dateList = computed( () => {
 	const first = moment().subtract( 3, "days" );
@@ -91,7 +93,7 @@ const getEventLineStyle = ( { startTime, endTime } ) => {
 					<p v-else class="event-empty">暂无举办中的活动</p>
 				</div>
 			</div>
-			<p v-else class="author">Create by Adachi-BOT</p>
+			<p v-else class="author">Create by Adachi-BOT v{{ version }}</p>
 		</div>
 	</div>
 </template>

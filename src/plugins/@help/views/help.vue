@@ -8,7 +8,7 @@
 					<p>{{ model === "keys" ? "指令key值表" : "使用文档" }}</p>
 				</div>
 				<div class="right-header">
-					<p class="version">ver{{ data.version }}</p>
+					<p class="version">ver{{ version }}</p>
 					<p v-if="data.detailCmd" class="desc">使用 {{ data.detailCmd }}+指令序号 查看更多信息</p>
 					<p class="desc">[]表示必填，()表示选填，|表示选择</p>
 				</div>
@@ -28,7 +28,7 @@
 				</section>
 			</main>
 			<footer>
-				<p class="sign">Created by Adachi-BOT</p>
+				<p class="sign">Created by Adachi-BOT v{{ version }}</p>
 			</footer>
 		</template>
 	</div>
@@ -43,6 +43,7 @@ const urlParams = urlParamsGet( location.href );
 const data = ref<Record<string, any> | null>( null );
 
 const model = urlParams.model;
+const version = window.ADACHI_VERSION;
 
 const pluginNameMap = {
 	"@help": "帮助指令",

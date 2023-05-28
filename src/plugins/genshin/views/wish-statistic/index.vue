@@ -7,6 +7,7 @@ import StatisticItem from "./item.vue";
 
 const urlParams = urlParamsGet( location.href );
 const data = ref<Record<string, any> | null>( null );
+const version = window.ADACHI_VERSION;
 
 const fullDate = getFullDate();
 
@@ -47,7 +48,7 @@ onMounted( () => {
 				<StatisticItem v-for="el in data.weapon" :data="el"/>
 			</div>
 		</div>
-		<p class="author">Created by Adachi-BOT</p>
+		<p class="author">Created by Adachi-BOT v{{ version }}</p>
 	</div>
 </template>
 

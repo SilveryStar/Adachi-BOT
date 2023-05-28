@@ -9,6 +9,7 @@ import { CharacterRouter } from "#/genshin/types";
 
 const urlParams = urlParamsGet( location.href );
 const data = ref<CharacterRouter | null>( null );
+const version = window.ADACHI_VERSION;
 
 const getData = async () => {
 	const res = await $https.CHAR.get( { qq: urlParams.qq } )
@@ -178,7 +179,7 @@ function setCommonStyle( element: string ) {
 			</info-card>
 		</main>
 		<footer>
-			<p class="sign">Created by Adachi-BOT</p>
+			<p class="sign">Created by Adachi-BOT v{{ version }}</p>
 		</footer>
 	</div>
 </template>

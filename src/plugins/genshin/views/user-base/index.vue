@@ -13,6 +13,7 @@ import { urlParamsGet } from "@/utils/common";
 const urlParams = urlParamsGet( location.href );
 
 const data = ref<Record<string, any> | null>( null );
+const version = window.ADACHI_VERSION;
 
 const getData = async () => {
 	const res = await $https.CARD.get( { qq: urlParams.qq } );
@@ -102,7 +103,7 @@ const sizeClassFun = sizeClass( 3 );
 			<p v-if="!showAvatars" class="empty-avatar-tip">tips：请前往米游社公开展示「角色详情数据」来展示所持有角色</p>
 		</main>
 		<footer>
-			<p class="sign">Created by Adachi-BOT</p>
+			<p class="sign">Created by Adachi-BOT v{{ version }}</p>
 		</footer>
 	</div>
 </template>
