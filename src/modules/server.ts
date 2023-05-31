@@ -9,6 +9,7 @@ import { BotConfig } from "@/modules/config";
 import WebConsole from "@/web-console";
 import useWebsocket, { Application } from "express-ws";
 import { isJsonString } from "@/utils/common";
+import FileManagement from "@/modules/file";
 
 export default class RenderServer {
 	private readonly app: Application;
@@ -16,10 +17,10 @@ export default class RenderServer {
 	private renderRoutes: Array<RenderRoutes> = [];
 	private isFirstListen: boolean = true;
 	
-	constructor( config: BotConfig, logger: Logger ) {
+	constructor( config: BotConfig, file: FileManagement, logger: Logger ) {
 		const wsInstance = useWebsocket( express() );
 		this.app = wsInstance.app;
-		this.createServer( config, logger ).catch();
+		this.createServer( config, file, logger ).catch();
 	}
 	
 	public setServerRouters( routers: Array<ServerRouters> ) {
@@ -34,14 +35,14 @@ export default class RenderServer {
 		this.renderRoutes = routes;
 	}
 	
-	public async createServer( config: BotConfig, logger: Logger ) {
+	public async createServer( config: BotConfig, file: FileManagement, logger: Logger ) {
 		const isProd = process.env.NODE_ENV === "production";
 		
 		let vite: ViteDevServer | null = null;
 		
 		if ( isProd ) {
 			// 为打包目录挂载静态资源服务
-			this.app.use( "/dist/", express.static( resolve( __dirname, "../../dist" ) ) );
+			this.app.use( express.static( resolve( __dirname, "../../dist" ) ) );
 		} else {
 			// 以中间件模式创建 Vite 应用，这将禁用 Vite 自身的 HTML 服务逻辑
 			// 并让上级服务器接管控制
@@ -59,7 +60,10 @@ export default class RenderServer {
 		}
 		
 		// 为插件目录挂载静态资源服务
-		this.app.use( express.static( resolve( __dirname, "../plugins" ) ) );
+		// this.app.use( express.static( resolve( __dirname, "../plugins" ) ) );
+		for ( const plugin of file.getDirFiles("src/plugins", "root") ) {
+			this.app.use( `/${ plugin }`, express.static( file.getFilePath( plugin, "plugin" ) ) );
+		}
 		
 		if ( config.webConsole.enable ) {
 			new WebConsole( this.app, config );
@@ -78,11 +82,13 @@ export default class RenderServer {
 			
 			// 是否是插件前端渲染路由
 			const isRenderRoute = this.renderRoutes.findIndex( r => r.path === baseUrl ) !== -1;
+			// 是否渲染插件前端页面而非控制台页面
+			const renderRender = isRenderRoute || !config.webConsole.enable;
 			let htmlPath: string;
 			if ( vite ) {
-				htmlPath = isRenderRoute ? "../render/index.html" : "../web-console/frontend/index.html";
+				htmlPath = renderRender ? "../render/index.html" : "../web-console/frontend/index.html";
 			} else {
-				htmlPath = isRenderRoute ? "../../dist/src/render/index.html" : "../../dist/src/web-console/index.html";
+				htmlPath = renderRender ? "../../dist/src/render/index.html" : "../../dist/src/web-console/index.html";
 			}
 			
 			const url = req.originalUrl;

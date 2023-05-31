@@ -7,6 +7,7 @@ import { Router } from "express";
 import axios, { AxiosError, AxiosResponse } from "axios";
 import Progress from "@/utils/progress";
 import { Renderer } from "@/modules/renderer";
+import process from "process";
 
 export interface RenderRoutes {
 	path: string;
@@ -110,7 +111,7 @@ export default class Plugin {
 					completed
 				}: PluginSetting = init.default;
 				// 检查更新插件静态资源
-				await checkUpdate( plugin, assets, bot );
+				await checkUpdate( plugin, name, assets, bot );
 				// if ( subInfo ) {
 				// 	const { reSub, subs }: PluginSubSetting = await subInfo( bot );
 				// 	PluginReSubs[name] = { reSub, subs };
@@ -243,13 +244,14 @@ interface IOssListObject {
 	owner: null;
 }
 
+// to do: 未实现删除被移除的文件
 // 1、获取本地清单文件内容 manifestData
 // 2、传递本地清单文件调用接口，接口：获取线上清单目录文件，diff算法对比两个清单文件差异性，返回差异性部分
 // 3、依次下载清单文件列表文件，每下载完成一个时更新 manifestData 内容
 // 4、下载完毕后以 manifestData 内容更新本地清单文件
-async function checkUpdate( pluginName: string, assets: PluginSetting["assets"], bot: BOT ): Promise<void> {
+async function checkUpdate( plugin: string, pluginName: string, assets: PluginSetting["assets"], bot: BOT ): Promise<void> {
 	if ( !assets ) return;
-	const baseUrl = `public/assets/${ pluginName }`;
+	const baseUrl = `public/assets/${ plugin }`;
 	const manifestName = `${ baseUrl }/manifest`;
 	const manifest = <IOssListObject[]>( bot.file.loadYAML( manifestName, "root" ) || [] );
 	let res: AxiosResponse<{
@@ -286,7 +288,12 @@ async function checkUpdate( pluginName: string, assets: PluginSetting["assets"],
 		try {
 			const replacePath = getConfigValue( assets, "replacePath", null );
 			const filePath = replacePath ? replacePath( file.name ) : file.name;
-			await bot.file.downloadFile( file.url, `${ baseUrl }/${ filePath }` );
+			const pathList = [ `${ baseUrl }/${ filePath }` ];
+			if ( process.env.NODE_ENV === "production" ) {
+				pathList.push( `${ baseUrl }/${ filePath }` );
+			}
+			await bot.file.downloadFile( file.url, pathList );
+			
 			// 删除本地清单文件中已存在的当前项
 			const key = manifest.findIndex( item => item.name === file.name );
 			if ( key !== -1 ) {

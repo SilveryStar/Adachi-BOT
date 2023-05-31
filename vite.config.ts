@@ -8,7 +8,7 @@ export default ( env: any ) => {
 	
 	return defineConfig( {
 		root: __dirname,
-		base: "/dist",
+		base: "/",
 		publicDir: "./public",
 		plugins: [ vue() ],
 		resolve: {

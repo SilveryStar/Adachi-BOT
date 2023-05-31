@@ -100,7 +100,7 @@ export default class Adachi {
 		} );
 		const logger = client.logger;
 		
-		this.server = new RenderServer( config, logger );
+		this.server = new RenderServer( config, file, logger );
 		
 		process.on( "unhandledRejection", ( reason: any ) => {
 			logger.error( reason?.stack || reason?.message || reason );

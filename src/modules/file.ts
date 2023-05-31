@@ -34,7 +34,7 @@ interface ManagementMethod {
 	writeYAML( ymlName: string, data: any, place?: PresetPlace ): string;
 	writeFile( fileName: string, data: any, place?: PresetPlace ): string;
 	updateYAML( ymlName: string, data: any, place?: PresetPlace, ...index: string[] ): string;
-	downloadFile( url: string, savePath: string, place?: PresetPlace, retry?: number ): Promise<string>;
+	downloadFile( url: string, savePath: string[], place?: PresetPlace, retry?: number ): Promise<string[]>;
 	// updateYAMLs( ymlName: string, data: Array<{ index: UpdateIndex, data: any }>, place?: PresetPlace ): void;
 }
 
@@ -197,7 +197,7 @@ export default class FileManagement implements ManagementMethod {
 		return this.writeYAML( ymlName, newData, place );
 	}
 	
-	public async downloadFile( url: string, savePath: string, place: PresetPlace = "root", retry = 3 ): Promise<string> {
+	public async downloadFile( url: string, savePath: string[], place: PresetPlace = "root", retry = 3 ): Promise<string[]> {
 		try {
 			const fileRes = await axios.get( url, {
 				responseType: "arraybuffer",
@@ -205,7 +205,12 @@ export default class FileManagement implements ManagementMethod {
 				timeout: 10000
 			} );
 			const buffer: Buffer = Buffer.from( fileRes.data );
-			return this.writeFile( savePath, buffer, place );
+			for ( const bufferElement of buffer ) {
+			
+			}
+			return savePath.map( path => {
+				return this.writeFile( path, buffer, place )
+			} );
 		} catch ( error ) {
 			if ( retry > 0 ) {
 				retry--;
