@@ -4,8 +4,8 @@ import $https from "#/genshin/front-utils/api";
 import CharacterEquipment from "./equipment.vue";
 import InfoCard from "./info-card.vue";
 import ScoreChart from "./score-chart.vue";
-import { urlParamsGet } from "@/utils/common";
 import { CharacterRouter } from "#/genshin/types";
+import { urlParamsGet } from "@/utils/url";
 
 const urlParams = urlParamsGet( location.href );
 const data = ref<CharacterRouter | null>( null );

@@ -4,9 +4,9 @@ import $https from "#/genshin/front-utils/api";
 import Reveal from "./reveal.vue";
 import Overview from "./overview.vue";
 import Floor from "./floor.vue";
-import { urlParamsGet } from "@/utils/common";
 import { abyssDataParser, AbyssParser } from "#/genshin/front-utils/data-parser";
 import { AbyssRouterSingle } from "#/genshin/types";
+import { urlParamsGet } from "@/utils/url";
 
 const urlParams = <{ qq: string }>urlParamsGet( location.href );
 

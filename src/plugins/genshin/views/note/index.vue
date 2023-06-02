@@ -5,7 +5,7 @@ import { ref, onMounted } from "vue";
 import $https from "#/genshin/front-utils/api";
 import NoteInfo from "./info.vue";
 import NoteExpedition from "./expedition.vue";
-import { urlParamsGet } from "@/utils/common";
+import { urlParamsGet } from "@/utils/url";
 
 const urlParams = urlParamsGet( location.href );
 const data = ref<Record<string, any> | null>( null );

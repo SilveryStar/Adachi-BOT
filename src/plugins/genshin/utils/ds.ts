@@ -1,5 +1,5 @@
 import { Md5 } from "md5-typescript";
-import { getRandomString } from "@/utils/common";
+import { getRandomString } from "@/utils/random";
 
 function getQueryParam( data: any ): string {
 	if ( data === undefined ) {

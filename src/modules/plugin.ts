@@ -1,13 +1,13 @@
 import * as cmd from "./command";
 import { BasicConfig } from "./command";
 import { BOT } from "@/main";
-import { getConfigValue } from "@/utils/common";
 import { extname } from "path";
 import { Router } from "express";
 import axios, { AxiosError, AxiosResponse } from "axios";
 import Progress from "@/utils/progress";
 import { Renderer } from "@/modules/renderer";
 import process from "process";
+import { getObjectKeyValue } from "@/utils/object";
 
 export interface RenderRoutes {
 	path: string;
@@ -118,8 +118,8 @@ export default class Plugin {
 				// }
 				// 加载前端渲染页面路由
 				if ( renderer ) {
-					const renderDir = getConfigValue( renderer, "dirname", "views" );
-					const mainFiles = getConfigValue( renderer, "mainFiles", [ "index" ] );
+					const renderDir = getObjectKeyValue( renderer, "dirname", "views" );
+					const mainFiles = getObjectKeyValue( renderer, "mainFiles", [ "index" ] );
 					const views = bot.file.getDirFiles( `${ plugin }/${ renderDir }`, "plugin" );
 					views.forEach( v => {
 						const route = setRenderRoute( bot, plugin, renderDir, mainFiles, v );
@@ -270,7 +270,7 @@ async function checkUpdate( plugin: string, pluginName: string, assets: PluginSe
 		data = res.data.data;
 	} catch ( error: any ) {
 		if ( ( <AxiosError>error ).response?.status === 415 ) {
-			throw getConfigValue( assets, "overflowPrompt", "更新文件数量超过阈值，请手动更新资源包" );
+			throw getObjectKeyValue( assets, "overflowPrompt", "更新文件数量超过阈值，请手动更新资源包" );
 		} else {
 			data = [];
 			bot.logger.error( `检查更新失败，远程服务器异常：${ <string>error }` )
@@ -286,13 +286,9 @@ async function checkUpdate( plugin: string, pluginName: string, assets: PluginSe
 	// 更新图片promise列表
 	const updatePromiseList: Promise<void>[] = data.map( async file => {
 		try {
-			const replacePath = getConfigValue( assets, "replacePath", null );
+			const replacePath = getObjectKeyValue( assets, "replacePath", null );
 			const filePath = replacePath ? replacePath( file.name ) : file.name;
-			const pathList = [ `${ baseUrl }/${ filePath }` ];
-			if ( process.env.NODE_ENV === "production" ) {
-				pathList.push( `${ baseUrl }/${ filePath }` );
-			}
-			await bot.file.downloadFile( file.url, pathList );
+			await bot.file.downloadFile( file.url, `${ baseUrl }/${ filePath }` );
 			
 			// 删除本地清单文件中已存在的当前项
 			const key = manifest.findIndex( item => item.name === file.name );

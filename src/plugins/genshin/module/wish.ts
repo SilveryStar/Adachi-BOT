@@ -2,7 +2,7 @@ import bot from "ROOT";
 import { updateWish, WishData } from "../utils/update";
 import { scheduleJob } from "node-schedule";
 import { wishClass } from "#/genshin/init";
-import { getRandomNumber } from "@/utils/common";
+import { getRandomNumber } from "@/utils/random";
 
 export interface WishResult {
 	type: string;

@@ -1,9 +1,10 @@
 import { AuthLevel } from "./management/auth";
 import FileManagement from "@/modules/file";
-import { getRandomString } from "@/utils/common";
 import { LogLevel } from "icqq";
 import bot from "ROOT";
 import RefreshConfig, { RefreshCatch } from "@/modules/management/refresh";
+import { getRandomString } from "@/utils/random";
+import { compareAssembleObject } from "@/utils/object";
 
 export type BotConfigValue = Omit<typeof BotConfigManager.initConfig, "inviteAuth"> & {
 	logLevel: LogLevel;
@@ -151,7 +152,7 @@ export default class BotConfigManager {
 		let cfg: T;
 		if ( isExist ) {
 			const config: any = file.loadYAML( filename ) || {};
-			cfg = this.resetConfigData( config, initCfg );
+			cfg = compareAssembleObject( config, initCfg );
 		} else {
 			file.createYAML( filename, initCfg );
 			cfg = initCfg;
@@ -166,19 +167,5 @@ export default class BotConfigManager {
 				return configInstance.value[p];
 			}
 		} ) );
-	}
-	
-	private resetConfigData<T extends Record<string, any>>( config: Record<string, any>, initCfg: T ): T {
-		return <T>Object.fromEntries( Object.entries( initCfg ).map( ( [ k, v ] ) => {
-			const curItem = config[k];
-			if ( typeof v === "object" && v !== null ) {
-				if ( !curItem ) {
-					return [ k, v ];
-				}
-				return [ k, this.resetConfigData( curItem, v ) ];
-			}
-			return [ k, config[k] ?? v ];
-		} ) );
-		
 	}
 }

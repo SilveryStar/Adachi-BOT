@@ -4,8 +4,8 @@ import $https from "#/genshin/front-utils/api";
 import Base from "./base.vue";
 import AbyssOverview from "./overview.vue";
 import AbyssFloor from "./floor.vue";
-import { urlParamsGet } from "@/utils/common";
 import { AbyssRouterFloor, AbyssRouterOverview } from "#/genshin/types";
+import { urlParamsGet } from "@/utils/url";
 
 const urlParams = <{ qq: string; floor: string; }>urlParamsGet( location.href );
 

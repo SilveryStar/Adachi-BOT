@@ -4,7 +4,7 @@ import $https from "#/genshin/front-utils/api";
 import SectionTitle from "#/genshin/components/section-title/index.vue";
 import DataPiece from "./data-piece.vue"
 import DataChart from "./data-chart.vue"
-import { urlParamsGet } from "@/utils/common";
+import { urlParamsGet } from "@/utils/url";
 
 const urlParams = urlParamsGet( location.href );
 const data = ref<Record<string, any> | null>( null );

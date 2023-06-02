@@ -27,9 +27,9 @@
 import $http from "&/api";
 import SpreadFormItem from "&/components/spread-form-item/index.vue";
 import SectionTitle from "&/components/section-title/index.vue";
-import { isJsonString } from "&/utils/validate";
-import { onMounted, reactive, ref } from "vue";
+import { onMounted, ref } from "vue";
 import { ElNotification } from "element-plus";
+import { isJsonString } from "@/utils/verify";
 
 const plugins = ref<any[]>([]);
 const pageLoading = ref(false);

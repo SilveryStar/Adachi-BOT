@@ -2,8 +2,8 @@
 import { infoDataParser, initBaseColor } from "#/genshin/front-utils/data-parser";
 import $https from "#/genshin/front-utils/api";
 import { computed, onMounted, ref } from "vue";
-import { urlParamsGet } from "@/utils/common";
 import { ArtifactInfo } from "#/genshin/types";
+import { urlParamsGet } from "@/utils/url";
 
 const urlParams = urlParamsGet( location.href );
 

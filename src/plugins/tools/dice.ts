@@ -1,5 +1,5 @@
 import { InputParameter } from "@/modules/command";
-import { getRandomNumber } from "@/utils/common";
+import { getRandomNumber } from "@/utils/random";
 
 const MAX_TIMES = 100;
 const MAX_SIDES = 32767;

@@ -1,6 +1,6 @@
-import { isJsonString } from "./validate";
-
 /* token */
+import { isJsonString } from "@/utils/verify";
+
 const tokenKey = "token";
 export const tokenSession = {
 	get: () => localStorage.getItem( tokenKey ) || "",

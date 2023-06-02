@@ -1,7 +1,7 @@
 import mail from "nodemailer";
 import { BotConfig } from "@/modules/config";
 import { Logger } from "log4js";
-import { sleep } from "@/utils/common";
+import { sleep } from "@/utils/async";
 
 enum InfoMessage {
 	SUCCESS_SEND = "邮件发送成功。",

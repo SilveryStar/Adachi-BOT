@@ -1,3 +1,4 @@
+/* 通用封装 ajax 请求类 */
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, CreateAxiosDefaults } from "axios";
 
 export type FetchGetMethod = "get" | "delete";

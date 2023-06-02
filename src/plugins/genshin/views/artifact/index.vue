@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
 import $https from "#/genshin/front-utils/api";
-import { urlParamsGet } from "@/utils/common";
 import { ArtifactRouter } from "#/genshin/types";
+import { urlParamsGet } from "@/utils/url";
 
 const urlParams = <{ qq: string; type: string; }>urlParamsGet( location.href );
 const data = ref<ArtifactRouter | null>( null );

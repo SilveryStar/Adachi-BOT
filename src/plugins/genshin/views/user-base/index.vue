@@ -8,7 +8,7 @@ import ExplorationBox from "#/genshin/components/exploration-box/index.vue";
 import StatusBox from "#/genshin/components/status-box/index.vue";
 import $https from "#/genshin/front-utils/api";
 import { sizeClass, cardDataParser } from "#/genshin/front-utils/data-parser";
-import { urlParamsGet } from "@/utils/common";
+import { urlParamsGet } from "@/utils/url";
 
 const urlParams = urlParamsGet( location.href );
 

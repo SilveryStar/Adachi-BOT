@@ -22,9 +22,8 @@ import { Job, JobCallback, scheduleJob } from "node-schedule";
 import { trim } from "lodash";
 import { unlinkSync } from "fs";
 import axios, { AxiosError } from "axios";
-import { isJsonString } from "@/utils/common";
 import { util } from "icqq/lib/core/protobuf/protobuf.min";
-import global = util.global;
+import { isJsonString } from "@/utils/verify";
 
 /**
  * @interface

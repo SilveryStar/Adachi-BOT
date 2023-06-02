@@ -1,9 +1,9 @@
 import bot from "ROOT";
 import express from "express";
-import { AuthLevel } from "@/modules/management/auth";
 import { GroupInfo, GroupRole, MemberInfo } from "icqq";
-import { sleep, getRandomNumber } from "@/utils/common";
 import { GroupData } from "@/web-console/types/group";
+import { sleep } from "@/utils/async";
+import { getRandomNumber } from "@/utils/random";
 
 export default express.Router()
 	.get( "/list", async ( req, res ) => {

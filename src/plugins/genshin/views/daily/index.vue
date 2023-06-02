@@ -6,7 +6,7 @@ import $https from "#/genshin/front-utils/api";
 import DailyHeader from "./daily-header.vue";
 import Material from "./material.vue";
 import Event from "./event.vue";
-import { urlParamsGet } from "@/utils/common";
+import { urlParamsGet } from "@/utils/url";
 
 const urlParams = urlParamsGet( location.href );
 const user: string = urlParams.id;

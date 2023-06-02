@@ -8,7 +8,6 @@ import * as process from "process";
 import { BotConfig } from "@/modules/config";
 import WebConsole from "@/web-console";
 import useWebsocket, { Application } from "express-ws";
-import { isJsonString } from "@/utils/common";
 import FileManagement from "@/modules/file";
 
 export default class RenderServer {

@@ -1,7 +1,7 @@
 import moment from "moment";
 import bot from "ROOT";
-import { getRandomNumber } from "@/utils/common";
 import { getSlip } from "#/genshin/utils/meta";
+import { getRandomNumber } from "@/utils/random";
 
 export interface SlipDetail {
 	SlipInfo: string[];

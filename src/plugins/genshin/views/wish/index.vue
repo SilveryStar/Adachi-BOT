@@ -2,8 +2,8 @@
 import { onMounted, ref, Ref } from "vue";
 import $https from "#/genshin/front-utils/api";
 import { getFullDate } from "#/genshin/front-utils/date";
-import { urlParamsGet } from "@/utils/common";
 import WishBox from "./box.vue";
+import { urlParamsGet } from "@/utils/url";
 
 const urlParams = urlParamsGet( location.href );
 

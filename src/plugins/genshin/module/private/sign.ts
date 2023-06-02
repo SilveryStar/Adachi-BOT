@@ -4,7 +4,7 @@ import { Private, Service } from "./main";
 import { SignInInfo } from "#/genshin/types";
 import { Order } from "@/modules/command";
 import bot from "ROOT";
-import { getRandomNumber, randomSleep } from "@/utils/common";
+import { getRandomNumber, randomSleep } from "@/utils/random";
 
 export class SignInService implements Service {
 	public readonly parent: Private;

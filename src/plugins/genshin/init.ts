@@ -3,8 +3,8 @@ import { Renderer } from "@/modules/renderer";
 import { BOT } from "@/main";
 import { PluginSubSetting, SubInfo } from "@/modules/plugin";
 import * as m from "./module";
-import { getRandomString } from "@/utils/common";
 import routers from "#/genshin/routes";
+import { getRandomString } from "@/utils/random";
 
 const initConfig = {
 	cardWeaponStyle: "normal",

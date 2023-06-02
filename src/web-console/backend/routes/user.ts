@@ -4,8 +4,9 @@ import { AuthLevel } from "@/modules/management/auth";
 import { MemberInfo } from "icqq";
 import { BOT } from "@/main";
 import { PluginReSubs, SubInfo } from "@/modules/plugin";
-import { sleep, getRandomNumber } from "@/utils/common";
 import { UserInfo } from "@/web-console/types/user";
+import { sleep } from "@/utils/async";
+import { getRandomNumber } from "@/utils/random";
 
 export default express.Router()
 	.get( "/list", async ( req, res ) => {

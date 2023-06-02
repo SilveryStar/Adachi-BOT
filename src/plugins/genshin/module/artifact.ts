@@ -1,8 +1,8 @@
 import Database from "@/modules/database";
-import { getRandomNumber } from "@/utils/common";
 import { OssArtifact, OssDomain } from "#/genshin/types/ossMeta";
 import { getArtifact, getDomain } from "#/genshin/utils/meta";
 import { ArtifactRouter } from "#/genshin/types/artifact";
+import { getRandomNumber } from "@/utils/random";
 
 interface PairData {
 	property: number;

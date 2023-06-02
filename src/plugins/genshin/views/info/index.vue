@@ -5,8 +5,8 @@ import { initBaseColor } from "#/genshin/front-utils/data-parser";
 import InfoBase from "./base.vue";
 import InfoWeapon from "./weapon.vue";
 import InfoCharacter from "./character.vue";
-import { urlParamsGet } from "@/utils/common";
 import { InfoResponse } from "#/genshin/types";
+import { urlParamsGet } from "@/utils/url";
 
 const urlParams = urlParamsGet( location.href );
 const skill = urlParams.skill === "true";

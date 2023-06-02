@@ -7,8 +7,8 @@ import {
 } from "#/genshin/types";
 import * as ApiType from "#/genshin/types";
 import { config } from "#/genshin/init";
-import { getRandomString, randomSleep } from "@/utils/common";
 import { register } from "@/utils/request";
+import { getRandomString, randomSleep } from "@/utils/random";
 
 export const apis = {
 	FETCH_ROLE_ID: "https://api-takumi-record.mihoyo.com/game_record/app/card/wapi/getGameRecordCard",
@@ -32,7 +32,7 @@ export const apis = {
 	FETCH_VERIFY_VERIFICATION: "https://api-takumi-record.mihoyo.com/game_record/app/card/wapi/verifyVerification",
 	/* Token转换相关 */
 	FETCH_GET_MULTI_TOKEN: "https://api-takumi.mihoyo.com/auth/api/getMultiTokenByLoginTicket",
-	FETCH_GET_COOKIE_TOKEN: "https://api-takumi.mihoyo.com/auth/api/getCookieAccountInfoBySToken",
+	FETCH_GET_COOKIE_TOKEN: "https://api-takumi.mihoyo.com/auth/api/getCookieAccountInfoBySToken/$",
 	FETCH_VERIFY_LTOKEN: "https://passport-api-v4.mihoyo.com/account/ma-cn-session/web/verifyLtoken",
 	FETCH_GET_LTOKEN_BY_STOKEN: "https://passport-api.mihoyo.com/account/auth/api/getLTokenBySToken"
 };
@@ -50,7 +50,7 @@ const verifyMsg = "API请求遭遇验证码拦截，可以尝试联系Master开�
 
 const { request: $https } = register( {
 	timeout: 60000,
-	responseType: "json"
+	responseType: "json",
 }, apis );
 
 /* mihoyo BBS API */

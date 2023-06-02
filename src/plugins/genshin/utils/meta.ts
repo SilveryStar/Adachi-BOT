@@ -2,10 +2,10 @@ import { DailyMaterial, OssArtifact, OssDomain } from "#/genshin/types/ossMeta";
 import bot from "ROOT";
 import { SlipDetail } from "#/genshin/module/slip";
 import { InfoResponse } from "#/genshin/types";
-import { isJsonString } from "@/utils/common";
 import { AliasMap } from "#/genshin/module/alias";
 import { FortuneData } from "#/genshin/module/almanac";
 import { CharacterList, WeaponList } from "#/genshin/module/type";
+import { isJsonString } from "@/utils/verify";
 
 const basePath = "public/assets/genshin";
 const getMetaData = ( filename: string ) => bot.file.loadYAML( `${ basePath }/meta/${ filename }`, "root" );

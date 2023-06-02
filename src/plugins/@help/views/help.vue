@@ -37,7 +37,7 @@
 <script lang="ts" setup>
 import $https from "#/@help/utils/api";
 import { onMounted, ref } from "vue";
-import { urlParamsGet } from "@/utils/common";
+import { urlParamsGet } from "@/utils/url";
 
 const urlParams = urlParamsGet( location.href );
 const data = ref<Record<string, any> | null>( null );

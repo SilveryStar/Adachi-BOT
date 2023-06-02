@@ -2,8 +2,8 @@
 import { ref, onMounted } from "vue";
 import $https from "#/genshin/front-utils/api";
 import { getFullDate } from "#/genshin/front-utils/date";
-import { urlParamsGet } from "@/utils/common";
 import StatisticItem from "./item.vue";
+import { urlParamsGet } from "@/utils/url";
 
 const urlParams = urlParamsGet( location.href );
 const data = ref<Record<string, any> | null>( null );
