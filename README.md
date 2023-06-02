@@ -47,6 +47,7 @@ interface PluginSetting {
     assets?: string | { // 是否从线上同步更新静态资源
         manifestUrl: string; // 线上 manifest.yml 文件地址
         overflowPrompt?: string; // 超出最大更新数量后给予的提示消息
+        noOverride?: string[];  // 此配置项列举的拓展名文件，当位于用户配置的忽略文件中时，仍下载更新，但仅更新新增内容不对原内容进行覆盖
         replacePath?: ( path: string ) => string; // 修改下载后的文件路径
     };
     completed?: PluginHook; // 更新完毕后的回调函数
@@ -74,11 +75,12 @@ interface PluginSetting {
 
 可选配置，是否启用框架自带的 oss 自动更新静态资源支持。传入**对象**或**指向 oss 清单文件的 url**来开启。
 
-| 属性名            | 说明               | 类型                         | 默认值                 |
-|----------------|------------------|----------------------------|---------------------|
-| manifestUrl    | oss 线上清单文件文件 url | string                     | -                   |
-| overflowPrompt | 超出最大更新数量后给予的提示消息 | string                     | 更新文件数量超过阈值，请手动更新资源包 |
-| replacePath    | 修改下载后的文件路径       | ( path: string ) => string | -                   |
+| 属性名            | 说明                                                  | 类型                         | 默认值                 |
+|----------------|-----------------------------------------------------|----------------------------|---------------------|
+| manifestUrl    | oss 线上清单文件文件 url                                    | string                     | -                   |
+| overflowPrompt | 超出最大更新数量后给予的提示消息                                    | string                     | 更新文件数量超过阈值，请手动更新资源包 |
+| noOverride     | 此配置项列举的拓展名文件，当位于用户配置的忽略文件中时，仍下载更新，但仅更新新增内容不对原内容进行覆盖 | string[]                   | [ "yml", "json" ]   |
+| replacePath    | 修改下载后的文件路径                                          | ( path: string ) => string | -                   |
 
 详情见 [自动更新插件静态资源](#自动更新插件静态资源)。
 
@@ -188,15 +190,20 @@ oss 生成的清单文件可能存在路径多层嵌套的问题，下载时将�
 下面的配置方式将会将路径 `Version3/genshin/artifact/冒险家/data.json` 重置为 `artifact/冒险家/data.json`。避免创建无用目录 `Version3`、 `genshin`。
 
 ```ts
-export default definePlugin {
+export default definePlugin({
     assets: {
-        manifestUrl: "https://xxx/";
+        manifestUrl: "https://xxx/",
         replacePath: path => {
             return path.replace( "Version3/genshin/", "" );
         }
-    };
-}
+    }
+})
 ```
+
+#### 更新时不完全覆盖
+
+对于搭建者可能会有的 diy 本地文件的需求，在搭建者配置忽略文件清单后，允许指定部分拓展名的文件依旧照常更新下载。但不会对本地文件直接覆盖，而是采用保留旧内容，仅更新新增部分的方式进行更新。
+通过 `PluginSetting.assets.noOverride` 来配置拓展名列表。
 
 ### 静态资源服务器
 

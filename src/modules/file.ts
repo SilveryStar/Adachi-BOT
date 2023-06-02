@@ -34,7 +34,7 @@ interface ManagementMethod {
 	writeYAML( ymlName: string, data: any, place?: PresetPlace ): string;
 	writeFile( fileName: string, data: any, place?: PresetPlace ): string;
 	updateYAML( ymlName: string, data: any, place?: PresetPlace, ...index: string[] ): string;
-	downloadFile( url: string, savePath: string[], place?: PresetPlace, retry?: number ): Promise<string[]>;
+	downloadFile<T extends string | string[]>( url: string, savePath: T, setValueCallBack?: ( data: Buffer ) => any, place?: PresetPlace, retry?: number ): Promise<T>;
 	// updateYAMLs( ymlName: string, data: Array<{ index: UpdateIndex, data: any }>, place?: PresetPlace ): void;
 }
 
@@ -197,24 +197,34 @@ export default class FileManagement implements ManagementMethod {
 		return this.writeYAML( ymlName, newData, place );
 	}
 	
-	public async downloadFile( url: string, savePath: string[], place: PresetPlace = "root", retry = 3 ): Promise<string[]> {
+	public async downloadFile<T extends string | string[]>(
+		url: string,
+		savePath: T,
+		setValueCallBack?: ( data: Buffer ) => any,
+		place: PresetPlace = "root",
+		retry = 3
+	): Promise<T> {
 		try {
 			const fileRes = await axios.get( url, {
 				responseType: "arraybuffer",
 				maxContentLength: Infinity,
 				timeout: 10000
 			} );
-			const buffer: Buffer = Buffer.from( fileRes.data );
-			for ( const bufferElement of buffer ) {
-			
+			let data: any = Buffer.from( fileRes.data );
+			if ( setValueCallBack ) {
+				data = setValueCallBack( data );
 			}
-			return savePath.map( path => {
-				return this.writeFile( path, buffer, place )
-			} );
+			if ( typeof savePath === "string" ) {
+				return <T>this.writeFile( savePath, data, place );
+			} else {
+				return <T>savePath.map( path => {
+					return this.writeFile( path, data, place );
+				} );
+			}
 		} catch ( error ) {
 			if ( retry > 0 ) {
 				retry--;
-				return await this.downloadFile( url, savePath, place, retry );
+				return await this.downloadFile( url, savePath, setValueCallBack, place, retry );
 			}
 			throw error;
 		}

@@ -185,8 +185,6 @@ async function addMsgToList( msg: LogMessage[] ) {
 		return cur;
 	} );
 
-	console.log(addMsg, "???")
-
 	// 此时说明全都为进度条，为其添加最后一条数据
 	if ( !addMsg.length ) {
 		addMsg.push( msg[msg.length - 1] );

@@ -6,8 +6,10 @@ import { Router } from "express";
 import axios, { AxiosError, AxiosResponse } from "axios";
 import Progress from "@/utils/progress";
 import { Renderer } from "@/modules/renderer";
-import process from "process";
-import { getObjectKeyValue } from "@/utils/object";
+import { compareAssembleObject, getObjectKeyValue } from "@/utils/object";
+import { isIgnorePath } from "@/utils/path";
+import { parse, stringify } from "yaml";
+import { isJsonString } from "@/utils/verify";
 
 export interface RenderRoutes {
 	path: string;
@@ -68,6 +70,7 @@ export interface PluginSetting {
 	assets?: string | { // 是否从线上同步更新静态资源
 		manifestUrl: string; // 线上 manifest.yml 文件地址
 		overflowPrompt?: string; // 超出最大更新数量后给予的提示消息
+		noOverride?: string[];  // 此配置项列举的拓展名文件，当位于用户配置的忽略文件中时，仍下载更新，但仅更新新增内容不对原内容进行覆盖
 		replacePath?: ( path: string ) => string; // 修改下载后的文件路径
 	};
 	completed?: PluginHook; // 更新完毕后的回调函数
@@ -251,8 +254,14 @@ interface IOssListObject {
 // 4、下载完毕后以 manifestData 内容更新本地清单文件
 async function checkUpdate( plugin: string, pluginName: string, assets: PluginSetting["assets"], bot: BOT ): Promise<void> {
 	if ( !assets ) return;
-	const baseUrl = `public/assets/${ plugin }`;
+	const commonUrl = `assets/${ plugin }`;
+	const baseUrl = `public/${ commonUrl }`;
 	const manifestName = `${ baseUrl }/manifest`;
+	// 该清单列表中的文件内容不会进行覆盖，仅做更新处理
+	const ignoreName = `${ baseUrl }/.adachiignore`;
+	
+	const { path: ignorePath } = bot.file.createFile( ignoreName, "", "root" );
+	
 	const manifest = <IOssListObject[]>( bot.file.loadYAML( manifestName, "root" ) || [] );
 	let res: AxiosResponse<{
 		code: number;
@@ -279,29 +288,87 @@ async function checkUpdate( plugin: string, pluginName: string, assets: PluginSe
 	// 不存在更新项，返回
 	if ( !data.length ) {
 		bot.logger.info( `未检测到 ${ pluginName } 可更新静态资源` );
+		return;
 	}
+	
 	const progress = new Progress( `下载 ${ pluginName } 静态资源`, data.length );
 	
 	let downloadNum: number = 0, errorNum: number = 0;
 	// 更新图片promise列表
-	const updatePromiseList: Promise<void>[] = data.map( async file => {
-		try {
-			const replacePath = getObjectKeyValue( assets, "replacePath", null );
-			const filePath = replacePath ? replacePath( file.name ) : file.name;
-			await bot.file.downloadFile( file.url, `${ baseUrl }/${ filePath }` );
-			
-			// 删除本地清单文件中已存在的当前项
-			const key = manifest.findIndex( item => item.name === file.name );
-			if ( key !== -1 ) {
-				manifest.splice( key, 1 );
-			}
-			manifest.push( file );
-		} catch ( error ) {
-			errorNum++;
+	const updatePromiseList: Promise<void>[] = [];
+	
+	data.forEach( file => {
+		const replacePath = getObjectKeyValue( assets, "replacePath", null );
+		const filePath = replacePath ? replacePath( file.name ) : file.name;
+		
+		// 是否为清单排除文件
+		const isIgnore = isIgnorePath( ignorePath, bot.file.getFilePath( `${ baseUrl }/${ filePath }`, "root" ) );
+		const noOverrideList = getObjectKeyValue( assets, "noOverride", [ "yml", "json" ] )
+		
+		const fileExt = extname( file.url ).slice( 1 );
+		// 位于排除文件中，不进行更新
+		if ( isIgnore && !noOverrideList.includes( fileExt ) ) {
+			return;
 		}
-		downloadNum++;
-		progress.renderer( downloadNum, `下载失败：${ errorNum }`, bot.config.webConsole.enable );
+		updatePromiseList.push( ( async () => {
+			try {
+				const pathList = [ `${ baseUrl }/${ filePath }` ];
+				
+				if ( process.env.NODE_ENV === "production" ) {
+					pathList.push( `dist/${ commonUrl }/${ filePath }` );
+				}
+				await bot.file.downloadFile( file.url, pathList, data => {
+					// 不再忽略清单文件中时直接返回原数据
+					if ( !isIgnore ) {
+						return data;
+					}
+					// 对仅更新新内容不覆盖原内容的文件数据进行处理
+					const onlineData: string = data.toString();
+					const oldFileData = bot.file.loadFile( pathList[0], "root" );
+					let oldValue: any, newValue: any;
+					if ( fileExt === "yml" ) {
+						oldValue = parse( oldFileData );
+						// 此时文件内容无法比对，直接返回原内容不进行覆盖
+						if ( typeof oldValue === "string" ) {
+							return oldFileData;
+						}
+						newValue = parse( onlineData );
+					} else {
+						// 此时文件内容无法比对，直接返回原内容不进行覆盖
+						if ( !isJsonString( oldFileData ) || !isJsonString( onlineData ) ) {
+							return oldFileData;
+						}
+						oldValue = JSON.parse( oldFileData );
+						newValue = JSON.parse( onlineData );
+					}
+					const newFileData = compareAssembleObject( oldValue, newValue, false );
+					return fileExt === "yml" ? stringify( newFileData ) : JSON.stringify( newFileData );
+				} );
+				
+				// 下载成功后新增清单项
+				// 若清单项已存在则先删除再添加
+				const key = manifest.findIndex( item => item.name === file.name );
+				if ( key !== -1 ) {
+					manifest.splice( key, 1, file );
+				} else {
+					manifest.push( file );
+				}
+			} catch ( error ) {
+				errorNum++;
+			}
+			downloadNum++;
+			progress.renderer( downloadNum, `下载失败：${ errorNum }`, bot.config.webConsole.enable );
+		} )() );
 	} );
+	
+	// 不存在更新项，返回
+	if ( !updatePromiseList.length ) {
+		bot.logger.info( `未检测到 ${ pluginName } 可更新静态资源` );
+		return;
+	}
+	
+	// 重新设置进度条长度
+	progress.setTotal( updatePromiseList.length );
 	
 	// 遍历下载资源文件
 	await Promise.all( updatePromiseList );

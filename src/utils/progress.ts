@@ -11,6 +11,10 @@ export default class Progress {
 	) {
 	}
 	
+	public setTotal( val: number ) {
+		this.total = val;
+	}
+	
 	public renderer( completed: number, extra: string = "", tcp: boolean = false) {
 		const cellNum: number = Math.floor( completed / this.total * this.length );
 		
