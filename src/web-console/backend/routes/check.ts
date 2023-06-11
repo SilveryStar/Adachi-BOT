@@ -17,7 +17,7 @@ export default express.Router()
 	.post( "/password", ( req, res ) => {
 		const pwd = req.body.pwd;
 		
-		if ( pwd === bot.config.password || pwd === Md5.init( bot.config.password ) ) {
+		if ( pwd === bot.config.base.password || pwd === Md5.init( bot.config.base.password ) ) {
 			res.status( 200 ).send( { code: 200, data: {}, msg: "Success" } );
 		} else {
 			res.status( 403 ).send( { code: 403, data: {}, msg: "Password is incorrect" } );

@@ -2,6 +2,7 @@ import { OrderConfig } from "@/modules/command";
 import { Renderer } from "@/modules/renderer";
 import * as r from "./routes";
 import { Router } from "express";
+import { definePlugin } from "@/modules/plugin";
 
 const help: OrderConfig = {
 	type: "order",
@@ -57,7 +58,7 @@ export default definePlugin( {
 	},
 	completed( bot ) {
 		/* 未启用卡片帮助时不启动服务 */
-		if ( bot.config.helpMessageStyle === "card" ) {
+		if ( bot.config.directive.helpMessageStyle === "card" ) {
 			/* 实例化渲染器 */
 			renderer = bot.renderer.register("/@help", "#app" );
 		}

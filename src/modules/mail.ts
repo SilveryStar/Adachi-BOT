@@ -24,12 +24,22 @@ export default class MailManagement implements MailManagementMethod {
 		private config: BotConfig,
 		private logger: Logger
 	) {
-		const mailConfig = config.mailConfig;
 		this.senderInfo = {
 			name: "Adachi-BOT",
-			address: `${ this.config.number }@qq.com`
+			address: `${ config.base.number }@qq.com`
 		}
-		this.sender = mail.createTransport( {
+		this.sender = this.getSender();
+		config.base.on( "refresh", newCfg => {
+			this.senderInfo.address = `${ newCfg.number }@qq.com`;
+		} );
+		config.mail.on( "refresh", newCfg => {
+			this.sender = this.getSender();
+		} )
+	}
+	
+	private getSender() {
+		const mailConfig = this.config.mail;
+		return mail.createTransport( {
 			host: mailConfig.host,
 			port: mailConfig.port,
 			secure: mailConfig.secure,
@@ -41,7 +51,7 @@ export default class MailManagement implements MailManagementMethod {
 				user: mailConfig.user,
 				pass: mailConfig.pass
 			}
-		} );
+		} )
 	}
 	
 	public getSendMailFunc( address: mail.SendMailOptions["to"] ) {
@@ -74,7 +84,7 @@ export default class MailManagement implements MailManagementMethod {
 		try {
 			await this.sender.sendMail( {
 				from: this.senderInfo,
-				to: `${ this.config.master }@qq.com`,
+				to: `${ this.config.base.master }@qq.com`,
 				...mailOptions
 			} );
 			this.logger.info( InfoMessage.SUCCESS_SEND );

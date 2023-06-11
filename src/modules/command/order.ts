@@ -29,9 +29,9 @@ export class Order extends BasicConfig {
 	constructor( config: OrderConfig, botCfg: BotConfig, pluginName: string ) {
 		super( config, pluginName );
 		
-		const headers: string[] = config.headers.map( el => Order.header( el, botCfg.header ) );
-		if ( this.desc[0].length > 0 && botCfg.fuzzyMatch ) {
-			headers.push( Order.header( this.desc[0], botCfg.header ) ); //添加中文指令名作为识别
+		const headers: string[] = config.headers.map( el => Order.header( el, botCfg.directive.header ) );
+		if ( this.desc[0].length > 0 && botCfg.directive.fuzzyMatch ) {
+			headers.push( Order.header( this.desc[0], botCfg.directive.header ) ); //添加中文指令名作为识别
 		}
 		
 		let rawRegs = <string[][]>config.regexps;
@@ -76,17 +76,18 @@ export class Order extends BasicConfig {
 	}
 	
 	public match( content: string ): OrderMatchResult | Unmatch {
+		const config = bot.config.directive;
 		try {
 			this.regPairs.forEach( pair => pair.genRegExps.forEach( reg => {
 				/* 是否存在指令起始符 */
-				const hasHeader = bot.config.header ? pair.header.includes( bot.config.header ) : false;
-				const rawHeader = pair.header.replace( bot.config.header, "" );
+				const hasHeader = config.header ? pair.header.includes( config.header ) : false;
+				const rawHeader = pair.header.replace( config.header, "" );
 				
 				let headerRegStr: string = "";
 				
-				if ( bot.config.fuzzyMatch && rawHeader.length !== 0 && /[\u4e00-\u9fa5]/.test( rawHeader ) ) {
-					headerRegStr = `${ hasHeader ? "(?=^" + bot.config.header + ")" : "" }(?=.*?${ rawHeader })`;
-				} else if ( bot.config.matchPrompt && bot.config.header && pair.header ) {
+				if ( config.fuzzyMatch && rawHeader.length !== 0 && /[\u4e00-\u9fa5]/.test( rawHeader ) ) {
+					headerRegStr = `${ hasHeader ? "(?=^" + config.header + ")" : "" }(?=.*?${ rawHeader })`;
+				} else if ( config.matchPrompt && config.header && pair.header ) {
 					headerRegStr = "^" + pair.header;
 				}
 				
@@ -96,7 +97,7 @@ export class Order extends BasicConfig {
 				if ( reg.test( content ) ) {
 					throw { type: "order", header: pair.header };
 				} else if ( headerReg && headerReg.test( content ) ) {
-					const header = bot.config.header == "" ? pair.header : `${ bot.config.header }|${ rawHeader }`;
+					const header = config.header == "" ? pair.header : `${ config.header }|${ rawHeader }`;
 					
 					const fogReg = new RegExp( header, "g" );
 					/* 重组正则，判断是否参数不符合要求 */
@@ -120,7 +121,7 @@ export class Order extends BasicConfig {
 	
 	public getFollow(): string {
 		const pairs = this.regPairs.concat();
-		if ( pairs[pairs.length - 1].header === Order.header( this.desc[0], bot.config.header ) ) {
+		if ( pairs[pairs.length - 1].header === Order.header( this.desc[0], bot.config.directive.header ) ) {
 			pairs.pop();
 		}
 		const headers: string = pairs
@@ -134,7 +135,7 @@ export class Order extends BasicConfig {
 		const follow = this.getFollow();
 		return Order.addLineFeedChar(
 			this.desc[0], follow,
-			bot.config.helpMessageStyle
+			bot.config.directive.helpMessageStyle
 		);
 	}
 	

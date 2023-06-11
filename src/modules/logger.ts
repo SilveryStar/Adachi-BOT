@@ -7,17 +7,31 @@ function getTimeString( date: Date ): string {
 }
 
 export default class WebConfiguration {
-	private readonly deviceName: string;
-	private readonly tcpLoggerPort: number;
+	private deviceName: string;
+	private tcpLoggerPort: number;
 	
 	constructor( config: BotConfig ) {
 		const platformName: string[] = [ "", "Android", "aPad", "Watch", "iMac", "iPad", "Android_8.8.88" ];
 		
 		this.tcpLoggerPort = config.webConsole.tcpLoggerPort;
-		this.deviceName = `[${ platformName[config.platform] }:${ config.number }]`;
+		this.deviceName = `[${ platformName[config.base.platform] }:${ config.base.number }]`;
 		this.setNetworkLayout();
-		const cfg = this.getConfiguration( config.webConsole.enable, config.logLevel );
+		const cfg = this.getConfiguration( config.webConsole.enable, config.base.logLevel );
 		configure( cfg );
+		config.base.on( "refresh", ( newCfg, oldCfg ) => {
+			if ( newCfg.platform !== oldCfg.platform || newCfg.number !== oldCfg.number || newCfg.logLevel !== oldCfg.logLevel ) {
+				this.deviceName = `[${ platformName[newCfg.platform] }:${ newCfg.number }]`;
+				const cfg = this.getConfiguration( config.webConsole.enable, newCfg.logLevel );
+				configure( cfg );
+			}
+		} );
+		config.webConsole.on( "refresh", ( newCfg, oldCfg ) => {
+			if ( newCfg.enable !== oldCfg.enable || newCfg.tcpLoggerPort !== oldCfg.tcpLoggerPort ) {
+				this.tcpLoggerPort = newCfg.tcpLoggerPort;
+				const cfg = this.getConfiguration( newCfg.enable, config.base.logLevel );
+				configure( cfg );
+			}
+		} );
 	}
 	
 	private setNetworkLayout(): void {
@@ -30,7 +44,7 @@ export default class WebConfiguration {
 		} ) );
 	}
 	
-	private getConfiguration( enable: boolean, logLevel: BotConfig["logLevel"] ): Configuration {
+	private getConfiguration( enable: boolean, logLevel: BotConfig["base"]["logLevel"] ): Configuration {
 		const appConsole = { type: "console" };
 		const appNetwork = {
 			type: "tcp",
@@ -38,6 +52,7 @@ export default class WebConfiguration {
 			endMsg: "__ADACHI__",
 			layout: { type: "JSON" }
 		};
+		
 		const logFile = {
 			type: "dateFile",
 			filename: "logs/bot",

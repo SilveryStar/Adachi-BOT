@@ -28,14 +28,16 @@ function checkIterator( obj: sdk.MessageElem | Iterable<sdk.MessageElem | string
 }
 
 export default class MsgManagement implements MsgManagementMethod {
-	private readonly master: number;
-	private readonly atUser: boolean;
-	private readonly client: sdk.Client;
+	private master: number;
+	private atUser: boolean;
 	
-	constructor( config: BotConfig, client: sdk.Client ) {
+	constructor( config: BotConfig["base"], private readonly client: sdk.Client ) {
 		this.master = config.master;
 		this.atUser = config.atUser;
-		this.client = client;
+		config.on( "refresh", newCfg => {
+			this.master = newCfg.master;
+			this.atUser = newCfg.atUser;
+		} );
 	}
 	
 	public getSendMessageFunc( userID: number | "all" | string, type: MessageType, groupID: number = -1 ): SendFunc {
@@ -73,7 +75,7 @@ export default class MsgManagement implements MsgManagementMethod {
 }
 
 export function removeStringPrefix( string: string, prefix: string ): string {
-	if ( bot.config.header !== "" )
+	if ( bot.config.directive.header !== "" )
 		return string.replace( new RegExp( `${ prefix.charAt(0) }|${ prefix.slice(1) }`, "g" ), '' );
 	return string.replace( new RegExp( prefix, "g" ), '' );
 }

@@ -39,13 +39,14 @@ export interface RenderMethods {
 }
 
 export class Renderer implements ScreenshotRendererMethods {
-	private readonly httpBase: string;
-	
 	constructor(
 		private readonly defaultSelector: string,
-		route: string
+		private readonly route: string
 	) {
-		this.httpBase = `http://localhost:${ bot.config.renderPort }${ route }`;
+	}
+	
+	private getBaseHttp() {
+		return `http://localhost:${ bot.config.base.renderPort }${ this.route }`;
 	}
 	
 	private getURL( route: string, params?: Record<string, any> ): string {
@@ -55,7 +56,7 @@ export class Renderer implements ScreenshotRendererMethods {
 			new URL( route );
 			return `${ route }?${ paramStr }`;
 		} catch ( e ) {
-			const url: string = this.httpBase + route;
+			const url: string = this.getBaseHttp() + route;
 			return `${ url }?${ paramStr }`;
 		}
 	}
@@ -68,7 +69,7 @@ export class Renderer implements ScreenshotRendererMethods {
 	): Promise<RenderResult> {
 		try {
 			const url: string = this.getURL( route, params );
-			console.log(url)
+			console.log( url )
 			const base64: string = await bot.renderer.screenshot( url, viewPort, selector );
 			return { code: "ok", data: base64 };
 		} catch ( error ) {
@@ -202,7 +203,8 @@ export class BasicRenderer implements RenderMethods {
 			} );
 			await this.pageLoaded( page );
 			
-			const option: puppeteer.ScreenshotOptions = { encoding: "base64", type: "jpeg", quality: 100 };;
+			const option: puppeteer.ScreenshotOptions = { encoding: "base64", type: "jpeg", quality: 100 };
+			;
 			const element = await page.$( selector );
 			const result = <string>await element?.screenshot( option );
 			const base64: string = `base64://${ result }`;

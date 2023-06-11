@@ -29,9 +29,8 @@ class IntervalSetting {
 export default class Interval {
 	private readonly unixTimeTemp: Record<number, number>;
 	private readonly settingData: Record<IntervalType, IntervalSettingData>;
-	private readonly redis: Database;
 	
-	constructor( config: BotConfig, redis: Database ) {
+	constructor( config: BotConfig["directive"], private readonly redis: Database ) {
 		this.unixTimeTemp = {};
 		this.settingData = {
 			group: {
@@ -43,7 +42,10 @@ export default class Interval {
 				prefix: "u"
 			}
 		}
-		this.redis = redis;
+		config.on( "refresh", newCfg => {
+			this.settingData.group.setting.globalLimit = newCfg.groupIntervalTime;
+			this.settingData.private.setting.globalLimit = newCfg.privateIntervalTime;
+		} );
 	}
 	
 	public check( id: string | number, type: IntervalType ): boolean {

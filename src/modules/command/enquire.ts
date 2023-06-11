@@ -62,7 +62,7 @@ export class Enquire extends BasicConfig {
 			} );
 		} );
 		
-		const globalHeader: string = botCfg.header;
+		const globalHeader: string = botCfg.directive.header;
 		for ( let sen of config.sentences ) {
 			if ( sen.includes( "#{HEADER}" ) ) {
 				this.units.push( {

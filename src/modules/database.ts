@@ -1,6 +1,7 @@
 import { createClient, RedisClientType } from "redis";
 import { Logger } from "log4js";
 import FileManagement from "./file";
+import { BotConfig } from "@/modules/config";
 
 type Argument = Buffer | string;
 type SetFieldValue = Argument | number;
@@ -41,22 +42,32 @@ interface DatabaseMethod {
 }
 
 export default class Database implements DatabaseMethod {
-	public readonly client: RedisClientType;
+	public client: RedisClientType;
+	private onLine = false;
 	
-	constructor( port: number, auth_pass, logger: Logger, file: FileManagement ) {
-		const host: string = process.env.docker === "yes" ? "redis" : "localhost";
-		
-		this.client = createClient( {
-			socket: {
-				port,
-				host
-			},
-			password: auth_pass
+	constructor( config: BotConfig["db"], logger: Logger ) {
+		this.client = this.initClient( config.port, config.password, logger );
+		config.on( "refresh", async ( newCfg ) => {
+			if ( this.onLine ) {
+				await this.client.quit();
+				this.onLine = false;
+			}
+			this.client = this.initClient( newCfg.port, newCfg.password, logger );
 		} );
-		this.client.on( "connect", () => {
+	}
+	
+	private initClient( port: number, password: string, logger: Logger ): any {
+		const host: string = process.env.docker === "yes" ? "redis" : "localhost";
+		const client = createClient( {
+			socket: { port, host },
+			password
+		} );
+		client.on( "connect", () => {
+			this.onLine = true;
 			logger.info( "Redis 数据库已连接" );
 		} );
-		this.client.connect().then();
+		client.connect().then();
+		return client;
 	}
 	
 	public async setTimeout( key: Argument, time: number ): Promise<void> {

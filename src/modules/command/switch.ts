@@ -38,7 +38,7 @@ export class Switch extends BasicConfig {
 			throw `指令 ${ config.cmdKey } 配置错误: onKey 和 offKey 不可为空`;
 		}
 		
-		const globalHeader: string = botCfg.header;
+		const globalHeader: string = botCfg.directive.header;
 		const process: ( h: string ) => string = h => escapeRegExp(
 			Switch.header( h, globalHeader )
 		);
@@ -174,7 +174,7 @@ export class Switch extends BasicConfig {
 		
 		return Switch.addLineFeedChar(
 			this.desc[0], follow,
-			bot.config.helpMessageStyle
+			bot.config.directive.helpMessageStyle
 		);
 	}
 }

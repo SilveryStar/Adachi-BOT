@@ -10,6 +10,7 @@ import { compareAssembleObject, getObjectKeyValue } from "@/utils/object";
 import { isIgnorePath } from "@/utils/path";
 import { parse, stringify } from "yaml";
 import { isJsonString } from "@/utils/verify";
+import { ExportConfig } from "@/modules/config";
 
 export interface RenderRoutes {
 	path: string;
@@ -42,11 +43,14 @@ export type PluginSubSetting = {
 	reSub: ( userId: number, bot: BOT ) => Promise<void>;
 }
 
-export type RenderRegister = ( defaultSelector: string ) => Renderer;
-
 export type PluginParameter = {
-	renderRegister: RenderRegister;
-	configRegister: <T extends Record<string, any>>( initCfg: T, setValueCallBack?: ( config: T ) => T ) => T;
+	renderRegister: ( defaultSelector: string ) => Renderer;
+	configRegister: <T extends Record<string, any>>(
+		fileName: string,
+		initCfg: T,
+		setValueCallBack?: ( config: T ) => T,
+		refreshCallBack?: ( config: T ) => string | void
+	) => ExportConfig<T>;
 } & BOT;
 
 export type PluginHook = ( input: PluginParameter ) => void | Promise<void>;
@@ -84,11 +88,17 @@ export const PluginUpgradeServices: Record<string, string> = {};
 
 export const PluginAlias: Record<string, string> = {};
 
+export const PluginList: Record<string, any> = {};
+
+export const definePlugin = <T extends PluginSetting>( config: T ) => config;
+
 // 不支持热更新的插件集合，这些插件不会被提示不支持热更新。
 const not_support_upgrade_plugins: string[] = [ "@help", "@management", "genshin", "tools" ];
 
 export default class Plugin {
 	public static async load( bot: BOT ): Promise<PluginLoadResult> {
+		const packageData = bot.file.loadFile( "package.json", "root" );
+		globalThis.ADACHI_VERSION = isJsonString( packageData ) ? JSON.parse( packageData ).version || "" : "";
 		globalThis.definePlugin = ( config ) => config;
 		
 		const commandConfig: Record<string, any> = bot.file.loadYAML( "commands" ) || {};
@@ -140,7 +150,6 @@ export default class Plugin {
 						} )
 					} )
 				}
-				//
 				const [ commands, cmdConfigItem ] = await Plugin.parse( bot, cfgList, plugin, name, commandConfig );
 				PluginRawConfigs[plugin] = { name, cfgList };
 				if ( !not_support_upgrade_plugins.includes( name ) ) {
@@ -158,11 +167,11 @@ export default class Plugin {
 				registerCmd.push( ...commands );
 				cmdConfig = { ...cmdConfig, ...cmdConfigItem };
 				
-				const configRegister = <T extends Record<string, any>>( initCfg: T, setValueCallBack: ( config: T ) => T = config => config ): T => {
-					return bot.config.register( plugin, initCfg, setValueCallBack );
+				const configRegister: PluginParameter["configRegister"] = ( fileName, initCfg, setValueCallBack?, refreshCallBack? ) => {
+					return bot.config.register( `${ plugin }/${ fileName }`, initCfg, setValueCallBack );
 				}
 				
-				const renderRegister = ( defaultSelector: string ) => {
+				const renderRegister: PluginParameter["renderRegister"] = defaultSelector => {
 					return bot.renderer.register( `/${ plugin }`, defaultSelector );
 				}
 				
@@ -170,6 +179,10 @@ export default class Plugin {
 				if ( completed ) {
 					await completed( { ...bot, renderRegister, configRegister } );
 				}
+				
+				PluginList[plugin] = {
+					name
+				};
 				
 				bot.logger.info( `插件 ${ name } 加载完成` );
 			} catch ( error ) {
@@ -341,7 +354,7 @@ async function checkUpdate( plugin: string, pluginName: string, assets: PluginSe
 						oldValue = JSON.parse( oldFileData );
 						newValue = JSON.parse( onlineData );
 					}
-					const newFileData = compareAssembleObject( oldValue, newValue, false );
+					const newFileData = compareAssembleObject( oldValue, newValue, false, "merge" );
 					return fileExt === "yml" ? stringify( newFileData ) : JSON.stringify( newFileData );
 				} );
 				
@@ -417,14 +430,4 @@ function setRenderRoute( bot: BOT, plugin: string, renderDir: string, mainFiles:
 	}
 	
 	return route;
-}
-
-type name<T extends Record<string, any> = any> = {
-	foo( v: T ): T;
-}
-
-const a: name = {
-	foo( v: { a: 1 } ) {
-		return v;
-	}
 }

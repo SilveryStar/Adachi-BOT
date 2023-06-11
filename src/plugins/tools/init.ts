@@ -1,4 +1,5 @@
 import { OrderConfig } from "@/modules/command";
+import { definePlugin } from "@/modules/plugin";
 
 const dice: OrderConfig = {
 	type: "order",

@@ -1,6 +1,9 @@
 import express from "express";
 import { mergeWith } from "lodash";
 import bot from "ROOT";
+import { PluginList } from "@/modules/plugin";
+import { PluginConfig } from "@/web-console/types/config";
+import { BotConfigValue } from "@/modules/config";
 
 interface FileData {
 	code: number;
@@ -22,14 +25,47 @@ export default express.Router()
 		
 		const data: any = fileData.data;
 		
-		if ( fileName === "setting" ) {
-			delete data.password;
-			delete data.dbPassword;
-			delete data.webConsole.jwtSecret;
-			delete data.mailConfig.pass;
+		if ( fileName === "base" || fileName === "db" ) {
+			Reflect.deleteProperty( data, "password" );
+		}
+		if ( fileName === "webConsole" ) {
+			Reflect.deleteProperty( data, "jwtSecret" );
+		}
+		if ( fileName === "mail" ) {
+			Reflect.deleteProperty( data, "pass" );
 		}
 		res.status( 200 ).send( { code: 200, data, msg: "Success" } );
 	} )
+	.get( "/base", ( req, res ) => {
+		const getBaseData = (fileName: string) => {
+			const data: FileData = getFileData( fileName );
+			if ( data.code !== 200 ) {
+				res.status( data.code ).send( { code: data.code, data: {}, msg: data.data } );
+				throw data;
+			}
+			return data.data;
+		}
+		
+		try {
+			const config: BotConfigValue = {
+				base: getBaseData( "base" ),
+				directive: getBaseData( "directive" ),
+				ffmpeg: getBaseData( "ffmpeg" ),
+				db: getBaseData( "db" ),
+				mail: getBaseData( "mail" ),
+				autoChat: getBaseData( "autoChat" ),
+				whiteList: getBaseData( "whiteList" ),
+				banScreenSwipe: getBaseData( "banScreenSwipe" ),
+				banHeavyAt: getBaseData( "banHeavyAt" ),
+				webConsole: getBaseData( "webConsole" ),
+			}
+			
+			res.status( 200 ).send( { code: 200, data: config, msg: "Success" } );
+		} catch ( error ) {
+			const err = <FileData>error;
+			res.status( err.code ).send( { code: err.code, msg: err.data } );
+		}
+	})
 	.post( "/set", ( req, res ) => {
 		const fileName = <string>req.body.fileName;
 		const content = req.body.data;
@@ -66,7 +102,7 @@ export default express.Router()
 			return;
 		}
 		
-		const codePath = `src/data/${ bot.config.number }/code.txt`;
+		const codePath = `src/data/${ bot.config.base.number }/code.txt`;
 		bot.file.writeFile( codePath, data, "root" );
 		res.status( 200 ).send( { code: 200, data: {}, msg: "Success" } );
 	} )
@@ -77,26 +113,34 @@ export default express.Router()
 			return;
 		}
 		
-		const ticketPath = `src/data/${ bot.config.number }/ticket.txt`;
+		const ticketPath = `src/data/${ bot.config.base.number }/ticket.txt`;
 		bot.file.writeFile( ticketPath, data, "root" );
 		res.status( 200 ).send( { code: 200, data: {}, msg: "Success" } );
 	} )
 	.get( "/plugins", ( req, res ) => {
 		try {
-			const configFiles = bot.file.getDirFiles( "" );
-			const data = configFiles.map( name => {
-				const fileName = name.replace( ".yml", "" );
-				/* 过滤非插件配置项 */
-				if ( [ "setting", "commands", "cookies", "whitelist" ].includes( fileName ) ) {
-					return null;
-				}
+			const data: PluginConfig[] = [];
+			for ( const plugin in PluginList ) {
+				const configFiles = bot.file.getDirFiles( plugin );
+				if ( !configFiles.length ) continue;
 				
-				const fileData: FileData = getFileData( fileName );
-				if ( fileData.code !== 200 ) {
-					return null;
-				}
-				return { name: fileName, data: fileData.data };
-			} ).filter( c => !!c );
+				const configs: PluginConfig["configs"] = [];
+				configFiles.forEach( name => {
+					const fileName = name.replace( ".yml", "" );
+					const fileData: FileData = getFileData( `${ plugin }/${ fileName }` );
+					if ( fileData.code !== 200 ) {
+						return;
+					}
+					configs.push( {
+						name: fileName,
+						data: JSON.stringify( fileData.data, null, 4 )
+					} );
+				} )
+				
+				const name = PluginList[plugin].name;
+				
+				data.push( { name, plugin, configs } );
+			}
 			
 			res.status( 200 ).send( { code: 200, data, msg: "Success" } );
 		} catch ( error: any ) {

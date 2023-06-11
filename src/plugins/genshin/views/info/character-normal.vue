@@ -175,6 +175,6 @@ const materialsInfo = computed( () => {
 
 @font-face {
 	font-family: HuaWen;
-	src: url("../../public/fonts/HWXingKai.ttf");
+	src: url("../../assets/fonts/HWXingKai.ttf");
 }
 </style>

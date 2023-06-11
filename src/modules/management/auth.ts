@@ -15,12 +15,13 @@ interface AuthorizationMethod {
 }
 
 export default class Authorization implements AuthorizationMethod {
-	private readonly master: number;
-	private readonly redis: Database;
+	private master: number;
 	
-	constructor( config: BotConfig, redis: Database ) {
+	constructor( config: BotConfig["base"], private readonly redis: Database ) {
 		this.master = config.master;
-		this.redis = redis;
+		config.on( "refresh", newCfg => {
+			this.master = newCfg.master;
+		} );
 	}
 	
 	private static dbKey( userID: number ): string {
@@ -39,7 +40,7 @@ export default class Authorization implements AuthorizationMethod {
 			return AuthLevel.Master;
 		}
 		const authStr: string | null = await this.redis.getString( Authorization.dbKey( userID ) );
-		let auth = authStr ? Number.parseInt(authStr) : AuthLevel.User;
+		let auth = authStr ? Number.parseInt( authStr ) : AuthLevel.User;
 		/* 如果权限为 master 但与 setting 中的 master 不符，重置为 user */
 		if ( auth === AuthLevel.Master ) {
 			auth = AuthLevel.User;

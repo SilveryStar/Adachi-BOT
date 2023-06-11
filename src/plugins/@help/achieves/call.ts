@@ -19,10 +19,10 @@ export async function main( { sendMessage, messageData, message, redis, config }
 	}
 	
 	if ( isNaN( limit ) ) {
-		limit = config.callTimes;
+		limit = config.directive.callTimes;
 	}
 	
-	limit = ( isNaN( limit ) ? config.callTimes : limit ) - 1;
+	limit = ( isNaN( limit ) ? config.directive.callTimes : limit ) - 1;
 	
 	await message.sendMaster( `来自用户「${ user }」：${ content }` );
 	await sendMessage( `发送成功，今日剩余反馈次数：${ limit }` );

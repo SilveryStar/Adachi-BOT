@@ -1,6 +1,6 @@
 import { resolve } from "path";
 import { scheduleJob } from "node-schedule";
-import { createServer } from "net";
+import { createServer, Server } from "net";
 import { expressjwt as jwt } from "express-jwt";
 import { BotConfig } from "@/modules/config";
 import { Application } from "express-ws";
@@ -8,24 +8,27 @@ import express, { Router } from "express";
 import * as r from "./backend/routes";
 import { getTokenByRequest } from "./backend/utils/request";
 import { LogMessage } from "@/web-console/types/logger";
+import { Logger } from "log4js";
+
+interface Ref<T> {
+	value: T;
+}
+
+const ref = <T>( value: T ): Ref<T> => ( { value } );
 
 export default class WebConsole {
-	private readonly app: Application;
-	private readonly secret: string;
+	private server: Server | null = null;
 	
-	constructor( app: Application, config: BotConfig ) {
-		this.app = app;
-		const cfg = config.webConsole;
-		
-		this.secret = cfg.jwtSecret;
-		if ( !this.secret ) {
-			console.log( "请检查 setting.yml 中是否正确填写 jwtSecret 验证秘钥（6~16 位的字母或数字）" );
-			process.exit( 0 );
-		}
-		this.createConsole( cfg.tcpLoggerPort );
+	constructor(
+		private readonly app: Application,
+		private readonly config: BotConfig["webConsole"],
+		private readonly logger: Logger,
+		firstListener: boolean
+	) {
+		this.createConsole( firstListener );
 	}
 	
-	private async createConsole( tcp: number ) {
+	private async createConsole( firstListener: boolean ) {
 		this.app.use( "/oicq/data", express.static( resolve( process.cwd(), "data" ) ) );
 		this.app.use( express.json() );
 		this.app.use( express.urlencoded( { extended: false } ) );
@@ -40,17 +43,17 @@ export default class WebConsole {
 		this.useApi( "/api/message", r.MessageRouter );
 		this.useApi( "/api/config", r.ConfigRouter );
 		
-		let messageCache: string = "";
+		let messageCache = ref( "" );
 		this.app.ws( "/ws/log", ( ws, req ) => {
-			messageCache = "";
+			messageCache.value = "";
 			const cron: string = "*/2 * * * * ?";
 			const job = scheduleJob( cron, () => {
-				if ( messageCache.length !== 0 ) {
-					const data: LogMessage[] = messageCache.split( "__ADACHI__" )
+				if ( messageCache.value.length !== 0 ) {
+					const data: LogMessage[] = messageCache.value.split( "__ADACHI__" )
 						.filter( el => el.length !== 0 )
 						.map( el => JSON.parse( el ) );
 					ws.send( JSON.stringify( data ) );
-					messageCache = "";
+					messageCache.value = "";
 				}
 			} );
 			ws.on( "close", () => job.cancel() && ws.close() );
@@ -58,12 +61,44 @@ export default class WebConsole {
 		
 		/* 捕获错误 */
 		this.app.use( WebConsole.ApiErrorCatch );
-		createServer( socket => {
+		this.server = this.createTcpServer( this.config.tcpLoggerPort, messageCache );
+		if ( firstListener ) {
+			this.config.on( "refresh", async ( newCfg, oldCfg ) => {
+				if ( newCfg.tcpLoggerPort !== oldCfg.tcpLoggerPort ) {
+					await this.closePromise();
+					this.server = this.createTcpServer( newCfg.tcpLoggerPort, messageCache );
+				}
+			} );
+		}
+	}
+	
+	public closePromise(): Promise<void> {
+		return new Promise( ( resolve, reject ) => {
+			if ( this.server ) {
+				this.server.close( ( error ) => {
+					if ( error ) {
+						reject( error );
+					} else {
+						this.logger.info( `原tcp端口已关闭` )
+						this.server = null;
+						resolve();
+					}
+				} );
+			} else {
+				resolve();
+			}
+		} )
+	}
+	
+	private createTcpServer( tcp: number, msg: Ref<string> ) {
+		return createServer( socket => {
 			socket.setEncoding( "utf-8" );
 			socket.on( "data", res => {
-				messageCache += res;
+				msg.value += res;
 			} );
-		} ).listen( tcp );
+		} ).listen( tcp, () => {
+			this.logger.info( "tcp服务启动" );
+		} );
 	}
 	
 	private static ApiErrorCatch( err, req, res, next ) {
@@ -93,7 +128,9 @@ export default class WebConsole {
 	
 	private useApi( path: string, router: Router, token: boolean = true ): void {
 		if ( token ) {
-			this.app.use( path, WebConsole.JWT( this.secret ), router );
+			this.app.use( path, ( req, res, next ) => {
+				return WebConsole.JWT( this.config.jwtSecret )( req, res, next );
+			}, router );
 		} else {
 			this.app.use( path, router );
 		}

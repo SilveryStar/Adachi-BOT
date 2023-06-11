@@ -84,11 +84,12 @@ export function includesValue( list, value, checkArray = true ) {
  * @param oldValue 旧数据
  * @param newValue 新数据
  * @param clean 是否删除旧数据中相比新数据的多余字段
+ * @param arrayType 遇到数组属性的行为：ignore 跳过 merge 合并
  * @return 组装后的数据
  */
-export function compareAssembleObject<T extends Record<string, any>>( oldValue: Record<string, any>, newValue: T, clean?: true ): T;
-export function compareAssembleObject<T extends Record<string, any>>( oldValue: Record<string, any>, newValue: T, clean?: false ): Record<string, any>;
-export function compareAssembleObject<T extends Record<string, any>>( oldValue: Record<string, any>, newValue: T, clean: any = true ): T | Record<string, any> {
+export function compareAssembleObject<T extends Record<string, any>>( oldValue: Record<string, any>, newValue: T, clean?: true, arrayType?: "ignore" | "merge" ): T;
+export function compareAssembleObject<T extends Record<string, any>>( oldValue: Record<string, any>, newValue: T, clean?: false, arrayType?: "ignore" | "merge" ): Record<string, any>;
+export function compareAssembleObject<T extends Record<string, any>>( oldValue: Record<string, any>, newValue: T, clean: any = true, arrayType: "ignore" | "merge" = "ignore" ): T | Record<string, any> {
 	const getArrayValue = ( newValue: any[], oldValue: any ) => {
 		if ( oldValue instanceof Array ) {
 			// 新增项中的不重复数组
@@ -98,6 +99,9 @@ export function compareAssembleObject<T extends Record<string, any>>( oldValue: 
 		return newValue;
 	}
 	if ( newValue instanceof Array ) {
+		if ( arrayType === "ignore" ) {
+			return oldValue;
+		}
 		return getArrayValue( newValue, oldValue );
 	}
 	const targetValue = clean ? newValue : oldValue;
@@ -106,6 +110,9 @@ export function compareAssembleObject<T extends Record<string, any>>( oldValue: 
 		const cNewItem = newValue[k];
 		if ( typeof cNewItem === "object" && cNewItem !== null ) {
 			if ( cNewItem instanceof Array ) {
+				if ( arrayType === "ignore" ) {
+					return [ k, cOldItem ];
+				}
 				return [ k, getArrayValue( cNewItem, cOldItem ) ]
 			}
 			if ( !cOldItem ) {

@@ -5,16 +5,18 @@
 			<div v-for="(p, pKey) of plugins" :key="pKey" class="config-section">
 				<section-title :title="p.name" />
 				<spread-form-item
+					v-for="(c, cKey) of p.configs"
+					:key="p.name + cKey"
 					:active-spread="activeSpread"
-					v-model="plugins[pKey].data"
+					v-model="plugins[pKey].configs[cKey].data"
 					type="textarea"
 					:disabled="pageLoading"
-					label="配置文件"
+					:label="c.name"
 					placeholder="请输入配置项内容"
-					:rows="12"
+					:rows="8"
 					:verifyReg="verifyFunction"
 					verifyMsg="请检查输入内容是否符合 JSON 格式规范"
-					@change="updateConfig(p.data, p.name)"
+					@change="updateConfig(c.data, `${p.plugin}/${c.name}`)"
 					@open="activeSpreadItem"
 					hideContent
 				/>
@@ -30,20 +32,16 @@ import SectionTitle from "&/components/section-title/index.vue";
 import { onMounted, ref } from "vue";
 import { ElNotification } from "element-plus";
 import { isJsonString } from "@/utils/verify";
+import { PluginConfig } from "@/web-console/types/config";
 
-const plugins = ref<any[]>([]);
+const plugins = ref<PluginConfig[]>([]);
 const pageLoading = ref(false);
 
 const getPluginsConfigs = async () => {
 	pageLoading.value = true;
 	try {
 		const res = await $http.CONFIG_PLUGINS.get();
-		plugins.value = res.data.map( d => {
-			return {
-				...d,
-				data: JSON.stringify( d.data, null, 4 )
-			}
-		} );
+		plugins.value = res.data;
 	} catch {}
 	pageLoading.value = false;
 }

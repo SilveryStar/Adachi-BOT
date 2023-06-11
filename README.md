@@ -126,7 +126,6 @@ export async function init( bot: BOT ): Promise<PluginSetting> {
 ```
 
 加载后的路由结果为：
-
 ```ts
 [
     {
@@ -239,13 +238,32 @@ export default definePlugin({
 
 ```ts
 interface BotConfigManager {
-    register<T extends Record<string, any>>( filename: string, initCfg: T, setValueCallBack?: ( config: T ) => T, file?: FileManagement, refresh?: RefreshConfig );
+    register<T extends Record<string, any>>( filename: string, initCfg: T, setValueCallBack?: ( config: T ) => T, file?: FileManagement, refresh?: RefreshConfig ): ExportConfig<T>;
 }
 ```
 
+**参数**
+
+- filename: 期望创建的文件名称，可填写基于 `config` 目录的相对路径，无需填写后缀名，将自动创建以 `.yml` 结尾的文件。
+- initCfg: 配置文件初始内容，用于与实际文件内容做比对，并进行缺失属性的填充。
+- setValueCallBack: 对配置对象的值进行自定义格式化处理，按照该回调函数指定的规则格式化实际配置文件内容，可用于预防用户错填属性值等情况。接受一个形参 config：
+  - config：经过配置文件内容与初始内容比对后的配置项值
+  - 返回值：最终呈现的配置对象内容
+
 **返回值**
 
-返回处理后的配置项对象，通过自动推导传入的对象的来获得 ts 类型。该对象支持自动重载，你无需做任何操作该对象即可自动响应 `#refresh` 指令进行数据重载更新。
+返回处理后的配置项对象，通过自动推导传入的对象的来获得 ts 类型。
+
+该对象存在以下特性：
+
+- 支持自动重载，你无需做任何操作该对象即可自动响应 `#refresh` 指令进行数据重载更新。
+- 可自行注册的重载事件注册方法，你可以额外为其注册其他你希望在执行 `#refresh` 时所执行的回调：
+  - on( type, callback ): 新增一个回调事件，允许注册多个回调事件。
+    - type: 暂时仅支持 `refresh` 一种类型;
+    - callback: 接受两个形参：`newCfg` 与 `oldCfg`，分别表示刷新前后的配置项值。当返回 `string` 类型的值时，将替代默认的刷新成功的打印文本：`xxx.yml 重新加载完毕`。
+  - clear( type? ): 清空指定 `type` 的全部回调事件，若不传递 `type` 则清空所有回调事件。
+
+> 值得注意的是，你完全可以在 on 的回调函数中直接使用 config 配置项对象本身来作为新值使用。因为当执行回调函数时，配置项对象自身的值已经提前完成了更新。这在某些需要传递完整 config 类型的场景下格外有用。
 
 **示例**
 
@@ -253,8 +271,20 @@ interface BotConfigManager {
 import bot from "ROOT";
 
 // 在 config 目录下创建 test-plugin.yml 配置文件 或是与已存在的 test-plugin.yml 进行对比，返回更新后的配置项内容
-const configData = bot.config.register( "test-plugin", { setting1: true, setting2: false } );
+const configData = bot.config.register( "test-plugin", { setting1: true, setting2: false }, config => {
+    // 预防用户填写非 boolean 值
+    if ( typeof config.setting1 !== "boolean" ) {
+        config.setting = false;
+    }
+    return config;
+} );
 console.log( configData ); // { setting1: true, setting2: false }
+
+// 注册刷新回调函数
+let setting1 = configData.setting1;
+configData.on( "refresh", ( newCfg, oldCfg ) => {
+    setting1 = newCfg.setting1;
+} );
 ```
 
 若你不满足于自动推导得来的类型，或是你希望来进行一些关于初始值的限制与操作，该方法还支持传入第三个参数。
@@ -267,15 +297,16 @@ interface MyConfig {
     setting2: boolean;
 }
 
-const configData = <MyConfig>bot.config.register( "test-plugin", { setting1: "msg", setting2: false }, config => {
+// 在 config/test-plugin 目录下创建 main.yml 配置文件
+const configData = <MyConfig>bot.config.register( "test-plugin/main", { setting1: "msg", setting2: false }, config => {
     if ( !["msg", "card"].includes( config.setting1 ) ) config.setting1 = "msg";
     return config;
 } );
 ```
 
-当然我们还为插件提供了更方便的配置文件注册方法，你可以在插件的 `completed` 生命周期钩子中使用 `params.configRegister` 来快速创建以插件名（插件目录名）命名的配置文件。
+当然我们还为插件提供了更方便的配置文件注册方法，你可以在插件的 `completed` 生命周期钩子中使用 `params.configRegister` 来快速在 `config/插件名` 目录中创建配置文件。
 
-该方法除了免去了提供第一个参数 `fileName` 外行为与 `bot.config.register` 一致。
+该方法参数传递方式与 `bot.config.register` 一致。
 
 ```ts
 /* test-plugin 插件 */
@@ -516,6 +547,94 @@ interface RefreshableMethod {
     register( target: RefreshTarget<"file"> ): void;
     register( target: RefreshTarget<"fun"> ): void;
 }
+```
+
+### bot 配置项结构变更
+
+删除 `bot.whiteList`，合并至 `bot.config.whiteList`。
+
+`bot.config` 变更为新结构：
+
+```javascript
+config = {
+    base: {
+        number: 123456789,
+        password: "",
+        qrcode: false,
+        master: 987654321,
+        platform: 1,
+        inviteAuth: 2,
+        logLevel: "info",
+        atUser: false,
+        atBOT: false,
+        addFriend: true,
+        renderPort: 80
+    },
+    directive: {
+        header: "#",
+        groupIntervalTime: 1500,
+        privateIntervalTime: 2000,
+        helpMessageStyle: "message",
+        fuzzyMatch: false,
+        matchPrompt: true,
+        callTimes: 3,
+        countThreshold: 60,
+        ThresholdInterval: false
+    },
+    ffmpeg: {
+        ffmpegPath: "",
+        ffprobePath: ""
+    },
+    db: {
+        port: 56379,
+        password: ""
+    },
+    mail: {
+        host: "smtp.qq.com",
+        port: 587,
+        user: "123456789@qq.com",
+        pass: "",
+        secure: false,
+        servername: "",
+        rejectUnauthorized: false,
+        logoutSend: false,
+        sendDelay: 5,
+        retry: 3,
+        retryWait: 5
+    },
+    autoChat: {
+        enable: false,
+        type: 1,
+        audio: false,
+        secretId: "",
+        secretKey: ""
+    },
+    whiteList: {
+        enable: false,
+        user: [ "（用户QQ）" ],
+        group: [ "（群号）" ]
+    },
+    banScreenSwipe: {
+        enable: false,
+        limit: 10,
+        duration: 1800,
+        prompt: true,
+        promptMsg: "请不要刷屏哦~"
+    },
+    banHeavyAt: {
+        enable: false,
+        limit: 10,
+        duration: 1800,
+        prompt: true,
+        promptMsg: "你at太多人了，会被讨厌的哦~"
+    },
+    webConsole: {
+        enable: true,
+        tcpLoggerPort: 54921,
+        logHighWaterMark: 64,
+        jwtSecret: getRandomString( 16 )
+    }
+} 
 ```
 
 ### renderer.asCqCode 方法名称变更

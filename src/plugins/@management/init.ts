@@ -1,5 +1,6 @@
 import { AuthLevel } from "@/modules/management/auth";
 import { OrderConfig, SwitchConfig } from "@/modules/command";
+import { definePlugin } from "@/modules/plugin";
 
 const manager: SwitchConfig = {
 	type: "switch",

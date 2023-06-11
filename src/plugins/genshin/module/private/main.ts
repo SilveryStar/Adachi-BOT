@@ -5,8 +5,9 @@ import { Order } from "@/modules/command";
 import { NoteService } from "./note";
 import { MysQueryService } from "./mys";
 import { AbyQueryService } from "./abyss";
-import { CharQueryService } from "#/genshin/module/private/char";
+import { CharQueryService } from "./char";
 import { SignInService } from "./sign";
+import { LedgerQueryService } from "./ledger";
 import { Md5 } from "md5-typescript";
 import { pull } from "lodash";
 import { getRegion } from "#/genshin/utils/region";
@@ -39,7 +40,7 @@ type ExpandedService<T extends any[], E extends BasicExpand = {}> = T extends []
 /* 定义扩展私有服务 */
 type ServiceTuple = [
 	NoteService, SignInService, MysQueryService,
-	AbyQueryService, CharQueryService
+	AbyQueryService, CharQueryService, LedgerQueryService
 ];
 /* 获取扩展私人服务类型 */
 type Services = ExpandedService<ServiceTuple>;
@@ -104,11 +105,12 @@ export class Private {
 		this.id = id;
 		this.dbKey = dbPrefix + md5;
 		this.services = {
-			[ NoteService.FixedField ]:      new NoteService( this ),
-			[ SignInService.FixedField ]:    new SignInService( this ),
-			[ MysQueryService.FixedField ]:  new MysQueryService( this ),
-			[ AbyQueryService.FixedField ]:  new AbyQueryService( this ),
-			[ CharQueryService.FixedField ]: new CharQueryService( this )
+			[ NoteService.FixedField ]:        new NoteService( this ),
+			[ SignInService.FixedField ]:      new SignInService( this ),
+			[ MysQueryService.FixedField ]:    new MysQueryService( this ),
+			[ AbyQueryService.FixedField ]:    new AbyQueryService( this ),
+			[ CharQueryService.FixedField ]:   new CharQueryService( this ),
+			[ LedgerQueryService.FixedField ]: new LedgerQueryService( this )
 		};
 		this.options = this.globalOptions();
 	}

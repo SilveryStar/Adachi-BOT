@@ -38,12 +38,12 @@ const systemRoutes: Array<RouteRecordRaw> = [
 				component: () => import("&/views/dashboard/commands.vue"),
 				meta: { title: "指令配置", nav: true }
 			},
-			{
-				path: "/system/dashboard/other",
-				name: "OtherConfig",
-				component: () => import("&/views/dashboard/other.vue"),
-				meta: { title: "其他配置", nav: true }
-			},
+			// {
+			// 	path: "/system/dashboard/other",
+			// 	name: "OtherConfig",
+			// 	component: () => import("&/views/dashboard/other.vue"),
+			// 	meta: { title: "其他配置", nav: true }
+			// },
 			{
 				path: "/system/dashboard/plugins",
 				name: "PluginsConfig",

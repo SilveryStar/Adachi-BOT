@@ -57,7 +57,7 @@ async function forwardAchieves( abyss: Abyss, uid: string, userID: number, {
 			continue;
 		}
 		const msgNode: Forwardable = {
-			user_id: config.number,
+			user_id: config.base.number,
 			message: segment.image(<string>res.data)
 		};
 		content.push( msgNode );

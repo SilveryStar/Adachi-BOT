@@ -1,4 +1,3 @@
-import bot from "ROOT";
 import { RefreshCatch } from "@/modules/management/refresh";
 
 export class Cookies {
@@ -14,8 +13,8 @@ export class Cookies {
 			: "cookie 格式不正确";
 	}
 	
-	constructor() {
-		this.cookies = ( bot.file.loadYAML( "cookies" ) || {} ).cookies;
+	constructor( cookies: string[] ) {
+		this.cookies = cookies;
 		this.index = 0;
 		this.length = this.cookies.length;
 	}
@@ -30,19 +29,5 @@ export class Cookies {
 	
 	public getIndex(): number {
 		return this.index;
-	}
-	
-	public async refresh( config ): Promise<string> {
-		try {
-			this.cookies = config.cookies;
-			this.index = 0;
-			this.length = this.cookies.length;
-			return "cookies 重新加载完毕";
-		} catch ( error ) {
-			throw <RefreshCatch>{
-				log: ( <Error>error ).stack,
-				msg: "cookies 重新加载失败，请前往控制台查看日志"
-			};
-		}
 	}
 }

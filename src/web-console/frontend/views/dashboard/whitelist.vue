@@ -24,7 +24,11 @@ import Tags from "&/components/tags/index.vue";
 import { objectGet, objectSet } from "&/utils/utils";
 import { onMounted, ref } from "vue";
 import { ElNotification } from "element-plus";
-import { WhiteListConfig } from "@/modules/whitelist";
+
+interface WhitList {
+	user: number[];
+	group: number[];
+}
 
 const setting = ref<{ useWhitelist: boolean } | null>( null );
 async function getSettingConfig() {
@@ -32,7 +36,7 @@ async function getSettingConfig() {
 	setting.value = res.data;
 }
 
-const whitelist = ref<WhiteListConfig | null>( null );
+const whitelist = ref<WhitList | null>( null );
 const pageLoading = ref(false);
 async function updateConfig( field, fileName = "whitelist" ) {
 	pageLoading.value = true;

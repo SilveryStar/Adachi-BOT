@@ -37,14 +37,26 @@ const checkXiaoAiSuccess = ( res: XiaoAiResult ): res is XiaoAiResultSuccess => 
 }
 
 export default class AiChat {
+	private enable = false;
 	private nlpClient: Client | null = null;
 	
 	constructor(
 		private config: BotConfig["autoChat"],
 		private logger: Logger
 	) {
-		if ( ![ 1, 2, 3 ].includes( config.type ) ) {
-			logger.error( "自动聊天类型配置异常，仅支持 1 - 3" );
+		this.initChat();
+		config.on( "refresh", () => {
+			this.initChat();
+		} );
+	}
+	
+	private initChat() {
+		this.enable = this.config.enable;
+		if ( !this.enable ) {
+			return;
+		}
+		if ( ![ 1, 2, 3 ].includes( this.config.type ) ) {
+			this.logger.error( "自动聊天类型配置异常，仅支持 1 - 3" );
 			return;
 		}
 		if ( this.config.type === 2 ) {
@@ -64,6 +76,10 @@ export default class AiChat {
 			//实例化NLP对象
 			this.nlpClient = new Client( clientConfig );
 		}
+	}
+	
+	public isOpen() {
+		return this.enable;
 	}
 	
 	/* 自动回复方法 */

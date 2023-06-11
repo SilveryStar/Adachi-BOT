@@ -1,7 +1,7 @@
 import cfgList from "./commands";
 import { Renderer } from "@/modules/renderer";
 import { BOT } from "@/main";
-import { PluginSubSetting, SubInfo } from "@/modules/plugin";
+import { definePlugin, PluginSubSetting, SubInfo } from "@/modules/plugin";
 import * as m from "./module";
 import routers from "#/genshin/routes";
 import { getRandomString } from "@/utils/random";
@@ -31,11 +31,11 @@ export let dailyClass: m.DailyClass;
 export let slipClass: m.SlipClass;
 export let privateClass: m.PrivateClass;
 
-function initModules() {
+function initModules( cookie: string[] ) {
 	characterMap = new m.CharacterMap();
 	weaponMap = new m.WeaponMap();
 	artClass = new m.ArtClass();
-	cookies = new m.Cookies();
+	cookies = new m.Cookies( cookie );
 	typeData = new m.TypeData();
 	aliasClass = new m.AliasClass();
 	almanacClass = new m.AlmanacClass();
@@ -92,11 +92,15 @@ export default definePlugin( {
 	/* 初始化模块 */
 	completed( param ) {
 		/* 加载 genshin.yml 配置 */
-		config = param.configRegister( initConfig );
+		config = param.configRegister( "main", initConfig );
+		const cookieCfg = param.configRegister( "cookies", {
+			cookies: [ "米游社Cookies(允许设置多个)" ]
+		} );
+		cookieCfg.on( "refresh", config => {
+			cookies = new m.Cookies( config.cookies );
+		} );
 		/* 实例化渲染器 */
 		renderer = param.renderRegister( "#app" );
-		initModules();
-		param.refresh.register( "cookies", cookies );
-		param.refresh.register( initModules );
+		initModules( cookieCfg.cookies );
 	}
 } );

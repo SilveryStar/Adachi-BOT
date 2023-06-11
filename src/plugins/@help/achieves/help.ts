@@ -43,7 +43,7 @@ async function forwardStyle(
 	}
 	list.push( "[] 表示必填, () 表示选填, | 表示选择" );
 	list.forEach( ( el: string ) => content.push( {
-		user_id: config.number,
+		user_id: config.base.number,
 		nickname: "BOT",
 		message: el
 	} ) );
@@ -133,7 +133,7 @@ async function getHelpMessage(
 	commands: BasicConfig[], list: string[],
 	i: InputParameter
 ): Promise<Sendable> {
-	switch ( i.config.helpMessageStyle ) {
+	switch ( i.config.directive.helpMessageStyle ) {
 		case "message":
 			return messageStyle( title, list, i.command );
 		case "forward":

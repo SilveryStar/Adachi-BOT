@@ -28,6 +28,7 @@ export default {
 	CHECK_PASSWORD: "/check/password",
 	/* 配置 */
 	CONFIG_GET: "/config",
+	CONFIG_BASE: "/config/base",
 	CONFIG_SET: "/config/set",
 	CONFIG_SET_CODE: "/config/set/code",
 	CONFIG_SET_TICKET: "/config/set/ticket",

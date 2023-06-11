@@ -9,17 +9,53 @@ import { BotConfig } from "@/modules/config";
 import WebConsole from "@/web-console";
 import useWebsocket, { Application } from "express-ws";
 import FileManagement from "@/modules/file";
+import { Server } from "http";
 
 export default class RenderServer {
-	private readonly app: Application;
+	private app: Application;
 	private serverRouters: Array<ServerRouters> = [];
 	private renderRoutes: Array<RenderRoutes> = [];
-	private isFirstListen: boolean = true;
+	private webConsole: WebConsole | null = null;
+	private vite: ViteDevServer | null = null;
+	private server: Server | null = null;
+	private firstListener = true;
 	
-	constructor( config: BotConfig, file: FileManagement, logger: Logger ) {
+	constructor(
+		private readonly config: BotConfig,
+		private readonly file: FileManagement,
+		private readonly logger: Logger
+	) {
 		const wsInstance = useWebsocket( express() );
 		this.app = wsInstance.app;
-		this.createServer( config, file, logger ).catch();
+		this.createServer().catch();
+		config.webConsole.on( "refresh", async ( newCfg, oldCfg ) => {
+			if ( newCfg.enable === oldCfg.enable ) {
+				return;
+			}
+			if ( this.webConsole && !newCfg.enable ) {
+				await this.webConsole.closePromise();
+			}
+			if ( this.vite ) {
+				await this.vite.close();
+				this.vite = null;
+			}
+			await this.closePromise();
+			const wsInstance = useWebsocket( express() );
+			this.app = wsInstance.app;
+			logger.info( `原公共服务端口 ${ this.config.base.renderPort } 已关闭` );
+			await this.createServer();
+			for ( const r of this.serverRouters ) {
+				this.app.use( r.path, r.router );
+			}
+		} )
+		this.config.base.on( "refresh", async ( newCfg, oldCfg ) => {
+			if ( newCfg.renderPort === oldCfg.renderPort ) {
+				return;
+			}
+			await this.closePromise();
+			this.logger.info( `原公共服务端口 ${ oldCfg.renderPort } 已关闭` );
+			this.server = this.listenerPort();
+		} );
 	}
 	
 	public setServerRouters( routers: Array<ServerRouters> ) {
@@ -34,10 +70,8 @@ export default class RenderServer {
 		this.renderRoutes = routes;
 	}
 	
-	public async createServer( config: BotConfig, file: FileManagement, logger: Logger ) {
+	public async createServer() {
 		const isProd = process.env.NODE_ENV === "production";
-		
-		let vite: ViteDevServer | null = null;
 		
 		if ( isProd ) {
 			// 为打包目录挂载静态资源服务
@@ -46,7 +80,7 @@ export default class RenderServer {
 			// 以中间件模式创建 Vite 应用，这将禁用 Vite 自身的 HTML 服务逻辑
 			// 并让上级服务器接管控制
 			// 执行此方法后将会调用指定 root 目录下的 vite.config.ts
-			vite = await createViteServer( {
+			this.vite = await createViteServer( {
 				base: "/",
 				root: process.cwd(),
 				server: { middlewareMode: true },
@@ -55,17 +89,18 @@ export default class RenderServer {
 			
 			// 使用 vite 的 Connect 实例作为中间件
 			// 如果你使用了自己的 express 路由（express.Router()），你应该使用 router.use
-			this.app.use( vite.middlewares );
+			this.app.use( this.vite.middlewares );
 		}
 		
 		// 为插件目录挂载静态资源服务
 		// this.app.use( express.static( resolve( __dirname, "../plugins" ) ) );
-		for ( const plugin of file.getDirFiles("src/plugins", "root") ) {
-			this.app.use( `/${ plugin }`, express.static( file.getFilePath( plugin, "plugin" ) ) );
+		for ( const plugin of this.file.getDirFiles( "src/plugins", "root" ) ) {
+			this.app.use( `/${ plugin }`, express.static( this.file.getFilePath( plugin, "plugin" ) ) );
 		}
 		
-		if ( config.webConsole.enable ) {
-			new WebConsole( this.app, config );
+		if ( this.config.webConsole.enable ) {
+			this.webConsole = new WebConsole( this.app, this.config.webConsole, this.logger, this.firstListener );
+			this.firstListener = false;
 		}
 		
 		this.app.use( '*', async ( req, res, next ) => {
@@ -82,9 +117,9 @@ export default class RenderServer {
 			// 是否是插件前端渲染路由
 			const isRenderRoute = this.renderRoutes.findIndex( r => r.path === baseUrl ) !== -1;
 			// 是否渲染插件前端页面而非控制台页面
-			const renderRender = isRenderRoute || !config.webConsole.enable;
+			const renderRender = isRenderRoute || !this.config.webConsole.enable;
 			let htmlPath: string;
-			if ( vite ) {
+			if ( this.vite ) {
 				htmlPath = renderRender ? "../render/index.html" : "../web-console/frontend/index.html";
 			} else {
 				htmlPath = renderRender ? "../../dist/src/render/index.html" : "../../dist/src/web-console/index.html";
@@ -93,9 +128,9 @@ export default class RenderServer {
 			const url = req.originalUrl;
 			try {
 				let template = fs.readFileSync( resolve( __dirname, htmlPath ), "utf-8" );
-				if ( vite ) {
+				if ( this.vite ) {
 					// 应用 Vite HTML 转换。这将会注入 Vite HMR 客户端，同时也会从 Vite 插件应用 HTML 转换。
-					template = await vite.transformIndexHtml( url, template );
+					template = await this.vite.transformIndexHtml( url, template );
 				}
 				// 注入生成的 vue-router 对象
 				if ( isRenderRoute ) {
@@ -110,20 +145,41 @@ export default class RenderServer {
 			} catch ( e ) {
 				// 捕获到了一个错误后，后让 Vite 修复该堆栈，并映射回实际源码中。
 				const err: Error = <Error>e;
-				vite?.ssrFixStacktrace( err );
-				console.log( err.stack );
+				this.vite?.ssrFixStacktrace( err );
+				this.logger.error( err.stack );
 				res.status( 500 ).end( err.stack );
 			}
 		} );
-		if ( this.isFirstListen ) {
-			this.isFirstListen = false;
-			this.app.listen( config.renderPort, () => {
-				logger.info( `公共 Express 服务已启动, 端口为: ${ config.renderPort }` );
-				if ( config.webConsole.enable ) {
-					console.log( `网页控制台已启动，请浏览器打开 http://127.0.0.1:${ config.renderPort } 查看，若为云服务器，请将 127.0.0.1 替换为服务器的公网ip。` )
-				}
-			} );
+		
+		if ( !this.server ) {
+			this.server = this.listenerPort();
 		}
+	}
+	
+	private closePromise(): Promise<void> {
+		return new Promise( ( resolve, reject ) => {
+			if ( this.server ) {
+				this.server.close( ( error ) => {
+					if ( error ) {
+						reject( error );
+					} else {
+						this.server = null;
+						resolve();
+					}
+				} );
+			} else {
+				resolve();
+			}
+		} )
+	}
+	
+	private listenerPort() {
+		return this.app.listen( this.config.base.renderPort, () => {
+			this.logger.info( `公共 Express 服务已启动, 端口为: ${ this.config.base.renderPort }` );
+			if ( this.config.webConsole.enable ) {
+				console.log( `网页控制台已启动，请浏览器打开 http://127.0.0.1:${ this.config.base.renderPort } 查看，若为云服务器，请将 127.0.0.1 替换为服务器的公网ip。` )
+			}
+		} )
 	}
 }
 

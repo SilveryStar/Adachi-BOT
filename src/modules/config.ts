@@ -4,21 +4,152 @@ import { LogLevel } from "icqq";
 import bot from "ROOT";
 import RefreshConfig, { RefreshCatch } from "@/modules/management/refresh";
 import { getRandomString } from "@/utils/random";
-import { compareAssembleObject } from "@/utils/object";
+import { compareAssembleObject, isEqualObject } from "@/utils/object";
 
-export type BotConfigValue = Omit<typeof BotConfigManager.initConfig, "inviteAuth"> & {
-	logLevel: LogLevel;
-	inviteAuth: AuthLevel
+// 基本设置
+const initBase = {
+	tip: "前往 https://docs.adachi.top/config 查看配置详情",
+	number: 123456789,
+	password: "",
+	qrcode: false,
+	master: 987654321,
+	platform: 1,
+	inviteAuth: 2,
+	logLevel: "info",
+	atUser: false,
+	atBOT: false,
+	addFriend: true,
+	renderPort: 80
 }
 
-export type BotConfig = Omit<BotConfigManager, "value"> & BotConfigValue
+// 指令设置
+const initDirective = {
+	tip: "前往 https://docs.adachi.top/config 查看配置详情",
+	header: "#",
+	groupIntervalTime: 1500,
+	privateIntervalTime: 2000,
+	helpMessageStyle: "message",
+	fuzzyMatch: false,
+	matchPrompt: true,
+	callTimes: 3,
+	countThreshold: 60,
+	ThresholdInterval: false
+}
 
-export class ConfigInstance<T extends Record<string, any>> {
+// ffmpeg配置
+const initFfmpeg = {
+	tip: "前往 https://docs.adachi.top/config 查看配置详情",
+	ffmpegPath: "",
+	ffprobePath: ""
+}
+
+// 数据库设置
+const initDB = {
+	tip: "前往 https://docs.adachi.top/config 查看配置详情",
+	port: 56379,
+	password: ""
+}
+
+// 发件人邮箱配置
+const initMail = {
+	tip: "前往 https://docs.adachi.top/config 查看配置详情",
+	host: "smtp.qq.com",
+	port: 587,
+	user: "123456789@qq.com",
+	pass: "",
+	secure: false,
+	servername: "",
+	rejectUnauthorized: false,
+	logoutSend: false,
+	sendDelay: 5,
+	retry: 3,
+	retryWait: 5
+}
+
+// 自动聊天设置
+const initAutoChat = {
+	tip: "前往 https://docs.adachi.top/config 查看配置详情",
+	enable: false,
+	type: 1,
+	audio: false,
+	secretId: "",
+	secretKey: ""
+}
+
+// 白名单配置
+const initWhiteList = {
+	tip: "前往 https://docs.adachi.top/config 查看配置详情",
+	enable: false,
+	user: [ "（用户QQ）" ],
+	group: [ "（群号）" ]
+}
+
+// 刷屏控制
+const initBanScreenSwipe = {
+	tip: "前往 https://docs.adachi.top/config 查看配置详情",
+	enable: false,
+	limit: 10,
+	duration: 1800,
+	prompt: true,
+	promptMsg: "请不要刷屏哦~"
+}
+
+// 过量at限制
+const initBanHeavyAt = {
+	tip: "前往 https://docs.adachi.top/config 查看配置详情",
+	enable: false,
+	limit: 10,
+	duration: 1800,
+	prompt: true,
+	promptMsg: "你at太多人了，会被讨厌的哦~"
+}
+
+// 网站控制台相关
+const initWebConsole = {
+	tip: "前往 https://docs.adachi.top/config 查看配置详情",
+	enable: true,
+	tcpLoggerPort: 54921,
+	logHighWaterMark: 64,
+	jwtSecret: getRandomString( 16 )
+}
+
+export type ExportConfig<T extends Record<string, any>> = T & Omit<ConfigInstance<T>, "value" | "refresh">
+
+export interface BotConfigValue {
+	base: ExportConfig<Omit<typeof initBase, "tip" | "inviteAuth"> & {
+		logLevel: LogLevel;
+		inviteAuth: AuthLevel
+	}>;
+	directive: ExportConfig<Omit<typeof initDirective, "tip">>;
+	ffmpeg: ExportConfig<Omit<typeof initFfmpeg, "tip">>;
+	db: ExportConfig<Omit<typeof initDB, "tip">>;
+	mail: ExportConfig<Omit<typeof initMail, "tip">>;
+	autoChat: ExportConfig<Omit<typeof initAutoChat, "tip">>;
+	whiteList: ExportConfig<Omit<typeof initWhiteList, "tip" | "user" | "group"> & {
+		user: number[];
+		group: number[];
+	}>;
+	banScreenSwipe: ExportConfig<Omit<typeof initBanScreenSwipe, "tip">>;
+	banHeavyAt: ExportConfig<Omit<typeof initBanHeavyAt, "tip">>;
+	webConsole: ExportConfig<Omit<typeof initWebConsole, "tip">>;
+}
+
+export type BotConfig = Omit<BotConfigManager, "value"> & BotConfigValue;
+
+type EventType = "refresh";
+type EventHandle<T> = ( newCfg: T, oldCfg: T ) => any;
+
+class ConfigInstance<T extends Record<string, any>> {
 	private readonly filename: string;
 	private readonly setValueCallBack: ( config: T ) => T;
+	private readonly eventListeners: Map<EventType, ( EventHandle<T> )[]> = new Map();
 	public value: T;
 	
-	constructor( filename: string, cfg: T, setValueCallBack: ( config: T ) => T = config => config ) {
+	constructor(
+		filename: string,
+		cfg: T,
+		setValueCallBack: ( config: T ) => T = config => config
+	) {
 		this.filename = filename;
 		this.value = setValueCallBack( cfg );
 		this.setValueCallBack = setValueCallBack;
@@ -26,8 +157,41 @@ export class ConfigInstance<T extends Record<string, any>> {
 	
 	async refresh( config: T ) {
 		try {
-			this.value = this.setValueCallBack( config );
-			return `${ this.filename }.yml 重新加载完毕`;
+			const newValue = this.setValueCallBack( config );
+			const oldValue = this.value;
+			this.value = newValue;
+			
+			// 未发生变化则不执行刷新
+			if ( isEqualObject( newValue, oldValue ) ) {
+				return "";
+			}
+			
+			// 是否存在新的自定义返回值
+			const diyTips: string[] = [];
+			
+			let handleError = false;
+			const doHandle = async ( type: EventType ) => {
+				const handles = this.eventListeners.get( type ) || [];
+				for ( const handler of handles ) {
+					try {
+						const tip = await handler( newValue, oldValue );
+						if ( typeof tip === "string" ) {
+							diyTips.push( tip );
+						}
+					} catch ( error ) {
+						bot.logger.error( "刷新配置文件回调执行出错：" + ( <Error>error ).stack )
+						handleError = true;
+					}
+				}
+			}
+			
+			await doHandle( "refresh" );
+			// 当刷新监听器方法列表中存在返回字符串类型的回调，返回新的自定义字符串
+			if ( diyTips.length ) {
+				handleError && diyTips.push( "，部分回调执行异常，建议重试" );
+				return diyTips.join( "\n" );
+			}
+			return `${ this.filename }.yml 重新加载完毕${ handleError ? "，部分回调执行异常，建议重试" : "" }`;
 		} catch ( error ) {
 			throw <RefreshCatch>{
 				log: ( <Error>error ).stack,
@@ -35,109 +199,78 @@ export class ConfigInstance<T extends Record<string, any>> {
 			};
 		}
 	}
+	
+	on( type: EventType, handle: EventHandle<T> ) {
+		const handlers = this.eventListeners.get( type );
+		if ( handlers ) {
+			handlers.push( handle );
+		} else {
+			this.eventListeners.set( type, [ handle ] );
+		}
+	}
+	
+	clear( type?: EventType ) {
+		if ( type ) {
+			this.eventListeners.delete( type );
+		} else {
+			this.eventListeners.clear();
+		}
+	}
 }
 
 export default class BotConfigManager {
 	public readonly value: BotConfigValue;
 	
-	static initConfig = {
-		tip: "前往 https://docs.adachi.top/config 查看配置详情",
-		qrcode: false,
-		number: 123456789,
-		password: "",
-		master: 987654321,
-		header: "#",
-		platform: 1,
-		ffmpegPath: "",
-		ffprobePath: "",
-		atUser: false,
-		atBOT: false,
-		addFriend: true,
-		useWhitelist: false,
-		fuzzyMatch: false,
-		matchPrompt: true,
-		renderPort: 80,
-		inviteAuth: "master",
-		countThreshold: 60,
-		ThresholdInterval: false,
-		groupIntervalTime: 1500,
-		privateIntervalTime: 2000,
-		helpMessageStyle: "message",
-		callTimes: 3,
-		logLevel: "info",
-		dbPort: 56379,
-		dbPassword: "",
-		mailConfig: {
-			host: "smtp.qq.com",
-			port: 587,
-			user: "123456789@qq.com",
-			pass: "",
-			secure: false,
-			servername: "",
-			rejectUnauthorized: false,
-			logoutSend: false,
-			sendDelay: 5,
-			retry: 3,
-			retryWait: 5
-		},
-		banScreenSwipe: {
-			enable: false,
-			limit: 10,
-			duration: 1800,
-			prompt: true,
-			promptMsg: "请不要刷屏哦~"
-		},
-		banHeavyAt: {
-			enable: false,
-			limit: 10,
-			duration: 1800,
-			prompt: true,
-			promptMsg: "你at太多人了，会被讨厌的哦~"
-		},
-		webConsole: {
-			enable: true,
-			tcpLoggerPort: 54921,
-			logHighWaterMark: 64,
-			jwtSecret: getRandomString( 16 )
-		},
-		autoChat: {
-			tip: "type参数说明：\n" +
-				"1：青客云API，无需配置其他参数 \n" +
-				"2：腾讯自然语言处理，需要前往腾讯云开通NLP并获取到你的secret（听说超级智能）\n" +
-				"3：小爱智能语音，使用摹名Api：http://xiaoapi.cn，此时仅 enable 参数有效",
-			enable: false,
-			type: 1,
-			audio: false,
-			secretId: "",
-			secretKey: ""
-		}
-	};
-	
 	constructor( file: FileManagement, refresh: RefreshConfig ) {
-		this.value = this.register<BotConfigValue>( "setting", <any>BotConfigManager.initConfig, cfg => {
-			if ( !cfg.webConsole.jwtSecret ) {
-				cfg.webConsole.jwtSecret = getRandomString( 16 );
-			}
-			const authMap: Record<string, AuthLevel> = {
-				master: AuthLevel.Master,
-				manager: AuthLevel.Manager,
-				user: AuthLevel.User
-			}
-			
-			cfg.inviteAuth = authMap[cfg.inviteAuth] || AuthLevel.Master;
-			
-			const helpList: string[] = [ "message", "forward", "xml", "card" ];
-			cfg.helpMessageStyle = helpList.includes( cfg.helpMessageStyle )
-				? cfg.helpMessageStyle : "message";
-			
-			const logLevelList: string[] = [
-				"trace", "debug", "info", "warn",
-				"error", "fatal", "mark", "off"
-			];
-			cfg.logLevel = <any>( logLevelList.includes( cfg.logLevel )
-				? cfg.logLevel : "info" );
-			return cfg;
-		}, file, refresh );
+		const registerConfig = <T extends BotConfigValue[keyof BotConfigValue]>(
+			filename: string,
+			initCfg: T,
+			setValueCallBack: ( config: T ) => T = config => config
+		) => {
+			return this.register<T>( filename, initCfg, setValueCallBack, file, refresh );
+		};
+		
+		this.value = {
+			base: registerConfig<BotConfigValue["base"]>( "base", <any>initBase, cfg => {
+				const authMap: Record<string, AuthLevel> = {
+					master: AuthLevel.Master,
+					manager: AuthLevel.Manager,
+					user: AuthLevel.User
+				}
+				cfg.inviteAuth = authMap[cfg.inviteAuth] || AuthLevel.Master;
+				
+				const logLevelList: string[] = [
+					"trace", "debug", "info", "warn",
+					"error", "fatal", "mark", "off"
+				];
+				cfg.logLevel = <any>( logLevelList.includes( cfg.logLevel )
+					? cfg.logLevel : "info" );
+				return cfg;
+			} ),
+			directive: registerConfig<BotConfigValue["directive"]>( "directive", <any>initDirective, cfg => {
+				const helpList: string[] = [ "message", "forward", "xml", "card" ];
+				cfg.helpMessageStyle = helpList.includes( cfg.helpMessageStyle )
+					? cfg.helpMessageStyle : "message";
+				return cfg;
+			} ),
+			ffmpeg: registerConfig<BotConfigValue["ffmpeg"]>( "ffmpeg", <any>initFfmpeg ),
+			db: registerConfig<BotConfigValue["db"]>( "db", <any>initDB ),
+			mail: registerConfig<BotConfigValue["mail"]>( "mail", <any>initMail ),
+			autoChat: registerConfig<BotConfigValue["autoChat"]>( "autoChat", <any>initAutoChat ),
+			whiteList: registerConfig<BotConfigValue["whiteList"]>( "whiteList", <any>initWhiteList, cfg => {
+				cfg.user = cfg.user.filter( ( w: number | string ) => typeof w === "number" );
+				cfg.group = cfg.group.filter( ( w: number | string ) => typeof w === "number" );
+				return cfg;
+			} ),
+			banScreenSwipe: registerConfig<BotConfigValue["banScreenSwipe"]>( "banScreenSwipe", <any>initBanScreenSwipe ),
+			banHeavyAt: registerConfig<BotConfigValue["banHeavyAt"]>( "banHeavyAt", <any>initBanHeavyAt ),
+			webConsole: registerConfig<BotConfigValue["webConsole"]>( "webConsole", <any>initWebConsole, cfg => {
+				if ( !cfg.jwtSecret ) {
+					cfg.jwtSecret = getRandomString( 16 );
+				}
+				return cfg;
+			} )
+		}
 	}
 	
 	public register<T extends Record<string, any>>(
@@ -146,7 +279,7 @@ export default class BotConfigManager {
 		setValueCallBack: ( config: T ) => T = config => config,
 		file: FileManagement = bot.file,
 		refresh: RefreshConfig = bot.refresh
-	): T {
+	) {
 		const path: string = file.getFilePath( `${ filename }.yml` );
 		const isExist: boolean = file.isExist( path );
 		let cfg: T;
@@ -162,9 +295,15 @@ export default class BotConfigManager {
 		file.writeYAML( filename, configInstance.value );
 		refresh.register( filename, configInstance );
 		
-		return <T><any>( new Proxy( configInstance, {
+		return <ExportConfig<T>><any>( new Proxy( configInstance, {
 			get( target: ConfigInstance<T>, p: string ): any {
-				return configInstance.value[p];
+				if ( p in configInstance.value ) {
+					return configInstance.value[p];
+				}
+				if ( p !== "value" && p !== "refresh" ) {
+					return target[p];
+				}
+				return undefined;
 			}
 		} ) );
 	}

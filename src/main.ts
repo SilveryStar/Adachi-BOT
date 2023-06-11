@@ -8,7 +8,6 @@ import RenderServer from "./modules/server";
 import Plugin, { PluginReSubs } from "./modules/plugin";
 import WebConfiguration from "./modules/logger";
 import AiChat from "./modules/chat";
-import WhiteList from "./modules/whitelist";
 import Interval from "./modules/management/interval";
 import RefreshConfig from "./modules/management/refresh";
 import { BasicRenderer } from "./modules/renderer";
@@ -22,8 +21,6 @@ import { Job, JobCallback, scheduleJob } from "node-schedule";
 import { trim } from "lodash";
 import { unlinkSync } from "fs";
 import axios, { AxiosError } from "axios";
-import { util } from "icqq/lib/core/protobuf/protobuf.min";
-import { isJsonString } from "@/utils/verify";
 
 /**
  * @interface
@@ -51,7 +48,6 @@ export interface BOT {
 	readonly message: msg.default;
 	readonly mail: MailManagement;
 	readonly command: Command;
-	readonly whitelist: WhiteList;
 	readonly refresh: RefreshConfig;
 	readonly renderer: BasicRenderer;
 }
@@ -70,32 +66,31 @@ export default class Adachi {
 	/* 收集触发刷屏的用户及消息信息 */
 	private screenSwipeInfo: ScreenSwipeInfo = {};
 	/* 自动聊天 */
-	private readonly aiChat: AiChat | null = null;
+	private readonly aiChat: AiChat;
 	
 	constructor( root: string ) {
 		/* 初始化运行环境 */
 		const file = new FileManagement( root );
-		Adachi.setEnv( file );
+		// 是否需要初始化环境
+		const exist = file.isExist( file.getFilePath( "base.yml" ) );
 		
 		const command = new Command( file );
 		const refresh = new RefreshConfig( file, command );
 		
 		/* 初始化应用模块 */
-		const config: BotConfig = <any>(new Proxy(new BotConfigManager( file, refresh ), {
-			get( target: BotConfigManager, p: string, receiver: any ) {
-				if ( Object.keys(BotConfigManager.initConfig).includes(p) ) {
-					return target.value[p];
-				}
-				return target[p];
-			}
-		}));
+		const config = this.getBotConfig( file, refresh );
+		
+		if ( !exist ) {
+			Adachi.setEnv( file );
+		}
+		
 		new WebConfiguration( config );
 		
 		const client = sdk.createClient( {
-			log_level: config.logLevel,
-			platform: config.platform,
-			ffmpeg_path: config.ffmpegPath,
-			ffprobe_path: config.ffprobePath
+			log_level: config.base.logLevel,
+			platform: config.base.platform,
+			ffmpeg_path: config.ffmpeg.ffmpegPath,
+			ffprobe_path: config.ffmpeg.ffprobePath
 		} );
 		const logger = client.logger;
 		
@@ -105,25 +100,20 @@ export default class Adachi {
 			logger.error( reason?.stack || reason?.message || reason );
 		} );
 		
-		if ( config.autoChat.enable ) {
-			this.aiChat = new AiChat( config.autoChat, logger );
-		}
+		this.aiChat = new AiChat( config.autoChat, logger );
 		
-		const redis = new Database( config.dbPort, config.dbPassword, logger, file );
-		const interval = new Interval( config, redis );
-		const auth = new Authorization( config, redis );
-		const message = new msg.default( config, client );
+		const redis = new Database( config.db, logger );
+		const interval = new Interval( config.directive, redis );
+		const auth = new Authorization( config.base, redis );
+		const message = new msg.default( config.base, client );
 		const mail = new MailManagement( config, logger );
-		const whitelist = new WhiteList( file );
 		const renderer = new BasicRenderer();
 		
 		this.bot = {
 			client, command, file, redis,
 			logger, message, mail, auth,
-			interval, config, refresh, renderer,
-			whitelist
+			interval, config, refresh, renderer
 		};
-		refresh.register( "whitelist", whitelist );
 		refresh.register( renderer );
 	}
 	
@@ -152,14 +142,18 @@ export default class Adachi {
 		return this.bot;
 	}
 	
+	private getBotConfig( file: FileManagement, refresh: RefreshConfig ): BotConfig {
+		return <any>( new Proxy( new BotConfigManager( file, refresh ), {
+			get( target: BotConfigManager, p: string, receiver: any ) {
+				if ( p in target.value ) {
+					return target.value[p];
+				}
+				return target[p];
+			}
+		} ) );
+	}
+	
 	private static setEnv( file: FileManagement ): void {
-		const packageData = file.loadFile( "package.json", "root" );
-		globalThis.ADACHI_VERSION = isJsonString( packageData ) ? JSON.parse( packageData ).version || "" : "";
-		
-		const { exist } = file.createYAML( "setting", BotConfigManager.initConfig );
-		if ( exist ) {
-			return;
-		}
 		
 		/* Created by http://patorjk.com/software/taag  */
 		/* Font Name: Big                               */
@@ -177,11 +171,6 @@ export default class Adachi {
 		
 		file.createDir( "database", "root" );
 		file.createDir( "logs", "root" );
-		
-		file.createYAML(
-			"cookies",
-			{ cookies: [ "米游社Cookies(允许设置多个)" ] }
-		);
 		
 		file.createYAML(
 			"commands",
@@ -202,8 +191,8 @@ export default class Adachi {
 		 * Adachi-BOT 不会对任何用户的隐私数据进行收集
 		 * */
 		return async function () {
-			const master: string = md5( _bot.config.master.toString() );
-			const bot: string = md5( _bot.config.number.toString() );
+			const master: string = md5( _bot.config.base.master.toString() );
+			const bot: string = md5( _bot.config.base.number.toString() );
 			const users: string[] = (
 				await _bot.redis.getKeysByPrefix(
 					"adachi.user-used-groups"
@@ -241,7 +230,7 @@ export default class Adachi {
 		/* 账密登录 */
 		/* 处理滑动验证码事件 */
 		this.bot.client.on( "system.login.slider", () => {
-			const number = this.bot.config.number;
+			const number = this.bot.config.base.number;
 			this.bot.logger.mark( `请在5分钟内完成滑动验证,并将获取到的ticket写入到src/data/${ number }/ticket.txt文件中并保存（亦可通过控制台下方输入框键入），或在终端粘贴获取到的ticket，不要重启服务!!!` );
 			const d = new Date();
 			// 创建空的ticket.txt
@@ -258,7 +247,7 @@ export default class Adachi {
 				}
 				const file = this.bot.file.loadFile( ticketPath, "root" );
 				if ( file && file.trim() ) {
-					this.bot.client.sliderLogin( file.trim() );
+					this.bot.client.submitSlider( file.trim() );
 					job.cancel();
 					this.bot.file.writeFile( ticketPath, "", "root" );
 				}
@@ -266,14 +255,14 @@ export default class Adachi {
 			
 			/* 兼容终端输入 */
 			process.stdin.once( "data", ( input ) => {
-				this.bot.client.sliderLogin( input.toString() );
+				this.bot.client.submitSlider( input.toString() );
 				job.cancel();
 			} );
 		} );
 		/* 处理设备锁事件 */
 		this.bot.client.on( "system.login.device", ( { phone } ) => {
 			if ( phone ) {
-				const number = this.bot.config.number;
+				const number = this.bot.config.base.number;
 				this.bot.logger.mark( `请在5分钟内将获取到的短信验证码写入到src/data/${ number }/code.txt文件中并保存（亦可通过控制台下方输入框键入），或在终端粘贴获取到的code，不要重启服务!!!` );
 				this.bot.client.sendSmsCode();
 				const d = new Date();
@@ -291,7 +280,7 @@ export default class Adachi {
 					}
 					const file: string = this.bot.file.loadFile( codePath, "root" );
 					if ( file && file.trim() ) {
-						this.bot.client.submitSMSCode( file.trim() );
+						this.bot.client.submitSmsCode( file.trim() );
 						job.cancel();
 						this.bot.file.writeFile( codePath, "", "root" );
 					}
@@ -299,14 +288,14 @@ export default class Adachi {
 				
 				/* 兼容终端输入 */
 				process.stdin.once( "data", ( input ) => {
-					this.bot.client.submitSMSCode( input.toString() );
+					this.bot.client.submitSmsCode( input.toString() );
 					job.cancel();
 				} );
 			} else {
 				this.qrcodeLogin();
 			}
 		} );
-		if ( this.bot.config.qrcode ) {
+		if ( this.bot.config.base.qrcode ) {
 			/* 扫码登录 */
 			this.bot.client.on( "system.login.qrcode", () => {
 				this.qrcodeLogin();
@@ -314,7 +303,7 @@ export default class Adachi {
 			this.bot.client.login();
 		} else {
 			/* 账密登录 */
-			this.bot.client.login( this.bot.config.number, this.bot.config.password );
+			this.bot.client.login( this.bot.config.base.number, this.bot.config.base.password );
 		}
 	}
 	
@@ -336,7 +325,7 @@ export default class Adachi {
 			return;
 		}
 		
-		if ( isPrivate && this.bot.config.addFriend && messageData.sub_type !== "friend" ) {
+		if ( isPrivate && this.bot.config.base.addFriend && messageData.sub_type !== "friend" ) {
 			if ( unionRegExp.test( content ) ) {
 				await messageData.reply( "请先添加 BOT 为好友再尝试发送指令" );
 			}
@@ -345,8 +334,8 @@ export default class Adachi {
 		
 		/* 人工智障聊天 */
 		if ( !unionRegExp.test( content ) ) {
-			const enable: boolean = isPrivate || ( !this.bot.config.atBOT && isAt );
-			if ( this.aiChat && enable ) {
+			const enable: boolean = isPrivate || ( !this.bot.config.base.atBOT && isAt );
+			if ( this.aiChat.isOpen() && enable ) {
 				await this.aiChat.autoChat( messageData.raw_message, sendMessage );
 			}
 			return;
@@ -384,7 +373,7 @@ export default class Adachi {
 		} )[0];
 		
 		if ( res.type === "unmatch" ) {
-			if ( this.bot.config.matchPrompt ) {
+			if ( this.bot.config.directive.matchPrompt ) {
 				await sendMessage( `指令参数错误 ~ \n` +
 					`你的参数：${ res.param ? res.param : "无" }\n` +
 					`参数格式：${ cmd.desc[1] }\n` +
@@ -445,10 +434,10 @@ export default class Adachi {
 		const bot = that.bot;
 		return async function ( messageData: sdk.PrivateMessageEvent ) {
 			const userID: number = messageData.from_id;
-			const isMaster = userID === bot.config.master;
+			const isMaster = userID === bot.config.base.master;
 			
 			/* 白名单校验 */
-			if ( !isMaster && bot.config.useWhitelist && !bot.whitelist.userValid( userID ) ) {
+			if ( !isMaster && bot.config.whiteList.enable && !that.userValid( userID ) ) {
 				return;
 			}
 			
@@ -478,15 +467,15 @@ export default class Adachi {
 		const bot = that.bot;
 		return async function ( messageData: sdk.GroupMessageEvent ) {
 			const isAt = that.checkAtBOT( messageData );
-			if ( bot.config.atBOT && !isAt ) {
+			if ( bot.config.base.atBOT && !isAt ) {
 				return;
 			}
 			
 			const { sender: { user_id: userID }, group_id: groupID, message_id: messageID, message } = messageData;
-			const isMaster = userID === bot.config.master;
+			const isMaster = userID === bot.config.base.master;
 			
 			/* 白名单校验 */
-			if ( !isMaster && bot.config.useWhitelist && !bot.whitelist.groupValid( groupID, userID ) ) {
+			if ( !isMaster && bot.config.whiteList.enable && !that.groupValid( groupID, userID ) ) {
 				return;
 			}
 			
@@ -529,13 +518,35 @@ export default class Adachi {
 		}
 	}
 	
+	private userValid( userId: number ): boolean {
+		const userList = this.bot.config.whiteList.user;
+		/* 列表内无账号，不限制使用 */
+		if ( userList.length === 0 ) {
+			return true;
+		}
+		return userList.includes( userId );
+	}
+	
+	/* 群组白名单校验 */
+	private groupValid( groupId: number, userId: number ): boolean {
+		if ( !this.userValid( userId ) ) {
+			return false;
+		}
+		const groupList = this.bot.config.whiteList.group;
+		/* 列表内无账号，不限制使用 */
+		if ( groupList.length === 0 ) {
+			return true;
+		}
+		return groupList.includes( groupId );
+	}
+	
 	// 检测超量使用
 	private async checkThreshold( userID: number ): Promise<boolean> {
-		const thresholdInterval: boolean = this.bot.config.ThresholdInterval;
+		const thresholdInterval: boolean = this.bot.config.directive.ThresholdInterval;
 		if ( !thresholdInterval ) return true;
 		
 		// 当需要超量禁用时，进行处理
-		const threshold: number = this.bot.config.countThreshold;
+		const threshold: number = this.bot.config.directive.countThreshold;
 		const dbKey: string = "adachi.hour-stat";
 		const data = await this.bot.redis.getHash( dbKey );
 		
@@ -622,7 +633,7 @@ export default class Adachi {
 	}
 	
 	private checkAtBOT( msg: sdk.GroupMessageEvent ): boolean {
-		const { number } = this.bot.config;
+		const { number } = this.bot.config.base;
 		if ( msg.atme ) {
 			const atBotReg = new RegExp( `\\[CQ:at,type=at,qq=${number}.*?]` );
 			msg.raw_message = msg.toCqcode()
@@ -641,7 +652,7 @@ export default class Adachi {
 				return;
 			}
 			const inviterID: number = data.user_id;
-			if ( await bot.auth.check( inviterID, bot.config.inviteAuth ) ) {
+			if ( await bot.auth.check( inviterID, bot.config.base.inviteAuth ) ) {
 				const delay = Math.random() * ( 5 - 2 ) + 2;
 				setTimeout( async () => {
 					await bot.client.setGroupAddRequest( data.flag );
@@ -693,13 +704,13 @@ export default class Adachi {
 	private botOffline( that: Adachi ) {
 		const bot = that.bot;
 		return async function () {
-			if ( !bot.config.mailConfig.logoutSend || that.deadTimer ) return;
+			if ( !bot.config.mail.logoutSend || that.deadTimer ) return;
 			
 			if ( !that.lastOnline ) {
 				that.lastOnline = moment();
 			}
 			
-			const { sendDelay, retry, retryWait } = bot.config.mailConfig;
+			const { sendDelay, retry, retryWait } = bot.config.mail;
 			that.deadTimer = setTimeout( () => {
 				const lastTime: string = that.lastOnline!.format( "YYYY-MM-DD HH:mm:ss" );
 				bot.mail.sendMaster( {
@@ -724,7 +735,7 @@ export default class Adachi {
 	private friendDecrease( that: Adachi ) {
 		const bot = that.bot
 		return async function ( friendDate: sdk.FriendDecreaseEvent ) {
-			if ( bot.config.addFriend ) {
+			if ( bot.config.base.addFriend ) {
 				const userId = friendDate.user_id;
 				for ( const plugin in PluginReSubs ) {
 					try {
@@ -742,7 +753,7 @@ export default class Adachi {
 		const bot = that.bot;
 		return function (): void {
 			bot.redis.getHash( "adachi.hour-stat" ).then( async data => {
-				const threshold: number = bot.config.countThreshold;
+				const threshold: number = bot.config.directive.countThreshold;
 				const cmdOverusedUser: string[] = Object.keys( data ).filter( key => {
 					return parseInt( data[key] ) > threshold;
 				} );

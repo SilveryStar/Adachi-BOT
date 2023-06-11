@@ -171,7 +171,7 @@ async function getGroupInfo( info: GroupInfo ): Promise<GroupData | undefined> {
 	const groupName: string = info.group_name;
 	const groupAvatar: string = `http://p.qlogo.cn/gh/${ groupId }/${ groupId }/100/`;
 	
-	const botGroupInfo: MemberInfo | undefined = ( await bot.client.pickMember( groupId, bot.config.number ) ).info;
+	const botGroupInfo: MemberInfo | undefined = ( await bot.client.pickMember( groupId, bot.config.base.number ) ).info;
 	
 	if ( !botGroupInfo ) {
 		return undefined;
