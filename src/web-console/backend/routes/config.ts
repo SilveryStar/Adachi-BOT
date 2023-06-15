@@ -1,7 +1,7 @@
 import express from "express";
 import { mergeWith } from "lodash";
 import bot from "ROOT";
-import { PluginList } from "@/modules/plugin";
+import Plugin from "@/modules/plugin";
 import { PluginConfig } from "@/web-console/types/config";
 import { BotConfigValue } from "@/modules/config";
 
@@ -120,7 +120,8 @@ export default express.Router()
 	.get( "/plugins", ( req, res ) => {
 		try {
 			const data: PluginConfig[] = [];
-			for ( const plugin in PluginList ) {
+			const pluginList = Plugin.getInstance().pluginList;
+			for ( const plugin in pluginList ) {
 				const configFiles = bot.file.getDirFiles( plugin );
 				if ( !configFiles.length ) continue;
 				
@@ -137,7 +138,7 @@ export default express.Router()
 					} );
 				} )
 				
-				const name = PluginList[plugin].name;
+				const name = pluginList[plugin].name;
 				
 				data.push( { name, plugin, configs } );
 			}

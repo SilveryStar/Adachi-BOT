@@ -10,6 +10,7 @@ import '&/assets/styles/css-vars.scss'
 import "./permission";
 
 const app = createApp( App );
+app.config.warnHandler = () => null;
 const pinia = createStore();
 app.use( router )
 	.use( pinia )

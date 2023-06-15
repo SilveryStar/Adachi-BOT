@@ -1,7 +1,6 @@
 import cfgList from "./commands";
 import { Renderer } from "@/modules/renderer";
-import { BOT } from "@/main";
-import { definePlugin, PluginSubSetting, SubInfo } from "@/modules/plugin";
+import { definePlugin } from "@/modules/plugin";
 import * as m from "./module";
 import routers from "#/genshin/routes";
 import { getRandomString } from "@/utils/random";
@@ -45,34 +44,6 @@ function initModules( cookie: string[] ) {
 	privateClass = new m.PrivateClass();
 }
 
-/* 删除好友后清除订阅服务 */
-async function decreaseFriend( userId: number, { redis }: BOT ) {
-	await privateClass.delBatchPrivate( userId );
-	await redis.deleteKey( `silvery-star.daily-sub-${ userId }` );
-}
-
-export async function subs( { redis }: BOT ): Promise<SubInfo[]> {
-	const dailySub: string[] = await redis.getKeysByPrefix( "silvery-star.daily-sub-" );
-	const dailySubUsers: number[] = dailySub.map( el => {
-		return parseInt( <string>el.split( "-" ).pop() );
-	} );
-	
-	return [ {
-		name: "私人服务",
-		users: privateClass.getUserIDList()
-	}, {
-		name: "素材订阅",
-		users: dailySubUsers
-	} ]
-}
-
-export async function subInfo(): Promise<PluginSubSetting> {
-	return {
-		subs: subs,
-		reSub: decreaseFriend
-	}
-}
-
 export default definePlugin( {
 	name: "原神",
 	cfgList,
@@ -89,8 +60,43 @@ export default definePlugin( {
 			return path.replace( "Version3/genshin/", "" );
 		}
 	},
+	subscribe: [
+		{
+			name: "私人服务",
+			getUser() {
+				return {
+					person: privateClass.getUserIDList()
+				}
+			},
+			async reSub( userId, type ) {
+				if ( type === "private" ) {
+					await privateClass.delBatchPrivate( userId );
+				}
+			}
+		}, {
+			name: "素材订阅",
+			async getUser( { redis } ) {
+				const dailyUserIds: string[] = await redis.getKeysByPrefix( "silvery-star.daily-sub-" );
+				const dailyGroupIds: string[] = await redis.getList( "silvery-star.daily-sub-group" );
+				return {
+					person: dailyUserIds
+						.map( el => parseInt( <string>el.split( "-" ).pop() ) )
+						.filter( el => !!el ),
+					group: dailyGroupIds.map( id => Number.parseInt( id ) )
+				}
+			},
+			async reSub( userId, type, { redis } ) {
+				if ( type === "private" ) {
+					await redis.deleteKey( `silvery-star.daily-sub-${ userId }` );
+				} else {
+					const dbKey: string = "silvery-star.daily-sub-group";
+					redis.delListElement( dbKey, userId.toString() );
+				}
+			}
+		}
+	],
 	/* 初始化模块 */
-	completed( param ) {
+	mounted( param ) {
 		/* 加载 genshin.yml 配置 */
 		config = param.configRegister( "main", initConfig );
 		const cookieCfg = param.configRegister( "cookies", {

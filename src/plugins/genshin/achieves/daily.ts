@@ -9,9 +9,11 @@ export async function main(
 	const [ name ] = match.match;
 	
 	const intReg: RegExp = new RegExp( /\d+/g );
-
+	
 	const isGroupID: boolean = intReg.test( name ) && name.length >= 6;
-	await sendMessage( await dailyClass.modifySubscription(
-		userID, match.isOn(), name, isGroupID
-	) );
+	const result: string = isGroupID
+		? await dailyClass.modifySubscriptGroup( name, match.isOn() )
+		: await dailyClass.modifySubscriptUser( userID, match.isOn(), name );
+	
+	await sendMessage( result );
 }

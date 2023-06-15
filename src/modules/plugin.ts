@@ -27,22 +27,6 @@ export interface ServerRouters {
 	router: Router;
 }
 
-export interface PluginLoadResult {
-	renderRoutes: Array<RenderRoutes>;
-	serverRouters: Array<ServerRouters>;
-	registerCmd: Array<BasicConfig>;
-}
-
-export type SubInfo = {
-	name: string;
-	users: number[];
-};
-
-export type PluginSubSetting = {
-	subs: ( bot: BOT ) => Promise<SubInfo[]>;
-	reSub: ( userId: number, bot: BOT ) => Promise<void>;
-}
-
 export type PluginParameter = {
 	renderRegister: ( defaultSelector: string ) => Renderer;
 	configRegister: <T extends Record<string, any>>(
@@ -53,7 +37,36 @@ export type PluginParameter = {
 	) => ExportConfig<T>;
 } & BOT;
 
+export interface PluginInfo {
+	key: string;
+	name: string;
+	upgrade?: string;
+	aliases: string[];
+	commands: BasicConfig[];
+	cmdConfigs: cmd.ConfigType[];
+	servers: ServerRouters[];
+	renders: RenderRoutes[];
+	subscribe: PluginSetting["subscribe"];
+	unmounted?: PluginHook;
+}
+
+interface IOssListObject {
+	name: string;
+	url: string;
+	lastModified: string;
+	etag: string;
+	type: string;
+	size: number;
+	storageClass: string;
+	owner: null;
+}
+
 export type PluginHook = ( input: PluginParameter ) => void | Promise<void>;
+
+type SubUser = {
+	person?: number[];
+	group?: number[];
+};
 
 export interface PluginSetting {
 	name: string;
@@ -77,357 +90,436 @@ export interface PluginSetting {
 		noOverride?: string[];  // 此配置项列举的拓展名文件，当位于用户配置的忽略文件中时，仍下载更新，但仅更新新增内容不对原内容进行覆盖
 		replacePath?: ( path: string ) => string; // 修改下载后的文件路径
 	};
-	completed?: PluginHook; // 更新完毕后的回调函数
+	subscribe?: {
+		name: string;
+		getUser: ( bot: BOT ) => Promise<SubUser> | SubUser;
+		reSub: ( userId: number, type: "private" | "group", bot: BOT ) => Promise<void> | void;
+	}[];
+	mounted?: PluginHook; // 钩子函数：插件加载完毕时触发
+	unmounted?: PluginHook; // 钩子函数：插件卸载/重载时触发
 }
-
-export const PluginReSubs: Record<string, PluginSubSetting> = {};
-
-export const PluginRawConfigs: Record<string, Pick<PluginSetting, "name" | "cfgList">> = {};
-
-export const PluginUpgradeServices: Record<string, string> = {};
-
-export const PluginAlias: Record<string, string> = {};
-
-export const PluginList: Record<string, any> = {};
 
 export const definePlugin = <T extends PluginSetting>( config: T ) => config;
 
-// 不支持热更新的插件集合，这些插件不会被提示不支持热更新。
-const not_support_upgrade_plugins: string[] = [ "@help", "@management", "genshin", "tools" ];
-
 export default class Plugin {
-	public static async load( bot: BOT ): Promise<PluginLoadResult> {
-		const packageData = bot.file.loadFile( "package.json", "root" );
-		globalThis.ADACHI_VERSION = isJsonString( packageData ) ? JSON.parse( packageData ).version || "" : "";
-		globalThis.definePlugin = ( config ) => config;
-		
-		const commandConfig: Record<string, any> = bot.file.loadYAML( "commands" ) || {};
-		const plugins: string[] = bot.file.getDirFiles( "", "plugin" );
-		const renderRoutes: Array<RenderRoutes> = [];
-		const serverRouters: Array<ServerRouters> = [];
-		const registerCmd: BasicConfig[] = [];
-		// 要写入的 command.yml 配置文件内容
-		let cmdConfig = {};
+	private static _instance: Plugin | null = null;
+	public pluginList: Record<string, PluginInfo> = {};
+	
+	constructor( private readonly bot: BOT ) {
+	}
+	
+	public static getInstance( bot?: BOT ): Plugin {
+		if ( !Plugin._instance ) {
+			if ( !bot ) {
+				throw new Error( "获取 plugin 实例出错" );
+			}
+			Plugin._instance = new Plugin( bot );
+		}
+		return Plugin._instance;
+	}
+	
+	public async load(): Promise<Record<string, PluginInfo>> {
+		const plugins: string[] = this.bot.file.getDirFiles( "", "plugin" );
 		
 		/* 从 plugins 文件夹从导入 init.ts 进行插件初始化 */
-		for ( let plugin of plugins ) {
-			try {
-				const init = await import( `#/${ plugin }/init.ts` );
-				const {
-					name,
-					renderer,
-					server,
-					cfgList,
-					repo,
-					aliases,
-					assets,
-					completed
-				}: PluginSetting = init.default;
-				// 检查更新插件静态资源
-				await checkUpdate( plugin, name, assets, bot );
-				// if ( subInfo ) {
-				// 	const { reSub, subs }: PluginSubSetting = await subInfo( bot );
-				// 	PluginReSubs[name] = { reSub, subs };
-				// }
-				// 加载前端渲染页面路由
-				if ( renderer ) {
-					const renderDir = getObjectKeyValue( renderer, "dirname", "views" );
-					const mainFiles = getObjectKeyValue( renderer, "mainFiles", [ "index" ] );
-					const views = bot.file.getDirFiles( `${ plugin }/${ renderDir }`, "plugin" );
-					views.forEach( v => {
-						const route = setRenderRoute( bot, plugin, renderDir, mainFiles, v );
-						if ( route ) {
-							renderRoutes.push( route );
-						}
-					} );
-				}
-				// 加载 express server 路由
-				if ( server?.routers ) {
-					Object.entries( server.routers ).forEach( ( [ path, router ] ) => {
-						serverRouters.push( {
-							path: `/${ plugin }${ path }`,
-							router
-						} )
-					} )
-				}
-				const [ commands, cmdConfigItem ] = await Plugin.parse( bot, cfgList, plugin, name, commandConfig );
-				PluginRawConfigs[plugin] = { name, cfgList };
-				if ( !not_support_upgrade_plugins.includes( name ) ) {
-					PluginUpgradeServices[name] = repo ?
-						typeof repo === "string" ?
-							`https://api.github.com/repos/${ repo }/commits` :
-							`https://api.github.com/repos/${ repo.owner }/${ repo.repoName }/commits${ repo.ref ? "/" + repo.ref : "" }`
-						: ""
-				}
-				if ( aliases && aliases.length > 0 ) {
-					for ( let alias of aliases ) {
-						PluginAlias[alias] = name;
-					}
-				}
-				registerCmd.push( ...commands );
-				cmdConfig = { ...cmdConfig, ...cmdConfigItem };
-				
-				const configRegister: PluginParameter["configRegister"] = ( fileName, initCfg, setValueCallBack?, refreshCallBack? ) => {
-					return bot.config.register( `${ plugin }/${ fileName }`, initCfg, setValueCallBack );
-				}
-				
-				const renderRegister: PluginParameter["renderRegister"] = defaultSelector => {
-					return bot.renderer.register( `/${ plugin }`, defaultSelector );
-				}
-				
-				// 生命周期：插件加载完成
-				if ( completed ) {
-					await completed( { ...bot, renderRegister, configRegister } );
-				}
-				
-				PluginList[plugin] = {
-					name
-				};
-				
-				bot.logger.info( `插件 ${ name } 加载完成` );
-			} catch ( error ) {
-				bot.logger.error( `插件 ${ plugin } 加载异常: ${ <string>error }` );
-			}
+		for ( let pluginKey of plugins ) {
+			await this.loadSingle( pluginKey, false );
 		}
-		
-		bot.file.writeYAML( "commands", cmdConfig );
-		return { renderRoutes, serverRouters, registerCmd };
+		await this.bot.command.reload();
+		return this.pluginList;
 	}
 	
-	public static async parse(
-		bot: BOT,
-		cfgList: cmd.ConfigType[],
-		pluginPath: string,
-		pluginName: string,
-		configData: Record<string, any>
-	): Promise<[ cmd.BasicConfig[], Record<string, any> ]> {
-		const commands: cmd.BasicConfig[] = [];
+	/* 加载插件 */
+	public async loadSingle( pluginKey: string, reload: boolean = true ) {
+		try {
+			const path: string = this.bot.file.getFilePath( `${ pluginKey }/init`, "plugin" );
+			Reflect.deleteProperty( require.cache, require.resolve( path ) );
+			const init = require( path );
+			const {
+				name: pluginName,
+				renderer,
+				server,
+				cfgList,
+				repo,
+				aliases,
+				assets,
+				subscribe,
+				mounted,
+				unmounted
+			}: PluginSetting = init.default;
+			
+			// 检查更新插件静态资源
+			await this.checkUpdate( pluginKey, pluginName, assets );
+			
+			const plugin: PluginInfo = {
+				key: pluginKey,
+				name: pluginName,
+				aliases: aliases || [],
+				commands: [],
+				cmdConfigs: cfgList,
+				servers: [],
+				renders: [],
+				subscribe,
+				unmounted
+			}
+			
+			// 加载前端渲染页面路由
+			if ( renderer ) {
+				const renderDir = getObjectKeyValue( renderer, "dirname", "views" );
+				const mainFiles = getObjectKeyValue( renderer, "mainFiles", [ "index" ] );
+				const views = this.bot.file.getDirFiles( `${ pluginKey }/${ renderDir }`, "plugin" );
+				views.forEach( v => {
+					const route = this.setRenderRoute( pluginKey, renderDir, mainFiles, v );
+					if ( route ) {
+						plugin.renders.push( route );
+					}
+				} );
+			}
+			// 加载 express server 路由
+			if ( server?.routers ) {
+				Object.entries( server.routers ).forEach( ( [ path, router ] ) => {
+					plugin.servers.push( {
+						path: `/${ pluginKey }${ path }`,
+						router
+					} )
+				} )
+			}
+			
+			if ( repo ) {
+				const serverUrl = typeof repo === "string"
+					? `${ repo }/commits`
+					: `${ repo.owner }/${ repo.repoName }/commits${ repo.ref ? "/" + repo.ref : "" }`;
+				
+				plugin.upgrade = "https://api.github.com/repos/" + serverUrl;
+			}
+			
+			// 生命周期：插件加载完成
+			if ( mounted ) {
+				await mounted( this.getPluginParameter( pluginKey ) );
+			}
+			
+			this.pluginList[pluginKey] = plugin;
+			
+			if ( reload ) {
+				await this.bot.command.reload();
+			}
+			
+			this.bot.logger.info( `插件 ${ pluginName } 加载完成` );
+		} catch ( error ) {
+			this.bot.logger.error( `插件 ${ pluginKey } 加载异常: ${ <string>error }` );
+		}
+	}
+	
+	public async reloadSingle( pluginKey: string, reload: boolean = true ) {
+		try {
+			const oldInfo = this.pluginList[pluginKey];
+			if ( oldInfo.unmounted ) {
+				oldInfo.unmounted( this.getPluginParameter( pluginKey ) );
+			}
+			Reflect.deleteProperty( this.pluginList, pluginKey );
+			await this.loadSingle( pluginKey, reload );
+			return {
+				oldInfo,
+				newInfo: this.pluginList[pluginKey]
+			}
+		} catch ( error ) {
+			this.bot.logger.error( `插件 ${ pluginKey } 重载异常: ${ <string>error }` );
+		}
+	}
+	
+	public async reload() {
+		for ( const pluginKey in this.pluginList ) {
+			const pluginInfo = this.pluginList[pluginKey];
+			if ( pluginInfo.unmounted ) {
+				try {
+					await pluginInfo.unmounted( this.getPluginParameter( pluginKey ) );
+				} catch ( error ) {
+					this.bot.logger.error( `插件 ${ pluginKey } unmounted 钩子执行异常: ${ <string>error }` );
+				}
+			}
+		}
+		const oldList = this.pluginList;
+		this.pluginList = {};
+		await this.load();
+		return {
+			oldList,
+			newList: this.pluginList
+		}
+	}
+	
+	/* 卸载插件 */
+	public async unLoadSingle( pluginKey: string ) {
+		try {
+			const pluginInfo = this.pluginList[pluginKey];
+			if ( pluginInfo.unmounted ) {
+				pluginInfo.unmounted( this.getPluginParameter( pluginKey ) );
+			}
+			Reflect.deleteProperty( this.pluginList, pluginKey );
+			await this.bot.command.reload();
+			return pluginInfo;
+		} catch ( error ) {
+			this.bot.logger.error( `插件 ${ pluginKey } 卸载异常: ${ <string>error }` );
+		}
+	}
+	
+	/* 通过别名获取插件信息 */
+	public getPluginInfoByAlias( alias: string ) {
+		return Object.values( this.pluginList ).filter( pluginInfo => {
+			return pluginInfo.name === alias || pluginInfo.aliases.includes( alias );
+		} );
+	}
+	
+	/* 移除指定目标下的指定插件的所有订阅 */
+	public remPluginSub( { subscribe, name }: PluginInfo, type: "private" | "group", targetId: number ) {
+		try {
+			if ( subscribe ) {
+				for ( const { reSub } of subscribe ) {
+					reSub( targetId, type, this.bot );
+				}
+			}
+		} catch ( error ) {
+			this.bot.logger.error( `插件${ name }取消订阅事件执行异常：${ <string>error }` )
+		}
+	}
+	
+	/* 移除指定目标下的所有订阅 */
+	public remSub( type: "private" | "group", targetId: number ) {
+		for ( const pluginKey in this.pluginList ) {
+			this.remPluginSub( this.pluginList[pluginKey], type, targetId );
+		}
+	}
+	
+	public async parse( pluginKey: string, configData: Record<string, any> ): Promise<Record<string, any>> {
 		const configList: Record<string, any> = {};
+		const pluginInfo = this.pluginList[ pluginKey ];
+		pluginInfo.commands = [];
 		
 		/* 此处删除所有向后兼容代码 */
-		for ( const config of cfgList ) {
-			{
-				/* 允许 main 传入函数 */
-				if ( typeof config.main === "string" ) {
-					const main: string = config.main || "index";
-					const { main: entry } = await import(`#/${ pluginPath }/${ main }`);
-					config.run = entry;
-				} else {
-					config.run = config.main;
+		for ( const config of pluginInfo.cmdConfigs ) {
+			/* 允许 main 传入函数 */
+			if ( typeof config.main === "string" ) {
+				const main: string = config.main || "index";
+				const { main: entry } = await import(`#/${ pluginInfo.key }/${ main }`);
+				config.run = entry;
+			} else {
+				config.run = config.main;
+			}
+			
+			const key: string = config.cmdKey;
+			const loaded = configData[key];
+			
+			/* 读取 commands.yml 配置，创建指令实例  */
+			try {
+				let command: cmd.BasicConfig;
+				switch ( config.type ) {
+					case "order":
+						if ( loaded ) cmd.Order.read( config, loaded );
+						command = new cmd.Order( config, this.bot.config, pluginInfo.name );
+						break;
+					case "switch":
+						if ( loaded ) cmd.Switch.read( config, loaded );
+						command = new cmd.Switch( config, this.bot.config, pluginInfo.name );
+						break;
+					case "enquire":
+						if ( loaded ) cmd.Enquire.read( config, loaded );
+						command = new cmd.Enquire( config, this.bot.config, pluginInfo.name );
+						break;
 				}
-				
-				const key: string = config.cmdKey;
-				const loaded = configData[key];
-				
-				/* 读取 commands.yml 配置，创建指令实例  */
-				try {
-					let command: cmd.BasicConfig;
-					switch ( config.type ) {
-						case "order":
-							if ( loaded ) cmd.Order.read( config, loaded );
-							command = new cmd.Order( config, bot.config, pluginName );
-							break;
-						case "switch":
-							if ( loaded ) cmd.Switch.read( config, loaded );
-							command = new cmd.Switch( config, bot.config, pluginName );
-							break;
-						case "enquire":
-							if ( loaded ) cmd.Enquire.read( config, loaded );
-							command = new cmd.Enquire( config, bot.config, pluginName );
-							break;
-					}
-					if ( !loaded || loaded.enable ) {
-						commands.push( command );
-					}
-					configList[key] = command.write();
-				} catch ( error ) {
-					bot.logger.error( <string>error );
+				if ( !loaded || loaded.enable ) {
+					pluginInfo.commands.push( command );
 				}
+				configList[key] = command.write();
+			} catch ( error ) {
+				this.bot.logger.error( <string>error );
 			}
 		}
-		return [ commands, configList ];
+		return configList;
 	}
-}
-
-interface IOssListObject {
-	name: string;
-	url: string;
-	lastModified: string;
-	etag: string;
-	type: string;
-	size: number;
-	storageClass: string;
-	owner: null;
-}
-
-// to do: 未实现删除被移除的文件
-// 1、获取本地清单文件内容 manifestData
-// 2、传递本地清单文件调用接口，接口：获取线上清单目录文件，diff算法对比两个清单文件差异性，返回差异性部分
-// 3、依次下载清单文件列表文件，每下载完成一个时更新 manifestData 内容
-// 4、下载完毕后以 manifestData 内容更新本地清单文件
-async function checkUpdate( plugin: string, pluginName: string, assets: PluginSetting["assets"], bot: BOT ): Promise<void> {
-	if ( !assets ) return;
-	const commonUrl = `assets/${ plugin }`;
-	const baseUrl = `public/${ commonUrl }`;
-	const manifestName = `${ baseUrl }/manifest`;
-	// 该清单列表中的文件内容不会进行覆盖，仅做更新处理
-	const ignoreName = `${ baseUrl }/.adachiignore`;
 	
-	const { path: ignorePath } = bot.file.createFile( ignoreName, "", "root" );
-	
-	const manifest = <IOssListObject[]>( bot.file.loadYAML( manifestName, "root" ) || [] );
-	let res: AxiosResponse<{
-		code: number;
-		data: IOssListObject[];
-		msg: string;
-	}>;
-	
-	let data: IOssListObject[];
-	
-	try {
-		res = await axios.post( "https://api-kozakura.marrydream.top/common/adachi/v1/oss/update/files", {
-			url: typeof assets === "string" ? assets : assets.manifestUrl,
-			list: manifest
-		} );
-		data = res.data.data;
-	} catch ( error: any ) {
-		if ( ( <AxiosError>error ).response?.status === 415 ) {
-			throw getObjectKeyValue( assets, "overflowPrompt", "更新文件数量超过阈值，请手动更新资源包" );
-		} else {
-			data = [];
-			bot.logger.error( `检查更新失败，远程服务器异常：${ <string>error }` )
+	private getPluginParameter( key: string ): PluginParameter {
+		const bot = this.bot;
+		return {
+			...bot,
+			configRegister( fileName, initCfg, setValueCallBack?, refreshCallBack? ) {
+				return bot.config.register( `${ key }/${ fileName }`, initCfg, setValueCallBack );
+			},
+			renderRegister( defaultSelector ) {
+				return bot.renderer.register( `/${ key }`, defaultSelector );
+			}
 		}
 	}
-	// 不存在更新项，返回
-	if ( !data.length ) {
-		bot.logger.info( `未检测到 ${ pluginName } 可更新静态资源` );
-		return;
-	}
 	
-	const progress = new Progress( `下载 ${ pluginName } 静态资源`, data.length );
-	
-	let downloadNum: number = 0, errorNum: number = 0;
-	// 更新图片promise列表
-	const updatePromiseList: Promise<void>[] = [];
-	
-	data.forEach( file => {
-		const replacePath = getObjectKeyValue( assets, "replacePath", null );
-		const filePath = replacePath ? replacePath( file.name ) : file.name;
+	/**
+	 * todo: 未实现删除被移除的文件
+	 * 1、获取本地清单文件内容 manifestData
+	 * 2、传递本地清单文件调用接口，接口：获取线上清单目录文件，diff算法对比两个清单文件差异性，返回差异性部分
+	 * 3、依次下载清单文件列表文件，每下载完成一个时更新 manifestData 内容
+	 * 4、下载完毕后以 manifestData 内容更新本地清单文件
+	 */
+	private async checkUpdate( plugin: string, pluginName: string, assets: PluginSetting["assets"] ): Promise<void> {
+		if ( !assets ) return;
+		const commonUrl = `assets/${ plugin }`;
+		const baseUrl = `public/${ commonUrl }`;
+		const manifestName = `${ baseUrl }/manifest`;
+		// 该清单列表中的文件内容不会进行覆盖，仅做更新处理
+		const ignoreName = `${ baseUrl }/.adachiignore`;
 		
-		// 是否为清单排除文件
-		const isIgnore = isIgnorePath( ignorePath, bot.file.getFilePath( `${ baseUrl }/${ filePath }`, "root" ) );
-		const noOverrideList = getObjectKeyValue( assets, "noOverride", [ "yml", "json" ] )
+		const { path: ignorePath } = this.bot.file.createFile( ignoreName, "", "root" );
 		
-		const fileExt = extname( file.url ).slice( 1 );
-		// 位于排除文件中，不进行更新
-		if ( isIgnore && !noOverrideList.includes( fileExt ) ) {
+		const manifest = <IOssListObject[]>( this.bot.file.loadYAML( manifestName, "root" ) || [] );
+		let res: AxiosResponse<{
+			code: number;
+			data: IOssListObject[];
+			msg: string;
+		}>;
+		
+		let data: IOssListObject[];
+		
+		try {
+			res = await axios.post( "https://api-kozakura.marrydream.top/common/adachi/v1/oss/update/files", {
+				url: typeof assets === "string" ? assets : assets.manifestUrl,
+				list: manifest
+			} );
+			data = res.data.data;
+		} catch ( error: any ) {
+			if ( ( <AxiosError>error ).response?.status === 415 ) {
+				throw getObjectKeyValue( assets, "overflowPrompt", "更新文件数量超过阈值，请手动更新资源包" );
+			} else {
+				data = [];
+				this.bot.logger.error( `检查更新失败，远程服务器异常：${ <string>error }` )
+			}
+		}
+		// 不存在更新项，返回
+		if ( !data.length ) {
+			this.bot.logger.info( `未检测到 ${ pluginName } 可更新静态资源` );
 			return;
 		}
-		updatePromiseList.push( ( async () => {
-			try {
-				const pathList = [ `${ baseUrl }/${ filePath }` ];
-				
-				if ( process.env.NODE_ENV === "production" ) {
-					pathList.push( `dist/${ commonUrl }/${ filePath }` );
-				}
-				await bot.file.downloadFile( file.url, pathList, data => {
-					// 不再忽略清单文件中时直接返回原数据
-					if ( !isIgnore ) {
-						return data;
+		
+		const progress = new Progress( `下载 ${ pluginName } 静态资源`, data.length );
+		
+		let downloadNum: number = 0, errorNum: number = 0;
+		// 更新图片promise列表
+		const updatePromiseList: Promise<void>[] = [];
+		
+		data.forEach( file => {
+			const replacePath = getObjectKeyValue( assets, "replacePath", null );
+			const filePath = replacePath ? replacePath( file.name ) : file.name;
+			
+			// 是否为清单排除文件
+			const isIgnore = isIgnorePath( ignorePath, this.bot.file.getFilePath( `${ baseUrl }/${ filePath }`, "root" ) );
+			const noOverrideList = getObjectKeyValue( assets, "noOverride", [ "yml", "json" ] )
+			
+			const fileExt = extname( file.url ).slice( 1 );
+			// 位于排除文件中，不进行更新
+			if ( isIgnore && !noOverrideList.includes( fileExt ) ) {
+				return;
+			}
+			updatePromiseList.push( ( async () => {
+				try {
+					const pathList = [ `${ baseUrl }/${ filePath }` ];
+					
+					if ( process.env.NODE_ENV === "production" ) {
+						pathList.push( `dist/${ commonUrl }/${ filePath }` );
 					}
-					// 对仅更新新内容不覆盖原内容的文件数据进行处理
-					const onlineData: string = data.toString();
-					const oldFileData = bot.file.loadFile( pathList[0], "root" );
-					let oldValue: any, newValue: any;
-					if ( fileExt === "yml" ) {
-						oldValue = parse( oldFileData );
-						// 此时文件内容无法比对，直接返回原内容不进行覆盖
-						if ( typeof oldValue === "string" ) {
-							return oldFileData;
+					await this.bot.file.downloadFile( file.url, pathList, data => {
+						// 不再忽略清单文件中时直接返回原数据
+						if ( !isIgnore ) {
+							return data;
 						}
-						newValue = parse( onlineData );
+						// 对仅更新新内容不覆盖原内容的文件数据进行处理
+						const onlineData: string = data.toString();
+						const oldFileData = this.bot.file.loadFile( pathList[0], "root" );
+						let oldValue: any, newValue: any;
+						if ( fileExt === "yml" ) {
+							oldValue = parse( oldFileData );
+							// 此时文件内容无法比对，直接返回原内容不进行覆盖
+							if ( typeof oldValue === "string" ) {
+								return oldFileData;
+							}
+							newValue = parse( onlineData );
+						} else {
+							// 此时文件内容无法比对，直接返回原内容不进行覆盖
+							if ( !isJsonString( oldFileData ) || !isJsonString( onlineData ) ) {
+								return oldFileData;
+							}
+							oldValue = JSON.parse( oldFileData );
+							newValue = JSON.parse( onlineData );
+						}
+						const newFileData = compareAssembleObject( oldValue, newValue, false, "merge" );
+						return fileExt === "yml" ? stringify( newFileData ) : JSON.stringify( newFileData );
+					} );
+					
+					// 下载成功后新增清单项
+					// 若清单项已存在则先删除再添加
+					const key = manifest.findIndex( item => item.name === file.name );
+					if ( key !== -1 ) {
+						manifest.splice( key, 1, file );
 					} else {
-						// 此时文件内容无法比对，直接返回原内容不进行覆盖
-						if ( !isJsonString( oldFileData ) || !isJsonString( onlineData ) ) {
-							return oldFileData;
-						}
-						oldValue = JSON.parse( oldFileData );
-						newValue = JSON.parse( onlineData );
+						manifest.push( file );
 					}
-					const newFileData = compareAssembleObject( oldValue, newValue, false, "merge" );
-					return fileExt === "yml" ? stringify( newFileData ) : JSON.stringify( newFileData );
-				} );
-				
-				// 下载成功后新增清单项
-				// 若清单项已存在则先删除再添加
-				const key = manifest.findIndex( item => item.name === file.name );
-				if ( key !== -1 ) {
-					manifest.splice( key, 1, file );
-				} else {
-					manifest.push( file );
+				} catch ( error ) {
+					errorNum++;
 				}
-			} catch ( error ) {
-				errorNum++;
-			}
-			downloadNum++;
-			progress.renderer( downloadNum, `下载失败：${ errorNum }`, bot.config.webConsole.enable );
-		} )() );
-	} );
-	
-	// 不存在更新项，返回
-	if ( !updatePromiseList.length ) {
-		bot.logger.info( `未检测到 ${ pluginName } 可更新静态资源` );
-		return;
+				downloadNum++;
+				progress.renderer( downloadNum, `下载失败：${ errorNum }`, this.bot.config.webConsole.enable );
+			} )() );
+		} );
+		
+		// 不存在更新项，返回
+		if ( !updatePromiseList.length ) {
+			this.bot.logger.info( `未检测到 ${ pluginName } 可更新静态资源` );
+			return;
+		}
+		
+		// 重新设置进度条长度
+		progress.setTotal( updatePromiseList.length );
+		
+		// 遍历下载资源文件
+		await Promise.all( updatePromiseList );
+		
+		// 写入清单文件
+		this.bot.file.writeYAML( manifestName, manifest, "root" );
 	}
 	
-	// 重新设置进度条长度
-	progress.setTotal( updatePromiseList.length );
-	
-	// 遍历下载资源文件
-	await Promise.all( updatePromiseList );
-	
-	// 写入清单文件
-	bot.file.writeYAML( manifestName, manifest, "root" );
-}
-
-/* 获取插件渲染页的路由对象 */
-function setRenderRoute( bot: BOT, plugin: string, renderDir: string, mainFiles: string[], view: string ): RenderRoutes | null {
-	let route: RenderRoutes | null = null;
-	const ext: string = extname( view );
-	if ( ext === ".vue" ) {
-		// 加载后缀名为 vue 的文件
-		const fileName: string = view.replace( /\.vue$/, "" );
-		route = {
-			path: `/${ plugin }/${ fileName }`,
-			componentData: {
-				plugin,
-				renderDir,
-				fileName
+	/* 获取插件渲染页的路由对象 */
+	private setRenderRoute( plugin: string, renderDir: string, mainFiles: string[], view: string ): RenderRoutes | null {
+		let route: RenderRoutes | null = null;
+		const ext: string = extname( view );
+		if ( ext === ".vue" ) {
+			// 加载后缀名为 vue 的文件
+			const fileName: string = view.replace( /\.vue$/, "" );
+			route = {
+				path: `/${ plugin }/${ fileName }`,
+				componentData: {
+					plugin,
+					renderDir,
+					fileName
+				}
 			}
-		}
-	} else if ( !ext ) {
-		// 后缀名不存在且为目录时，加载目录下的 index.vue 文件
-		const fileType = bot.file.getFileType( `${ plugin }/${ renderDir }/${ view }`, "plugin" );
-		if ( fileType === "directory" ) {
-			for ( const mainFile of mainFiles ) {
-				const path: string = bot.file.getFilePath( `${ plugin }/${ renderDir }/${ view }/${ mainFile }.vue`, "plugin" );
-				// 判断目录下是否存在 mainFile
-				const isExist: boolean = bot.file.isExist( path );
-				if ( isExist ) {
-					route = {
-						path: `/${ plugin }/${ view }`,
-						componentData: {
-							plugin,
-							renderDir,
-							fileDir: view,
-							fileName: mainFile
-						}
-					};
-					break;
+		} else if ( !ext ) {
+			// 后缀名不存在且为目录时，加载目录下的 index.vue 文件
+			const fileType = this.bot.file.getFileType( `${ plugin }/${ renderDir }/${ view }`, "plugin" );
+			if ( fileType === "directory" ) {
+				for ( const mainFile of mainFiles ) {
+					const path: string = this.bot.file.getFilePath( `${ plugin }/${ renderDir }/${ view }/${ mainFile }.vue`, "plugin" );
+					// 判断目录下是否存在 mainFile
+					const isExist: boolean = this.bot.file.isExist( path );
+					if ( isExist ) {
+						route = {
+							path: `/${ plugin }/${ view }`,
+							componentData: {
+								plugin,
+								renderDir,
+								fileDir: view,
+								fileName: mainFile
+							}
+						};
+						break;
+					}
 				}
 			}
 		}
+		
+		return route;
 	}
-	
-	return route;
 }

@@ -1,8 +1,8 @@
 import fetch, { Response } from "node-fetch";
 import { exec } from "child_process";
 import { InputParameter } from "@/modules/command";
-import { restart } from "pm2";
-import { PluginAlias, PluginUpgradeServices } from "@/modules/plugin";
+import PluginManager, { PluginInfo } from "@/modules/plugin";
+import RenderServer from "@/modules/server";
 
 /* 超时检查 */
 function waitWithTimeout( promise: Promise<any>, timeout: number ): Promise<any> {
@@ -38,34 +38,34 @@ async function execHandle( command: string, cwd: string ): Promise<string> {
 }
 
 /* 更新 plugin */
-async function updateBotPlugin( {
-	                                messageData,
-	                                sendMessage,
-	                                logger,
-	                                file
-                                }: InputParameter, pluginName: string, isForce: boolean = false ): Promise<void> {
+async function updateBotPlugin( i: InputParameter, pluginInfo: PluginInfo, isForce: boolean = false ): Promise<void> {
+	const { messageData, sendMessage, logger, file } = i;
 	const command = !isForce ? "git pull --no-rebase" : "git reset --hard && git pull --no-rebase";
-	const cwd = file.getFilePath( pluginName, "plugin" );
+	const cwd = file.getFilePath( pluginInfo.key, "plugin" );
 	const execPromise = execHandle( command, cwd ).then( ( stdout: string ) => {
 		logger.info( stdout );
 		if ( /(Already up[ -]to[ -]date|已经是最新的)/.test( stdout ) ) {
-			throw `[${ pluginName }]当前已经是最新版本了`;
+			throw `[${ pluginInfo.name }]当前已经是最新版本了`;
 		}
 	} );
 	
 	try {
 		await waitWithTimeout( execPromise, 30000 );
 	} catch ( error ) {
-		logger.error( `更新 BOT Plugin:[${ pluginName }] 失败: ${ typeof error === "string" ? error : (<Error>error).message }` );
+		logger.error( `更新 BOT Plugin:[${ pluginInfo.name }] 失败: ${ typeof error === "string" ? error : ( <Error>error ).message }` );
 		if ( typeof error === "string" ) {
-			throw error.includes( "timeout" ) ? `[${ pluginName }]更新失败，网络请求超时` : error;
+			throw error.includes( "timeout" ) ? `[${ pluginInfo.name }]更新失败，网络请求超时` : error;
 		} else {
-			throw `[${ pluginName }]更新失败，可能是网络出现问题${ !isForce ? "或存在代码冲突，若不需要保留改动代码可以追加 -f 使用强制更新" : "" }`;
+			throw `[${ pluginInfo.name }]更新失败，可能是网络出现问题${ !isForce ? "或存在代码冲突，若不需要保留改动代码可以追加 -f 使用强制更新" : "" }`;
 		}
 	}
 }
 
-async function checkGitCommit( dbKey: string, i: InputParameter, repo: string ): Promise<{ check: boolean; newDate?: string, error?: string }> {
+async function checkGitCommit( dbKey: string, i: InputParameter, repo: string ): Promise<{
+	check: boolean;
+	newDate?: string,
+	error?: string
+}> {
 	const pluginName = dbKey.split( "." )[1];
 	let commits: any[] = []
 	try {
@@ -114,28 +114,38 @@ export async function main( i: InputParameter ): Promise<void> {
 	let dbKey: string = "";
 	let isForce: boolean = false;
 	let isRestart: boolean = true;
+	
+	const pluginInstance = PluginManager.getInstance();
+	const serverInstance = RenderServer.getInstance();
+	
 	if ( execArray && execArray[1] ) {
 		isForce = true;
 	}
 	if ( execArray && execArray[2] ) {
 		isRestart = false;
 	}
+	
 	if ( execArray && execArray[3] ) {
 		// 更新单个插件
-		let pluginName: string = execArray[3];
-		const originalName = PluginAlias[pluginName];
-		if ( originalName ) {
-			// 如果是用的别名则重置成插件的原始名称
-			pluginName = originalName;
+		const inputPluginName = execArray[3];
+		// todo: 临时仅处理单个匹配项
+		const pluginInfo = pluginInstance.getPluginInfoByAlias( inputPluginName )[0];
+		if ( !pluginInfo ) {
+			await i.sendMessage( `未找到名称或别名为[${ inputPluginName }]的插件，请检查输入名称是否正确。` );
+			return;
 		}
-		const repo: string = PluginUpgradeServices[pluginName];
-		if ( !repo ) {
-			await i.sendMessage( `[${ pluginName }]插件不支持热更新.` );
+		const { key: pluginKey, name: pluginName, upgrade } = pluginInfo;
+		if ( !upgrade ) {
+			await i.sendMessage( `插件[${ pluginName }]不支持热更新。` );
 			return;
 		}
 		
-		dbKey = `adachi.${ pluginName }.update-time`;
-		const checkResult: { check: boolean; newDate?: string, error?: string } = await checkGitCommit( dbKey, i, repo );
+		dbKey = `adachi.${ pluginKey }.update-time`;
+		const checkResult: {
+			check: boolean;
+			newDate?: string,
+			error?: string
+		} = await checkGitCommit( dbKey, i, upgrade );
 		if ( !checkResult.check ) {
 			if ( checkResult.newDate ) {
 				await i.redis.setString( dbKey, checkResult.newDate );
@@ -146,16 +156,18 @@ export async function main( i: InputParameter ): Promise<void> {
 			return;
 		}
 		try {
-			await updateBotPlugin( i, pluginName, isForce );
-			await i.sendMessage( `[${ pluginName }]插件更新完成，${ isRestart ? "正在重启服务..." : "请稍后手动重启 BOT" }` );
+			await updateBotPlugin( i, pluginInfo, isForce );
+			await i.sendMessage( `[${ pluginName }]插件更新完成，${ isRestart ? "正在重载插件..." : "请稍后手动重载插件" }` );
 			if ( checkResult.newDate ) {
 				await i.redis.setString( dbKey, checkResult.newDate );
 			}
-			if ( isRestart ) { // 重启服务
-				restart( "adachi-bot", async ( error ) => {
-					await i.sendMessage( `重启 BOT 出错: ${ error }` );
-					throw error;
-				} );
+			if ( isRestart ) { // 重载
+				try {
+					await pluginInstance.reloadSingle( pluginKey );
+					await serverInstance.reloadPluginRouters( pluginInstance.pluginList );
+				} catch ( error ) {
+					await i.sendMessage( `[${ pluginName }]插件重载异常: ${ error }` );
+				}
 			}
 		} catch ( e: any ) {
 			if ( typeof e === "string" ) {
@@ -171,46 +183,52 @@ export async function main( i: InputParameter ): Promise<void> {
 	}
 	
 	// 更新全部的插件
-	const upgrade_plugins: string[] = [];
-	const not_support_upgrade_plugins: string[] = [];
+	const upgrade_plugins: PluginInfo[] = [];
+	const not_support_upgrade_plugins: PluginInfo[] = [];
 	const upgrade_errors: string[] = [];
-	for ( let key in PluginUpgradeServices ) {
-		const repo: string = PluginUpgradeServices[key];
-		if ( repo ) {
-			dbKey = `adachi.${ key }.update-time`;
-			const checkResult: { check: boolean; newDate?: string, error?: string } = await checkGitCommit( dbKey, i, repo );
-			if ( !checkResult.check ) {
-				if ( checkResult.newDate ) {
-					await i.redis.setString( dbKey, checkResult.newDate );
-				}
-				if ( checkResult.error ) {
-					upgrade_errors.push( checkResult.error );
-				}
-				continue;
+	for ( let key in pluginInstance.pluginList ) {
+		const pluginInfo = pluginInstance.pluginList[key];
+		if ( !pluginInfo.upgrade ) {
+			not_support_upgrade_plugins.push( pluginInfo );
+			continue;
+			
+		}
+		dbKey = `adachi.${ key }.update-time`;
+		const checkResult: {
+			check: boolean;
+			newDate?: string,
+			error?: string
+		} = await checkGitCommit( dbKey, i, pluginInfo.upgrade );
+		if ( !checkResult.check ) {
+			if ( checkResult.newDate ) {
+				await i.redis.setString( dbKey, checkResult.newDate );
 			}
-			try {
-				await updateBotPlugin( i, key, isForce );
-				upgrade_plugins.push( key );
-				if ( checkResult.newDate ) {
-					await i.redis.setString( dbKey, checkResult.newDate );
-				}
-			} catch ( e ) {
-				if ( typeof e === "string" ) {
-					upgrade_errors.push( e );
-					if ( /\[.+]当前已经是最新版本了/.test( e ) ) {
-						await i.redis.setString( dbKey, checkResult.newDate || "" );
-					}
-				} else {
-					upgrade_errors.push( ( <Error>e ).message );
-				}
+			if ( checkResult.error ) {
+				upgrade_errors.push( checkResult.error );
 			}
-		} else {
-			not_support_upgrade_plugins.push( key );
+			continue;
+		}
+		try {
+			await updateBotPlugin( i, pluginInfo, isForce );
+			upgrade_plugins.push( pluginInfo );
+			if ( checkResult.newDate ) {
+				await i.redis.setString( dbKey, checkResult.newDate );
+			}
+		} catch ( e ) {
+			if ( typeof e === "string" ) {
+				upgrade_errors.push( e );
+				if ( /\[.+]当前已经是最新版本了/.test( e ) ) {
+					await i.redis.setString( dbKey, checkResult.newDate || "" );
+				}
+			} else {
+				upgrade_errors.push( ( <Error>e ).message );
+			}
 		}
 	}
 	
 	if ( not_support_upgrade_plugins.length > 0 ) {
-		await i.sendMessage( `${ not_support_upgrade_plugins.join( "、" ) }不支持热更新` );
+		const pluginNames = not_support_upgrade_plugins.map( p => p.name ).join( "、" );
+		await i.sendMessage( `${ pluginNames }不支持热更新` );
 	}
 	
 	if ( upgrade_errors.length > 0 ) {
@@ -221,14 +239,20 @@ export async function main( i: InputParameter ): Promise<void> {
 		await i.sendMessage( "没有插件被更新!" );
 		return;
 	} else {
-		await i.sendMessage( `${ upgrade_plugins.join( "、" ) }已完成更新，${ isRestart ? "正在重启服务..." : "请稍后手动重启 BOT" }` );
+		const pluginNames = upgrade_plugins.map( p => p.name ).join( "、" );
+		await i.sendMessage( `${ pluginNames }已完成更新，${ isRestart ? "正在重载插件..." : "请稍后手动重载插件" }` );
 	}
 	
 	// 重启服务
 	if ( isRestart ) {
-		restart( "adachi-bot", async ( error ) => {
-			i.logger.error( error );
-			await i.sendMessage( `重启 BOT 出错: ${ error }` );
-		} );
+		try {
+			for ( const pluginInfo of upgrade_plugins ) {
+				await pluginInstance.reloadSingle( pluginInfo.key, false );
+			}
+			await i.command.reload();
+			await serverInstance.reloadPluginRouters( pluginInstance.pluginList );
+		} catch ( error ) {
+			await i.sendMessage( `插件重载异常: ${ error }` );
+		}
 	}
 }

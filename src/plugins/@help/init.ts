@@ -56,7 +56,7 @@ export default definePlugin( {
 			return path.replace( "Version3/help/", "" );
 		}
 	},
-	completed( bot ) {
+	mounted( bot ) {
 		/* 未启用卡片帮助时不启动服务 */
 		if ( bot.config.directive.helpMessageStyle === "card" ) {
 			/* 实例化渲染器 */

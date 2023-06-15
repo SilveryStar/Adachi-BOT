@@ -21,14 +21,14 @@
 ### 新的插件配置项
 
 ```ts
-type PluginParameter = {
-    renderRegister: RenderRegister;
-    configRegister: <T extends Record<string, any>>( initCfg: T, setValueCallBack?: ( config: T ) => T ) => T;
-} & BOT;
+export type PluginHook = ( input: PluginParameter ) => void | Promise<void>;
 
-type PluginHook = ( input: PluginParameter ) => void | Promise<void>;
+type SubUser = {
+    person?: number[];
+    group?: number[];
+};
 
-interface PluginSetting {
+export interface PluginSetting {
     name: string;
     cfgList: cmd.ConfigType[];
     aliases?: string[];
@@ -37,12 +37,12 @@ interface PluginSetting {
         mainFiles?: string[];
     };
     server?: {
-    	routers?: Record<string, Router>
+        routers?: Record<string, Router>;
     };
     repo?: string | {
-    	owner: string;// 仓库拥有者名称
-    	repoName: string;// 仓库名称
-    	ref?: string;// 分支名称
+        owner: string;// 仓库拥有者名称
+        repoName: string;// 仓库名称
+        ref?: string;// 分支名称
     }; // 设置为非必须兼容低版本插件
     assets?: string | { // 是否从线上同步更新静态资源
         manifestUrl: string; // 线上 manifest.yml 文件地址
@@ -50,7 +50,13 @@ interface PluginSetting {
         noOverride?: string[];  // 此配置项列举的拓展名文件，当位于用户配置的忽略文件中时，仍下载更新，但仅更新新增内容不对原内容进行覆盖
         replacePath?: ( path: string ) => string; // 修改下载后的文件路径
     };
-    completed?: PluginHook; // 更新完毕后的回调函数
+    subscribe?: {
+        name: string;
+        getUser: ( bot: BOT ) => Promise<SubUser> | SubUser;
+        reSub: ( userId: number, type: "private" | "group", bot: BOT ) => Promise<void> | void;
+    }[];
+    mounted?: PluginHook; // 钩子函数：插件加载完毕时触发
+    unmounted?: PluginHook; // 钩子函数：插件卸载/重载时触发
 }
 ```
 
@@ -65,13 +71,13 @@ interface PluginSetting {
 
 详情见 [公共 vue-router](#公共-vue-router)。
 
-**server**
+##### server
 
 可选配置，通过 `server.routers` 向公共 express-server 注册插件自用路由。
 
 详情见 [公共 express-server](#公共-express-server)。
 
-**assets**
+##### assets
 
 可选配置，是否启用框架自带的 oss 自动更新静态资源支持。传入**对象**或**指向 oss 清单文件的 url**来开启。
 
@@ -84,9 +90,25 @@ interface PluginSetting {
 
 详情见 [自动更新插件静态资源](#自动更新插件静态资源)。
 
-#### completed
+#### subscribe
+
+可选配置，使框架为你的插件提供完善的订阅相关支持。该项为值为一个订阅对象数组，对象中存在如下属性：
+
+| 属性名     | 说明               | 类型                                                                        |
+|---------|------------------|---------------------------------------------------------------------------|
+| name    | 订阅名称，用于在网页控制台中展示 | string                                                                    | -                   |
+| getUser | 获取用户/群主id列表的方法   | ( bot: BOT ) => Promise<SubUser>                                          |
+| reSub   | 清除指定用户/群组订阅的方法   | ( userId: number, type: "private" \| "group", bot: BOT ) => Promise<void> | void;    | 
+
+详情见 [订阅服务支持](#订阅服务支持)。
+
+#### mounted
 
 将在插件加载生命周期的最后后执行，支持同步或异步方法，接受类型为 `PluginParameter` 的形参，包含 `BOT` 工具类与额外的配置项注册方法 `configRegister` 与渲染器注册方法 `renderRegister`。
+
+#### unmounted
+
+在插件卸载或重载时执行，与 mounted 类型一致。强烈建议在此钩子中注销会影响插件重载的逻辑，如释放监听端口等。
 
 ### 公共 vue-router
 
@@ -97,7 +119,7 @@ interface PluginSetting {
 1、对于 `.vue` 文件，直接按文件名加载路由。  
 2、对于目录，按照配置项 `renderer -> mainFiles` 给出的列表，以从左到右的优先级在目录的第一级文件内查找并加载。例如对于配置项默认值 `[ "index" ]`，将会加载目录内的 `index.vue`。加载的路由路径将以**插件名称**即插件目录名称起始。
 
-**示例**
+#### 示例
 
 存在如下目录结构：
 
@@ -146,7 +168,7 @@ export async function init( bot: BOT ): Promise<PluginSetting> {
 
 框架现已集成一个公共 express-server，插件无需再自行监听端口开启，配置 `PluginSetting.server.routers`  即可使用公共 express-server。
 
-**示例**
+#### 示例
 
 ```ts
 const serverRouters: Record<string, Router> = {
@@ -204,13 +226,43 @@ export default definePlugin({
 对于搭建者可能会有的 diy 本地文件的需求，在搭建者配置忽略文件清单后，允许指定部分拓展名的文件依旧照常更新下载。但不会对本地文件直接覆盖，而是采用保留旧内容，仅更新新增部分的方式进行更新。
 通过 `PluginSetting.assets.noOverride` 来配置拓展名列表。
 
+### 订阅服务支持
+
+如果你的插件中为用户提供了订阅相关服务（定期主动向用户发送消息），那么可以通过配置 `PluginSetting.subscribe` 来开启框架针对插件订阅的相关功能支持：
+
+- 删除好友、退群时自动取消订阅
+- 网页控制台提供对插件的订阅管理支持
+
+该配置项为一个数组，数组中每个对象需要提供三个属性：订阅名称（name）、获取用户id列表方法（getUser）、清除指定id订阅方法（reSub）。
+
+框架将会通过 `getUser` 方法来获取开启了订阅的用户与群组id列表，并通过执行 `reSub` 方法来在必要的时机清除指定用户的订阅信息。
+
+其中 `getUser` 与 `reSub` 的类型定于如下：
+
+```typescript
+type SubUser = {
+    person?: number[];
+    group?: number[];
+};
+
+export interface PluginSetting {
+    // ...
+    subscribe?: {
+        name: string;
+        getUser: ( bot: BOT ) => Promise<SubUser> | SubUser;
+        reSub: ( userId: number, type: "private" | "group", bot: BOT ) => Promise<void> | void;
+    }[];
+    // ...
+}
+```
+
 ### 静态资源服务器
 
 框架集成的公共 express-server 为插件目录注册了静态资源服务器，可通过 `localhost:port/插件目录名/资源路径` 访问。如果你不希望使用 vue 编写渲染页面，可通过此支持来使用类似 v2 的渲染方式。
 
 同时，当你希望在前端页面中引入本地资源时，则可以利用静态资源服务器来进行访问。
 
-**示例**
+#### 示例
 
 存在如下目录结构：
 
@@ -234,7 +286,7 @@ export default definePlugin({
 
 新增 `PluginSetting.config.register` 方法，该方法会自动创建配置文件，或与已存在的配置文件做深层对比来更新新增的配置项。
 
-**类型**
+#### 类型
 
 ```ts
 interface BotConfigManager {
@@ -242,7 +294,7 @@ interface BotConfigManager {
 }
 ```
 
-**参数**
+#### 参数
 
 - filename: 期望创建的文件名称，可填写基于 `config` 目录的相对路径，无需填写后缀名，将自动创建以 `.yml` 结尾的文件。
 - initCfg: 配置文件初始内容，用于与实际文件内容做比对，并进行缺失属性的填充。
@@ -250,7 +302,7 @@ interface BotConfigManager {
   - config：经过配置文件内容与初始内容比对后的配置项值
   - 返回值：最终呈现的配置对象内容
 
-**返回值**
+#### 返回值
 
 返回处理后的配置项对象，通过自动推导传入的对象的来获得 ts 类型。
 
@@ -265,7 +317,7 @@ interface BotConfigManager {
 
 > 值得注意的是，你完全可以在 on 的回调函数中直接使用 config 配置项对象本身来作为新值使用。因为当执行回调函数时，配置项对象自身的值已经提前完成了更新。这在某些需要传递完整 config 类型的场景下格外有用。
 
-**示例**
+#### 示例
 
 ```ts
 import bot from "ROOT";
@@ -304,7 +356,7 @@ const configData = <MyConfig>bot.config.register( "test-plugin/main", { setting1
 } );
 ```
 
-当然我们还为插件提供了更方便的配置文件注册方法，你可以在插件的 `completed` 生命周期钩子中使用 `params.configRegister` 来快速在 `config/插件名` 目录中创建配置文件。
+当然我们还为插件提供了更方便的配置文件注册方法，你可以在插件的 `mounted` 生命周期钩子中使用 `params.configRegister` 来快速在 `config/插件名` 目录中创建配置文件。
 
 该方法参数传递方式与 `bot.config.register` 一致。
 
@@ -321,7 +373,7 @@ export default definePlugin( {
 
 ### renderRegister
 
-在 `completed` 生命周期钩子函数的参数中提供， `PluginSetting.renderer.register` 的插件便捷使用方式。
+在 `mounted` 生命周期钩子函数的参数中提供， `PluginSetting.renderer.register` 的插件便捷使用方式。
 
 免去了提供第一个参数 `route`，自动以 `/插件名（插件目录名）` 作为基地址来注册渲染器。
 
@@ -333,7 +385,7 @@ export default definePlugin( {
 
 该类用于创建一个单行进度条打印输出。
 
-**食用方法**
+##### 食用方法
 
 ```ts
 import Progress from "@/utils/progress";
@@ -359,7 +411,7 @@ downloading();
 下载进度: ████████████████████████████████████████████░░░░░░  108/114
 ```
 
-**new Progress()**
+##### new Progress()
 
 创建一个 Progress 实例
 
@@ -367,7 +419,7 @@ downloading();
 - 参数2：进度条的最大值
 - 参数3：进度条的长度
 
-**progress.renderer()**
+##### progress.renderer()
 
 渲染输出进度内容。
 
@@ -460,7 +512,7 @@ $https.UPDATE_STATUS.post( {}, {
 } )
 ```
 
-**自行设置请求返回值**
+##### 自行设置请求返回值
 
 默认情况下，请求所得的返回值为 axios 默认返回值类型，包含 status、data 等属性。可通过 `register` 方法抛出的 `server` 对象来进行响应拦截设置。此时需要自行对 `request` 对象的类型进行定义。
 
@@ -496,7 +548,7 @@ export default <FetchServer<keyof typeof apis, FetchResponse>><unknown>request;
 
 ### 新的全局变量
 
-在 .vue 与 node 端环境全局挂载变量 `ADACHI_VERSION`，指向当前框架版本。可直接通过 `globalThis.ADACHI_VERSION` 或 `window.ADACHI_VERSION` 使用。
+在 .vue 端环境全局挂载变量 `ADACHI_VERSION`，指向当前框架版本。可直接通过 `window.ADACHI_VERSION` 使用。
 
 ## brake change
 
@@ -510,13 +562,13 @@ export default <FetchServer<keyof typeof apis, FetchResponse>><unknown>request;
 export default definePlugin( {
     name: "测试插件",
     cfgList: [],
-    completed() {
+    mounted() {
         // 插件行为
     }
 } );
 ```
 
-> 我们强烈推荐你在 `completed` 生命周期钩子函数中进行原来的插件的初始化行为。这样可以有效的避免一些加载顺序导致的变量未定义情况，例如其他文件在通过 `import bot from "ROOT"` 使用框架库时提示 `bot 未定义`。
+> 我们强烈推荐你在 `mounted` 生命周期钩子函数中进行原来的插件的初始化行为。这样可以有效的避免一些加载顺序导致的变量未定义情况，例如其他文件在通过 `import bot from "ROOT"` 使用框架库时提示 `bot 未定义`。
 
 ### fileName 配置项变更
 

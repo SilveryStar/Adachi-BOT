@@ -95,6 +95,18 @@ const restart: OrderConfig = {
 	detail: "用于重启 bot，使用win-start方式启动服务无法使用该指令"
 }
 
+const reload: OrderConfig = {
+	type: "order",
+	cmdKey: "adachi.reload",
+	desc: [ "重载插件", "(插件名)" ],
+	headers: [ "reload" ],
+	regexps: [ "([\u4E00-\u9FA5\\w\\-]+)?" ],
+	auth: AuthLevel.Master,
+	main: "reload",
+	detail: "用于重新加载插件源码\n" +
+		"不指定插件名将对全部插件进行重载"
+}
+
 const upgrade_plugins: OrderConfig = {
 	type: "order",
 	cmdKey: "adachi.hot-upgrade-plugins",
@@ -115,6 +127,6 @@ export default definePlugin( {
 	name: "@management",
 	cfgList: [
 		manager, ban, limit, interval,
-		refresh, upgrade, restart, upgrade_plugins
+		refresh, upgrade, restart, reload, upgrade_plugins
 	]
 } );

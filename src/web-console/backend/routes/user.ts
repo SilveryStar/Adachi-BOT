@@ -2,11 +2,11 @@ import bot from "ROOT";
 import express from "express";
 import { AuthLevel } from "@/modules/management/auth";
 import { MemberInfo } from "icqq";
-import { BOT } from "@/main";
-import { PluginReSubs, SubInfo } from "@/modules/plugin";
+import PluginManager from "@/modules/plugin";
 import { UserInfo } from "@/web-console/types/user";
 import { sleep } from "@/utils/async";
 import { getRandomNumber } from "@/utils/random";
+import { formatSubUsers } from "@/web-console/backend/utils/format";
 
 export default express.Router()
 	.get( "/list", async ( req, res ) => {
@@ -24,7 +24,7 @@ export default express.Router()
 		
 		try {
 			/* 用户订阅信息 */
-			const userSubData: Record<string, string[]> = await formatSubUsers( bot );
+			const userSubData: Record<string, string[]> = await formatSubUsers( bot, "private" );
 			
 			let userData: string[] = await bot.redis.getKeysByPrefix( "adachi.user-used-groups-" );
 			userData = userData.map( ( userKey: string ) => <string>userKey.split( "-" ).pop() )
@@ -79,8 +79,6 @@ export default express.Router()
 		const auth = <AuthLevel>parseInt( <string>req.body.auth );
 		const limits: string[] = JSON.parse( <string>req.body.limits );
 		
-		console.log(userID, int, auth)
-		
 		await bot.auth.set( userID, auth );
 		await bot.interval.set( userID, "private", int );
 		
@@ -100,13 +98,8 @@ export default express.Router()
 		}
 		
 		try {
-			for ( const plugin in PluginReSubs ) {
-				try {
-					await PluginReSubs[plugin].reSub( userId, bot );
-				} catch ( error ) {
-					bot.logger.error( `插件${ plugin }取消订阅事件执行异常：${ <string>error }` )
-				}
-			}
+			// 清空订阅
+			PluginManager.getInstance().remSub( "private", userId );
 			res.status( 200 ).send( { code: 200, data: {}, msg: "Success" } );
 		} catch ( error: any ) {
 			res.status( 500 ).send( { code: 500, data: [], msg: error.message || "Server Error" } );
@@ -124,14 +117,6 @@ export default express.Router()
 			for ( const id of userIds ) {
 				if ( !first ) {
 					await sleep( getRandomNumber( 100, 1000 ) );
-				}
-				// 清除订阅
-				for ( const plugin in PluginReSubs ) {
-					try {
-						await PluginReSubs[plugin].reSub( id, bot );
-					} catch ( error ) {
-						bot.logger.error( `插件${ plugin }取消订阅事件执行异常：${ <string>error }` )
-					}
 				}
 				// 删除好友
 				await bot.client.pickFriend( id ).delete();
@@ -172,31 +157,4 @@ async function getUserInfo( userID: number ): Promise<UserInfo> {
 	}
 	
 	return { userID, avatar, nickname, isFriend, botAuth, interval, limits, groupInfoList }
-}
-
-/* 生成订阅用户id列表 */
-async function formatSubUsers( bot: BOT ): Promise<Record<string, string[]>> {
-	const userSubs: Record<string, string[]> = {};
-	
-	for ( const pluginName in PluginReSubs ) {
-		const { subs } = PluginReSubs[pluginName];
-		try {
-			const subList: SubInfo[] = await subs( bot );
-			if ( subList ) {
-				for ( const subItem of subList ) {
-					for ( const user of subItem.users ) {
-						if ( userSubs[user] ) {
-							userSubs[user].push( `${ pluginName }-${ subItem.name }` );
-						} else {
-							userSubs[user] = [ `${ pluginName }-${ subItem.name }` ];
-						}
-					}
-				}
-			}
-		} catch ( error ) {
-			bot.logger.error( `获取插件订阅信息异常: ${ <string>error }` );
-		}
-	}
-	
-	return userSubs;
 }

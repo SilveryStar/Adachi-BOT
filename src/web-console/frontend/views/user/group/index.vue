@@ -27,6 +27,11 @@
                         </div>
                     </template>
                 </el-table-column>
+	            <el-table-column prop="subInfo" label="订阅数" align="center" min-width="65px">
+		            <template #default="{row}">
+			            <span>{{ row.subInfo.length }}</span>
+		            </template>
+	            </el-table-column>
                 <el-table-column prop="groupAuth" label="群身份" align="center" min-width="100px">
                     <template #default="{row}">
                         <div class="lighter-block" :style="{ 'background-color': getRole(row.groupRole).color }">
@@ -34,8 +39,9 @@
                         </div>
                     </template>
                 </el-table-column>
-                <el-table-column prop="setting" label="操作" align="center" min-width="85px">
+                <el-table-column prop="setting" label="操作" align="center" min-width="110px">
                     <template #default="{row}">
+	                    <el-button type="primary" v-if="row.subInfo.length" @click="removeSub(row.groupId)" link>取消订阅</el-button>
                         <el-button type="primary" @click="openGroupModal(row)" link>编辑</el-button>
                     </template>
                 </el-table-column>
@@ -140,6 +146,31 @@ async function handleFilter() {
 	await getGroupData();
 }
 
+async function removeSub( groupId: number ) {
+	try {
+		await ElMessageBox.confirm( "确定移除该用户所有订阅服务？", '提示', {
+			confirmButtonText: "确定",
+			cancelButtonText: "取消",
+			type: "warning",
+			center: true
+		} )
+	} catch ( error ) {
+		return;
+	}
+	tableLoading.value = true;
+	try {
+		await $http.GROUP_SUB_REMOVE.post( { groupId } );
+		await getGroupData()
+		ElNotification( {
+			title: "成功",
+			message: "取消该群聊订阅服务成功。",
+			type: "success",
+			duration: 2000
+		} );
+	} catch {}
+	tableLoading.value = false;
+}
+
 async function exitGroup( groupId ) {
 	try {
 		await ElMessageBox.confirm( "确定退出/解散此群聊？", "提示", {
@@ -151,24 +182,6 @@ async function exitGroup( groupId ) {
 	} catch ( error ) {
 		return;
 	}
-	// try {
-	// 	const { value } = await ElMessageBox.prompt( "敏感操作，请输入 BOT 密码验证身份", '验证', {
-	// 		confirmButtonText: "确认",
-	// 		cancelButtonText: '取消',
-	// 		inputType: "password",
-	// 		inputPattern: /\w+/,
-	// 		inputErrorMessage: "请输入密码",
-	// 		center: true
-	// 	} )
-	// 	try {
-	// 		await $http.CHECK_PASSWORD( { pwd: value }, "POST" );
-	// 	} catch ( error ) {
-	// 		ElNotification( { title: "失败", message: "验证失败：密码错误", type: "error", } );
-	// 		return;
-	// 	}
-	// } catch ( error ) {
-	// 	return;
-	// }
 	tableLoading.value = true;
 	try {
 		await $http.GROUP_EXIT.post( { groupId } );

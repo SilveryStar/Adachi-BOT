@@ -86,6 +86,7 @@ export default class Database implements DatabaseMethod {
 	}
 	
 	public async setHash( key: Argument, value: SetValue ): Promise<void> {
+		console.log( key, value )
 		await this.client.hSet( key, value );
 	}
 	

@@ -1,6 +1,6 @@
 import * as cmd from "./index";
 import bot from "ROOT";
-import Plugin, { PluginRawConfigs } from "@/modules/plugin";
+import Plugin from "@/modules/plugin";
 import FileManagement from "@/modules/file";
 import { RefreshCatch } from "@/modules/management/refresh";
 import { Message, MessageScope, SendFunc } from "@/modules/message";
@@ -145,22 +145,7 @@ export default class Command {
 	
 	public async refresh(): Promise<string> {
 		try {
-			this.privates = Command.initAuthObject();
-			this.groups = Command.initAuthObject();
-			this.pUnionReg = Command.initAuthObject();
-			this.gUnionReg = Command.initAuthObject();
-			
-			const commands: BasicConfig[] = [];
-			const commandConfig: Record<string, any> = bot.file.loadYAML( "commands" ) || {};
-			// 要写入的 command.yml 配置文件内容
-			let cmdConfig: Record<string, any> = {};
-			for ( const [ plugin, raws ] of Object.entries( PluginRawConfigs ) ) {
-				const [ cmd, cmdConfigItem ] = await Plugin.parse( bot, raws.cfgList, plugin, raws.name, commandConfig );
-				cmdConfig = { ...cmdConfig, ...cmdConfigItem };
-				commands.push( ...cmd );
-			}
-			bot.file.writeYAML( "commands", cmdConfig );
-			this.add( commands );
+			await this.reload();
 			return "指令配置重新加载完毕";
 		} catch ( error ) {
 			throw <RefreshCatch>{
@@ -168,6 +153,24 @@ export default class Command {
 				msg: "指令配置重新加载失败，请前往控制台查看日志"
 			};
 		}
+	}
+	
+	public async reload() {
+		this.privates = Command.initAuthObject();
+		this.groups = Command.initAuthObject();
+		this.pUnionReg = Command.initAuthObject();
+		this.gUnionReg = Command.initAuthObject();
+		
+		const pluginInstance = Plugin.getInstance();
+		const commandConfig: Record<string, any> = bot.file.loadYAML( "commands" ) || {};
+		// 要写入的 command.yml 配置文件内容
+		let cmdConfig: Record<string, any> = {};
+		for ( const pluginInfo of Object.values( pluginInstance.pluginList ) ) {
+			const cmdConfigItem = await pluginInstance.parse( pluginInfo.key, commandConfig );
+			this.add( pluginInfo.commands );
+			cmdConfig = { ...cmdConfig, ...cmdConfigItem };
+		}
+		bot.file.writeYAML( "commands", cmdConfig );
 	}
 	
 	public add( commands: BasicConfig[] ): void {

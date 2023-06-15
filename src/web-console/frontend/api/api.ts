@@ -15,6 +15,7 @@ export default {
 	GROUP_INFO: "/group/info",
 	GROUP_SET: "/group/set",
 	GROUP_EXIT: "/group/exit",
+	GROUP_SUB_REMOVE: "/group/sub/remove",
 	GROUP_SEND_BATCH: "/group/send/batch",
 	GROUP_EXIT_BATCH: "/group/exit/batch",
 	/* 日志 */

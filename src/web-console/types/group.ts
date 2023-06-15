@@ -9,4 +9,5 @@ export interface GroupData {
 	groupRole: GroupRole;
 	interval: number;
 	limits: string[];
+	subInfo?: string[]
 }

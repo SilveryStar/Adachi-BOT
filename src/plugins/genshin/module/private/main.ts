@@ -23,13 +23,13 @@ export interface Service {
 /* 获取元组第一位 */
 type TupleHead<T extends any[]> = T[0];
 /* 弹出元组第一位 */
-type TupleShift<T extends Service[]> = T extends [ infer L, ... infer R ] ? R : never;
+type TupleShift<T extends Service[]> = T extends [ infer L, ...infer R ] ? R : never;
 /* 合并交叉类型 */
-type Merge<T> = { [ P in keyof T ]: T[P] };
+type Merge<T> = { [P in keyof T]: T[P] };
 /* 向接口中添加新字段 */
 type ObjectExpand<T, U extends Service> = Merge<
-	{ [ P in keyof T ]: T[P] } &
-	{ [ P in U["FixedField"] ]: U }
+	{ [P in keyof T]: T[P] } &
+	{ [P in U["FixedField"]]: U }
 >;
 /* 定义扩展私人服务的基本接口 */
 type BasicExpand = Record<string, Service>;
@@ -84,17 +84,17 @@ export class Private {
 			data.setting.mysID = parseInt( execRes[1] );
 		}
 		return new Private(
-			data.setting.uid,       data.setting.cookie,
-			data.setting.userID,    data.setting.mysID,
-			data.id,                data.options,
+			data.setting.uid, data.setting.cookie,
+			data.setting.userID, data.setting.mysID,
+			data.id, data.options,
 			data.setting.stoken
 		);
 	}
 	
 	constructor(
-		uid: string,    cookie: string,
+		uid: string, cookie: string,
 		userID: number, mysID: number,
-		id: number,     options?: Record<string, any>,
+		id: number, options?: Record<string, any>,
 		stoken: string = ""
 	) {
 		this.options = options || {};
@@ -105,12 +105,12 @@ export class Private {
 		this.id = id;
 		this.dbKey = dbPrefix + md5;
 		this.services = {
-			[ NoteService.FixedField ]:        new NoteService( this ),
-			[ SignInService.FixedField ]:      new SignInService( this ),
-			[ MysQueryService.FixedField ]:    new MysQueryService( this ),
-			[ AbyQueryService.FixedField ]:    new AbyQueryService( this ),
-			[ CharQueryService.FixedField ]:   new CharQueryService( this ),
-			[ LedgerQueryService.FixedField ]: new LedgerQueryService( this )
+			[NoteService.FixedField]: new NoteService( this ),
+			[SignInService.FixedField]: new SignInService( this ),
+			[MysQueryService.FixedField]: new MysQueryService( this ),
+			[AbyQueryService.FixedField]: new AbyQueryService( this ),
+			[CharQueryService.FixedField]: new CharQueryService( this ),
+			[LedgerQueryService.FixedField]: new LedgerQueryService( this )
 		};
 		this.options = this.globalOptions();
 	}
@@ -184,8 +184,8 @@ export class PrivateClass {
 	}
 	
 	public getUserIDList(): number[] {
-		const userIdList = this.list.map(el => el.setting.userID);
-		return Array.from(new Set(userIdList));
+		const userIdList = this.list.map( el => el.setting.userID );
+		return Array.from( new Set( userIdList ) );
 	}
 	
 	public getUserPrivateList( userID: number ): Private[] {

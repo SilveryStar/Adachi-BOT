@@ -259,23 +259,23 @@ export class DailyClass {
 		}
 	}
 	
-	public async modifySubscription( userID: number, operation: boolean, name: string, isGroup: boolean ): Promise<string> {
-		/* 添加/删除群聊订阅 */
-		if ( isGroup ) {
-			const dbKey: string = "silvery-star.daily-sub-group";
-			const exist: boolean = await bot.redis.existListElement( dbKey, name );
-			
-			if ( exist === operation ) {
-				return `群聊 ${ name } ${ operation ? "已订阅" : "未曾订阅" }`;
-			} else if ( operation ) {
-				await bot.redis.addListElement( dbKey, name );
-			} else {
-				await bot.redis.delListElement( dbKey, name );
-			}
-			
-			return `群聊订阅${ operation ? "添加" : "取消" }成功`;
+	/* 添加/删除群聊订阅 */
+	public async modifySubscriptGroup( groupId: string, operation: boolean ) {
+		const dbKey: string = "silvery-star.daily-sub-group";
+		const exist: boolean = await bot.redis.existListElement( dbKey, groupId );
+		
+		if ( exist === operation ) {
+			return `群聊 ${ groupId } ${ operation ? "已订阅" : "未曾订阅" }`;
+		} else if ( operation ) {
+			await bot.redis.addListElement( dbKey, groupId );
+		} else {
+			await bot.redis.delListElement( dbKey, groupId );
 		}
 		
+		return `群聊订阅${ operation ? "添加" : "取消" }成功`;
+	}
+	
+	public async modifySubscriptUser( userID: number, operation: boolean, name: string ) {
 		/* 是否为活动日历 */
 		const isEvent: Boolean = name === "活动";
 		

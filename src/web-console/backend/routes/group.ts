@@ -4,6 +4,8 @@ import { GroupInfo, GroupRole, MemberInfo } from "icqq";
 import { GroupData } from "@/web-console/types/group";
 import { sleep } from "@/utils/async";
 import { getRandomNumber } from "@/utils/random";
+import { formatSubUsers } from "@/web-console/backend/utils/format";
+import PluginManager from "@/modules/plugin";
 
 export default express.Router()
 	.get( "/list", async ( req, res ) => {
@@ -16,19 +18,30 @@ export default express.Router()
 		}
 		
 		const groupId = <string>req.query.groupId || "";
+		/* 是否存在订阅，1 有 2 无 */
+		const sub = parseInt( <string>req.query.sub );
 		
 		try {
-			const glMap = bot.client.gl;
+			/* 用户订阅信息 */
+			const userSubData: Record<string, string[]> = await formatSubUsers( bot, "group" );
 			
-			const groupData = Array.from( glMap )
-				// 过滤条件：id
-				.filter( ( [ key ] ) => {
-					return groupId ? key === parseInt( groupId ) : true;
-				} )
-				// 按入群时间排序
-				.sort( ( [ _, { last_join_time: prevTime } ], [ __, { last_join_time: nextTime } ] ) => {
-					return nextTime - prevTime;
-				} );
+			let groupData = Array.from( bot.client.gl );
+			
+			// 过滤条件：id
+			if ( groupId ) {
+				groupData = groupData.filter( ( [ key ] ) => key === parseInt( groupId ) );
+			}
+			/* 过滤条件：订阅 */
+			if ( sub === 1 ) {
+				groupData = groupData.filter( ( [ key ] ) => Object.keys( userSubData ).includes( key.toString() ) );
+			} else if ( sub === 2 ) {
+				groupData = groupData.filter( ( [ key ] ) => !Object.keys( userSubData ).includes( key.toString() ) );
+			}
+			
+			// 按入群时间排序
+			groupData.sort( ( [ _, { last_join_time: prevTime } ], [ __, { last_join_time: nextTime } ] ) => {
+				return nextTime - prevTime;
+			} );
 			
 			const pageGroupData = groupData.slice( ( page - 1 ) * length, page * length );
 			
@@ -37,7 +50,7 @@ export default express.Router()
 			for ( const [ _, info ] of pageGroupData ) {
 				const groupInfo: GroupData | undefined = await getGroupInfo( info );
 				if ( groupInfo ) {
-					groupInfos.push( groupInfo );
+					groupInfos.push( { ...groupInfo, subInfo: userSubData[groupInfo.groupId] || [] } );
 				}
 			}
 			
@@ -93,6 +106,21 @@ export default express.Router()
 		
 		res.status( 200 ).send( "success" );
 	} )
+	.post( "/sub/remove", async ( req, res ) => {
+		const groupId = req.body.groupId;
+		if ( !groupId ) {
+			res.status( 400 ).send( { code: 400, data: [], msg: "Error Params" } );
+			return;
+		}
+		
+		try {
+			// 清空订阅
+			PluginManager.getInstance().remSub( "group", groupId );
+			res.status( 200 ).send( { code: 200, data: {}, msg: "Success" } );
+		} catch ( error: any ) {
+			res.status( 500 ).send( { code: 500, data: [], msg: error.message || "Server Error" } );
+		}
+	} )
 	.post( "/send/batch", async ( req, res ) => {
 		const content: string = <string>req.body.content;
 		const groupIds: number[] | undefined = req.body.groupIds;
@@ -136,7 +164,7 @@ export default express.Router()
 		}
 		
 		try {
-			await bot.client.setGroupLeave( groupId );
+			await bot.client.pickGroup( groupId ).quit();
 			await bot.client.reloadGroupList();
 			res.status( 200 ).send( { code: 200, data: {}, msg: "Success" } );
 		} catch ( error: any ) {

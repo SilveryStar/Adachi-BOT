@@ -1,10 +1,10 @@
 <template>
 	<el-dialog v-model="showModal" class="group-detail-dialog no-header" @closed="closeModal" draggable>
-		<div class="dialog-body user-detail">
+		<div class="dialog-body user-detail" v-if="data">
 			<div class="section-info">
 				<p class="title">信息面板</p>
 				<div class="user-base-info">
-					<img v-if="data" class="avatar" :src="data.groupAvatar" alt="ERROR" draggable="false"/>
+					<img class="avatar" :src="data.groupAvatar" alt="ERROR" draggable="false"/>
 					<div class="public-info">
 						<p class="user-id">
 							<span class="label">群号</span>
@@ -30,12 +30,21 @@
 				<el-scrollbar class="limit-info" wrap-class="scrollbar-wrapper">
 					<ul class="limit-list">
 						<template v-if="management.limits?.length">
-							<li v-for="(l, lKey) of management.limits" :key="lKey" @click="changeCurrentKey(l)">{{
-									l
-								}}
+							<li v-for="(l, lKey) of management.limits" :key="lKey" @click="changeCurrentKey(l)">{{ l }}
 							</li>
 						</template>
 						<li class="limit-empty" v-else>该群组可以使用全部指令</li>
+					</ul>
+				</el-scrollbar>
+			</div>
+			<div class="section-info">
+				<p class="title">订阅列表</p>
+				<el-scrollbar class="sub-info" wrap-class="scrollbar-wrapper">
+					<ul class="sub-list">
+						<template v-if="data.subInfo && data.subInfo.length">
+							<li v-for="(s, sKey) of data.subInfo" :key="sKey">{{ s }}</li>
+						</template>
+						<li class="sub-empty" v-else>该用户暂未使用订阅服务</li>
 					</ul>
 				</el-scrollbar>
 			</div>
@@ -198,6 +207,5 @@ defineExpose( {
 } );
 </script>
 
-<style lang="scss" scoped>
-
+<style lang="scss" src="../../../assets/styles/user-detail.scss" scoped>
 </style>

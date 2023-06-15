@@ -5,7 +5,7 @@ import FileManagement from "./modules/file";
 import BotConfigManager, { BotConfig } from "./modules/config";
 import Database from "./modules/database";
 import RenderServer from "./modules/server";
-import Plugin, { PluginReSubs } from "./modules/plugin";
+import PluginManager, { RenderRoutes, ServerRouters } from "./modules/plugin";
 import WebConfiguration from "./modules/logger";
 import AiChat from "./modules/chat";
 import Interval from "./modules/management/interval";
@@ -59,7 +59,6 @@ type ScreenSwipeInfo = Record<string, {
 
 export default class Adachi {
 	public readonly bot: BOT;
-	private server: RenderServer;
 	private isOnline: boolean = false;
 	private deadTimer: NodeJS.Timer | null = null;
 	private lastOnline: moment.Moment | null = null;
@@ -94,8 +93,6 @@ export default class Adachi {
 		} );
 		const logger = client.logger;
 		
-		this.server = new RenderServer( config, file, logger );
-		
 		process.on( "unhandledRejection", ( reason: any ) => {
 			logger.error( reason?.stack || reason?.message || reason );
 		} );
@@ -114,16 +111,16 @@ export default class Adachi {
 			logger, message, mail, auth,
 			interval, config, refresh, renderer
 		};
+		RenderServer.getInstance( config, file, logger );
+		PluginManager.getInstance( this.bot );
 		refresh.register( renderer );
 	}
 	
 	public run(): BOT {
 		this.login();
-		Plugin.load( this.bot ).then( ( { renderRoutes, serverRouters, registerCmd } ) => {
-			this.bot.command.add( registerCmd );
-			// 设置插件路由
-			this.server.setRenderRoutes( renderRoutes );
-			this.server.setServerRouters( serverRouters );
+		PluginManager.getInstance().load().then( ( pluginInfos ) => {
+			const server = RenderServer.getInstance();
+			server.reloadPluginRouters( pluginInfos ).then();
 			/* 事件监听 */
 			this.bot.client.on( "message.group", this.parseGroupMsg( this ) );
 			this.bot.client.on( "message.private", this.parsePrivateMsg( this ) );
@@ -132,6 +129,7 @@ export default class Adachi {
 			this.bot.client.on( "system.online", this.botOnline( this ) );
 			this.bot.client.on( "system.offline", this.botOffline( this ) );
 			this.bot.client.on( "notice.friend.decrease", this.friendDecrease( this ) );
+			this.bot.client.on( "notice.group.decrease", this.groupDecrease( this ) );
 			this.bot.logger.info( "事件监听启动成功" );
 		} );
 		
@@ -737,13 +735,20 @@ export default class Adachi {
 		return async function ( friendDate: sdk.FriendDecreaseEvent ) {
 			if ( bot.config.base.addFriend ) {
 				const userId = friendDate.user_id;
-				for ( const plugin in PluginReSubs ) {
-					try {
-						await PluginReSubs[plugin].reSub( userId, bot );
-					} catch ( error ) {
-						bot.logger.error( `插件${ plugin }取消订阅事件执行异常：${ <string>error }` )
-					}
-				}
+				// 清空订阅
+				PluginManager.getInstance().remSub( "private", userId );
+			}
+		}
+	}
+	
+	/* 退群事件 */
+	private groupDecrease( that: Adachi ) {
+		const bot = that.bot;
+		return async function ( groupDate: sdk.MemberDecreaseEvent ) {
+			if ( bot.config.base.addFriend ) {
+				const groupId = groupDate.group_id;
+				// 清空订阅
+				PluginManager.getInstance().remSub( "group", groupId );
 			}
 		}
 	}

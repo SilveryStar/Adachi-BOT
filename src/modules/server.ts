@@ -3,15 +3,18 @@ import { resolve } from "path";
 import express from "express";
 import { Logger } from "log4js";
 import { createServer as createViteServer, ViteDevServer } from "vite";
-import { RenderRoutes, ServerRouters } from "@/modules/plugin";
+import { PluginInfo, RenderRoutes, ServerRouters } from "@/modules/plugin";
 import * as process from "process";
 import { BotConfig } from "@/modules/config";
 import WebConsole from "@/web-console";
 import useWebsocket, { Application } from "express-ws";
 import FileManagement from "@/modules/file";
 import { Server } from "http";
+import { isEqualObject } from "@/utils/object";
+import { isJsonString } from "@/utils/verify";
 
 export default class RenderServer {
+	private static _instance: RenderServer | null = null;
 	private app: Application;
 	private serverRouters: Array<ServerRouters> = [];
 	private renderRoutes: Array<RenderRoutes> = [];
@@ -35,15 +38,7 @@ export default class RenderServer {
 			if ( this.webConsole && !newCfg.enable ) {
 				await this.webConsole.closePromise();
 			}
-			if ( this.vite ) {
-				await this.vite.close();
-				this.vite = null;
-			}
-			await this.closePromise();
-			const wsInstance = useWebsocket( express() );
-			this.app = wsInstance.app;
-			logger.info( `原公共服务端口 ${ this.config.base.renderPort } 已关闭` );
-			await this.createServer();
+			await this.reloadServer();
 			for ( const r of this.serverRouters ) {
 				this.app.use( r.path, r.router );
 			}
@@ -58,20 +53,76 @@ export default class RenderServer {
 		} );
 	}
 	
-	public setServerRouters( routers: Array<ServerRouters> ) {
-		this.serverRouters = routers;
+	public static getInstance( config?: BotConfig, file?: FileManagement, logger?: Logger ): RenderServer {
+		if ( !RenderServer._instance ) {
+			if ( !config || !file || !logger ) {
+				throw new Error( "获取 server 实例出错" );
+			}
+			RenderServer._instance = new RenderServer( config, file, logger );
+		}
+		return RenderServer._instance;
+	}
+	
+	public async reloadPluginRouters( pluginList: Record<string, PluginInfo> ) {
+		const serverRoutes: ServerRouters[] = [];
+		const renderRoutes: RenderRoutes[] = [];
+		for ( const pluginInfo of Object.values(pluginList) ) {
+			renderRoutes.push( ...pluginInfo.renders );
+			serverRoutes.push( ...pluginInfo.servers );
+		}
+		// 设置插件路由
+		this.setRenderRoutes( renderRoutes );
+		await this.setServerRouters( serverRoutes );
+	}
+	
+	/* 新增后台服务路由 */
+	public addServerRouters( routers: Array<ServerRouters> ) {
+		this.serverRouters.push( ...routers );
 		// 遍历注册插件 express 路由
 		for ( const r of routers ) {
 			this.app.use( r.path, r.router );
 		}
 	}
 	
+	/* 重写后台服务路由 */
+	public async setServerRouters( routers: Array<ServerRouters> ) {
+		const different = this.serverRouters.filter( oldRouter => {
+			return routers.findIndex( newRouter => isEqualObject( oldRouter, newRouter ) ) === -1;
+		} );
+		// 此时新旧数据本质不同，直接重载服务
+		if ( different.length ) {
+			this.serverRouters = routers;
+			return await this.reloadServer();
+		}
+		// 此时两者相同，不作处理
+		if ( this.serverRouters.length === routers.length ) {
+			return;
+		}
+		// 此时仅存在新增服务，依次加载即可
+		this.addServerRouters( routers );
+	}
+	
 	public setRenderRoutes( routes: Array<RenderRoutes> ) {
 		this.renderRoutes = routes;
 	}
 	
+	/* 重载服务 */
+	public async reloadServer() {
+		if ( this.vite ) {
+			await this.vite.restart();
+		}
+		await this.closePromise();
+		const wsInstance = useWebsocket( express() );
+		this.app = wsInstance.app;
+		this.logger.info( `原公共服务端口 ${ this.config.base.renderPort } 已关闭` );
+		await this.createServer();
+	}
+	
+	/* 创建服务 */
 	public async createServer() {
 		const isProd = process.env.NODE_ENV === "production";
+		const packageData = this.file.loadFile( "package.json", "root" );
+		const ADACHI_VERSION = isJsonString( packageData ) ? JSON.parse( packageData ).version || "" : "";
 		
 		if ( isProd ) {
 			// 为打包目录挂载静态资源服务
@@ -80,12 +131,14 @@ export default class RenderServer {
 			// 以中间件模式创建 Vite 应用，这将禁用 Vite 自身的 HTML 服务逻辑
 			// 并让上级服务器接管控制
 			// 执行此方法后将会调用指定 root 目录下的 vite.config.ts
-			this.vite = await createViteServer( {
-				base: "/",
-				root: process.cwd(),
-				server: { middlewareMode: true },
-				appType: "custom"
-			} );
+			if ( !this.vite ) {
+				this.vite = await createViteServer( {
+					base: "/",
+					root: process.cwd(),
+					server: { middlewareMode: true },
+					appType: "custom"
+				} );
+			}
 			
 			// 使用 vite 的 Connect 实例作为中间件
 			// 如果你使用了自己的 express 路由（express.Router()），你应该使用 router.use
@@ -136,7 +189,7 @@ export default class RenderServer {
 				if ( isRenderRoute ) {
 					template = template.replace( `<!--adachi-routes-->`, `
 					window.__ADACHI_ROUTES__ = ${ JSON.stringify( this.renderRoutes ) };
-					window.ADACHI_VERSION = "${ globalThis.ADACHI_VERSION }"
+					window.ADACHI_VERSION = "${ ADACHI_VERSION }"
 					` );
 				}
 				

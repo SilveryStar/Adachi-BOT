@@ -16,7 +16,7 @@ export function getObjectKeyValue<T extends Record<any, any>, K extends keyof T,
 }
 
 /**
- * @desc 校验两个对象是否相等
+ * @desc 校验两个对象是否相等，对数组进行校验时只专注于内容，不关心顺序
  * @param a 对象一
  * @param b 对象二
  * @param checkArray 是否对数组进行判断
@@ -42,30 +42,41 @@ export function isEqualObject( a: any, b: any, checkArray = true ) {
 	if ( aProps.length !== bProps.length ) {
 		return false;
 	}
-	// 遍历查看属性值是否相等
-	for ( let i = 0; i < aProps.length; i++ ) {
-		const propName = aProps[i]
-		// 判断b是否存在a的这个属性
-		if ( !Object.prototype.hasOwnProperty.call( b, propName ) ) {
-			return false;
+	const isArray = a instanceof Array && b instanceof Array;
+	// 校验数组
+	if ( isArray ) {
+		// 不校验数组时遇到数组直接放行
+		if ( !checkArray ) {
+			return true;
 		}
-		const propA = a[propName];
-		const propB = b[propName];
-		
-		// 当属性值为对象时，递归判断
-		if ( propA instanceof Object && propB instanceof Object ) {
-			// 不校验数组时遇到数组直接放行
-			if ( !checkArray && propA instanceof Array && propB instanceof Array ) {
-				return true;
+		const bClone = [ ...b ];
+		for ( const aItem of a ) {
+			const index = bClone.findIndex( bItem => isEqualObject( aItem, bItem, checkArray ) );
+			if ( index === -1 ) return false;
+			bClone.splice( index, 1 );
+		}
+	} else {
+		// 遍历查看属性值是否相等（校验对象）
+		for ( let i = 0; i < aProps.length; i++ ) {
+			const propName = aProps[i]
+			// 判断b是否存在a的这个属性
+			if ( !Object.prototype.hasOwnProperty.call( b, propName ) ) {
+				return false;
 			}
-			if ( !isEqualObject( propA, propB, checkArray ) ) {
-				return false
+			const propA = a[propName];
+			const propB = b[propName];
+			
+			// 当属性值为对象时，递归判断
+			if ( propA instanceof Object && propB instanceof Object ) {
+				if ( !isEqualObject( propA, propB, checkArray ) ) {
+					return false;
+				}
+			} else if ( propA !== propB ) {
+				return false;
 			}
-		} else if ( propA !== propB ) {
-			return false
 		}
 	}
-	return true
+	return true;
 }
 
 /**
