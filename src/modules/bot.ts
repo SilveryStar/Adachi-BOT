@@ -15,8 +15,6 @@ import Command, { BasicConfig, MatchResult } from "./command/main";
 import Authorization, { AuthLevel } from "./management/auth";
 import MsgManagement, * as msg from "./message";
 import MailManagement from "./mail";
-
-;
 import { Md5 } from "md5-typescript";
 import { Job, JobCallback, scheduleJob } from "node-schedule";
 import { trim } from "lodash";
@@ -24,6 +22,8 @@ import { unlinkSync } from "fs";
 import axios, { AxiosError } from "axios";
 import AiChat from "@modules/chat";
 import { WhiteList } from "@modules/whitelist";
+
+;
 
 /**
  * @interface
@@ -87,9 +87,8 @@ export default class Adachi {
 			log_level: config.logLevel,
 			platform: config.platform,
 			ffmpeg_path: config.ffmpegPath,
-			ffprobe_path: config.ffprobePath
-			// ffmpeg_path: "D:\\Tools\\ffmpeg\\bin\\ffmpeg.exe",
-			// ffprobe_path: "D:\\Tools\\ffmpeg\\bin\\ffprobe.exe",
+			ffprobe_path: config.ffprobePath,
+			sign_api_addr: config.signApiAddr
 		} );
 		const logger = client.logger;
 		process.on( "unhandledRejection", reason => {

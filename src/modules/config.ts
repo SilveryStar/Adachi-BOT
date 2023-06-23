@@ -101,7 +101,8 @@ export default class BotConfig {
 			audio: false,
 			secretId: "",
 			secretKey: ""
-		}
+		},
+		signApiAddr: ""
 	};
 	
 	public readonly mailConfig: {
@@ -150,6 +151,7 @@ export default class BotConfig {
 		readonly secretKey: string;
 	}
 	public readonly logKeepDays: number;
+	public readonly signApiAddr: string;
 	
 	constructor( file: FileManagement ) {
 		const config: any = file.loadYAML( "setting" );
@@ -158,7 +160,7 @@ export default class BotConfig {
 			"helpPort", "autoChat", "callTimes",
 			"fuzzyMatch", "matchPrompt", "useWhitelist",
 			"banScreenSwipe", "banHeavyAt", "ThresholdInterval",
-			"ffmpegPath", "ffprobePath", "mailConfig", "logKeepDays"
+			"ffmpegPath", "ffprobePath", "mailConfig", "logKeepDays", "signApiAddr"
 		];
 		
 		for ( let key of checkFields ) {
@@ -251,5 +253,6 @@ export default class BotConfig {
 		this.logLevel = logLevelList.includes( config.logLevel )
 			? config.logLevel : "info";
 		this.logKeepDays = config.logKeepDays;
+		this.signApiAddr = config.signApiAddr;
 	}
 }

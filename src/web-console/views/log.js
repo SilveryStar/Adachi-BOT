@@ -389,7 +389,7 @@ export default defineComponent( {
 				.toString()
 				.split( "\n\n" )
 				.map( el => {
-					el = el.replace( /\[(Android|aPad|Watch|iMac|iPad|Android_8.8.88):\d+]/g, "[$1:*****]" )
+					el = el.replace( /\[(Android|aPad|Watch|iMac|iPad|Android_8.8.88|Tim):\d+]/g, "[$1:*****]" )
 						.replace( / - recv from: \[Private: \d+\((friend|group)\)] (.*)/g, " [Recv] [Pri-$1] $2" )
 						.replace( / - recv from: \[Group: .*] (.*)/g, " [Recv] [Group] $1" )
 						.replace( / - succeed to send: \[(Group|Private).*]/g, " [Send] [$1] ---" )
