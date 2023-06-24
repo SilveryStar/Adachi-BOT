@@ -6,7 +6,7 @@ import { Router } from "express";
 import axios, { AxiosError, AxiosResponse } from "axios";
 import Progress from "@/utils/progress";
 import { Renderer } from "@/modules/renderer";
-import { compareAssembleObject, getObjectKeyValue } from "@/utils/object";
+import { compareAssembleObject, getObjectKeyValue, removeKeysStartsWith } from "@/utils/object";
 import { isIgnorePath } from "@/utils/path";
 import { parse, stringify } from "yaml";
 import { isJsonString } from "@/utils/verify";
@@ -132,9 +132,10 @@ export default class Plugin {
 	/* 加载插件 */
 	public async loadSingle( pluginKey: string, reload: boolean = true ) {
 		try {
-			const path: string = this.bot.file.getFilePath( `${ pluginKey }/init`, "plugin" );
-			Reflect.deleteProperty( require.cache, require.resolve( path ) );
-			const init = require( path );
+			// 清楚指定插件的文件缓存
+			removeKeysStartsWith( require.cache, this.bot.file.getFilePath( pluginKey, "plugin" ) );
+			
+			const init = await import( `#/${ pluginKey }/init.ts` );
 			const {
 				name: pluginName,
 				renderer,

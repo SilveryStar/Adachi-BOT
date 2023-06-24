@@ -1,6 +1,19 @@
 /* 对象相关通用方法 */
 
 /**
+ * @desc 删除对象中以指定内容起始的键名
+ * @param target 目标对象
+ * @param startsWith 指定起始的键名
+ */
+export function removeKeysStartsWith( target: Record<string, any>, startsWith: string ) {
+	Object.keys( target ).forEach( key => {
+		if ( key.startsWith( startsWith ) ) {
+			Reflect.deleteProperty( target, key );
+		}
+	} )
+}
+
+/**
  * @desc 获取对象中指定键名的值，值为 boolean 或 string 则取默认值，反之正常取值
  * @param data 数据
  * @param key 键名
@@ -87,7 +100,7 @@ export function isEqualObject( a: any, b: any, checkArray = true ) {
  * @return 是否存在该值
  */
 export function includesValue( list, value, checkArray = true ) {
-	return list.findIndex(el => isEqualObject( el, value, checkArray )) !== -1;
+	return list.findIndex( el => isEqualObject( el, value, checkArray ) ) !== -1;
 }
 
 /**
