@@ -1,6 +1,6 @@
 {
   "name" : "adachi-bot",
-  "version" : "2.9.10",
+  "version" : "2.9.11",
   "description" : "",
   "main" : "index.js",
   "scripts" : {
@@ -37,7 +37,7 @@
     "exceljs" : "^4.3.0",
     "express-jwt" : "~6.1.0",
     "express-ws" : "~5.0.2",
-    "icqq" : "^0.3.14",
+    "icqq" : "^0.4.6",
     "jsonwebtoken" : "~8.5.1",
     "lodash" : "~4.17.21",
     "log4js" : "~6.3.0",

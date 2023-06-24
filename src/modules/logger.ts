@@ -12,7 +12,7 @@ export default class WebConfiguration {
 	private readonly tcpLoggerPort: number;
 	
 	constructor( config: BotConfig ) {
-		const platformName: string[] = [ "", "Android", "aPad", "Watch", "iMac", "iPad", "Android_8.8.88" ];
+		const platformName: string[] = [ "", "Android", "aPad", "Watch", "iMac", "iPad", "Tim" ];
 		
 		this.tcpLoggerPort = config.webConsole.tcpLoggerPort;
 		this.deviceName = `[${ platformName[config.platform] }:${ config.number }]`;
