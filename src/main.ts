@@ -72,9 +72,8 @@ export default class Adachi {
 		const file = new FileManagement( root );
 		// 是否需要初始化环境
 		const exist = file.isExist( file.getFilePath( "base.yml" ) );
-		
 		const command = new Command( file );
-		const refresh = new RefreshConfig( file, command );
+		const refresh = new RefreshConfig();
 		
 		/* 初始化应用模块 */
 		const config = this.getBotConfig( file, refresh );
@@ -114,6 +113,7 @@ export default class Adachi {
 		RenderServer.getInstance( config, file, logger );
 		PluginManager.getInstance( this.bot );
 		refresh.register( renderer );
+		refresh.register( "commands", command );
 	}
 	
 	public run(): BOT {

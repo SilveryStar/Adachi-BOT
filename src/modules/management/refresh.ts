@@ -44,18 +44,8 @@ interface RefreshableMethod {
 }
 
 export default class Refreshable implements RefreshableMethod {
-	private readonly file: FileManagement;
-	private readonly include: RefreshableSetting[];
-	public isRefreshing: boolean;
-	
-	constructor( file: FileManagement, command: Command ) {
-		this.include = [ {
-			type: "file", fileName: "commands",
-			place: "config", target: command
-		} ];
-		this.file = file;
-		this.isRefreshing = false;
-	}
+	private readonly include: RefreshableSetting[] = [];
+	public isRefreshing: boolean = false;
 	
 	public register( fileName: string, target: RefreshTarget<"file">, place?: PresetPlace ): void;
 	public register( target: RefreshTarget<"file"> ): void;

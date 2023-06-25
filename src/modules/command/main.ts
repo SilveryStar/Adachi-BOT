@@ -202,25 +202,10 @@ export default class Command {
 							...el.genRegExps.map( r => `(${ r.source })` )
 						);
 						
-						/* 是否存在指令起始符 */
-						const hasHeader = config.header ? el.header.includes( config.header ) : false;
-						const rawHeader = el.header.replace( config.header, "" );
-						
-						let unMatchHeader: string = "";
-						
-						if ( config.fuzzyMatch && rawHeader.length !== 0 && /[\u4e00-\u9fa5]/.test( rawHeader ) ) {
-							/* 当开启模糊匹配、指令头包括中文时，同时匹配是否存在起始符与指令头 */
-							unMatchHeader = `${ hasHeader ? "(?=^" + config.header + ")" : "" }(?=.*${ rawHeader })`
-						} else if ( config.matchPrompt && config.header && el.header ) {
-							/* 当开启格式检查提示、存在起始符时，添加指令头至unionReg */
-							unMatchHeader = "^" + el.header;
+						const unMatchHeader = cmd.getExtReg( el );
+						if ( unMatchHeader ) {
+							list.push( `(${ unMatchHeader })` );
 						}
-						
-						if ( unMatchHeader.length === 0 ) {
-							return;
-						}
-						
-						list.push( `(${ unMatchHeader })` );
 					} );
 				} else if ( cmd.type === "switch" ) {
 					list.push( ...cmd.regexps.map( r => `(${ r.source })` ) );

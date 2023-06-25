@@ -30,20 +30,11 @@ export class Order extends BasicConfig {
 		super( config, pluginName );
 		
 		const headers: string[] = config.headers.map( el => Order.header( el, botCfg.directive.header ) );
-		if ( this.desc[0].length > 0 && botCfg.directive.fuzzyMatch ) {
-			headers.push( Order.header( this.desc[0], botCfg.directive.header ) ); //添加中文指令名作为识别
-		}
 		
-		let rawRegs = <string[][]>config.regexps;
-		const isDeep: boolean = config.regexps.some( el => el instanceof Array );
-		if ( !isDeep ) {
-			rawRegs = [ <string[]>config.regexps ];
-		}
-		this.regParam = rawRegs;
-		
-		for ( let header of headers ) {
-			const pair: RegPair = { header, genRegExps: [] };
-			for ( let reg of rawRegs ) {
+		this.regParam = this.checkRegexps( config.regexps ) ? config.regexps : [ config.regexps ];
+		this.regPairs = headers.map( header => ( {
+			header,
+			genRegExps: this.regParam.map( reg => {
 				const r: string = [ "", ...reg ].join( "\\s*" );
 				const h: string = escapeRegExp( header );
 				const pattern: string = Order.addStartStopChar(
@@ -51,10 +42,13 @@ export class Order extends BasicConfig {
 					config.start !== false,
 					config.stop !== false
 				);
-				pair.genRegExps.push( Order.regexp( pattern, this.ignoreCase ) );
-			}
-			this.regPairs.push( pair );
-		}
+				return Order.regexp( pattern, this.ignoreCase );
+			} )
+		} ) );
+	}
+	
+	private checkRegexps( regexps: OrderConfig["regexps"] ): regexps is string[][] {
+		return regexps.some( el => el instanceof Array );
 	}
 	
 	public static read( cfg: OrderConfig, loaded ) {
@@ -75,44 +69,52 @@ export class Order extends BasicConfig {
 		};
 	}
 	
+	public getExtReg( pair: RegPair ) {
+		const config = bot.config.directive;
+		/* 是否存在指令起始符 */
+		const hasHeader = config.header ? pair.header.includes( config.header ) : false;
+		const rawHeader = pair.header.replace( config.header, "" );
+		
+		let headerRegStr: string = "";
+		if ( config.fuzzyMatch && rawHeader.length !== 0 && /[\u4e00-\u9fa5]/.test( rawHeader ) ) {
+			headerRegStr = `${ hasHeader ? "(?=^" + config.header + ")" : "" }(?=.*?${ rawHeader })`;
+		} else if ( config.matchPrompt && config.header && pair.header ) {
+			headerRegStr = "^" + pair.header;
+		}
+		
+		return headerRegStr || null;
+	}
+	
 	public match( content: string ): OrderMatchResult | Unmatch {
 		const config = bot.config.directive;
 		try {
-			this.regPairs.forEach( pair => pair.genRegExps.forEach( reg => {
-				/* 是否存在指令起始符 */
-				const hasHeader = config.header ? pair.header.includes( config.header ) : false;
+			this.regPairs.forEach( pair => {
+				const headerRegStr = this.getExtReg( pair );
+				const headerReg = headerRegStr ? new RegExp( headerRegStr ) : null;
+				
 				const rawHeader = pair.header.replace( config.header, "" );
-				
-				let headerRegStr: string = "";
-				
-				if ( config.fuzzyMatch && rawHeader.length !== 0 && /[\u4e00-\u9fa5]/.test( rawHeader ) ) {
-					headerRegStr = `${ hasHeader ? "(?=^" + config.header + ")" : "" }(?=.*?${ rawHeader })`;
-				} else if ( config.matchPrompt && config.header && pair.header ) {
-					headerRegStr = "^" + pair.header;
-				}
-				
-				const headerReg: RegExp | null = headerRegStr.length !== 0 ? new RegExp( headerRegStr ) : null;
-				
-				/* 若直接匹配不成功，则匹配指令头，判断参数是否符合要求 */
-				if ( reg.test( content ) ) {
-					throw { type: "order", header: pair.header };
-				} else if ( headerReg && headerReg.test( content ) ) {
-					const header = config.header == "" ? pair.header : `${ config.header }|${ rawHeader }`;
-					
-					const fogReg = new RegExp( header, "g" );
-					/* 重组正则，判断是否参数不符合要求 */
-					content = content.replace( fogReg, "" );
-					for ( let params of this.regParam ) {
-						params = [pair.header, ...params];
-						const paramReg = new RegExp( `^${ params.join( "\\s*" ) }$` );
-						const matchParam = paramReg.test( pair.header + content );
-						if ( matchParam ) {
-							throw { type: "order", header: pair.header };
+				pair.genRegExps.forEach( reg => {
+					/* 若直接匹配不成功，则匹配指令头，判断参数是否符合要求 */
+					if ( reg.test( content ) ) {
+						throw { type: "order", header: pair.header };
+					} else if ( headerReg && headerReg.test( content ) ) {
+						const header = config.header == "" ? pair.header : `${ config.header }|${ rawHeader }`;
+						
+						const fogReg = new RegExp( header, "g" );
+						/* 重组正则，判断是否参数不符合要求 */
+						content = content.replace( fogReg, "" );
+						for ( let params of this.regParam ) {
+							params = [ pair.header, ...params ];
+							const paramReg = new RegExp( `^${ params.join( "\\s*" ) }$` );
+							const matchParam = paramReg.test( pair.header + content );
+							if ( matchParam ) {
+								throw { type: "order", header: pair.header };
+							}
 						}
+						throw { type: "unmatch", missParam: true, header: pair.header, param: content };
 					}
-					throw { type: "unmatch", missParam: true, header: pair.header, param: content };
-				}
-			} ) );
+				} )
+			} );
 		} catch ( data ) {
 			return <OrderMatchResult | Unmatch>data;
 		}
