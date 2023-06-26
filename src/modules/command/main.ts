@@ -59,6 +59,7 @@ export abstract class BasicConfig {
 	readonly run: CommandFunc;
 	readonly desc: [ string, string ];
 	readonly pluginName: string;
+	readonly priority: number;
 	
 	abstract match( content: string ): MatchResult;
 	
@@ -113,6 +114,7 @@ export abstract class BasicConfig {
 		this.scope = config.scope || MessageScope.Both;
 		this.detail = config.detail || "该指令暂无更多信息";
 		this.ignoreCase = config.ignoreCase !== false;
+		this.priority = config.priority || 0;
 		this.display = config.display !== false;
 		this.enable = config.enable !== false;
 		this.run = <CommandFunc>config.run;

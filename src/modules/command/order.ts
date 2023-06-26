@@ -14,6 +14,7 @@ export type OrderConfig = CommandInfo & {
 	regexps: string[] | string[][];
 	start?: boolean;
 	stop?: boolean;
+	priority?: number;
 };
 
 interface RegPair {
@@ -56,6 +57,7 @@ export class Order extends BasicConfig {
 		cfg.auth = loaded.auth;
 		cfg.scope = loaded.scope;
 		cfg.enable = loaded.enable;
+		cfg.priority = Number.parseInt( loaded.priority ) || 0;
 	}
 	
 	public write() {
@@ -65,7 +67,8 @@ export class Order extends BasicConfig {
 			auth: this.auth,
 			scope: this.scope,
 			headers: cfg.headers,
-			enable: this.enable
+			enable: this.enable,
+			priority: this.priority
 		};
 	}
 	
@@ -130,7 +133,7 @@ export class Order extends BasicConfig {
 	public getDesc( headerNum?: number ): string {
 		const { headers, param } = this.getFollow();
 		const headerList = headerNum ? headers.slice( 0, headerNum ) : headers;
-		const follow = `${ headerList.join("|") } ${ param }`;
+		const follow = `${ headerList.join( "|" ) } ${ param }`;
 		return Order.addLineFeedChar(
 			this.desc[0], follow,
 			bot.config.directive.helpMessageStyle

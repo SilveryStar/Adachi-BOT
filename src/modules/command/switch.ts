@@ -19,6 +19,7 @@ export type SwitchConfig = CommandInfo & {
 	regexp: string | string[];
 	start?: boolean;
 	stop?: boolean;
+	priority?: number;
 };
 
 export class Switch extends BasicConfig {
@@ -85,7 +86,8 @@ export class Switch extends BasicConfig {
 			onKey: cfg.onKey,
 			offKey: cfg.offKey,
 			header: cfg.header,
-			enable: this.enable
+			enable: this.enable,
+			priority: this.priority
 		};
 	}
 	
@@ -97,6 +99,7 @@ export class Switch extends BasicConfig {
 		cfg.offKey = loaded.offKey;
 		cfg.header = loaded.header;
 		cfg.enable = loaded.enable;
+		cfg.priority = Number.parseInt( loaded.priority ) || 0;
 	}
 	
 	public match( content: string ): SwitchMatchResult | Unmatch {

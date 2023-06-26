@@ -354,7 +354,7 @@ export default class Adachi {
 		}
 		
 		if ( matchList.length === 0 ) return;
-		/* 选择最长的 header 作为成功匹配项 */
+		/* 选择 最长的 header && 最大的优先级 作为成功匹配项 */
 		const { matchResult: res, cmd } = matchList.sort( ( prev, next ) => {
 			const getHeaderLength = ( { matchResult }: typeof prev ) => {
 				let length: number = 0;
@@ -367,7 +367,7 @@ export default class Adachi {
 				}
 				return length;
 			}
-			return getHeaderLength( next ) - getHeaderLength( prev );
+			return ( getHeaderLength( next ) + next.cmd.priority ) - ( getHeaderLength( prev ) + prev.cmd.priority );
 		} )[0];
 		
 		if ( res.type === "unmatch" ) {
