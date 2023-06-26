@@ -11,5 +11,11 @@ export async function main( i: InputParameter ): Promise<void> {
 		return;
 	}
 	
-	await i.sendMessage( commands[id - 1].detail );
+	const command = commands[id - 1];
+	const { headers, param } = command.getFollow();
+	const follow = `${ headers.join( "|" ) } ${ param }`;
+	const detail = command.detail;
+	
+	const message = `指令格式：${ follow }\n指令说明：${ detail }`;
+	await i.sendMessage( message );
 }

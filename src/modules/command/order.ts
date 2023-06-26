@@ -1,4 +1,4 @@
-import { BasicConfig, CommandInfo, Unmatch } from "./main";
+import { BasicConfig, CommandInfo, FollowInfo, Unmatch } from "./main";
 import { BotConfig } from "@/modules/config";
 import bot from "ROOT";
 import { escapeRegExp } from "lodash";
@@ -121,20 +121,16 @@ export class Order extends BasicConfig {
 		return { type: "unmatch", missParam: false };
 	}
 	
-	public getFollow(): string {
-		const pairs = this.regPairs.concat();
-		if ( pairs[pairs.length - 1].header === Order.header( this.desc[0], bot.config.directive.header ) ) {
-			pairs.pop();
-		}
-		const headers: string = pairs
-			.map( el => el.header )
-			.join( "|" );
+	public getFollow(): FollowInfo {
+		const headers = this.regPairs.map( el => el.header );
 		const param = this.desc[1];
-		return `${ headers } ${ param }`;
+		return { headers, param };
 	}
 	
-	public getDesc(): string {
-		const follow = this.getFollow();
+	public getDesc( headerNum?: number ): string {
+		const { headers, param } = this.getFollow();
+		const headerList = headerNum ? headers.slice( 0, headerNum ) : headers;
+		const follow = `${ headerList.join("|") } ${ param }`;
 		return Order.addLineFeedChar(
 			this.desc[0], follow,
 			bot.config.directive.helpMessageStyle

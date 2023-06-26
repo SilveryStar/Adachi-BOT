@@ -321,10 +321,6 @@ export default class Plugin {
 						if ( loaded ) cmd.Switch.read( config, loaded );
 						command = new cmd.Switch( config, this.bot.config, pluginInfo.name );
 						break;
-					case "enquire":
-						if ( loaded ) cmd.Enquire.read( config, loaded );
-						command = new cmd.Enquire( config, this.bot.config, pluginInfo.name );
-						break;
 				}
 				if ( !loaded || loaded.enable ) {
 					pluginInfo.commands.push( command );

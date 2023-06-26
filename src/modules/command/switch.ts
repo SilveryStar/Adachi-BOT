@@ -1,4 +1,4 @@
-import { BasicConfig, CommandInfo, Unmatch } from "./main";
+import { BasicConfig, CommandInfo, FollowInfo, Unmatch } from "./main";
 import { BotConfig } from "@/modules/config";
 import bot from "ROOT";
 import { escapeRegExp, trimStart } from "lodash";
@@ -150,7 +150,7 @@ export class Switch extends BasicConfig {
 		return { type: "unmatch", missParam: false };
 	}
 	
-	public getFollow(): string {
+	public getFollow(): FollowInfo {
 		const param = this.desc[1];
 		const [ onKey, offKey ] = this.keys;
 		
@@ -166,11 +166,15 @@ export class Switch extends BasicConfig {
 				.trim()
 				.replace( /\s+/g, " " );
 		}
-		return `${ header } ${ follow }`;
+		return {
+			headers: [ header ],
+			param: follow
+		};
 	}
 	
 	public getDesc(): string {
-		const follow = this.getFollow();
+		const { headers, param } = this.getFollow();
+		const follow = `${ headers.join("|") } ${ param }`;
 		
 		return Switch.addLineFeedChar(
 			this.desc[0], follow,

@@ -4,7 +4,7 @@ import Plugin from "@/modules/plugin";
 import FileManagement from "@/modules/file";
 import { RefreshCatch } from "@/modules/management/refresh";
 import { Message, MessageScope, SendFunc } from "@/modules/message";
-import { Enquire, Order, Switch } from "./index";
+import { Order, Switch } from "./index";
 import { AuthLevel } from "../management/auth";
 import { BOT } from "@/main";
 import { trimStart, without } from "lodash";
@@ -23,14 +23,17 @@ export interface Unmatch {
 	param?: string;
 }
 
+export interface FollowInfo {
+	headers: string[];
+	param: string;
+}
+
 export type MatchResult = cmd.OrderMatchResult |
 	cmd.SwitchMatchResult |
-	cmd.EnquireMatchResult |
 	Unmatch;
 
 export type ConfigType = cmd.OrderConfig |
-	cmd.SwitchConfig |
-	cmd.EnquireConfig;
+	cmd.SwitchConfig;
 
 export type InputParameter = {
 	sendMessage: SendFunc;
@@ -42,7 +45,7 @@ export type CommandFunc = ( input: InputParameter ) => void | Promise<void>;
 export type CommandList = Record<AuthLevel, BasicConfig[]>;
 export type CommandInfo = Required<Optional<BasicConfig>,
 	"cmdKey" | "desc"> & { main?: string | CommandFunc };
-export type CommandType = Order | Switch | Enquire;
+export type CommandType = Order | Switch;
 
 export abstract class BasicConfig {
 	readonly auth: AuthLevel;
@@ -61,9 +64,9 @@ export abstract class BasicConfig {
 	
 	abstract write(): any;
 	
-	abstract getFollow(): string;
+	abstract getFollow(): FollowInfo;
 	
-	abstract getDesc(): string;
+	abstract getDesc( headerNum?: number ): string;
 	
 	protected static header( raw: string, h: string ): string {
 		if ( raw.slice( 0, 2 ) === "__" ) {
@@ -209,8 +212,6 @@ export default class Command {
 					} );
 				} else if ( cmd.type === "switch" ) {
 					list.push( ...cmd.regexps.map( r => `(${ r.source })` ) );
-				} else if ( cmd.type === "enquire" ) {
-					list.push( ...cmd.sentences.map( s => `(${ s.reg.source })` ) );
 				}
 			} )
 			return new RegExp( `(${ list.join( "|" ) })`, "i" );

@@ -1,20 +1,12 @@
 import { Forwardable, Sendable, segment } from "icqq";
-import { BasicConfig, InputParameter, Order } from "@/modules/command";
+import { BasicConfig, FollowInfo, InputParameter, Order } from "@/modules/command";
 import Command from "@/modules/command/main";
 import FileManagement from "@/modules/file";
 import { filterUserUsableCommand } from "../utils/filter";
 import { RenderResult } from "@/modules/renderer";
 import { renderer } from "../init";
 import bot from "ROOT";
-
-interface HelpCommand {
-	id: number;
-	header: string;
-	body: string
-	cmdKey: string;
-	detail: string;
-	pluginName: string;
-}
+import { HelpCommand } from "#/@help/type/help";
 
 function getVersion( file: FileManagement ): string {
 	const path: string = file.getFilePath( "package.json", "root" );
@@ -24,8 +16,9 @@ function getVersion( file: FileManagement ): string {
 
 function messageStyle( title: string, list: string[], command: Command ): Sendable {
 	const DETAIL = <Order>command.getSingle( "adachi.detail" );
+	list.push( "", "列表仅展示最多两个指令头" );
 	if ( DETAIL ) {
-		list.push( "", `使用 ${ DETAIL.getHeaders()[0] }+指令序号 获取更多信息`, );
+		list.push( `使用 ${ DETAIL.getHeaders()[0] }+指令序号 获取更多信息`, );
 	}
 	list.push( "[] 表示必填, () 表示选填, | 表示选择" );
 	return [ title, ...list ].join( "\n" );
@@ -89,7 +82,7 @@ function xmlStyle( title: string, list: string[], command: Command ): Sendable {
 }
 
 /* 使用图片帮助 */
-async function cardStyle( i: InputParameter, commands: BasicConfig[], version: string ) {
+async function cardStyle( i: InputParameter, commands: BasicConfig[] ) {
 	const dbKey = "adachi.help-data";
 	
 	const cmdList: HelpCommand[] = commands.map( ( cmd, cKey ) => {
@@ -112,7 +105,6 @@ async function cardStyle( i: InputParameter, commands: BasicConfig[], version: s
 	
 	await i.redis.setString( dbKey, JSON.stringify( {
 		detailCmd: DETAIL ? DETAIL.getHeaders()[0] : "",
-		version: version,
 		commands: cmdData
 	} ) );
 	
@@ -128,11 +120,7 @@ async function cardStyle( i: InputParameter, commands: BasicConfig[], version: s
 	}
 }
 
-async function getHelpMessage(
-	title: string, version: string,
-	commands: BasicConfig[], list: string[],
-	i: InputParameter
-): Promise<Sendable> {
+async function getHelpMessage( title: string, commands: BasicConfig[], list: string[], i: InputParameter ): Promise<Sendable> {
 	switch ( i.config.directive.helpMessageStyle ) {
 		case "message":
 			return messageStyle( title, list, i.command );
@@ -141,7 +129,7 @@ async function getHelpMessage(
 		case "xml":
 			return xmlStyle( title, list, i.command );
 		case "card":
-			return await cardStyle( i, commands, version );
+			return await cardStyle( i, commands );
 		default:
 			return "";
 	}
@@ -164,7 +152,7 @@ export async function main( i: InputParameter ): Promise<void> {
 		}, "" );
 		await i.sendMessage( title + keys );
 	} else {
-		const msgList: string[] = commands.map( el => `${ ++ID }. ${ el.getDesc() }` );
-		await i.sendMessage( await getHelpMessage( title, version, commands, msgList, i ), false );
+		const msgList: string[] = commands.map( el => `${ ++ID }. ${ el.getDesc( 2 ) }` );
+		await i.sendMessage( await getHelpMessage( title, commands, msgList, i ), false );
 	}
 }

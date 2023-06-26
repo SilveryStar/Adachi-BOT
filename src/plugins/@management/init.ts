@@ -124,7 +124,7 @@ const upgrade_plugins: OrderConfig = {
 }
 
 export default definePlugin( {
-	name: "@management",
+	name: "management",
 	cfgList: [
 		manager, ban, limit, interval,
 		refresh, upgrade, restart, reload, upgrade_plugins

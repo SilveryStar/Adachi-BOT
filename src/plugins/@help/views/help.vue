@@ -9,20 +9,21 @@
 				</div>
 				<div class="right-header">
 					<p class="version">ver{{ version }}</p>
-					<p v-if="data.detailCmd" class="desc">使用 {{ data.detailCmd }}+指令序号 查看更多信息</p>
+					<p class="desc">列表仅展示最多两个指令头</p>
+					<p v-if="data.detailCmd" class="desc">使用 {{ data.detailCmd }}+指令序号 查看想想信息</p>
 					<p class="desc">[]表示必填，()表示选填，|表示选择</p>
 				</div>
 			</header>
 			<main>
 				<section v-for="(commands, pluginName) in data.commands" :key="pluginName" class="cmd-list">
-					<h3>{{ getListTitle(pluginName) }}</h3>
+					<h3>{{ getListTitle( pluginName ) }}</h3>
 					<ul>
 						<li v-for="cmd of commands" :key="cmd.id" class="cmd-content clearfix">
 							<p class="cmd-index">
 								<span>{{ cmd.id }}</span>
 							</p>
 							<p class="cmd-header">{{ cmd.header }}</p>
-							<p class="cmd-desc">{{ model === "keys" ? cmd.cmdKey : cmd.body }}</p>
+							<p class="cmd-desc">{{ getCmdBody( cmd ) }}</p>
 						</li>
 					</ul>
 				</section>
@@ -38,26 +39,36 @@
 import $https from "#/@help/utils/api";
 import { onMounted, ref } from "vue";
 import { urlParamsGet } from "@/utils/url";
+import { HelpCommand, HelpRouterData } from "#/@help/type/help";
 
 const urlParams = urlParamsGet( location.href );
-const data = ref<Record<string, any> | null>( null );
+const data = ref<HelpRouterData | null>( null );
 
 const model = urlParams.model;
 const version = window.ADACHI_VERSION;
 
 const pluginNameMap = {
-	"@help": "帮助指令",
-	"@management": "管理指令",
-	"tools": "附加工具",
-	"chai":"柴柴工具箱"
+	"help": "帮助指令",
+	"management": "管理指令",
+	"tools": "附加工具"
 }
 
-function getListTitle( pluginName: string ): string {
+function getListTitle( pluginName: string | number ): string {
 	return pluginNameMap[pluginName] || `${ pluginName } 插件指令`;
+}
+
+function getCmdBody( cmd: HelpCommand ): string {
+	if ( model === "keys" ) {
+		return cmd.cmdKey;
+	}
+	// 仅展示前两项 header
+	const headers = cmd.body.headers.slice( 0, 2 );
+	return `${ headers.join( "|" ) } ${ cmd.body.param }`
 }
 
 const getData = async () => {
 	data.value = await $https.HELP.get();
+
 };
 
 onMounted( () => {
@@ -142,7 +153,7 @@ html {
 		}
 
 		.right-header {
-			margin-top: 40px;
+			margin-top: 25px;
 			text-align: right;
 
 			.version {

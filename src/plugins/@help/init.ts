@@ -44,7 +44,7 @@ const serverRouters: Record<string, Router> = {
 export let renderer: Renderer;
 
 export default definePlugin( {
-	name: "@help",
+	name: "help",
 	cfgList: [ help, detail, call ],
 	renderer: true,
 	server: {
@@ -56,11 +56,8 @@ export default definePlugin( {
 			return path.replace( "Version3/help/", "" );
 		}
 	},
-	mounted( bot ) {
+	mounted( params ) {
 		/* 未启用卡片帮助时不启动服务 */
-		if ( bot.config.directive.helpMessageStyle === "card" ) {
-			/* 实例化渲染器 */
-			renderer = bot.renderer.register("/@help", "#app" );
-		}
+		renderer = params.renderRegister( "#app" );
 	}
 } );
