@@ -6,6 +6,7 @@ import { escapeRegExp } from "lodash";
 export interface OrderMatchResult {
 	type: "order";
 	header: string;
+	match: string[];
 }
 
 export type OrderConfig = CommandInfo & {
@@ -36,7 +37,12 @@ export class Order extends BasicConfig {
 		this.regPairs = headers.map( header => ( {
 			header,
 			genRegExps: this.regParam.map( reg => {
-				const r: string = [ "", ...reg ].join( "\\s*" );
+				// 非捕获正则字符串中的分组，并捕获整段参数
+				const regList = reg.map( r => {
+					const fr = r.replace( /\((.+?)\)/g, "(?:$1)" );
+					return `(${ fr })`;
+				} );
+				const r: string = [ "", ...regList ].join( "\\s*" );
 				const h: string = escapeRegExp( header );
 				const pattern: string = Order.addStartStopChar(
 					h + r,
@@ -90,37 +96,39 @@ export class Order extends BasicConfig {
 	
 	public match( content: string ): OrderMatchResult | Unmatch {
 		const config = bot.config.directive;
-		try {
-			this.regPairs.forEach( pair => {
-				const headerRegStr = this.getExtReg( pair );
-				const headerReg = headerRegStr ? new RegExp( headerRegStr ) : null;
-				
-				const rawHeader = pair.header.replace( config.header, "" );
-				pair.genRegExps.forEach( reg => {
-					/* 若直接匹配不成功，则匹配指令头，判断参数是否符合要求 */
-					if ( reg.test( content ) ) {
-						throw { type: "order", header: pair.header };
-					} else if ( headerReg && headerReg.test( content ) ) {
-						const header = config.header == "" ? pair.header : `${ config.header }|${ rawHeader }`;
-						
-						const fogReg = new RegExp( header, "g" );
-						/* 重组正则，判断是否参数不符合要求 */
-						content = content.replace( fogReg, "" );
-						for ( let params of this.regParam ) {
-							params = [ pair.header, ...params ];
-							const paramReg = new RegExp( `^${ params.join( "\\s*" ) }$` );
-							const matchParam = paramReg.test( pair.header + content );
-							if ( matchParam ) {
-								throw { type: "order", header: pair.header };
-							}
-						}
-						throw { type: "unmatch", missParam: true, header: pair.header, param: content };
+		for ( const pair of this.regPairs ) {
+			const headerRegStr = this.getExtReg( pair );
+			const headerReg = headerRegStr ? new RegExp( headerRegStr ) : null;
+			
+			const rawHeader = pair.header.replace( config.header, "" );
+			
+			// 是否匹配成功指令头（用于判断是否触发指令的参数错误）
+			let isMatchHeader = false;
+			for ( const reg of pair.genRegExps ) {
+				const match = reg.exec( content );
+				if ( match ) {
+					// 匹配成功
+					return { type: "order", header: pair.header, match: [ ...match ].slice( 1 ) };
+				} else if ( headerReg && headerReg.test( content ) ) {
+					// 直接匹配不成功但模糊匹配指令头成功时，仅开启了 fuzzyMatch 或 matchPrompt 后才会执行此部分
+					const header = config.header == "" ? pair.header : `${ config.header }|${ rawHeader }`;
+					const fogReg = new RegExp( header, "g" );
+					
+					const formatContent = pair.header + content.replace( fogReg, "" ).trim();
+					const match = reg.exec( formatContent );
+					if ( match ) {
+						// 模糊匹配成功
+						return { type: "order", header: pair.header, match: [ ...match ].slice( 1 ) };
 					}
-				} )
-			} );
-		} catch ( data ) {
-			return <OrderMatchResult | Unmatch>data;
+					isMatchHeader = true;
+				}
+			}
+			// 此时指令头匹配成功，但参数不正确
+			if ( isMatchHeader ) {
+				return { type: "unmatch", missParam: true, header: pair.header, param: content };
+			}
 		}
+		// 匹配失败
 		return { type: "unmatch", missParam: false };
 	}
 	

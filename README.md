@@ -554,6 +554,42 @@ export default <FetchServer<keyof typeof apis, FetchResponse>><unknown>request;
 
 在 .vue 端环境全局挂载变量 `ADACHI_VERSION`，指向当前框架版本。可直接通过 `window.ADACHI_VERSION` 使用。
 
+### order 指令的 match 属性
+
+`OrderMatchResult` 类型新增 `match` 属性。这表示着 Order 类型的指令也允许通过 `matchResult.match` 来获取正则匹配结果。
+
+使用方法如下：
+
+```ts
+export async function main( { messageData }: InputParameter ): Promise<void> {
+    const params = ( <OrderMatchResult>matchResult ).match;
+}
+```
+
+该属性为一个字符串数组，当用户未输入指令的某个可选参数时，该参数所在的数组位置的值为 空字符串`""`。
+
+#### 示例
+
+现有如下指令配置：
+
+```ts
+const information: OrderConfig = {
+    type: "order",
+    headers: [ "info" ],
+    regexps: [ "[\\w\\u4e00-\\u9fa5]+", "(-skill)?" ],
+    // ...
+};
+```
+
+当用户输入 `#info 行秋` 与 `#info 行秋 -skill` 时，`matchResult.match` 的值分别为如下结果：
+
+```yaml
+# 用户输入：#info 行秋
+- [ "行秋", "" ]
+# 用户输入：#info 行秋 -skill
+- [ "行秋", "-skill" ]
+```
+
 ## brake change
 
 ### 插件配置结构变更

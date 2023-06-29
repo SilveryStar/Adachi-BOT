@@ -7,7 +7,10 @@ const bind: OrderConfig = {
 	cmdKey: "silvery-star.bind",
 	desc: [ "绑定", "[UID|-r]" ],
 	headers: [ "bind" ],
-	regexps: [ "(\\d{9}|-r)" ],
+	regexps: [
+		[ "\\d{9}" ],
+		[ "-r" ]
+	],
 	main: "achieves/bind",
 	detail: "将qq与uid绑定，使用-r解除绑定"
 };
