@@ -1,10 +1,10 @@
 import * as cmd from "./index";
+import { Order, Switch } from "./index";
 import bot from "ROOT";
 import Plugin from "@/modules/plugin";
 import FileManagement from "@/modules/file";
 import { RefreshCatch } from "@/modules/management/refresh";
 import { Message, MessageScope, SendFunc } from "@/modules/message";
-import { Order, Switch } from "./index";
 import { AuthLevel } from "../management/auth";
 import { BOT } from "@/main";
 import { trimStart, without } from "lodash";
@@ -125,19 +125,15 @@ export abstract class BasicConfig {
 }
 
 export default class Command {
-	public privates: CommandList;
-	public groups: CommandList;
-	public pUnionReg: Record<AuthLevel, RegExp>;
-	public gUnionReg: Record<AuthLevel, RegExp>;
+	public privates: CommandList = Command.initAuthObject();
+	public groups: CommandList = Command.initAuthObject();
+	public all: CommandList = Command.initAuthObject();
+	public pUnionReg: Record<AuthLevel, RegExp> = Command.initAuthObject();
+	public gUnionReg: Record<AuthLevel, RegExp> = Command.initAuthObject();
 	public raws: ConfigType[] = [];
 	public readonly cmdKeys: string[];
 	
 	constructor( file: FileManagement ) {
-		this.privates = Command.initAuthObject();
-		this.groups = Command.initAuthObject();
-		this.pUnionReg = Command.initAuthObject();
-		this.gUnionReg = Command.initAuthObject();
-		
 		this.cmdKeys = without( Object.keys( ( file.loadYAML( "commands" ) || {} ) ), "tips" );
 	}
 	
@@ -163,6 +159,7 @@ export default class Command {
 	public async reload() {
 		this.privates = Command.initAuthObject();
 		this.groups = Command.initAuthObject();
+		this.all = Command.initAuthObject();
 		this.pUnionReg = Command.initAuthObject();
 		this.gUnionReg = Command.initAuthObject();
 		
@@ -189,6 +186,7 @@ export default class Command {
 				if ( cmd.scope & MessageScope.Private ) {
 					this.privates[auth].push( cmd );
 				}
+				this.all[auth].push( cmd );
 			}
 		} );
 		
@@ -231,8 +229,10 @@ export default class Command {
 	public get( auth: AuthLevel, scope: MessageScope ): BasicConfig[] {
 		if ( scope === MessageScope.Private ) {
 			return this.privates[auth];
-		} else {
+		} else if ( scope === MessageScope.Group ) {
 			return this.groups[auth];
+		} else {
+			return this.all[auth];
 		}
 	}
 	

@@ -28,18 +28,16 @@ export async function filterUserUsableCommand( i: InputParameter ): Promise<Basi
 	
 	const auth: AuthLevel = await i.auth.get( userID );
 	let commands: BasicConfig[] = i.command
-		.get( auth, type === m.MessageType.Group
-			? m.MessageScope.Group : m.MessageScope.Private )
+		.get( auth, m.MessageScope.Both )
 		.filter( el => el.display );
-
+	
 	const userLimit: string[] = await getLimited( userID, "user", i.redis );
 	commands = commands.filter( el => !userLimit.includes( el.cmdKey ) );
-	if ( type === m.MessageType.Private ) {
-		return commands;
-	}
 	
-	const groupID: number = ( <GroupMessageEvent>i.messageData ).group_id;
-	const groupLimit: string[] = await getLimited( groupID, "group", i.redis );
-	commands = commands.filter( el => !groupLimit.includes( el.cmdKey ) );
+	if ( m.isGroupMessage( i.messageData ) ) {
+		const groupID: number = i.messageData.group_id;
+		const groupLimit: string[] = await getLimited( groupID, "group", i.redis );
+		commands = commands.filter( el => !groupLimit.includes( el.cmdKey ) );
+	}
 	return commands;
 }

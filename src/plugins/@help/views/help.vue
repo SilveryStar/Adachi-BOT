@@ -11,6 +11,7 @@
 					<p class="version">ver{{ version }}</p>
 					<p class="desc">列表仅展示最多两个指令头</p>
 					<p v-if="data.detailCmd" class="desc">使用 {{ data.detailCmd }}+指令序号 查看想想信息</p>
+					<p class="desc">- 表示仅允许群聊, * 表示仅允许私聊</p>
 					<p class="desc">[]表示必填，()表示选填，|表示选择</p>
 				</div>
 			</header>
@@ -22,7 +23,7 @@
 							<p class="cmd-index">
 								<span>{{ cmd.id }}</span>
 							</p>
-							<p class="cmd-header">{{ cmd.header }}</p>
+							<p class="cmd-header">{{ getCmdPrefix( cmd ) + cmd.header }}</p>
 							<p class="cmd-desc">{{ getCmdBody( cmd ) }}</p>
 						</li>
 					</ul>
@@ -51,6 +52,16 @@ const pluginNameMap = {
 	"help": "帮助指令",
 	"management": "管理指令",
 	"tools": "附加工具"
+}
+
+function getCmdPrefix( cmd: HelpCommand ): string {
+	let prefix = "";
+	if ( cmd.scope === 1 ) {
+		prefix = "-";
+	} else if ( cmd.scope === 2 ) {
+		prefix = "*";
+	}
+	return prefix;
 }
 
 function getListTitle( pluginName: string | number ): string {

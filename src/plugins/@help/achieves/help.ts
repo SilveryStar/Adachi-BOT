@@ -1,5 +1,5 @@
-import { Forwardable, Sendable, segment } from "icqq";
-import { BasicConfig, FollowInfo, InputParameter, Order } from "@/modules/command";
+import { Forwardable, Sendable } from "icqq";
+import { BasicConfig, InputParameter, Order, OrderMatchResult } from "@/modules/command";
 import Command from "@/modules/command/main";
 import FileManagement from "@/modules/file";
 import { filterUserUsableCommand } from "../utils/filter";
@@ -7,6 +7,7 @@ import { RenderResult } from "@/modules/renderer";
 import { renderer } from "../init";
 import bot from "ROOT";
 import { HelpCommand } from "#/@help/type/help";
+import { MessageScope } from "@/modules/message";
 
 function getVersion( file: FileManagement ): string {
 	const path: string = file.getFilePath( "package.json", "root" );
@@ -20,6 +21,7 @@ function messageStyle( title: string, list: string[], command: Command ): Sendab
 	if ( DETAIL ) {
 		list.push( `使用 ${ DETAIL.getHeaders()[0] }+指令序号 获取更多信息`, );
 	}
+	list.push( "- 表示仅允许群聊, * 表示仅允许私聊" );
 	list.push( "[] 表示必填, () 表示选填, | 表示选择" );
 	return [ title, ...list ].join( "\n" );
 }
@@ -34,6 +36,7 @@ async function forwardStyle(
 	if ( DETAIL ) {
 		list.push( `使用 ${ DETAIL.getHeaders()[0] }+指令序号 获取更多信息` );
 	}
+	list.push( "- 表示仅允许群聊, * 表示仅允许私聊" );
 	list.push( "[] 表示必填, () 表示选填, | 表示选择" );
 	list.forEach( ( el: string ) => content.push( {
 		user_id: config.base.number,
@@ -89,6 +92,7 @@ async function cardStyle( i: InputParameter, commands: BasicConfig[] ) {
 		return {
 			id: cKey + 1,
 			header: cmd.desc[0],
+			scope: cmd.scope,
 			body: cmd.getFollow(),
 			cmdKey: cmd.cmdKey,
 			detail: cmd.detail,
@@ -104,6 +108,7 @@ async function cardStyle( i: InputParameter, commands: BasicConfig[] ) {
 	const DETAIL = <Order>i.command.getSingle( "adachi.detail" );
 	
 	await i.redis.setString( dbKey, JSON.stringify( {
+		messageType: i.messageData.message_type,
 		detailCmd: DETAIL ? DETAIL.getHeaders()[0] : "",
 		commands: cmdData
 	} ) );
@@ -135,9 +140,21 @@ async function getHelpMessage( title: string, commands: BasicConfig[], list: str
 	}
 }
 
+function getCmdPrefix( scope: MessageScope ): string {
+	let prefix = "";
+	if ( scope === MessageScope.Group ) {
+		prefix = "-";
+	} else if ( scope === MessageScope.Private ) {
+		prefix = "*";
+	}
+	return prefix;
+}
+
 export async function main( i: InputParameter ): Promise<void> {
+	const showKeys = !!( <OrderMatchResult>i.matchResult ).match[0];
+	
 	const version = getVersion( i.file );
-	const showKeys = i.messageData.raw_message === "-k";
+	
 	const commands = await filterUserUsableCommand( i );
 	if ( commands.length === 0 ) {
 		await i.sendMessage( "没有可用的指令" );
@@ -148,11 +165,13 @@ export async function main( i: InputParameter ): Promise<void> {
 	let ID: number = 0;
 	if ( showKeys ) {
 		const keys: string = commands.reduce( ( pre, cur ) => {
-			return pre + `\n${ ++ID }. ${ cur.getCmdKey() }`;
+			return pre + `\n${ getCmdPrefix( cur.scope ) }${ ++ID }. ${ cur.getCmdKey() }`;
 		}, "" );
 		await i.sendMessage( title + keys );
 	} else {
-		const msgList: string[] = commands.map( el => `${ ++ID }. ${ el.getDesc( 2 ) }` );
+		const msgList: string[] = commands.map( el => {
+			return `${ getCmdPrefix( el.scope ) }${ ++ID }. ${ el.getDesc( 2 ) }`;
+		} );
 		await i.sendMessage( await getHelpMessage( title, commands, msgList, i ), false );
 	}
 }
