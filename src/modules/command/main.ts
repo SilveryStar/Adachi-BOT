@@ -211,7 +211,7 @@ export default class Command {
 						}
 					} );
 				} else if ( cmd.type === "switch" ) {
-					list.push( ...cmd.regexps.map( r => `(${ r.source })` ) );
+					list.push( ...cmd.regPairs.map( r => `(${ r.regExp.source })` ) );
 				}
 			} )
 			return new RegExp( `(${ list.join( "|" ) })`, "i" );

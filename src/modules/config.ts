@@ -25,7 +25,7 @@ const initBase = {
 // 指令设置
 const initDirective = {
 	tip: "前往 https://docs.adachi.top/config 查看配置详情",
-	header: "#",
+	header: [ "#" ],
 	groupIntervalTime: 1500,
 	privateIntervalTime: 2000,
 	helpMessageStyle: "message",
@@ -248,6 +248,9 @@ export default class BotConfigManager {
 				return cfg;
 			} ),
 			directive: registerConfig<BotConfigValue["directive"]>( "directive", <any>initDirective, cfg => {
+				if ( !( ( <any>cfg.header ) instanceof Array ) ) {
+					cfg.header = [ "#" ];
+				}
 				const helpList: string[] = [ "message", "forward", "xml", "card" ];
 				cfg.helpMessageStyle = helpList.includes( cfg.helpMessageStyle )
 					? cfg.helpMessageStyle : "message";

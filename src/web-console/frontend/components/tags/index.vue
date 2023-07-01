@@ -45,7 +45,7 @@ import { watch, ref, nextTick, computed } from "vue";
 import { ElInput } from "element-plus";
 
 interface IProps {
-	modelValue: string[];
+	modelValue: ( string | number )[];
 	disabled?: boolean;
 	// 限制最小应该存在的tag数
 	limit?: number;
@@ -60,11 +60,11 @@ const props = withDefaults( defineProps<IProps>(), {
 } );
 
 const emits = defineEmits<{
-	( e: "update:modelValue", value: string[] ): void;
-	( e: "change", value: string[] ): void;
+	( e: "update:modelValue", value: ( string | number )[] ): void;
+	( e: "change", value: ( string | number )[] ): void;
 }>();
 
-const tagList = ref<string[]>( [] );
+const tagList = ref<( string | number )[]>( [] );
 
 watch( () => props.modelValue, value => {
 	tagList.value = value;

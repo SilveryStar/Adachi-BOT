@@ -65,16 +65,13 @@
 			</div>
 			<div class="config-section">
 				<section-title title="指令设置"/>
-				<spread-form-item
-					v-model="setting.directive.header"
-					:active-spread="activeSpread"
-					:disabled="pageLoading"
-					label="指令起始符"
-					placeholder="请输入指令起始符"
-					desc='例：设置为 # 时，需使用 #help 来触发帮助指令。如果不想在指令前添加特殊符号，请置空。'
-					@change="updateConfig('directive', 'header')"
-					@open="activeSpreadItem"
-				/>
+				<form-item label="指令起始符" desc="例：设置为 # 时，需使用 #help 来触发帮助指令。如果不想在指令前添加特殊符号，请置空">
+					<Tags
+						v-model="setting.directive.header"
+						:disabled="pageLoading"
+						@change="updateConfig('directive', 'header')"
+					/>
+				</form-item>
 				<spread-form-item
 					v-model="setting.directive.groupIntervalTime"
 					:active-spread="activeSpread"

@@ -31,7 +31,9 @@ export class Order extends BasicConfig {
 	constructor( config: OrderConfig, botCfg: BotConfig, pluginName: string ) {
 		super( config, pluginName );
 		
-		const headers: string[] = config.headers.map( el => Order.header( el, botCfg.directive.header ) );
+		const headers: string[] = config.headers.map( el => botCfg.directive.header.map( h => {
+			return Order.header( el, h );
+		} ) ).flat();
 		
 		this.regParam = this.checkRegexps( config.regexps ) ? config.regexps : [ config.regexps ];
 		this.regPairs = headers.map( header => ( {
@@ -78,20 +80,33 @@ export class Order extends BasicConfig {
 		};
 	}
 	
+	private getHeaderRegStr(): string {
+		const config = bot.config.directive;
+		return config.header.map( h => escapeRegExp( h ) ).join( "|" );
+	}
+	
+	// 获取去除 config.header 指令头的 pair.header 字符串
+	private getPairHeader( pair: RegPair ): string {
+		const headerRegStr = this.getHeaderRegStr();
+		return pair.header.replace( new RegExp( headerRegStr ), "" );
+	}
+	
 	public getExtReg( pair: RegPair ) {
 		const config = bot.config.directive;
 		/* 是否存在指令起始符 */
-		const hasHeader = config.header ? pair.header.includes( config.header ) : false;
-		const rawHeader = pair.header.replace( config.header, "" );
+		const hasHeader = config.header.length
+			? config.header.findIndex( h => pair.header.includes( h ) ) !== -1
+			: false;
+		const rawHeader = this.getPairHeader( pair );
 		
-		let headerRegStr: string = "";
+		let extRegStr: string = "";
 		if ( config.fuzzyMatch && rawHeader.length !== 0 && /[\u4e00-\u9fa5]/.test( rawHeader ) ) {
-			headerRegStr = `${ hasHeader ? "(?=^" + config.header + ")" : "" }(?=.*?${ rawHeader })`;
+			extRegStr = `${ hasHeader ? "(?=^" + config.header + ")" : "" }(?=.*?${ rawHeader })`;
 		} else if ( config.matchPrompt && config.header && pair.header ) {
-			headerRegStr = "^" + pair.header;
+			extRegStr = "^" + pair.header;
 		}
 		
-		return headerRegStr || null;
+		return extRegStr || null;
 	}
 	
 	public match( content: string ): OrderMatchResult | Unmatch {
@@ -100,7 +115,7 @@ export class Order extends BasicConfig {
 			const headerRegStr = this.getExtReg( pair );
 			const headerReg = headerRegStr ? new RegExp( headerRegStr ) : null;
 			
-			const rawHeader = pair.header.replace( config.header, "" );
+			const rawHeader = this.getPairHeader( pair );
 			
 			// 是否匹配成功指令头（用于判断是否触发指令的参数错误）
 			let isMatchHeader = false;
@@ -111,7 +126,7 @@ export class Order extends BasicConfig {
 					return { type: "order", header: pair.header, match: [ ...match ].slice( 1 ) };
 				} else if ( headerReg && headerReg.test( content ) ) {
 					// 直接匹配不成功但模糊匹配指令头成功时，仅开启了 fuzzyMatch 或 matchPrompt 后才会执行此部分
-					const header = config.header == "" ? pair.header : `${ config.header }|${ rawHeader }`;
+					const header = config.header.length ? `${ this.getHeaderRegStr() }|${ rawHeader }` : pair.header;
 					const fogReg = new RegExp( header, "g" );
 					
 					const formatContent = pair.header + content.replace( fogReg, "" ).trim();

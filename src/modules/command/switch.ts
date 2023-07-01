@@ -22,15 +22,22 @@ export type SwitchConfig = CommandInfo & {
 	priority?: number;
 };
 
+interface RegPair {
+	header: string;
+	regExp: RegExp;
+}
+
 export class Switch extends BasicConfig {
 	public readonly type = "switch";
-	public readonly regexps: RegExp[] = [];
-	private readonly keys: [ string, string ];
 	private readonly mode: "single" | "divided";
-	private readonly header: string;
+	public readonly regPairs: RegPair[] = [];
+	private readonly keys: [ string, string ] | [ string, string ][];
 	
 	constructor( config: SwitchConfig, botCfg: BotConfig, pluginName: string ) {
 		super( config, pluginName );
+		
+		this.mode = config.mode;
+		this.keys = config.mode === "single" ? [ config.onKey, config.offKey ] : [];
 		
 		if ( config.onKey === config.offKey ) {
 			throw `指令 ${ config.cmdKey } 配置错误: onKey 与 offKey 不可相同`;
@@ -39,46 +46,48 @@ export class Switch extends BasicConfig {
 			throw `指令 ${ config.cmdKey } 配置错误: onKey 和 offKey 不可为空`;
 		}
 		
-		const globalHeader: string = botCfg.directive.header;
-		const process: ( h: string ) => string = h => escapeRegExp(
-			Switch.header( h, globalHeader )
-		);
 		const addChar: ( s: string ) => string = s => Switch.addStartStopChar(
 			s, config.start !== false, config.stop !== false
 		);
 		
-		this.mode = config.mode;
-		this.header = "";
-		
-		if ( config.mode === "single" ) {
-			let reg: string = config.regexp instanceof Array
-							? [ "", ...config.regexp ].join( "\\s*" )
-							: config.regexp;
-			const h: string = process( config.header );
-			const r: string = reg.replace(
-				"#{OPT}",
-				`(${ config.onKey }|${ config.offKey })`
-			);
-			this.regexps.push( Switch.regexp( addChar( h + r ), this.ignoreCase ) );
-			this.keys = [ config.onKey, config.offKey ];
-			this.header = h;
-		} else {
-			const r: string = config.regexp instanceof Array
-							? [ "", ...config.regexp.filter( el => el !== "#{OPT}" ) ].join( "\\s*" )
-							: config.regexp.replace( "#{OPT}", "" ).trim();
-			const h1: string = process( config.onKey );
-			const h2: string = process( config.offKey );
-			this.regexps.push( Switch.regexp(
-				addChar( `(${ h1 }|${ h2 })${ r }` ),
-				this.ignoreCase
-			) );
-			this.keys = [ h1, h2 ];
-		}
+		this.regPairs = botCfg.directive.header.map( header => {
+			const getHeaderRegStr: ( h: string ) => string = h => escapeRegExp( Switch.header( h, header ) );
+			
+			if ( this.checkSingleSwitch( this.keys ) ) {
+				let reg: string = config.regexp instanceof Array
+					? [ "", ...config.regexp ].join( "\\s*" )
+					: config.regexp;
+				const h: string = getHeaderRegStr( config.header );
+				const r: string = reg.replace(
+					"#{OPT}",
+					`(${ config.onKey }|${ config.offKey })`
+				);
+				return {
+					header: h,
+					regExp: Switch.regexp( addChar( h + r ), this.ignoreCase )
+				}
+			} else {
+				const r: string = config.regexp instanceof Array
+					? [ "", ...config.regexp.filter( el => el !== "#{OPT}" ) ].join( "\\s*" )
+					: config.regexp.replace( "#{OPT}", "" ).trim();
+				const h1: string = getHeaderRegStr( config.onKey );
+				const h2: string = getHeaderRegStr( config.offKey );
+				this.keys.push( [ h1, h2 ] );
+				return {
+					header: "",
+					regExp: Switch.regexp( addChar( `(${ h1 }|${ h2 })${ r }` ), this.ignoreCase )
+				};
+			}
+		} )
+	}
+	
+	private checkSingleSwitch( keys: [ string, string ] | [ string, string ][] ): keys is [ string, string ] {
+		return this.mode === "single";
 	}
 	
 	public write() {
 		const cfg = <SwitchConfig>this.raw;
-		return  {
+		return {
 			type: "switch",
 			auth: this.auth,
 			scope: this.scope,
@@ -103,13 +112,14 @@ export class Switch extends BasicConfig {
 	}
 	
 	public match( content: string ): SwitchMatchResult | Unmatch {
-		for ( let reg of this.regexps ) {
-			const res: RegExpExecArray | null = reg.exec( content );
+		for ( const pairKey in this.regPairs ) {
+			const pair = this.regPairs[pairKey];
+			const res: RegExpExecArray | null = pair.regExp.exec( content );
 			if ( !res ) {
 				continue;
 			}
 			
-			const [ onKey, offKey ]: [ string, string ] = this.keys;
+			const [ onKey, offKey ] = this.checkSingleSwitch( this.keys ) ? this.keys : this.keys[pairKey];
 			const temp: string[] = res.splice( 1 );
 			
 			let switchKey: string = "";
@@ -122,13 +132,13 @@ export class Switch extends BasicConfig {
 			
 			const isOn = () => switchKey === onKey;
 			const match = res[0].replace( / +/g, " " )
-								.split( " " )
-								.filter( el => el !== switchKey )
-								.map( el => trimStart( el ) );
+				.split( " " )
+				.filter( el => el !== switchKey )
+				.map( el => trimStart( el ) );
 			if ( match.length !== 0 ) {
 				if ( this.mode === "single" ) {
-					if ( match[0].includes( this.header ) ) {
-						match[0] = match[0].split( this.header ).join( "" );
+					if ( match[0].includes( pair.header ) ) {
+						match[0] = match[0].split( pair.header ).join( "" );
 					}
 				} else if ( this.mode === "divided" ) {
 					if ( match[0].includes( onKey ) ) {
@@ -155,30 +165,30 @@ export class Switch extends BasicConfig {
 	
 	public getFollow(): FollowInfo {
 		const param = this.desc[1];
-		const [ onKey, offKey ] = this.keys;
 		
-		let header: string, follow: string;
+		let headers: string[], follow: string;
 		
-		if ( this.mode === "single" ) {
+		if ( this.checkSingleSwitch( this.keys ) ) {
+			const [ onKey, offKey ] = this.keys;
 			const swi: string = `[${ onKey }|${ offKey }]`;
 			follow = param.replace( "#{OPT}", swi );
-			header = this.header;
+			headers = this.regPairs.map( pair => pair.header );
 		} else {
-			header = `${ onKey }|${ offKey }`;
+			headers = this.keys.flat();
 			follow = param.replace( /#{OPT}/, "" )
 				.trim()
 				.replace( /\s+/g, " " );
 		}
 		return {
-			headers: [ header ],
+			headers,
 			param: follow
 		};
 	}
 	
-	public getDesc(): string {
+	public getDesc( headerNum?: number ): string {
 		const { headers, param } = this.getFollow();
-		const follow = `${ headers.join("|") } ${ param }`;
-		
+		const headerList = headerNum ? headers.slice( 0, headerNum ) : headers;
+		const follow = `${ headerList.join( "|" ) } ${ param }`;
 		return Switch.addLineFeedChar(
 			this.desc[0], follow,
 			bot.config.directive.helpMessageStyle

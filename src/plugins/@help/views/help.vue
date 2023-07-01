@@ -164,7 +164,7 @@ html {
 		}
 
 		.right-header {
-			margin-top: 25px;
+			margin-top: 4px;
 			text-align: right;
 
 			.version {
