@@ -1,8 +1,8 @@
-import { InputParameter } from "@/modules/command";
+import { defineDirective } from "@/modules/command";
 
-export async function main( { sendMessage, messageData, redis }: InputParameter ): Promise<void> {
-	const choice: string = messageData.raw_message;
-	const userID: number = messageData.user_id;
+export default defineDirective( "order", async ( { sendMessage, messageData, matchResult, redis } ) => {
+	const choice = matchResult.match[0];
+	const userID = messageData.user_id;
 	
 	const data: string | null = await redis.getString( `silvery-star.wish-choice-${ userID }` );
 	if ( data === null ) {
@@ -14,4 +14,4 @@ export async function main( { sendMessage, messageData, redis }: InputParameter 
 	
 	await redis.setString( `silvery-star.wish-choice-${ userID }`, choice );
 	await sendMessage( "卡池切换成功" );
-}
+} );

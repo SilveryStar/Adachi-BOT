@@ -1,5 +1,5 @@
 import { Private } from "#/genshin/module/private/main";
-import { InputParameter } from "@/modules/command";
+import { defineDirective } from "@/modules/command";
 import { privateClass } from "#/genshin/init";
 import { trim } from "lodash";
 
@@ -9,18 +9,16 @@ function checkList( list: number[] ): boolean {
 		.sort( ( x, y ) => x - y )
 		.reduce( ( pre, cur, i, arr ) => {
 			return pre && ( i === 0 || cur - arr[i - 1] === 1 ) && arr[0] === 1;
-		} , <boolean>true );
+		}, <boolean>true );
 }
 
-export async function main(
-	{ sendMessage, messageData }: InputParameter
-): Promise<void> {
-	const userID: number = messageData.user_id;
-	const list: number[] = messageData.raw_message
+export default defineDirective( "order", async ( { sendMessage, messageData, matchResult } ) => {
+	const userID = messageData.user_id;
+	const list = matchResult.match[0]
 		.split( " " )
 		.map( el => parseInt( trim( el ) ) );
 	const accounts: Private[] = privateClass.getUserPrivateList( userID );
-
+	
 	if ( !checkList( list ) || accounts.length !== list.length ) {
 		await sendMessage( "序号排序列表格式不合法" );
 		return;
@@ -30,4 +28,4 @@ export async function main(
 		accounts[pos - 1].updateID( i + 1 );
 	}
 	await sendMessage( "序号重排完成" );
-}
+} );

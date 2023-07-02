@@ -1,5 +1,5 @@
 import { UserInfo } from "#/genshin/module/private/main";
-import { InputParameter } from "@/modules/command";
+import { defineDirective } from "@/modules/command";
 import { privateClass } from "#/genshin/init";
 
 async function cancelPrivate( userID: number, id: number ): Promise<string> {
@@ -11,11 +11,9 @@ async function cancelPrivate( userID: number, id: number ): Promise<string> {
 	return privateClass.delSinglePrivate( userID, id );
 }
 
-export async function main(
-	{ sendMessage, messageData }: InputParameter
-): Promise<void> {
-	const id: number = parseInt( messageData.raw_message );
+export default defineDirective( "order", async ( { sendMessage, matchResult, messageData } ) => {
+	const id: number = parseInt( matchResult.match[0] );
 	const userID: number = messageData.user_id;
 	const msg: string = await cancelPrivate( userID, id );
 	await sendMessage( msg );
-}
+} );

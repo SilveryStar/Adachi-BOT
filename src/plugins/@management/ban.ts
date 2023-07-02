@@ -1,15 +1,13 @@
 import { AuthLevel } from "@/modules/management/auth";
-import { InputParameter, SwitchMatchResult } from "@/modules/command";
+import { defineDirective, SwitchMatchResult } from "@/modules/command";
 import idParser from "#/@help/utils/id-parser";
 import { MessageType } from "@/modules/message";
 
-export async function main(
-	{ sendMessage, messageData, matchResult, redis, auth }: InputParameter
-): Promise<void> {
+export default defineDirective( "switch", async ( { sendMessage, messageData, matchResult, redis, auth } ) => {
 	const match = <SwitchMatchResult>matchResult;
 	const [ msgType, targetID ] = idParser( match.match[0] );
 	const userID: number = messageData.user_id;
-
+	
 	/* 封禁 */
 	if ( match.isOn() ) {
 		if ( msgType === MessageType.Group ) {
@@ -40,4 +38,4 @@ export async function main(
 			await sendMessage( `用户 ${ targetID } 已被解封` );
 		}
 	}
-}
+} );

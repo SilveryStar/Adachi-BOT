@@ -1,13 +1,12 @@
-import { InputParameter } from "@/modules/command";
+import { defineDirective } from "@/modules/command";
 import PluginManager from "@/modules/plugin";
 import RenderServer from "@/modules/server";
 
-/* 超时检查 */
-export async function main( { messageData, sendMessage }: InputParameter ): Promise<void> {
+export default defineDirective( "order", async ( { matchResult, sendMessage } ) => {
 	const pluginInstance = PluginManager.getInstance();
 	const serverInstance = RenderServer.getInstance();
 	
-	const inputPluginName = messageData.raw_message;
+	const inputPluginName = matchResult.match[0];
 	
 	if ( inputPluginName ) {
 		// 重载单个插件
@@ -27,4 +26,4 @@ export async function main( { messageData, sendMessage }: InputParameter ): Prom
 		await serverInstance.reloadPluginRouters( pluginInstance.pluginList );
 		await sendMessage( `所有插件重载完成` );
 	}
-}
+} );

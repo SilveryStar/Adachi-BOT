@@ -1,10 +1,9 @@
 import { AuthLevel } from "@/modules/management/auth";
-import { InputParameter, SwitchMatchResult } from "@/modules/command";
+import { defineDirective } from "@/modules/command";
 
-export async function main( { sendMessage, redis, matchResult }: InputParameter ): Promise<void> {
-	const match = <SwitchMatchResult>matchResult;
-	const isOn: boolean = match.isOn();
-	const userID: number = parseInt( match.match[0] );
+export default defineDirective( "switch", async ( { sendMessage, redis, matchResult } ) => {
+	const isOn: boolean = matchResult.isOn();
+	const userID: number = parseInt( matchResult.match[0] );
 	
 	if ( isOn ) {
 		await redis.setString( `adachi.auth-level-${ userID }`, AuthLevel.Manager );
@@ -13,4 +12,4 @@ export async function main( { sendMessage, redis, matchResult }: InputParameter 
 		await redis.setString( `adachi.auth-level-${ userID }`, AuthLevel.User );
 		await sendMessage( `用户 ${ userID } 的管理员权限已取消` );
 	}
-}
+} );

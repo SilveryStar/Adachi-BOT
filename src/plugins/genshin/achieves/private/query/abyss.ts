@@ -1,4 +1,4 @@
-import { InputParameter, Order, SwitchMatchResult } from "@/modules/command";
+import { defineDirective, InputParameter } from "@/modules/command";
 import { Private } from "#/genshin/module/private/main";
 import { Abyss } from "#/genshin/types";
 import { Forwardable, segment } from "icqq";
@@ -7,7 +7,6 @@ import { getPrivateAccount } from "#/genshin/utils/private";
 import { getRegion } from "#/genshin/utils/region";
 import { abyssInfoPromise } from "#/genshin/utils/promise";
 import { renderer } from "#/genshin/init";
-import bot from "ROOT";
 
 /* 回复深渊多图消息 */
 async function forwardAchieves( abyss: Abyss, uid: string, userID: number, {
@@ -17,7 +16,7 @@ async function forwardAchieves( abyss: Abyss, uid: string, userID: number, {
 	config,
 	messageData,
 	sendMessage
-}: InputParameter ) {
+}: InputParameter<"switch"> ) {
 	const userInfo: string = `UID-${ uid }`;
 	const floorList: number[] = [];
 	
@@ -58,7 +57,7 @@ async function forwardAchieves( abyss: Abyss, uid: string, userID: number, {
 		}
 		const msgNode: Forwardable = {
 			user_id: config.base.number,
-			message: segment.image(<string>res.data)
+			message: segment.image( <string>res.data )
 		};
 		content.push( msgNode );
 	}
@@ -76,7 +75,7 @@ async function singleAchieves( abyss: Abyss, uid: string, userID: number, {
 	logger,
 	sendMessage,
 	messageData
-}: InputParameter ) {
+}: InputParameter<"switch"> ) {
 	await redis.setHash( `silvery-star.abyss-temp-${ userID }-single`, {
 		uid,
 		userName: messageData.sender.nickname,
@@ -98,23 +97,19 @@ async function singleAchieves( abyss: Abyss, uid: string, userID: number, {
 	if ( res.code === "ok" ) {
 		await sendMessage( res.data );
 	} else {
-		logger.error( res.error );
-		const CALL = <Order>bot.command.getSingle( "adachi.call", await bot.auth.get( userID ) );
-		const appendMsg = CALL ? `私聊使用 ${ CALL.getHeaders()[0] } ` : "";
-		await sendMessage( `图片渲染异常，请${ appendMsg }联系持有者进行反馈` );
+		throw new Error( res.error );
 	}
 }
 
-export async function main( i: InputParameter ): Promise<void> {
+export default defineDirective( "switch", async ( i ) => {
 	const { sendMessage, messageData, matchResult, auth, redis } = i;
 	
-	const match = <SwitchMatchResult>matchResult;
 	const userID: number = messageData.user_id;
 	
 	// 是否一图流显示
-	const isForwardMsg = match.match.includes( "-l" );
+	const isForwardMsg = matchResult.match.includes( "-l" );
 	
-	const data: string = match.match.filter( m => m !== "-l" )[0] ?? "";
+	const data: string = matchResult.match.filter( m => m !== "-l" )[0] ?? "";
 	
 	const info: Private | string = await getPrivateAccount( userID, data, auth );
 	if ( typeof info === "string" ) {
@@ -124,7 +119,7 @@ export async function main( i: InputParameter ): Promise<void> {
 	
 	const { uid, cookie } = info.setting;
 	const server: string = getRegion( uid[0] );
-	const period: number = match.isOn() ? 1 : 2;
+	const period: number = matchResult.isOn() ? 1 : 2;
 	try {
 		await redis.setString( `silvery-star.abyss-querying-${ userID }`, uid );
 		await abyssInfoPromise( userID, server, period, cookie );
@@ -153,4 +148,4 @@ export async function main( i: InputParameter ): Promise<void> {
 	} else {
 		await singleAchieves( abyss, uid, userID, i );
 	}
-}
+} );

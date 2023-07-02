@@ -194,6 +194,8 @@ export async function init( bot: BOT ): Promise<PluginSetting> {
 }
 ```
 
+> tip：强烈建议使用该支持来注册插件的接口路由。自行创建 server 服务不仅会额外占用端口，还会导致你的插件无法使用 v3 新增的插件重载支持，除非你自行对自己的 server 服务进行注销重启。
+
 ### 自动更新插件静态资源
 
 v3 中为插件提供了自动更新静态资源支持，该功能基于 oss 实现，可通过比对本地与线上的清单文件来进行插件静态资源的自动更新与下载。
@@ -383,6 +385,14 @@ export default definePlugin( {
 
 免去了提供第一个参数 `route`，自动以 `/插件名（插件目录名）` 作为基地址来注册渲染器。
 
+### 新的指令属性 priority
+
+指令配置对象中新增属性 `priority`，指示指令的优先级大小，值为 `number` 类型，默认值为 0。
+
+当两个指令因为配置重复等原因同时触发时，会根据优先级来决定触发对象。
+
+在编写原生框架指令的增强版本时该属性尤为有效，可用来覆盖原生框架指令。
+
 ### 通用工具 utils
 
 在 `src/utils` 中新提供了一些常用工具类。
@@ -563,9 +573,9 @@ export default <FetchServer<keyof typeof apis, FetchResponse>><unknown>request;
 使用方法如下：
 
 ```ts
-export async function main( { messageData }: InputParameter ): Promise<void> {
-    const params = ( <OrderMatchResult>matchResult ).match;
-}
+export default defineDirective( "order", async ( { messageData } ) => {
+    const params = matchResult.match;
+} );
 ```
 
 该属性为一个字符串数组，当用户未输入指令的某个可选参数时，该参数所在的数组位置的值为 空字符串`""`。
@@ -594,12 +604,26 @@ const information: OrderConfig = {
 
 ## brake change
 
-### 插件配置结构变更
+### 插件入口函数格式变更
 
-新版插件不再以 `init` 函数的方式配置插件配置项，改为默认导出一个变量的方式。你可以通过 `definePlugin` 宏函数进行一层包装，来获取完善的 ts 类型支持。
-该宏函数已全局注入，无需导入即可使用。
+新版插件不再以 `init` 函数的方式配置插件配置项，改为默认导出一个变量的方式。
 
 ```ts
+// test-plugin/init.ts
+export default {
+    name: "测试插件",
+    cfgList: [],
+    mounted() {
+        // 插件行为
+    }
+};
+```
+
+你可以通过 `definePlugin` 宏函数进行一层包装，来获取完善的 ts 类型支持。
+
+```ts
+import { definePlugin } from "@/modules/plugin";
+
 // test-plugin/init.ts
 export default definePlugin( {
     name: "测试插件",
@@ -611,6 +635,29 @@ export default definePlugin( {
 ```
 
 > 我们强烈推荐你在 `mounted` 生命周期钩子函数中进行原来的插件的初始化行为。这样可以有效的避免一些加载顺序导致的变量未定义情况，例如其他文件在通过 `import bot from "ROOT"` 使用框架库时提示 `bot 未定义`。
+
+### 指令入口函数写法变更
+
+新版指令入口函数取消了以往抛出 `main` 函数的写法，改为默认导出一个普通函数的方式。
+
+```ts
+// test-plugin/achieves/test.ts
+export default async function ( i ) {
+    // 指令行为
+}
+```
+
+你可以通过 `defineDirective` 宏函数进行一层包装，来获取完善的 ts 类型支持。
+该宏函数接受两个参数：指令类型（`"order" | "switch" | "enquire"`）与指令入口函数。
+
+```ts
+import { defineDirective } from "@/modules/command/main";
+
+// test-plugin/achieves/test.ts
+export default defineDirective( "order", async i => {
+    // 指令行为
+});
+```
 
 ### fileName 配置项变更
 
@@ -641,6 +688,117 @@ interface RefreshableMethod {
     register( target: RefreshTarget<"file"> ): void;
     register( target: RefreshTarget<"fun"> ): void;
 }
+```
+
+### 指令 Enquire 重写
+
+鉴于 v2 的 `Enquire` 使用场景比较稀少，v3 对 `Enquire` 指令进行了重写，现在它除了名称相同以外与 v2 完全没有联系。
+
+新版的 `Enquire` 指令旨在实现 **问答** 的场景，如下：
+
+```text
+Q: #ps
+A: 请发送你的账号 cookie 来绑定私人服务
+Q: ltuid=15......
+A: 绑定成功
+// 或在一定时间未回复时
+Q: 操作超时
+```
+
+新版 `Enquire` 的定义如下：
+
+```ts
+export type EnquireConfig = CommandCfg & {
+    type: Enquire["type"];
+    headers: string[];
+    timeout: number;
+};
+```
+
+这样可能有些难以理解，我们可以把他解释为下面的结构：
+
+```ts
+interface EnquireConfig {
+    type: "enquire";
+    cmdKey: string;
+    main: string | CommandEntry;
+    desc: [ string, string ];
+    headers: string[];
+    timeout: number;
+    detail?: string;
+    auth?: AuthLevel;
+    scope?: MessageScope;
+    display?: boolean;
+    ignoreCase?: boolean;
+    start?: boolean;
+    stop?: boolean;
+    priority?: number;
+}
+```
+
+可以看出，其相对 `Order` 来说，移除了 `regexps` 属性，新增了 `timeout` 属性。
+
+目前认为，问答式指令并没有参数输入的需求，因此移除了 `regexps` 配置。
+而 `timeout` 属性则用来控制“回答”的最长等待时间，单位**秒**。若你填写 0 或小于 0 的值，将会被重置为默认的 `300s`。
+
+enquire 的入口函数定义与其他指令类似，仅修改类型参数即可：
+
+```ts
+export default defineDirective( "enquire", async i => {
+    // 指令逻辑
+} );
+```
+
+与其他指令对比，入口函数携带的 `i.matchResult` 发生了变化，格式如下：
+
+```ts
+export interface EnquireMatchResult {
+    type: "enquire";
+    header: string;
+    status: "activate" | "confirm" | "timeout";
+    timeout: number;
+}
+```
+
+其中 `timeout` 为回答等待超时时间；`status` 三种状态分别对应：初次触发、用户回答、超时，在这三种事件出现时，均会携带对应的 `status` 执行入口函数。
+
+默认情况下，用户只需回答一次即可终止本次问答。指令也提供了一种方式来覆盖次默认行为： 当 `status` 的值为 `confirm` 时，使入口函数执行 `return false` 来禁止终止问答。
+通常这可以用来根据用户回答内容是否有效来决定是否结束问答。
+
+下面是一个 `enquire` 指令完整的案例：
+
+```ts
+/* 指令配置 */
+const qa: EnquireConfig = {
+    type: "enquire",
+    cmdKey: "adachi.test.enquire",
+    desc: [ "问答测试", "" ],
+    headers: [ "qa" ],
+    main: "achieves/qa",
+    timeout: 180
+};
+
+/* achieves/qa.ts */
+export default defineDirective( "enquire", async i => {
+    if ( i.matchResult.status === "activate" ) {
+        await i.sendMessage( "请发送你的问题" );
+        return;
+    }
+    if ( i.matchResult.status === "timeout" ) {
+        await i.sendMessage( "操作已超时，会话终止" );
+        return;
+    }
+    if ( i.matchResult.status === "confirm" ) {
+        try {
+            // 通过 i.messageData.raw_message 获取用户发送内容
+            const answer = await answerQuestion( i.messageData.raw_message );
+            await i.sendMessage( answer );
+        } catch {
+            await i.sendMessage( "你的问题我无法回答，请重新提问" );
+            return false; // 不终止会话，继续等待提问
+        }
+    }
+} );
 ```
 
 ### bot 配置项结构变更

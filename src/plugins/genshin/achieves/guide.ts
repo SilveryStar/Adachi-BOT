@@ -1,9 +1,9 @@
-import { InputParameter } from "@/modules/command";
+import { defineDirective } from "@/modules/command";
 import { getRealName, NameResult } from "#/genshin/utils/name";
 import { segment, Sendable } from "icqq";
 import { getCharacterGuide } from "#/genshin/utils/meta";
 
-export async function main( { sendMessage, messageData }: InputParameter ): Promise<void> {
+export default defineDirective( "order", async ( { sendMessage, messageData } ) => {
 	const name: string = messageData.raw_message;
 	const result: NameResult = getRealName( name );
 	
@@ -24,4 +24,4 @@ export async function main( { sendMessage, messageData }: InputParameter ): Prom
 	}
 	
 	await sendMessage( message );
-}
+} );

@@ -1,21 +1,22 @@
-import { BasicConfig, CommandInfo, FollowInfo, Unmatch } from "./main";
 import { BotConfig } from "@/modules/config";
 import bot from "ROOT";
 import { escapeRegExp } from "lodash";
+import { CommandCfg, CommandFunc, CommonInit, BasicConfig, FollowInfo, Unmatch } from "../main";
 
 export interface OrderMatchResult {
-	type: "order";
+	type: Order["type"];
 	header: string;
 	match: string[];
 }
 
-export type OrderConfig = CommandInfo & {
-	type: "order";
+export type OrderConfig = CommandCfg & {
+	type: Order["type"];
 	headers: string[];
 	regexps: string[] | string[][];
-	start?: boolean;
-	stop?: boolean;
-	priority?: number;
+};
+
+export type OrderInit = OrderConfig & CommonInit & {
+	run: CommandFunc<Order["type"]>;
 };
 
 interface RegPair {
@@ -25,20 +26,22 @@ interface RegPair {
 
 export class Order extends BasicConfig {
 	public readonly type = "order";
+	public readonly run: CommandFunc<Order["type"]>;
 	public readonly regPairs: RegPair[] = [];
-	public readonly regParam: string[][];
 	
-	constructor( config: OrderConfig, botCfg: BotConfig, pluginName: string ) {
-		super( config, pluginName );
+	constructor( config: OrderInit, botCfg: BotConfig ) {
+		super( config );
+		
+		this.run = config.run;
 		
 		const headers: string[] = config.headers.map( el => botCfg.directive.header.map( h => {
 			return Order.header( el, h );
 		} ) ).flat();
 		
-		this.regParam = this.checkRegexps( config.regexps ) ? config.regexps : [ config.regexps ];
+		const regParam = this.checkRegexps( config.regexps ) ? config.regexps : [ config.regexps ];
 		this.regPairs = headers.map( header => ( {
 			header,
-			genRegExps: this.regParam.map( reg => {
+			genRegExps: regParam.map( reg => {
 				// 非捕获正则字符串中的分组，并捕获整段参数
 				const regList = reg.map( r => {
 					const fr = r.replace( /\((.+?)\)/g, "(?:$1)" );
@@ -60,7 +63,7 @@ export class Order extends BasicConfig {
 		return regexps.some( el => el instanceof Array );
 	}
 	
-	public static read( cfg: OrderConfig, loaded ) {
+	public static read( cfg: OrderInit, loaded ) {
 		cfg.headers = loaded.headers;
 		cfg.auth = loaded.auth;
 		cfg.scope = loaded.scope;
@@ -71,7 +74,7 @@ export class Order extends BasicConfig {
 	public write() {
 		const cfg = <OrderConfig>this.raw;
 		return {
-			type: "order",
+			type: this.type,
 			auth: this.auth,
 			scope: this.scope,
 			headers: cfg.headers,
@@ -88,7 +91,7 @@ export class Order extends BasicConfig {
 	// 获取去除 config.header 指令头的 pair.header 字符串
 	private getPairHeader( pair: RegPair ): string {
 		const headerRegStr = this.getHeaderRegStr();
-		return pair.header.replace( new RegExp( headerRegStr ), "" );
+		return pair.header.replace( Order.regexp( headerRegStr ), "" );
 	}
 	
 	public getExtReg( pair: RegPair ) {
@@ -123,7 +126,7 @@ export class Order extends BasicConfig {
 				const match = reg.exec( content );
 				if ( match ) {
 					// 匹配成功
-					return { type: "order", header: pair.header, match: [ ...match ].slice( 1 ) };
+					return { type: this.type, header: pair.header, match: [ ...match ].slice( 1 ) };
 				} else if ( headerReg && headerReg.test( content ) ) {
 					// 直接匹配不成功但模糊匹配指令头成功时，仅开启了 fuzzyMatch 或 matchPrompt 后才会执行此部分
 					const header = config.header.length ? `${ this.getHeaderRegStr() }|${ rawHeader }` : pair.header;
@@ -133,7 +136,7 @@ export class Order extends BasicConfig {
 					const match = reg.exec( formatContent );
 					if ( match ) {
 						// 模糊匹配成功
-						return { type: "order", header: pair.header, match: [ ...match ].slice( 1 ) };
+						return { type: this.type, header: pair.header, match: [ ...match ].slice( 1 ) };
 					}
 					isMatchHeader = true;
 				}

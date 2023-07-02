@@ -1,19 +1,16 @@
-import { InputParameter, SwitchMatchResult } from "@/modules/command";
+import { defineDirective } from "@/modules/command";
 import { dailyClass } from "../init";
 
-export async function main(
-	{ sendMessage, messageData, matchResult }: InputParameter
-): Promise<void> {
+export default defineDirective( "switch", async ( { sendMessage, messageData, matchResult } ) => {
 	const userID: number = messageData.user_id;
-	const match = <SwitchMatchResult>matchResult;
-	const [ name ] = match.match;
+	const [ name ] = matchResult.match;
 	
 	const intReg: RegExp = new RegExp( /\d+/g );
 	
 	const isGroupID: boolean = intReg.test( name ) && name.length >= 6;
 	const result: string = isGroupID
-		? await dailyClass.modifySubscriptGroup( name, match.isOn() )
-		: await dailyClass.modifySubscriptUser( userID, match.isOn(), name );
+		? await dailyClass.modifySubscriptGroup( name, matchResult.isOn() )
+		: await dailyClass.modifySubscriptUser( userID, matchResult.isOn(), name );
 	
 	await sendMessage( result );
-}
+} );

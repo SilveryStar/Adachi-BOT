@@ -1,4 +1,4 @@
-import { InputParameter, Order } from "@/modules/command";
+import { defineDirective, InputParameter, Order } from "@/modules/command";
 import { WishResult, WishTotalSet } from "#/genshin/module/wish";
 import { RenderResult } from "@/modules/renderer";
 import { wishClass, renderer, config } from "#/genshin/init";
@@ -8,15 +8,13 @@ type WishStatistic = WishResult & {
 	count: number;
 };
 
-export async function main(
-	{ sendMessage, messageData, redis, logger, auth }: InputParameter
-): Promise<void> {
-	const userID: number = messageData.user_id;
-	const nickname: string = messageData.sender.nickname;
-	const param: string = messageData.raw_message;
+export default defineDirective( "order", async ( { sendMessage, messageData, matchResult, redis, logger, auth } ) => {
+	const userID = messageData.user_id;
+	const nickname = messageData.sender.nickname;
+	const param = matchResult.match[0];
 	
 	const wishLimitNum = config.wishLimitNum;
-	if ( wishLimitNum < 99 && ( /^\d+$/.test( param ) && parseInt( param ) > wishLimitNum ) ) {
+	if ( wishLimitNum < 99 && Number.parseInt( param ) > wishLimitNum ) {
 		await sendMessage( `因 BOT 持有者限制，仅允许使用 ${ wishLimitNum } 次以内的十连抽卡` );
 		return;
 	}
@@ -66,10 +64,7 @@ export async function main(
 		if ( res.code === "ok" ) {
 			await sendMessage( res.data );
 		} else {
-			logger.error( res.error );
-			const CALL = <Order>bot.command.getSingle( "adachi.call", await auth.get( userID ) );
-			const appendMsg = CALL ? `私聊使用 ${ CALL.getHeaders()[0] } ` : "";
-			await sendMessage( `图片渲染异常，请${ appendMsg }联系持有者进行反馈` );
+			throw new Error( res.error );
 		}
 		return;
 	}
@@ -110,9 +105,6 @@ export async function main(
 	if ( res.code === "ok" ) {
 		await sendMessage( res.data );
 	} else {
-		logger.error( res.error );
-		const CALL = <Order>bot.command.getSingle( "adachi.call", await auth.get( userID ) );
-		const appendMsg = CALL ? `私聊使用 ${ CALL.getHeaders()[0] } ` : "";
-		await sendMessage( `图片渲染异常，请${ appendMsg }联系持有者进行反馈` );
+		throw new Error( res.error );
 	}
-}
+} );

@@ -11,16 +11,17 @@ import AiChat from "./modules/chat";
 import Interval from "./modules/management/interval";
 import RefreshConfig from "./modules/management/refresh";
 import { BasicRenderer } from "./modules/renderer";
-import { Order } from "./modules/command";
+import { Enquire, Order } from "./modules/command";
 import Command, { BasicConfig, MatchResult } from "./modules/command/main";
 import Authorization, { AuthLevel } from "./modules/management/auth";
 import * as msg from "./modules/message";
 import MailManagement from "./modules/mail";
 import { Md5 } from "md5-typescript";
 import { Job, JobCallback, scheduleJob } from "node-schedule";
-import { trim } from "lodash";
+import { keys, trim } from "lodash";
 import { unlinkSync } from "fs";
 import axios, { AxiosError } from "axios";
+import bot from "ROOT";
 
 /**
  * @interface
@@ -118,6 +119,7 @@ export default class Adachi {
 	
 	public run(): BOT {
 		this.login();
+		this.bot.redis.deleteKey( Enquire.redisKey ).then();
 		PluginManager.getInstance().load().then( ( pluginInfos ) => {
 			const server = RenderServer.getInstance();
 			server.reloadPluginRouters( pluginInfos ).then();
@@ -319,9 +321,33 @@ export default class Adachi {
 		const replyReg = new RegExp( `\\[CQ:reply,id=[\\w=+/]+]\\s*(\\[CQ:at,type=at,qq=\\d+,text=.*])?` );
 		let content: string = messageData.toCqcode().replace( replyReg, "" ).trim() || '';
 		
+		const userID: number = messageData.sender.user_id;
+		const groupID: number = msg.isGroupMessage( messageData ) ? messageData.group_id : -1;
+		
+		// 检查超量使用
+		const checkThresholdRes: boolean = await this.checkThreshold( userID );
+		if ( !checkThresholdRes ) {
+			return;
+		}
+		
 		if ( this.bot.refresh.isRefreshing ) {
 			return;
 		}
+		
+		/* 检查是否存在等待回复的 enquire 指令 */
+		const curEnquireCmdKey: string = await this.bot.redis.getHashField( Enquire.redisKey, Enquire.getTaskKey( userID, groupID ) );
+		if ( curEnquireCmdKey ) {
+			const cmd = <Enquire | undefined>this.bot.command.getSingle( curEnquireCmdKey, await bot.auth.get( userID ) );
+			if ( cmd ) {
+				const header = cmd.getTask( Enquire.getTaskKey( userID, groupID ) ).header;
+				this.setRawMessage( messageData, cmd, content, { header } );
+				await this.bot.command.cmdRunError( async () => {
+					await cmd.confirm( userID, groupID, { sendMessage, ...this.bot, messageData } );
+				}, userID, groupID );
+				return;
+			}
+		}
+		
 		
 		if ( isPrivate && this.bot.config.base.addFriend && messageData.sub_type !== "friend" ) {
 			if ( unionRegExp.test( content ) ) {
@@ -341,7 +367,7 @@ export default class Adachi {
 		
 		const usable: BasicConfig[] = cmdSet.filter( el => !limits.includes( el.cmdKey ) );
 		const matchList: { matchResult: MatchResult; cmd: BasicConfig }[] = [];
-		
+
 		for ( let cmd of usable ) {
 			const res: MatchResult = cmd.match( content );
 			if ( res.type === "unmatch" ) {
@@ -357,15 +383,9 @@ export default class Adachi {
 		/* 选择 最长的 header && 最大的优先级 作为成功匹配项 */
 		const { matchResult: res, cmd } = matchList.sort( ( prev, next ) => {
 			const getHeaderLength = ( { matchResult }: typeof prev ) => {
-				let length: number = 0;
-				if ( matchResult.type === "unmatch" || matchResult.type === "order" ) {
-					length = matchResult.header ? matchResult.header.length : 0;
-				} else if ( matchResult.type === "switch" ) {
-					length = matchResult.switch.length;
-				} else {
-					length = 233;
-				}
-				return length;
+				return matchResult.type === "switch"
+					? matchResult.switch.length
+					: matchResult.header?.length || 0
 			}
 			return ( getHeaderLength( next ) + next.cmd.priority ) - ( getHeaderLength( prev ) + prev.cmd.priority );
 		} )[0];
@@ -381,24 +401,23 @@ export default class Adachi {
 			return;
 		}
 		
-		if ( res.type === "order" ) {
-			const text: string = cmd.ignoreCase
-				? content.toLowerCase() : content;
-			messageData.raw_message = trim(
-				msg.removeStringPrefix( text, res.header.toLowerCase() )
-					.replace( / +/g, " " )
-			);
+		if ( res.type === "order" || res.type === "enquire" ) {
+			this.setRawMessage( messageData, cmd, content, res );
 		}
 		
-		cmd.run( {
-			sendMessage, ...this.bot,
-			messageData, matchResult: res
-		} );
+		await this.bot.command.cmdRunError( async () => {
+			const input: any = {
+				sendMessage, ...this.bot,
+				messageData, matchResult: res
+			};
+			if ( cmd.checkEnquire( cmd ) ) {
+				await cmd.activate( userID, groupID, input );
+			} else {
+				await cmd.run( input );
+			}
+		}, userID, groupID );
 		
 		/* 数据统计与收集 */
-		const userID: number = messageData.sender.user_id;
-		const groupID: number = msg.isGroupMessage( messageData ) ? messageData.group_id : -1;
-		
 		await this.bot.redis.addSetMember( `adachi.user-used-groups-${ userID }`, groupID.toString() );
 		await this.bot.redis.incHash( "adachi.hour-stat", userID.toString(), 1 );
 		await this.bot.redis.incHash( "adachi.command-stat", cmd.cmdKey, 1 );
@@ -427,11 +446,21 @@ export default class Adachi {
 		}
 	}
 	
+	private setRawMessage<T extends {
+		header: string
+	}>( messageData: msg.Message, cmd: BasicConfig, content: string, result: T ) {
+		const text: string = cmd.ignoreCase ? content.toLowerCase() : content;
+		messageData.raw_message = trim(
+			msg.removeStringPrefix( text, result.header.toLowerCase() )
+				.replace( / +/g, " " )
+		);
+	}
+	
 	/* 处理私聊事件 */
 	private parsePrivateMsg( that: Adachi ) {
 		const bot = that.bot;
 		return async function ( messageData: sdk.PrivateMessageEvent ) {
-			const userID: number = messageData.from_id;
+			const userID: number = messageData.sender.user_id;
 			const isMaster = userID === bot.config.base.master;
 			
 			/* 白名单校验 */
@@ -440,12 +469,6 @@ export default class Adachi {
 			}
 			
 			if ( !bot.interval.check( userID, "private" ) ) {
-				return;
-			}
-			
-			// 检查超量使用
-			const checkThresholdRes: boolean = await that.checkThreshold( userID );
-			if ( !checkThresholdRes ) {
 				return;
 			}
 			
@@ -488,12 +511,6 @@ export default class Adachi {
 			}
 			
 			if ( !bot.interval.check( groupID, "group" ) ) {
-				return;
-			}
-			
-			// 检查超量使用
-			const checkThresholdRes: boolean = await that.checkThreshold( userID );
-			if ( !checkThresholdRes ) {
 				return;
 			}
 			

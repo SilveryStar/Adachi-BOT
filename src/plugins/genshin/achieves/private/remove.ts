@@ -1,6 +1,5 @@
-import bot from "ROOT";
-import { MessageType } from "@/modules/message";
-import { InputParameter } from "@/modules/command";
+import MsgManagement, { MessageType } from "@/modules/message";
+import { defineDirective } from "@/modules/command";
 import { UserInfo } from "#/genshin/module/private/main";
 import { privateClass } from "#/genshin/init";
 
@@ -13,15 +12,15 @@ async function removePrivate( userID: number ): Promise<string> {
 	return privateClass.delBatchPrivate( userID );
 }
 
-async function sendMessageToUser( userID: number ) {
-	const sendMessage = bot.message.getSendMessageFunc( userID, MessageType.Private );
+async function sendMessageToUser( userID: number, message: MsgManagement ) {
+	const sendMessage = message.getSendMessageFunc( userID, MessageType.Private );
 	await sendMessage( "你的私人服务已被管理员取消" );
 }
 
-export async function main( { sendMessage, messageData }: InputParameter ): Promise<void> {
-	const userID: number = parseInt( messageData.raw_message );
+export default defineDirective( "order", async ( { sendMessage, message, matchResult } ) => {
+	const userID: number = parseInt( matchResult.match[0] );
 	
 	const msg: string = await removePrivate( userID );
-	await sendMessageToUser( userID );
+	await sendMessageToUser( userID, message );
 	await sendMessage( msg );
-}
+} );

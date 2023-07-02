@@ -1,6 +1,6 @@
 import { AuthLevel } from "@/modules/management/auth";
 import { MessageScope } from "@/modules/message";
-import { ConfigType, OrderConfig, SwitchConfig } from "@/modules/command";
+import { ConfigType, EnquireConfig, OrderConfig, SwitchConfig } from "@/modules/command";
 
 const bind: OrderConfig = {
 	type: "order",
@@ -166,28 +166,16 @@ const almanac: OrderConfig = {
 };
 
 /* 私人服务指令 */
-const privateSubscribe: OrderConfig = {
-	type: "order",
+const privateSubscribe: EnquireConfig = {
+	type: "enquire",
 	cmdKey: "silvery-star.private-subscribe",
 	desc: [ "添加私人服务", "" ],
 	headers: [ "ps" ],
-	regexps: [],
 	main: "achieves/private/subscribe",
 	scope: MessageScope.Private,
+	timeout: 180,
 	detail: "私人服务，一类通过使用个人 cookie 获取私密信息\n" +
 		"目前包含实时便笺订阅功能，未来可能会添加新功能"
-};
-
-const privateConfirm: OrderConfig = {
-	type: "order",
-	cmdKey: "silvery-star.private-confirm",
-	desc: [ "验证私人服务", "" ],
-	headers: [ "confirm" ],
-	regexps: [ ".+" ],
-	display: false,
-	ignoreCase: false,
-	main: "achieves/private/subscribe",
-	scope: MessageScope.Private
 };
 
 const privateSubList: OrderConfig = {
@@ -354,8 +342,8 @@ export default <ConfigType[]>[
 	guide, information, alias, domain,
 	getArtifact, impArtifact, wish, choosePool,
 	epitomizedPath, slip, uidQuery, privateMysQuery,
-	almanac, privateMysSetAppoint, privateSubscribe, privateReplace,
-	privateConfirm, privateCancel, privateRemove,
+	almanac, privateMysSetAppoint, privateSubscribe,
+	privateReplace, privateCancel, privateRemove,
 	privateSubList, privateReorder, privateToggleSign,
 	privateToggleNote, privateNoteEvent, privateNowNote,
 	privateAbyssQuery, privateLedger

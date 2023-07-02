@@ -1,5 +1,5 @@
 import * as cmd from "./index";
-import { Order, Switch } from "./index";
+import { Enquire, Order, Switch } from "./index";
 import bot from "ROOT";
 import Plugin from "@/modules/plugin";
 import FileManagement from "@/modules/file";
@@ -8,6 +8,7 @@ import { Message, MessageScope, SendFunc } from "@/modules/message";
 import { AuthLevel } from "../management/auth";
 import { BOT } from "@/main";
 import { trimStart, without } from "lodash";
+import * as msg from "@/modules/message";
 
 type Optional<T> = {
 	-readonly [key in keyof T]?: T[key];
@@ -28,26 +29,66 @@ export interface FollowInfo {
 	param: string;
 }
 
-export type MatchResult = cmd.OrderMatchResult |
-	cmd.SwitchMatchResult |
-	Unmatch;
+export type CommandType = Order | Switch | Enquire;
 
-export type ConfigType = cmd.OrderConfig |
-	cmd.SwitchConfig;
+interface MatchResultMap {
+	order: cmd.OrderMatchResult;
+	switch: cmd.SwitchMatchResult;
+	enquire: cmd.EnquireMatchResult;
+}
 
-export type InputParameter = {
+export type InputParameter<T extends keyof MatchResultMap = any> = {
 	sendMessage: SendFunc;
 	messageData: Message;
-	matchResult: MatchResult;
+	matchResult: MatchResultMap[T];
 } & BOT;
 
-export type CommandFunc = ( input: InputParameter ) => void | Promise<void>;
+export type CommandFunc<T extends keyof MatchResultMap> = ( input: InputParameter<T> ) => any;
 export type CommandList = Record<AuthLevel, BasicConfig[]>;
-export type CommandInfo = Required<Optional<BasicConfig>,
-	"cmdKey" | "desc"> & { main?: string | CommandFunc };
-export type CommandType = Order | Switch;
+
+/* 指令入口对象 */
+export type CommandEntry = CommandFunc<"order"> | CommandFunc<"switch"> | CommandFunc<"enquire">;
+
+/* 指令通用配置项 */
+export interface CommandCfg {
+	cmdKey: string;
+	main: string | CommandEntry;
+	desc: [ string, string ];
+	detail?: string;
+	auth?: AuthLevel;
+	scope?: MessageScope;
+	display?: boolean;
+	ignoreCase?: boolean;
+	start?: boolean;
+	stop?: boolean;
+	priority?: number;
+}
+
+/* 指令配置项 */
+export type ConfigType = cmd.OrderConfig |
+	cmd.SwitchConfig |
+	cmd.EnquireConfig;
+
+/* 通用初始化指令对象 */
+export interface CommonInit {
+	pluginName: string;
+	enable?: boolean;
+}
+
+export type InitType = cmd.OrderInit |
+	cmd.SwitchInit |
+	cmd.EnquireInit;
+
+export type MatchResult = cmd.OrderMatchResult |
+	cmd.SwitchMatchResult |
+	cmd.EnquireMatchResult |
+	Unmatch;
+
+export const defineDirective = <T extends keyof MatchResultMap>( type: T, entry: CommandFunc<T> ) => entry;
 
 export abstract class BasicConfig {
+	abstract type: "order" | "switch" | "enquire";
+	abstract run: CommandEntry;
 	readonly auth: AuthLevel;
 	readonly scope: MessageScope;
 	readonly cmdKey: string;
@@ -56,10 +97,23 @@ export abstract class BasicConfig {
 	readonly ignoreCase: boolean;
 	readonly enable: boolean;
 	readonly raw: ConfigType;
-	readonly run: CommandFunc;
 	readonly desc: [ string, string ];
 	readonly pluginName: string;
 	readonly priority: number;
+	
+	protected constructor( config: InitType ) {
+		this.pluginName = config.pluginName;
+		this.cmdKey = config.cmdKey;
+		this.desc = config.desc;
+		this.auth = config.auth || AuthLevel.User;
+		this.scope = config.scope || MessageScope.Both;
+		this.detail = config.detail || "该指令暂无更多信息";
+		this.ignoreCase = config.ignoreCase !== false;
+		this.priority = config.priority || 0;
+		this.display = config.display !== false;
+		this.enable = config.enable !== false;
+		this.raw = config;
+	}
 	
 	abstract match( content: string ): MatchResult;
 	
@@ -77,7 +131,7 @@ export abstract class BasicConfig {
 		}
 	}
 	
-	protected static regexp( regStr: string, i: boolean ): RegExp {
+	protected static regexp( regStr: string, i: boolean = false ): RegExp {
 		return new RegExp( regStr, i ? "i" : "" );
 	}
 	
@@ -107,20 +161,16 @@ export abstract class BasicConfig {
 		return `${ func } -- ${ this.cmdKey }`;
 	}
 	
-	protected constructor( config: ConfigType, pluginName: string ) {
-		this.cmdKey = config.cmdKey;
-		this.desc = config.desc;
-		this.auth = config.auth || AuthLevel.User;
-		this.scope = config.scope || MessageScope.Both;
-		this.detail = config.detail || "该指令暂无更多信息";
-		this.ignoreCase = config.ignoreCase !== false;
-		this.priority = config.priority || 0;
-		this.display = config.display !== false;
-		this.enable = config.enable !== false;
-		this.run = <CommandFunc>config.run;
-		this.pluginName = pluginName;
-		
-		this.raw = config;
+	public checkOrder( cmd: BasicConfig ): cmd is Order {
+		return cmd.type === "order";
+	}
+	
+	public checkSwitch( cmd: BasicConfig ): cmd is Switch {
+		return cmd.type === "switch";
+	}
+	
+	public checkEnquire( cmd: BasicConfig ): cmd is Enquire {
+		return cmd.type === "enquire";
 	}
 }
 
@@ -197,7 +247,6 @@ export default class Command {
 		
 		function convertAllRegToUnion( cmdSet: CommandType[] ): RegExp {
 			const list: string[] = [];
-			const config = bot.config.directive;
 			cmdSet.forEach( cmd => {
 				if ( cmd.type === "order" ) {
 					cmd.regPairs.forEach( el => {
@@ -211,6 +260,8 @@ export default class Command {
 						}
 					} );
 				} else if ( cmd.type === "switch" ) {
+					list.push( ...cmd.regPairs.map( r => `(${ r.regExp.source })` ) );
+				} else if ( cmd.type === "enquire" ) {
 					list.push( ...cmd.regPairs.map( r => `(${ r.regExp.source })` ) );
 				}
 			} )
@@ -233,6 +284,20 @@ export default class Command {
 			return this.groups[auth];
 		} else {
 			return this.all[auth];
+		}
+	}
+	
+	public async cmdRunError( run: ( ...arg: any[] ) => any, userID: number, groupID: number ) {
+		const sendMessage = groupID === -1
+			? bot.message.getSendMessageFunc( userID, msg.MessageType.Private )
+			: bot.message.getSendMessageFunc( userID, msg.MessageType.Group, groupID );
+		try {
+			await run();
+		} catch ( error ) {
+			bot.logger.error( ( <Error>error ).stack || error );
+			const CALL = <Order>bot.command.getSingle( "adachi.call", await bot.auth.get( userID ) );
+			const appendMsg = CALL ? `私聊使用 ${ CALL.getHeaders()[0] } ` : "";
+			await sendMessage( `指令执行异常，请${ appendMsg }联系持有者进行反馈` );
 		}
 	}
 	

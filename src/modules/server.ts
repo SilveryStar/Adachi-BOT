@@ -87,7 +87,12 @@ export default class RenderServer {
 	/* 重写后台服务路由 */
 	public async setServerRouters( routers: Array<ServerRouters> ) {
 		const different = this.serverRouters.filter( oldRouter => {
-			return routers.findIndex( newRouter => isEqualObject( oldRouter, newRouter ) ) === -1;
+			return routers.findIndex( newRouter => isEqualObject( oldRouter, newRouter, target => {
+				if ( target.constructor.name === "Layer" ) {
+					return target.route || true;
+				}
+				return target;
+			} ) ) === -1;
 		} );
 		// 此时新旧数据本质不同，直接重载服务
 		if ( different.length ) {
@@ -116,6 +121,9 @@ export default class RenderServer {
 		this.app = wsInstance.app;
 		this.logger.info( `原公共服务端口 ${ this.config.base.renderPort } 已关闭` );
 		await this.createServer();
+		for ( const r of this.serverRouters ) {
+			this.app.use( r.path, r.router );
+		}
 	}
 	
 	/* 创建服务 */

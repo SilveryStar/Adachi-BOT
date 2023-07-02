@@ -1,6 +1,6 @@
 import fetch, { Response } from "node-fetch";
 import { exec } from "child_process";
-import { InputParameter } from "@/modules/command";
+import { defineDirective, InputParameter } from "@/modules/command";
 import PluginManager, { PluginInfo } from "@/modules/plugin";
 import RenderServer from "@/modules/server";
 
@@ -107,10 +107,7 @@ async function checkGitCommit( dbKey: string, i: InputParameter, repo: string ):
 	};
 }
 
-export async function main( i: InputParameter ): Promise<void> {
-	const message: string = i.messageData.raw_message;
-	const reg: RegExp = new RegExp( /^(-f)?\s*(-s)?\s*([\u4E00-\u9FA5\w\-]+)?$/ );
-	const execArray: RegExpExecArray | null = reg.exec( message );
+export default defineDirective( "order", async ( i ) => {
 	let dbKey: string = "";
 	let isForce: boolean = false;
 	let isRestart: boolean = true;
@@ -118,16 +115,16 @@ export async function main( i: InputParameter ): Promise<void> {
 	const pluginInstance = PluginManager.getInstance();
 	const serverInstance = RenderServer.getInstance();
 	
-	if ( execArray && execArray[1] ) {
+	if ( i.matchResult.match[0] ) {
 		isForce = true;
 	}
-	if ( execArray && execArray[2] ) {
+	if ( i.matchResult.match[1] ) {
 		isRestart = false;
 	}
 	
-	if ( execArray && execArray[3] ) {
+	if ( i.matchResult.match[2] ) {
 		// 更新单个插件
-		const inputPluginName = execArray[3];
+		const inputPluginName = i.matchResult.match[2];
 		// todo: 临时仅处理单个匹配项
 		const pluginInfo = pluginInstance.getPluginInfoByAlias( inputPluginName )[0];
 		if ( !pluginInfo ) {
@@ -255,4 +252,4 @@ export async function main( i: InputParameter ): Promise<void> {
 			await i.sendMessage( `插件重载异常: ${ error }` );
 		}
 	}
-}
+} );

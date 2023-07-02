@@ -1,12 +1,12 @@
-import { InputParameter } from "@/modules/command";
+import { defineDirective } from "@/modules/command";
 import { dailyClass } from "#/genshin/init";
 import { Sendable } from "icqq";
 
-export async function main( { sendMessage, messageData }: InputParameter ): Promise<void> {
+export default defineDirective( "order", async ( { sendMessage, messageData, matchResult } ) => {
 	const userID: number = messageData.user_id;
 	
-	const week = messageData.raw_message;
+	const week = Number.parseInt( matchResult.match[0] );
 	
-	const result: Sendable = await dailyClass.getUserSubscription( userID, week ? parseInt( week ) : undefined );
+	const result: Sendable = await dailyClass.getUserSubscription( userID, Number.isNaN( week ) ? week : undefined );
 	await sendMessage( result );
-}
+} );

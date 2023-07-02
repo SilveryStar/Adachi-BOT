@@ -1,17 +1,15 @@
 import { Private } from "#/genshin/module/private/main";
-import { InputParameter, Order } from "@/modules/command";
+import { defineDirective } from "@/modules/command";
 import { privateClass } from "#/genshin/init";
 import bot from "ROOT";
 import { checkCookieInvalidReason, checkMysCookieInvalid, refreshTokenBySToken } from "#/genshin/utils/cookie";
 
-export async function main(
-	{ sendMessage, messageData }: InputParameter
-): Promise<void> {
+export default defineDirective( "order", async ({ sendMessage, messageData, matchResult }) => {
 	const userID: number = messageData.user_id;
-	const newCookie = messageData.raw_message;
+	const newCookie = matchResult.match[0];
 	/* 适配不需要序号的情况，简化用户操作 */
 	await sendMessage( await replaceCookie( userID, newCookie ) );
-}
+} );
 
 async function replaceCookie( userID: number, newCookie: string ) {
 	const accounts: Private[] = privateClass.getUserPrivateList( userID );

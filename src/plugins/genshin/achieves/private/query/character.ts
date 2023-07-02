@@ -1,4 +1,4 @@
-import { InputParameter, Order } from "@/modules/command";
+import { defineDirective } from "@/modules/command";
 import { Private } from "#/genshin/module/private/main";
 import { RenderResult } from "@/modules/renderer";
 import { CharacterInformation, EffectsShirt, EvaluateScore, ScoreItem, Skills } from "#/genshin/types";
@@ -6,25 +6,15 @@ import { getRealName, NameResult } from "#/genshin/utils/name";
 import { mysAvatarDetailInfoPromise, mysInfoPromise } from "#/genshin/utils/promise";
 import { getPrivateAccount } from "#/genshin/utils/private";
 import { characterMap, config, renderer, typeData } from "#/genshin/init";
-import bot from "ROOT";
 
 function evaluate( obj: { rarity: number; level: number }, max: number = 5 ): number {
 	return ( obj.rarity / max ) * obj.level;
 }
 
-export async function main(
-	{ sendMessage, messageData, auth, redis, logger }: InputParameter
-): Promise<void> {
-	const { user_id: userID, raw_message: msg } = messageData;
+export default defineDirective( "order", async ( { sendMessage, messageData, matchResult, auth, redis, logger } ) => {
+	const { user_id: userID } = messageData;
 	
-	const parser = /(\d+)?\s*([\w\u4e00-\u9fa5]+)/i;
-	const execRes = parser.exec( msg );
-	if ( !execRes ) {
-		await sendMessage( "指令格式有误" );
-		return;
-	}
-	
-	const [ , idMsg, name ] = execRes;
+	const [ idMsg, name ] = matchResult.match;
 	
 	const info: Private | string = await getPrivateAccount( userID, idMsg, auth );
 	if ( typeof info === "string" ) {
@@ -128,9 +118,6 @@ export async function main(
 	if ( res.code === "ok" ) {
 		await sendMessage( res.data );
 	} else {
-		logger.error( res.error );
-		const CALL = <Order>bot.command.getSingle( "adachi.call", await auth.get( userID ) );
-		const appendMsg = CALL ? `私聊使用 ${ CALL.getHeaders()[0] } ` : "";
-		await sendMessage( `图片渲染异常，请${ appendMsg }联系持有者进行反馈` );
+		throw new Error( res.error );
 	}
-}
+} );

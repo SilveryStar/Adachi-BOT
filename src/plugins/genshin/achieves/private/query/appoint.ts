@@ -1,12 +1,12 @@
 import { Private } from "#/genshin/module/private/main";
-import { InputParameter } from "@/modules/command";
+import { defineDirective } from "@/modules/command";
 import { MysQueryService } from "#/genshin/module/private/mys";
 import { NameResult, getRealName } from "#/genshin/utils/name";
 import { characterMap, privateClass } from "#/genshin/init";
 
-export async function main( { sendMessage, messageData }: InputParameter ): Promise<void> {
-	const userID: number = messageData.user_id;
-	const data: string = messageData.raw_message;
+export default defineDirective( "order", async ( { sendMessage, messageData, matchResult } ) => {
+	const userID = messageData.user_id;
+	const data = matchResult.match[0];
 	
 	const [ id, name ] = data.split( " " );
 	const single: Private | string = await privateClass.getSinglePrivate( userID, parseInt( id ) );
@@ -21,7 +21,7 @@ export async function main( { sendMessage, messageData }: InputParameter ): Prom
 		}
 		const result: NameResult = getRealName( name );
 		if ( result.definite ) {
-			const realName: string = <string>result.info;
+			const realName = <string>result.info;
 			await ( <MysQueryService>single.services[MysQueryService.FixedField] ).modifyAppointChar(
 				characterMap.map[realName].id.toString()
 			);
@@ -30,4 +30,4 @@ export async function main( { sendMessage, messageData }: InputParameter ): Prom
 			await sendMessage( "卡片头像指定失败，请尝试使用完整的角色名" );
 		}
 	}
-}
+} );

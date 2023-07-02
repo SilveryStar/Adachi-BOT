@@ -1,14 +1,12 @@
-import { InputParameter } from "@/modules/command";
+import { defineDirective } from "@/modules/command";
 import { getRandomNumber } from "@/utils/random";
 
 const MAX_TIMES = 100;
 const MAX_SIDES = 32767;
 
-export async function main( { sendMessage, messageData }: InputParameter ): Promise<void> {
-	const reg = new RegExp( /(r\d+)?(d\d+)(k\d+)?/ );
-	const [ times, sides, topK ] = <number[]>reg.exec( messageData.raw_message )
-		?.splice( 1 )
-		.map( ( el: string | undefined ) => {
+export default defineDirective( "order", async ( { sendMessage, matchResult } ) => {
+	const [ times, sides, topK ] = matchResult.match
+		.map( el => {
 			return !el ? -1 : parseInt( el.slice( 1 ) );
 		} );
 	const rollTimes: number = times === -1 ? 1 : times;
@@ -39,4 +37,4 @@ export async function main( { sendMessage, messageData }: InputParameter ): Prom
 		return;
 	}
 	await sendMessage( `掷骰结果为:\n${ randomRes.join( " " ) }` );
-}
+} );

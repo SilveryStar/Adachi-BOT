@@ -1,10 +1,10 @@
-import { InputParameter, SwitchMatchResult } from "@/modules/command";
+import { defineDirective } from "@/modules/command";
 import idParser from "#/@help/utils/id-parser";
 import { MessageType } from "@/modules/message";
 import { AuthLevel } from "@/modules/management/auth";
 
-export async function main( { sendMessage, matchResult, messageData, auth, redis }: InputParameter ): Promise<void> {
-	const match = <SwitchMatchResult>matchResult;
+export default defineDirective( "switch", async ( { sendMessage, matchResult, messageData, auth, redis } ) => {
+	const match = matchResult;
 	const states: string = match.isOn() ? "开启" : "关闭";
 	
 	const userID: number = messageData.user_id;
@@ -40,4 +40,4 @@ export async function main( { sendMessage, matchResult, messageData, auth, redis
 	}
 	
 	await sendMessage( reply );
-}
+} );

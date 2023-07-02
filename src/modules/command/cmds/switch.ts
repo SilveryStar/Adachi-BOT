@@ -1,25 +1,26 @@
-import { BasicConfig, CommandInfo, FollowInfo, Unmatch } from "./main";
+import { BasicConfig, CommandCfg, CommandFunc, CommonInit, FollowInfo, Unmatch } from "../main";
 import { BotConfig } from "@/modules/config";
 import bot from "ROOT";
 import { escapeRegExp, trimStart } from "lodash";
 
 export interface SwitchMatchResult {
-	type: "switch";
+	type: Switch["type"];
 	switch: string;
 	match: string[];
 	isOn(): boolean;
 }
 
-export type SwitchConfig = CommandInfo & {
-	type: "switch";
+export type SwitchConfig = CommandCfg & {
+	type: Switch["type"];
 	mode: "single" | "divided";
 	onKey: string;
 	offKey: string;
 	header: string;
 	regexp: string | string[];
-	start?: boolean;
-	stop?: boolean;
-	priority?: number;
+};
+
+export type SwitchInit = SwitchConfig & CommonInit & {
+	run: CommandFunc<Switch["type"]>;
 };
 
 interface RegPair {
@@ -31,12 +32,14 @@ export class Switch extends BasicConfig {
 	public readonly type = "switch";
 	private readonly mode: "single" | "divided";
 	public readonly regPairs: RegPair[] = [];
+	public readonly run: CommandFunc<Switch["type"]>;
 	private readonly keys: [ string, string ] | [ string, string ][];
 	
-	constructor( config: SwitchConfig, botCfg: BotConfig, pluginName: string ) {
-		super( config, pluginName );
+	constructor( config: SwitchInit, botCfg: BotConfig ) {
+		super( config );
 		
 		this.mode = config.mode;
+		this.run = config.run;
 		this.keys = config.mode === "single" ? [ config.onKey, config.offKey ] : [];
 		
 		if ( config.onKey === config.offKey ) {
@@ -88,7 +91,7 @@ export class Switch extends BasicConfig {
 	public write() {
 		const cfg = <SwitchConfig>this.raw;
 		return {
-			type: "switch",
+			type: this.type,
 			auth: this.auth,
 			scope: this.scope,
 			mode: cfg.mode,
@@ -100,7 +103,7 @@ export class Switch extends BasicConfig {
 		};
 	}
 	
-	public static read( cfg: SwitchConfig, loaded ) {
+	public static read( cfg: SwitchInit, loaded ) {
 		cfg.auth = loaded.auth;
 		cfg.mode = loaded.mode;
 		cfg.scope = loaded.scope;
@@ -154,7 +157,7 @@ export class Switch extends BasicConfig {
 			}
 			
 			return {
-				type: "switch",
+				type: this.type,
 				switch: switchKey,
 				match, isOn
 			};

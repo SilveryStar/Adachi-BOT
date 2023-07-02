@@ -1,19 +1,16 @@
-import { InputParameter, SwitchMatchResult } from "@/modules/command";
+import { defineDirective, InputParameter, SwitchMatchResult } from "@/modules/command";
 import { aliasClass, typeData } from "#/genshin/init";
 
-export async function main(
-	{ sendMessage, matchResult, redis }: InputParameter
-): Promise<void> {
-	const match = <SwitchMatchResult>matchResult;
-	const [ name, alias ] = match.match;
-
+export default defineDirective( "switch", async ( { sendMessage, matchResult, redis } ) => {
+	const [ name, alias ] = matchResult.match;
+	
 	const nameList: string[] = typeData.getNameList();
 	if ( !nameList.some( el => el === name ) ) {
 		await sendMessage( `不存在名称为「${ name }」的角色或武器，若确认名称输入无误，请前往 github.com/SilveryStar/Adachi-BOT 进行反馈` );
 		return;
 	}
 	
-	if ( match.isOn() ) {
+	if ( matchResult.isOn() ) {
 		const added: string[] = await redis.getList( `silvery-star.alias-add-${ name }` );
 		if ( added.some( el => el === alias ) || aliasClass.search( alias ) !== undefined ) {
 			await sendMessage( `别名「${ alias }」已存在` );
@@ -23,7 +20,7 @@ export async function main(
 		aliasClass.addPair( alias, name );
 		await redis.addListElement( `silvery-star.alias-add-${ name }`, alias );
 		await redis.delListElement( `silvery-star.alias-remove`, alias );
-	} else if ( !match.isOn() ) {
+	} else if ( !matchResult.isOn() ) {
 		const removed: string[] = await redis.getList( "silvery-star.alias-remove" );
 		if ( removed.some( el => el === alias ) ) {
 			await sendMessage( `别名「${ alias }」已被删除` );
@@ -35,5 +32,5 @@ export async function main(
 		await redis.delListElement( `silvery-star.alias-add-${ name }`, alias );
 	}
 	
-	await sendMessage( `别名${ match.isOn() ? "添加" : "删除" }成功` );
-}
+	await sendMessage( `别名${ matchResult.isOn() ? "添加" : "删除" }成功` );
+} );

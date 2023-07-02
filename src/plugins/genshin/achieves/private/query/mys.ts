@@ -1,16 +1,14 @@
-import { InputParameter, Order } from "@/modules/command";
+import { defineDirective } from "@/modules/command";
 import { Private } from "#/genshin/module/private/main";
 import { MysQueryService } from "#/genshin/module/private/mys";
 import { RenderResult } from "@/modules/renderer";
 import { mysInfoPromise } from "#/genshin/utils/promise";
 import { getPrivateAccount } from "#/genshin/utils/private";
 import { characterMap, config, renderer } from "#/genshin/init";
-import bot from "ROOT";
 
-export async function main(
-	{ sendMessage, messageData, auth, logger }: InputParameter
-): Promise<void> {
-	const { user_id: userID, raw_message: idMsg } = messageData;
+export default defineDirective( "order", async ( { sendMessage, messageData, matchResult, auth, logger } ) => {
+	const { user_id: userID } = messageData;
+	const idMsg = matchResult.match[0];
 	const info: Private | string = await getPrivateAccount( userID, idMsg, auth );
 	if ( typeof info === "string" ) {
 		await sendMessage( info );
@@ -50,9 +48,6 @@ export async function main(
 	if ( res.code === "ok" ) {
 		await sendMessage( res.data );
 	} else {
-		logger.error( res.error );
-		const CALL = <Order>bot.command.getSingle( "adachi.call", await auth.get( userID ) );
-		const appendMsg = CALL ? `私聊使用 ${ CALL.getHeaders()[0] } ` : "";
-		await sendMessage( `图片渲染异常，请${ appendMsg }联系持有者进行反馈` );
+		throw new Error( res.error );
 	}
-}
+} );

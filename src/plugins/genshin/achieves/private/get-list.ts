@@ -1,5 +1,5 @@
 import { UserInfo } from "#/genshin/module/private/main";
-import { InputParameter } from "@/modules/command";
+import { defineDirective } from "@/modules/command";
 import { privateClass } from "#/genshin/init";
 
 async function getPrivateList( userID: number ): Promise<string> {
@@ -10,7 +10,7 @@ async function getPrivateList( userID: number ): Promise<string> {
 	
 	const str: string[] = [];
 	const num: number = settings.length;
-	for ( let i = 0; i < num; i++) {
+	for ( let i = 0; i < num; i++ ) {
 		const uid: string = settings[i].uid;
 		str.push( `${ i + 1 }. UID${ uid }` );
 	}
@@ -18,10 +18,8 @@ async function getPrivateList( userID: number ): Promise<string> {
 	return "当前启用私人服务的账号：" + [ "", ...str ].join( "\n  " );
 }
 
-export async function main(
-	{ sendMessage, messageData }: InputParameter
-): Promise<void> {
+export default defineDirective( "order", async ( { sendMessage, messageData } ) => {
 	const userID: number = messageData.user_id;
 	const msg: string = await getPrivateList( userID );
 	await sendMessage( msg );
-}
+} );

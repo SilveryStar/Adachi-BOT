@@ -1,8 +1,8 @@
-import { InputParameter } from "@/modules/command/main";
+import { defineDirective } from "@/modules/command/main";
 
-export async function main( { sendMessage, messageData, message, redis, config }: InputParameter ): Promise<void> {
+export default defineDirective( "order", async ( { sendMessage, messageData, message, matchResult, redis, config } ) => {
 	const user = messageData.user_id;
-	const content = messageData.raw_message;
+	const content = matchResult.match[0];
 	
 	const noSupportMsg = messageData.message.find( m => ![ "text", "image" ].includes( m.type ) )
 	if ( noSupportMsg ) {
@@ -36,4 +36,4 @@ export async function main( { sendMessage, messageData, message, redis, config }
 	
 	await redis.setString( dbKey, limit );
 	await redis.setTimeout( dbKey, keyTimeOut );
-}
+} );

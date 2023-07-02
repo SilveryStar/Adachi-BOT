@@ -1,7 +1,7 @@
 import { filterUserUsableCommand } from "#/@help/utils/filter";
-import { InputParameter } from "@/modules/command/main";
+import { defineDirective } from "@/modules/command/main";
 
-export async function main( i: InputParameter ): Promise<void> {
+export default defineDirective( "order", async i => {
 	const commands = await filterUserUsableCommand( i );
 	const id: number = parseInt( i.messageData.raw_message );
 	
@@ -18,4 +18,4 @@ export async function main( i: InputParameter ): Promise<void> {
 	
 	const message = `指令格式：${ follow }\n指令说明：${ detail }`;
 	await i.sendMessage( message );
-}
+} );

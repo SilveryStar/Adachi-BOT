@@ -1,19 +1,12 @@
-import { InputParameter, Order } from "@/modules/command";
+import { defineDirective } from "@/modules/command";
 import { RenderResult } from "@/modules/renderer";
 import { NameResult, getRealName } from "../utils/name";
 import { renderer, typeData } from "#/genshin/init";
-import bot from "ROOT";
 
-export async function main(
-	{ sendMessage, messageData, logger, auth }: InputParameter
-): Promise<void> {
-	const rawMessage: string = messageData.raw_message;
-	
+export default defineDirective( "order", async ( { sendMessage, messageData, matchResult } ) => {
+	const [ name, skillOpt ] = matchResult.match;
 	// 是否为技能详情页
-	const isSkillPage = rawMessage.includes( "-skill" );
-	
-	const name: string = rawMessage.replace( /-skill/, "" ).trim();
-	
+	const isSkillPage = !!skillOpt;
 	const result: NameResult = getRealName( name );
 	
 	if ( result.definite ) {
@@ -31,10 +24,7 @@ export async function main(
 			if ( res.code === "ok" ) {
 				await sendMessage( res.data );
 			} else {
-				logger.error( res.error );
-				const CALL = <Order>bot.command.getSingle( "adachi.call", await auth.get( messageData.user_id ) );
-				const appendMsg = CALL ? `私聊使用 ${ CALL.getHeaders()[0] } ` : "";
-				await sendMessage( `图片渲染异常，请${ appendMsg }联系持有者进行反馈` );
+				throw new Error( res.error );
 			}
 		}
 	} else if ( result.info === "" ) {
@@ -42,4 +32,4 @@ export async function main(
 	} else {
 		await sendMessage( `未找到相关信息，是否要找：${ [ "", ...<string[]>result.info ].join( "\n  - " ) }` );
 	}
-}
+} );

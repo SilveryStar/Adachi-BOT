@@ -1,5 +1,5 @@
 import * as cmd from "./command";
-import { BasicConfig } from "./command";
+import { BasicConfig, InitType } from "./command";
 import { BOT } from "@/main";
 import { extname } from "path";
 import { Router } from "express";
@@ -295,16 +295,23 @@ export default class Plugin {
 		const pluginInfo = this.pluginList[ pluginKey ];
 		pluginInfo.commands = [];
 		
+		let cmdEntry: any = {};
 		/* 此处删除所有向后兼容代码 */
 		for ( const config of pluginInfo.cmdConfigs ) {
 			/* 允许 main 传入函数 */
 			if ( typeof config.main === "string" ) {
 				const main: string = config.main || "index";
-				const { main: entry } = await import(`#/${ pluginInfo.key }/${ main }`);
-				config.run = entry;
+				const entry = await import(`#/${ pluginInfo.key }/${ main }`);
+				cmdEntry = entry.default;
 			} else {
-				config.run = config.main;
+				cmdEntry = config.main;
 			}
+			
+			const initConfig: InitType = {
+				...config,
+				pluginName: pluginInfo.name,
+				run: cmdEntry
+			};
 			
 			const key: string = config.cmdKey;
 			const loaded = configData[key];
@@ -312,14 +319,18 @@ export default class Plugin {
 			/* 读取 commands.yml 配置，创建指令实例  */
 			try {
 				let command: cmd.BasicConfig;
-				switch ( config.type ) {
+				switch ( initConfig.type ) {
 					case "order":
-						if ( loaded ) cmd.Order.read( config, loaded );
-						command = new cmd.Order( config, this.bot.config, pluginInfo.name );
+						if ( loaded ) cmd.Order.read( initConfig, loaded );
+						command = new cmd.Order( initConfig, this.bot.config );
 						break;
 					case "switch":
-						if ( loaded ) cmd.Switch.read( config, loaded );
-						command = new cmd.Switch( config, this.bot.config, pluginInfo.name );
+						if ( loaded ) cmd.Switch.read( initConfig, loaded );
+						command = new cmd.Switch( initConfig, this.bot.config );
+						break;
+					case "enquire":
+						if ( loaded ) cmd.Enquire.read( initConfig, loaded );
+						command = new cmd.Enquire( initConfig, this.bot.config );
 						break;
 				}
 				if ( !loaded || loaded.enable ) {

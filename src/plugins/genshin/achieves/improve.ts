@@ -1,10 +1,8 @@
-import { InputParameter } from "@/modules/command";
+import { defineDirective } from "@/modules/command";
 import { RenderResult } from "@/modules/renderer";
 import { renderer } from "#/genshin/init";
 
-export async function main(
-	{ sendMessage, messageData, redis, logger }: InputParameter
-): Promise<void> {
+export default defineDirective( "order", async ( { sendMessage, messageData, redis } ) => {
 	const userID: number = messageData.user_id;
 	const data: string | null = await redis.getString( `silvery-star.artifact-${ userID }` );
 	
@@ -19,7 +17,6 @@ export async function main(
 	if ( res.code === "ok" ) {
 		await sendMessage( res.data );
 	} else {
-		logger.error( res.error );
-		await sendMessage( "图片渲染异常，请联系持有者进行反馈" );
+		throw new Error( res.error );
 	}
-}
+} );

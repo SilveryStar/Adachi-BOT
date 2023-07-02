@@ -1,7 +1,7 @@
-import { InputParameter } from "@/modules/command";
+import { defineDirective } from "@/modules/command";
 import { artClass } from "../init";
 
-export async function main( { sendMessage }: InputParameter ): Promise<void> {
+export default defineDirective( "order", async ( { sendMessage } ) => {
 	const info: string = artClass.domainInfo();
 	await sendMessage( info );
-}
+} );

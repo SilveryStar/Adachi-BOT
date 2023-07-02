@@ -32,20 +32,24 @@ export function getObjectKeyValue<T extends Record<any, any>, K extends keyof T,
  * @desc 校验两个对象是否相等，对数组进行校验时只专注于内容，不关心顺序
  * @param a 对象一
  * @param b 对象二
- * @param checkArray 是否对数组进行判断
+ * @param formatTarget 重写比对对象
  * @return 是否相等
  */
-export function isEqualObject( a: any, b: any, checkArray = true ) {
+export function isEqualObject( a: any, b: any, formatTarget?: ( v: any ) => any ) {
+	if ( formatTarget ) {
+		a = formatTarget( a );
+		b = formatTarget( b );
+	}
 	if ( !( a instanceof Object && b instanceof Object ) ) {
 		return a === b;
 	}
 	// 引用地址相同时，直接返回true（此时包含两者为null的情况）
 	if ( a === b ) {
-		return true
+		return true;
 	}
 	// 有一个为null时
 	if ( a === null || b === null ) {
-		return false
+		return false;
 	}
 	
 	// 获取a和b的全部键值
@@ -58,13 +62,9 @@ export function isEqualObject( a: any, b: any, checkArray = true ) {
 	const isArray = a instanceof Array && b instanceof Array;
 	// 校验数组
 	if ( isArray ) {
-		// 不校验数组时遇到数组直接放行
-		if ( !checkArray ) {
-			return true;
-		}
 		const bClone = [ ...b ];
 		for ( const aItem of a ) {
-			const index = bClone.findIndex( bItem => isEqualObject( aItem, bItem, checkArray ) );
+			const index = bClone.findIndex( bItem => isEqualObject( aItem, bItem, formatTarget ) );
 			if ( index === -1 ) return false;
 			bClone.splice( index, 1 );
 		}
@@ -81,7 +81,7 @@ export function isEqualObject( a: any, b: any, checkArray = true ) {
 			
 			// 当属性值为对象时，递归判断
 			if ( propA instanceof Object && propB instanceof Object ) {
-				if ( !isEqualObject( propA, propB, checkArray ) ) {
+				if ( !isEqualObject( propA, propB, formatTarget ) ) {
 					return false;
 				}
 			} else if ( propA !== propB ) {
@@ -96,11 +96,11 @@ export function isEqualObject( a: any, b: any, checkArray = true ) {
  * @desc 检查数组中是否已存在指定项（包括对象类型判重）
  * @param list 待查找数组
  * @param value 目标值
- * @param checkArray 是否对数组进行判断
+ * @param formatTarget 重写比对对象
  * @return 是否存在该值
  */
-export function includesValue( list, value, checkArray = true ) {
-	return list.findIndex( el => isEqualObject( el, value, checkArray ) ) !== -1;
+export function includesValue( list, value, formatTarget?: ( v: any ) => any ) {
+	return list.findIndex( el => isEqualObject( el, value, formatTarget ) ) !== -1;
 }
 
 /**
@@ -117,7 +117,9 @@ export function compareAssembleObject<T extends Record<string, any>>( oldValue: 
 	const getArrayValue = ( newValue: any[], oldValue: any ) => {
 		if ( oldValue instanceof Array ) {
 			// 新增项中的不重复数组
-			const noRepeatItem = newValue.filter( el => !includesValue( oldValue, el, false ) );
+			const noRepeatItem = newValue.filter( el => !includesValue( oldValue, el, v => {
+				return v instanceof Array ? true : v;
+			} ) );
 			return [ ...oldValue, ...noRepeatItem ]
 		}
 		return newValue;

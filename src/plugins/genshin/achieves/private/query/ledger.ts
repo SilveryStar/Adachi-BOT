@@ -1,4 +1,4 @@
-import { InputParameter } from "@/modules/command";
+import { defineDirective } from "@/modules/command";
 import { Private } from "#/genshin/module/private/main";
 import { RenderResult } from "@/modules/renderer";
 import { ledgerPromise } from "#/genshin/utils/promise";
@@ -15,32 +15,17 @@ function monthCheck( m: number ) {
 	return m > 12 || m < 1 || !optional.includes( m );
 }
 
-export async function main(
-	{ sendMessage, messageData, auth, logger }: InputParameter
-): Promise<void> {
+export default defineDirective( "order", async ({ sendMessage, messageData, matchResult, auth, logger }) => {
 	const userID: number = messageData.user_id;
-	const data = <RegExpExecArray>( /(\d+)? *(\d+)?/.exec( messageData.raw_message ) );
 	
-	let month: number = -1;
-	let idMsg: string = "";
-	if ( !data[1] ) {
-		/* 序号 和 月份 均为指定，使用默认序号和月份 */
-		month = new Date().getMonth() + 1;
-	} else {
-		let m: number;
-		if ( !data[2] ) {
-			/* 只有一个参数时，视为月份 */
-			m = parseInt( data[1] );
-		} else {
-			idMsg = data[1];
-			m = parseInt( data[2] );
-		}
-		if ( monthCheck( m ) ) {
-			await sendMessage( `无法查询 ${ m } 月的札记数据` );
-			return;
-		} else {
-			month = m;
-		}
+	const [ idMsg, monthStr  ] = matchResult.match;
+	
+	/* 设置默认月份 */
+	const month = Number.parseInt( monthStr ) || new Date().getMonth() + 1;
+	
+	if ( monthCheck( month ) ) {
+		await sendMessage( `无法查询 ${ month } 月的札记数据` );
+		return;
 	}
 	
 	const info: Private | string = await getPrivateAccount( userID, idMsg, auth );
@@ -66,4 +51,4 @@ export async function main(
 		logger.error( res.error );
 		await sendMessage( "图片渲染异常，请联系持有者进行反馈" );
 	}
-}
+} );

@@ -1,9 +1,9 @@
-import { InputParameter } from "@/modules/command";
+import { defineDirective } from "@/modules/command";
 import idParser from "#/@help/utils/id-parser";
 import { MessageType } from "@/modules/message";
 
-export async function main( { sendMessage, messageData, interval }: InputParameter ): Promise<void> {
-	const [ id, time ] = messageData.raw_message.split( " " );
+export default defineDirective( "order", async ( { sendMessage, matchResult, interval } ) => {
+	const [ id, time ] = matchResult.match;
 	const [ type, targetID ] = idParser( id );
 	
 	if ( type === MessageType.Private ) {
@@ -13,4 +13,4 @@ export async function main( { sendMessage, messageData, interval }: InputParamet
 		await interval.set( targetID, "group", parseInt( time ) );
 		await sendMessage( `群聊 ${ targetID } 的操作触发间隔已改为 ${ time }ms` );
 	}
-}
+} );

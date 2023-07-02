@@ -1,11 +1,10 @@
 import { Forwardable, Sendable } from "icqq";
-import { BasicConfig, InputParameter, Order, OrderMatchResult } from "@/modules/command";
+import { BasicConfig, defineDirective, InputParameter, Order } from "@/modules/command";
 import Command from "@/modules/command/main";
 import FileManagement from "@/modules/file";
 import { filterUserUsableCommand } from "../utils/filter";
 import { RenderResult } from "@/modules/renderer";
 import { renderer } from "../init";
-import bot from "ROOT";
 import { HelpCommand } from "#/@help/type/help";
 import { MessageScope } from "@/modules/message";
 
@@ -118,10 +117,7 @@ async function cardStyle( i: InputParameter, commands: BasicConfig[] ) {
 	if ( res.code === "ok" ) {
 		return res.data;
 	} else {
-		i.logger.error( res.error );
-		const CALL = <Order>bot.command.getSingle( "adachi.call", await i.auth.get( i.messageData.user_id ) );
-		const appendMsg = CALL ? `私聊使用 ${ CALL.getHeaders()[0] } ` : "";
-		return `图片渲染异常，请${ appendMsg }联系持有者进行反馈`;
+		throw new Error( res.error );
 	}
 }
 
@@ -150,8 +146,8 @@ function getCmdPrefix( scope: MessageScope ): string {
 	return prefix;
 }
 
-export async function main( i: InputParameter ): Promise<void> {
-	const showKeys = !!( <OrderMatchResult>i.matchResult ).match[0];
+export default defineDirective( "order", async i => {
+	const showKeys = !!( i.matchResult ).match[0];
 	
 	const version = getVersion( i.file );
 	
@@ -174,4 +170,4 @@ export async function main( i: InputParameter ): Promise<void> {
 		} );
 		await i.sendMessage( await getHelpMessage( title, commands, msgList, i ), false );
 	}
-}
+} );

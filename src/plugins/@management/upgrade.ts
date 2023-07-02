@@ -1,7 +1,7 @@
 import fetch, { Response } from "node-fetch";
 import { exec } from "child_process";
-import { InputParameter } from "@/modules/command";
 import { restart } from "pm2";
+import { defineDirective, InputParameter } from "@/modules/command";
 
 /* 超时检查 */
 function waitWithTimeout( promise: Promise<any>, timeout: number ): Promise<any> {
@@ -33,8 +33,8 @@ async function execHandle( command: string ): Promise<string> {
 }
 
 /* 更新 bot */
-async function updateBot( { messageData, sendMessage, logger }: InputParameter ): Promise<void> {
-	const isForce = messageData.raw_message === "-f";
+async function updateBot( { matchResult, sendMessage, logger }: InputParameter<"order"> ): Promise<void> {
+	const isForce = !!matchResult.match[0];
 	const command = !isForce ? "git checkout HEAD package*.json && git pull --no-rebase" : "git reset --hard && git pull --no-rebase";
 	
 	const execPromise = execHandle( command ).then( ( stdout: string ) => {
@@ -53,7 +53,7 @@ async function updateBot( { messageData, sendMessage, logger }: InputParameter )
 		} else {
 			await sendMessage( `更新失败，可能是网络出现问题${ !isForce ? "或存在代码冲突，若不需要保留改动代码可以追加 -f 使用强制更新" : "" }` );
 		}
-		logger.error( `更新 BOT 失败: ${ typeof error === "string" ? error : (<Error>error).message }` );
+		logger.error( `更新 BOT 失败: ${ typeof error === "string" ? error : ( <Error>error ).message }` );
 		throw error;
 	}
 	
@@ -66,7 +66,7 @@ async function updateBot( { messageData, sendMessage, logger }: InputParameter )
 	} );
 }
 
-export async function main( i: InputParameter ): Promise<void> {
+export default defineDirective( "order", async ( i ) => {
 	const dbKey: string = "adachi.update-time";
 	
 	let commits: any[] = []
@@ -110,4 +110,4 @@ export async function main( i: InputParameter ): Promise<void> {
 		return;
 	}
 	await i.redis.setString( dbKey, newDate );
-}
+} );
