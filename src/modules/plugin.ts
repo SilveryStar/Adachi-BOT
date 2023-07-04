@@ -1,6 +1,6 @@
 import * as cmd from "./command";
 import { BasicConfig, InitType } from "./command";
-import { BOT } from "@/main";
+import { BOT } from "@/modules/bot";
 import { extname } from "path";
 import { Router } from "express";
 import axios, { AxiosError, AxiosResponse } from "axios";

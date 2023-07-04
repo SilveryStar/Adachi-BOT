@@ -1,27 +1,26 @@
 import * as sdk from "icqq";
 import { Logger } from "log4js";
 import moment from "moment";
-import FileManagement from "./modules/file";
-import BotConfigManager, { BotConfig } from "./modules/config";
-import Database from "./modules/database";
-import RenderServer from "./modules/server";
-import PluginManager, { RenderRoutes, ServerRouters } from "./modules/plugin";
-import WebConfiguration from "./modules/logger";
-import AiChat from "./modules/chat";
-import Interval from "./modules/management/interval";
-import RefreshConfig from "./modules/management/refresh";
-import { BasicRenderer } from "./modules/renderer";
-import { Enquire, Order } from "./modules/command";
-import Command, { BasicConfig, MatchResult } from "./modules/command/main";
-import Authorization, { AuthLevel } from "./modules/management/auth";
-import * as msg from "./modules/message";
-import MailManagement from "./modules/mail";
+import FileManagement from "./file";
+import BotConfigManager, { BotConfig } from "./config";
+import Database from "./database";
+import RenderServer from "./server";
+import PluginManager from "./plugin";
+import WebConfiguration from "./logger";
+import AiChat from "./chat";
+import Interval from "./management/interval";
+import RefreshConfig from "./management/refresh";
+import { BasicRenderer } from "./renderer";
+import { Enquire, Order } from "./command";
+import Command, { BasicConfig, MatchResult } from "./command/main";
+import Authorization, { AuthLevel } from "./management/auth";
+import * as msg from "./message";
+import MailManagement from "./mail";
 import { Md5 } from "md5-typescript";
 import { Job, JobCallback, scheduleJob } from "node-schedule";
-import { keys, trim } from "lodash";
+import { trim } from "lodash";
 import { unlinkSync } from "fs";
 import axios, { AxiosError } from "axios";
-import bot from "ROOT";
 
 /**
  * @interface
@@ -337,7 +336,7 @@ export default class Adachi {
 		/* 检查是否存在等待回复的 enquire 指令 */
 		const curEnquireCmdKey: string = await this.bot.redis.getHashField( Enquire.redisKey, Enquire.getTaskKey( userID, groupID ) );
 		if ( curEnquireCmdKey ) {
-			const cmd = <Enquire | undefined>this.bot.command.getSingle( curEnquireCmdKey, await bot.auth.get( userID ) );
+			const cmd = <Enquire | undefined>this.bot.command.getSingle( curEnquireCmdKey, await this.bot.auth.get( userID ) );
 			if ( cmd ) {
 				const header = cmd.getTask( Enquire.getTaskKey( userID, groupID ) ).header;
 				this.setRawMessage( messageData, cmd, content, { header } );

@@ -1,4 +1,4 @@
-import { BOT } from "@/main";
+import { BOT } from "@/modules/bot";
 import PluginManager from "@/modules/plugin";
 
 /* 获取内存格式化 */

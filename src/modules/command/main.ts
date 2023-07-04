@@ -6,7 +6,7 @@ import FileManagement from "@/modules/file";
 import { RefreshCatch } from "@/modules/management/refresh";
 import { Message, MessageScope, SendFunc } from "@/modules/message";
 import { AuthLevel } from "../management/auth";
-import { BOT } from "@/main";
+import { BOT } from "@/modules/bot";
 import { trimStart, without } from "lodash";
 import * as msg from "@/modules/message";
 
