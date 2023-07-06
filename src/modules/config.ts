@@ -1,19 +1,16 @@
 import { AuthLevel } from "./management/auth";
 import FileManagement from "@/modules/file";
-import { LogLevel } from "icqq";
 import bot from "ROOT";
 import RefreshConfig, { RefreshCatch } from "@/modules/management/refresh";
 import { getRandomString } from "@/utils/random";
 import { compareAssembleObject, isEqualObject } from "@/utils/object";
+import { LogLevel } from "@/modules/lib";
 
 // 基本设置
 const initBase = {
 	tip: "前往 https://docs.adachi.top/config 查看配置详情",
-	number: 123456789,
-	password: "",
-	qrcode: false,
 	master: 987654321,
-	platform: 1,
+	wsServer: "127.0.0.1:11451",
 	inviteAuth: 2,
 	logLevel: "info",
 	atUser: false,
@@ -108,6 +105,7 @@ const initBanHeavyAt = {
 const initWebConsole = {
 	tip: "前往 https://docs.adachi.top/config 查看配置详情",
 	enable: true,
+	password: "",
 	tcpLoggerPort: 54921,
 	logHighWaterMark: 64,
 	jwtSecret: getRandomString( 16 )

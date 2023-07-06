@@ -1,4 +1,4 @@
-import * as sdk from "icqq";
+import * as core from "./lib";
 import { Logger } from "log4js";
 import moment from "moment";
 import FileManagement from "./file";
@@ -6,7 +6,6 @@ import BotConfigManager, { BotConfig } from "./config";
 import Database from "./database";
 import RenderServer from "./server";
 import PluginManager from "./plugin";
-import WebConfiguration from "./logger";
 import AiChat from "./chat";
 import Interval from "./management/interval";
 import RefreshConfig from "./management/refresh";
@@ -17,7 +16,7 @@ import Authorization, { AuthLevel } from "./management/auth";
 import * as msg from "./message";
 import MailManagement from "./mail";
 import { Md5 } from "md5-typescript";
-import { Job, JobCallback, scheduleJob } from "node-schedule";
+import { JobCallback, scheduleJob } from "node-schedule";
 import { trim } from "lodash";
 import { unlinkSync } from "fs";
 import axios, { AxiosError } from "axios";
@@ -40,7 +39,7 @@ import axios, { AxiosError } from "axios";
 export interface BOT {
 	readonly redis: Database;
 	readonly config: BotConfig;
-	readonly client: sdk.Client;
+	readonly client: core.Client;
 	readonly logger: Logger;
 	readonly interval: Interval;
 	readonly file: FileManagement;
@@ -54,7 +53,7 @@ export interface BOT {
 
 type ScreenSwipeInfo = Record<string, {
 	timeout: any,
-	massages: string[]
+	massages: number[]
 }>
 
 export default class Adachi {
@@ -82,14 +81,7 @@ export default class Adachi {
 			Adachi.setEnv( file );
 		}
 		
-		new WebConfiguration( config );
-		
-		const client = sdk.createClient( {
-			log_level: config.base.logLevel,
-			platform: config.base.platform,
-			ffmpeg_path: config.ffmpeg.ffmpegPath,
-			ffprobe_path: config.ffmpeg.ffprobePath
-		} );
+		const client = core.createClient( config );
 		const logger = client.logger;
 		
 		process.on( "unhandledRejection", ( reason: any ) => {
@@ -102,7 +94,7 @@ export default class Adachi {
 		const interval = new Interval( config.directive, redis );
 		const auth = new Authorization( config.base, redis );
 		const message = new msg.default( config.base, client );
-		const mail = new MailManagement( config, logger );
+		const mail = new MailManagement( config, client, logger );
 		const renderer = new BasicRenderer();
 		
 		this.bot = {
@@ -117,19 +109,27 @@ export default class Adachi {
 	}
 	
 	public run(): BOT {
-		this.login();
+		/* 删除存储的待问答指令 */
 		this.bot.redis.deleteKey( Enquire.redisKey ).then();
-		PluginManager.getInstance().load().then( ( pluginInfos ) => {
+		
+		const pluginInstance = PluginManager.getInstance();
+		pluginInstance.load().then( ( pluginSettings ) => {
+			/* 成功连接 gocq 后执行各插件装载方法 */
+			this.bot.client.connect().then( async () => {
+				for ( const key of Object.keys( pluginSettings ) ) {
+					await pluginInstance.doMount( key );
+				}
+			} );
 			const server = RenderServer.getInstance();
-			server.reloadPluginRouters( pluginInfos ).then();
+			server.reloadPluginRouters( pluginInstance.pluginList ).then();
 			/* 事件监听 */
 			this.bot.client.on( "message.group", this.parseGroupMsg( this ) );
 			this.bot.client.on( "message.private", this.parsePrivateMsg( this ) );
 			this.bot.client.on( "request.group", this.acceptInvite( this ) );
-			this.bot.client.on( "request.friend", this.acceptFriend( this ) );
+			this.bot.client.on( "request.friend", this.acceptFriend() );
 			this.bot.client.on( "system.online", this.botOnline( this ) );
 			this.bot.client.on( "system.offline", this.botOffline( this ) );
-			this.bot.client.on( "notice.friend.decrease", this.friendDecrease( this ) );
+			// this.bot.client.on( "notice.friend.decrease", this.friendDecrease( this ) );
 			this.bot.client.on( "notice.group.decrease", this.groupDecrease( this ) );
 			this.bot.logger.info( "事件监听启动成功" );
 		} );
@@ -191,7 +191,7 @@ export default class Adachi {
 		 * */
 		return async function () {
 			const master: string = md5( _bot.config.base.master.toString() );
-			const bot: string = md5( _bot.config.base.number.toString() );
+			const bot: string = md5( _bot.client.uin.toString() );
 			const users: string[] = (
 				await _bot.redis.getKeysByPrefix(
 					"adachi.user-used-groups"
@@ -209,103 +209,6 @@ export default class Adachi {
 		}
 	}
 	
-	/* 扫码登陆 */
-	private qrcodeLogin() {
-		this.bot.logger.mark( "请在2分钟内完成扫描码登录(或在完成扫码后按下Enter继续)...\n" );
-		const d = new Date();
-		const job: Job = scheduleJob( d.setMinutes( d.getMinutes() + 2 ), async () => {
-			await this.bot.client.login();
-		} );
-		
-		/* 兼容终端输入 */
-		process.stdin.once( "data", () => {
-			this.bot.client.login();
-			job.cancel();
-		} );
-	}
-	
-	/* 处理登录事件 */
-	private login(): void {
-		/* 账密登录 */
-		/* 处理滑动验证码事件 */
-		this.bot.client.on( "system.login.slider", () => {
-			const number = this.bot.config.base.number;
-			this.bot.logger.mark( `请在5分钟内完成滑动验证,并将获取到的ticket写入到src/data/${ number }/ticket.txt文件中并保存（亦可通过控制台下方输入框键入），或在终端粘贴获取到的ticket，不要重启服务!!!` );
-			const d = new Date();
-			// 创建空的ticket.txt
-			const dirName = `src/data/${ number }`;
-			const ticketPath = `${ dirName }/ticket.txt`;
-			this.bot.file.createFile( ticketPath, "", "root" );
-			
-			// 定时去查看ticket文件是否已写入ticket
-			const job: Job = scheduleJob( "0/5 * * * * *", () => {
-				if ( d.setMinutes( d.getMinutes() + 5 ) > d.getTime() ) {
-					this.bot.logger.warn( "已超过5分钟了，请重新登录" )
-					job.cancel();
-					return;
-				}
-				const file = this.bot.file.loadFile( ticketPath, "root" );
-				if ( file && file.trim() ) {
-					this.bot.client.submitSlider( file.trim() );
-					job.cancel();
-					this.bot.file.writeFile( ticketPath, "", "root" );
-				}
-			} )
-			
-			/* 兼容终端输入 */
-			process.stdin.once( "data", ( input ) => {
-				this.bot.client.submitSlider( input.toString() );
-				job.cancel();
-			} );
-		} );
-		/* 处理设备锁事件 */
-		this.bot.client.on( "system.login.device", ( { phone } ) => {
-			if ( phone ) {
-				const number = this.bot.config.base.number;
-				this.bot.logger.mark( `请在5分钟内将获取到的短信验证码写入到src/data/${ number }/code.txt文件中并保存（亦可通过控制台下方输入框键入），或在终端粘贴获取到的code，不要重启服务!!!` );
-				this.bot.client.sendSmsCode();
-				const d = new Date();
-				// 创建空的code.txt
-				const dirName = `src/data/${ number }`;
-				const codePath = `${ dirName }/code.txt`;
-				this.bot.file.createFile( codePath, "", "root" );
-				
-				// 定时去查看ticket文件是否已写入ticket
-				const job: Job = scheduleJob( "0/5 * * * * *", () => {
-					if ( d.setMinutes( d.getMinutes() + 5 ) > d.getTime() ) {
-						this.bot.logger.warn( "已超过5分钟了，请重新登录" )
-						job.cancel();
-						return;
-					}
-					const file: string = this.bot.file.loadFile( codePath, "root" );
-					if ( file && file.trim() ) {
-						this.bot.client.submitSmsCode( file.trim() );
-						job.cancel();
-						this.bot.file.writeFile( codePath, "", "root" );
-					}
-				} )
-				
-				/* 兼容终端输入 */
-				process.stdin.once( "data", ( input ) => {
-					this.bot.client.submitSmsCode( input.toString() );
-					job.cancel();
-				} );
-			} else {
-				this.qrcodeLogin();
-			}
-		} );
-		if ( this.bot.config.base.qrcode ) {
-			/* 扫码登录 */
-			this.bot.client.on( "system.login.qrcode", () => {
-				this.qrcodeLogin();
-			} );
-			this.bot.client.login();
-		} else {
-			/* 账密登录 */
-			this.bot.client.login( this.bot.config.base.number, this.bot.config.base.password );
-		}
-	}
-	
 	/* 正则检测处理消息 */
 	private async execute(
 		messageData: msg.Message,
@@ -318,7 +221,7 @@ export default class Adachi {
 	): Promise<void> {
 		// 群组内的回复消息会at被回复的用户，需要把这个内容也去掉
 		const replyReg = new RegExp( `\\[CQ:reply,id=[\\w=+/]+]\\s*(\\[CQ:at,type=at,qq=\\d+,text=.*])?` );
-		let content: string = messageData.toCqcode().replace( replyReg, "" ).trim() || '';
+		let content: string = messageData.raw_message.replace( replyReg, "" ).trim() || '';
 		
 		const userID: number = messageData.sender.user_id;
 		const groupID: number = msg.isGroupMessage( messageData ) ? messageData.group_id : -1;
@@ -366,7 +269,7 @@ export default class Adachi {
 		
 		const usable: BasicConfig[] = cmdSet.filter( el => !limits.includes( el.cmdKey ) );
 		const matchList: { matchResult: MatchResult; cmd: BasicConfig }[] = [];
-
+		
 		for ( let cmd of usable ) {
 			const res: MatchResult = cmd.match( content );
 			if ( res.type === "unmatch" ) {
@@ -423,8 +326,11 @@ export default class Adachi {
 		
 		const checkRes: boolean = await this.checkThreshold( userID );
 		if ( !checkRes ) {
-			// 此时该用户已超量
-			await messageData.reply( "指令使用过于频繁，本小时内 BOT 将不再对你的指令作出响应", groupID !== -1 );
+			/**
+			 * 此时该用户已超量
+			 * todo 群聊中同时进行回复指定消息
+			 */
+			await messageData.reply( "指令使用过于频繁，本小时内 BOT 将不再对你的指令作出响应" );
 		}
 		
 		return;
@@ -458,7 +364,7 @@ export default class Adachi {
 	/* 处理私聊事件 */
 	private parsePrivateMsg( that: Adachi ) {
 		const bot = that.bot;
-		return async function ( messageData: sdk.PrivateMessageEvent ) {
+		return async function ( messageData: core.PrivateMessageEvent ) {
 			const userID: number = messageData.sender.user_id;
 			const isMaster = userID === bot.config.base.master;
 			
@@ -485,7 +391,7 @@ export default class Adachi {
 	/* 处理群聊事件 */
 	private parseGroupMsg( that: Adachi ) {
 		const bot = that.bot;
-		return async function ( messageData: sdk.GroupMessageEvent ) {
+		return async function ( messageData: core.GroupMessageEvent ) {
 			const isAt = that.checkAtBOT( messageData );
 			if ( bot.config.base.atBOT && !isAt ) {
 				return;
@@ -517,8 +423,8 @@ export default class Adachi {
 				"adachi.banned-group", groupID
 			);
 			
-			const groupInfo: sdk.GroupInfo = await bot.client.getGroupInfo( groupID );
-			if ( !isBanned && groupInfo.shutup_time_me === 0 ) {
+			const groupInfo = await bot.client.getGroupMemberInfo( groupID, bot.client.uin );
+			if ( !isBanned && groupInfo.shut_up_timestamp === 0 ) {
 				const auth: AuthLevel = await bot.auth.get( userID );
 				const gLim: string[] = await bot.redis.getList( `adachi.group-command-limit-${ groupID }` );
 				const uLim: string[] = await bot.redis.getList( `adachi.user-command-limit-${ userID }` );
@@ -569,7 +475,7 @@ export default class Adachi {
 	}
 	
 	/* 处理刷屏用户 */
-	private banScreenSwipe( userID: number, groupID: number, messageID: string ) {
+	private banScreenSwipe( userID: number, groupID: number, messageID: number ) {
 		const config = this.bot.config.banScreenSwipe;
 		
 		const userMark: string = `${ userID }-${ groupID }`;
@@ -611,13 +517,15 @@ export default class Adachi {
 			const groupID = Number.parseInt( idInfo[1] );
 			
 			const promiseList: Promise<any>[] = [
-				...massages.map( msgID => this.bot.client.deleteMsg( msgID ) ),
+				...massages.map( msgID => this.bot.client.recallMessage( msgID ) ),
 				this.bot.client.setGroupBan( groupID, userID, config.duration )
 			];
 			
 			if ( config.prompt ) {
 				promiseList.push(
-					this.bot.client.sendGroupMsg( groupID, [ sdk.segment.at( userID ), sdk.segment.text( " " + config.promptMsg ) ] )
+					this.bot.client.sendGroupMsg( groupID, [
+						core.segment.at( userID ), " ", config.promptMsg
+					] )
 				)
 			}
 			
@@ -628,29 +536,28 @@ export default class Adachi {
 	}
 	
 	/* 处理过量at用户 */
-	private banHeavyAt( userID: number, groupID: number, messageID: string, message: sdk.MessageElem[] ) {
+	private banHeavyAt( userID: number, groupID: number, messageID: number, message: core.MessageRecepElem[] ) {
 		const config = this.bot.config.banHeavyAt;
 		
 		const atNums = message.filter( msg => msg.type === "at" ).length;
 		if ( atNums > config.limit ) {
 			const promiseList: Promise<any>[] = [
-				this.bot.client.deleteMsg( messageID ),
+				this.bot.client.recallMessage( messageID ),
 				this.bot.client.setGroupBan( groupID, userID, config.duration )
 			];
 			if ( config.prompt ) {
 				promiseList.push(
-					this.bot.client.sendGroupMsg( groupID, [ sdk.segment.at( userID ), " " + config.promptMsg ] )
+					this.bot.client.sendGroupMsg( groupID, [ core.segment.at( userID ), " ", config.promptMsg ] )
 				);
 			}
 			Promise.all( promiseList ).then();
 		}
 	}
 	
-	private checkAtBOT( msg: sdk.GroupMessageEvent ): boolean {
-		const { number } = this.bot.config.base;
-		if ( msg.atme ) {
-			const atBotReg = new RegExp( `\\[CQ:at,type=at,qq=${number}.*?]` );
-			msg.raw_message = msg.toCqcode()
+	private checkAtBOT( msg: core.GroupMessageEvent ): boolean {
+		if ( msg.atMe ) {
+			const atBotReg = new RegExp( `\\[CQ:at,type=at,qq=${ this.bot.client.uin }.*?]` );
+			msg.raw_message = msg.raw_message
 				.replace( atBotReg, "" )
 				.trim();
 			return true;
@@ -661,7 +568,7 @@ export default class Adachi {
 	/* 自动接受入群邀请 */
 	private acceptInvite( that: Adachi ) {
 		const bot = that.bot;
-		return async function ( data: sdk.GroupInviteEvent | sdk.GroupRequestEvent ) {
+		return async function ( data: core.GroupRequestEvent ) {
 			if ( data.sub_type === "add" ) {
 				return;
 			}
@@ -669,22 +576,22 @@ export default class Adachi {
 			if ( await bot.auth.check( inviterID, bot.config.base.inviteAuth ) ) {
 				const delay = Math.random() * ( 5 - 2 ) + 2;
 				setTimeout( async () => {
-					await bot.client.setGroupAddRequest( data.flag );
+					data.approve( true );
 				}, Math.floor( delay * 1000 ) );
 			} else {
 				const groupID: number = data.group_id;
-				await bot.client.pickUser( inviterID ).sendMsg( "你没有邀请 BOT 入群的权限" );
+				await bot.client.sendPrivateMsg( data.user_id, "你没有邀请 BOT 入群的权限" );
 				bot.logger.info( `用户 ${ inviterID } 尝试邀请 BOT 进入群聊 ${ groupID }` );
 			}
 		}
 	}
 	
 	/* 自动接受好友申请 */
-	private acceptFriend( that: Adachi ) {
-		return async function ( friendDate: sdk.FriendRequestEvent ) {
+	private acceptFriend() {
+		return async function ( friendDate: core.FriendRequestEvent ) {
 			const delay = Math.random() * ( 5 - 2 ) + 2;
 			setTimeout( async () => {
-				await that.bot.client.setFriendAddRequest( friendDate.flag );
+				friendDate.approve( true );
 			}, Math.floor( delay * 1000 ) );
 		}
 	}
@@ -745,22 +652,25 @@ export default class Adachi {
 		}
 	}
 	
-	/* 删除好友事件 */
-	private friendDecrease( that: Adachi ) {
-		const bot = that.bot
-		return async function ( friendDate: sdk.FriendDecreaseEvent ) {
-			if ( bot.config.base.addFriend ) {
-				const userId = friendDate.user_id;
-				// 清空订阅
-				PluginManager.getInstance().remSub( "private", userId );
-			}
-		}
-	}
+	/**
+	 * 删除好友事件
+	 * todo gocq 未直接支持删除好友事件，后续补充
+	 */
+	// private friendDecrease( that: Adachi ) {
+	// 	const bot = that.bot
+	// 	return async function ( friendDate: sdk.FriendDecreaseEvent ) {
+	// 		if ( bot.config.base.addFriend ) {
+	// 			const userId = friendDate.user_id;
+	// 			// 清空订阅
+	// 			PluginManager.getInstance().remSub( "private", userId );
+	// 		}
+	// 	}
+	// }
 	
 	/* 退群事件 */
 	private groupDecrease( that: Adachi ) {
 		const bot = that.bot;
-		return async function ( groupDate: sdk.MemberDecreaseEvent ) {
+		return async function ( groupDate: core.GroupDecreaseNoticeEvent ) {
 			if ( bot.config.base.addFriend ) {
 				const groupId = groupDate.group_id;
 				// 清空订阅

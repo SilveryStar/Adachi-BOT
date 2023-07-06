@@ -1,5 +1,5 @@
 import bot from "ROOT";
-import { Sendable } from "icqq";
+import { Sendable } from "@/modules/lib";
 import { Private } from "#/genshin/module/private/main";
 import { NoteService } from "#/genshin/module/private/note";
 import { defineDirective } from "@/modules/command";

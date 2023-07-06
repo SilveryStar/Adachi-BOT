@@ -6,7 +6,7 @@ import { RenderResult } from "@/modules/renderer";
 import { renderer } from "#/genshin/init";
 import { calendarPromise } from "#/genshin/utils/promise";
 import { Order } from "@/modules/command";
-import { Sendable } from "icqq";
+import { Sendable } from "@/modules/lib";
 import { DailyMaterial } from "#/genshin/types/ossMeta";
 import { getDailyMaterial, getInfo } from "#/genshin/utils/meta";
 import { DailyInfo } from "@/web-console/types/daily";
@@ -115,7 +115,7 @@ export class DailyClass {
 			if ( res.code === "ok" ) {
 				const subMessage: Sendable = res.data;
 				for ( let id of groupIDs ) {
-					await bot.client.pickGroup( Number.parseInt( id ) ).sendMsg( subMessage );
+					await bot.client.sendGroupMsg( Number.parseInt( id ), subMessage );
 				}
 			} else {
 				bot.logger.error( res.error );
@@ -141,7 +141,7 @@ export class DailyClass {
 				date.setMinutes( randomMinute );
 				
 				scheduleJob( date, async () => {
-					await bot.client.pickUser( userID ).sendMsg( res.data );
+					await bot.client.sendPrivateMsg( userID, res.data );
 				} );
 			}
 		} );

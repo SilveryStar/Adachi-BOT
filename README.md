@@ -15,10 +15,13 @@
 
 # 更新内容
 
+- 指令 `#refresh` 现允许对所有配置项进行刷新
 - 帮助列表中限制最多展示两个指令头，`#detail` 指令可用于查看全部指令头
 - 新增插件热重载指令 `#reload`
 - #help 现在将展示权限内的全部指令，使用符号来标记指令的使用场景
 - `config.header` 指令头现允许配置多个，且允许配置正则相关符号
+- `command.yml` 中新增优先级配置项 `priority`。对相同触发条件指令根据优先级大小决定应触发的目标。
+- 通讯底层协议由 `icqq` 改为 `go-cqhttp`
 
 # v2 to v3
 
@@ -604,6 +607,101 @@ const information: OrderConfig = {
 
 ## brake change
 
+### bot.client 重写
+
+v3 不再使用 `icqq` 作为底层通讯工具，改为对接外部 `gocq` 进行消息通讯。
+
+我们在尽可能保证原来开发习惯的前提下对 `bot.client` 核心库进行了适配 gocq 化重写，现其核心代码位于 `src/module/lib` 下，其方法调用风格与 `oicq1` 类似。
+
+你需要对核心库的导入方式进行一定程度的修改：
+
+```ts
+// v2
+import * as sdk from "icqq";
+// v3
+import * as sdk from "@/module/lib";
+```
+
+具体方法调用可参考核心工具类 `src/module/lib/client.ts` 与 [go-cqhttp 帮助中心](https://docs.go-cqhttp.org/)。
+
+下面对部分功能实现方式做出说明：
+
+#### 获取当前登陆账号
+
+v3 删除了账号登陆配置，你需要通过 `client.uin` 来获取当前登录的账号。
+
+#### 调用 go-cqhttp api
+
+尽管我们在 `src/module/lib/client.ts` 下尽可能对所有 go-cqhttp 的 api 提供了支持，但难以保证会存在更新不及时的情况。
+你可以通过 `fetchGocq` 方法来自行调用 api。
+
+下面给出调用获取陌生人信息 api 示例，该 api 的官网文档：[获取陌生人信息](https://docs.go-cqhttp.org/api/#%E8%8E%B7%E5%8F%96%E9%99%8C%E7%94%9F%E4%BA%BA%E4%BF%A1%E6%81%AF)
+
+```ts
+client.fetchGoCq( "get_stranger_info", { user_id: 114514191 } ).then( res => {
+    console.log( res ); // 得到结果
+} );
+```
+
+当然这里仅为了展示 `fetchGoCq` 的使用方法，目前官网的所有文档我们都提供了适配，可以直接通过下面的方法来获取陌生人信息：
+
+```ts
+client.getStrangerInfo( 114514191 ).then( res => {
+    console.log( res ); // 得到结果
+} );
+```
+
+#### 监听 go-cqhttp 上报事件
+
+你可以通过 `client.on()` 来监听 go-cqhttp 所发送的特定事件。你可以在 `src/module/lib/types/map/event.ts` 下查看所支持的全部事件类型。
+
+下面是监听 群聊撤回 事件的示例：
+
+```ts
+client.on( "notice.group.recall", data => {
+    console.log( "data" ); // 事件上报数据
+} );
+```
+
+可以使用 `client.once()` 来进行一次性事件触发监听，使用方式与 `client.on()` 完全相同。
+
+你同样可以通过 `client.off()` 来注销事件监听，但需要提供与注册事件完全相同的回调函数。
+
+```ts
+function callback( data: GroupRecallNoticeEvent ) {
+    console.log( data );
+};
+
+client.on( "notice.group.recall", callback );
+client.off( "notice.group.recall", callback );
+```
+
+#### 获取可发送的数据格式
+
+我们提供了 `segment` 工具对象来快速生成可发送的各种数据格式，并支持以数组的方式进行组合发送。详细可以参考 `src/modules/lib/element.ts`;
+
+```ts
+import * as sdk from "@/modules/lib";
+
+client.sendPrivateMsg( 114514191, [
+    sdk.segment.at( 114514190 ),
+    "艾特你一下，wink~",
+    sdk.segment.face( 1 )
+] );
+```
+
+当然你也可以不借助 `segment`，自行组装支持发送的数据格式 `Sendable`。详情可参考 `src/modules/lib/types/element/send.ts`;
+
+```ts
+/** 可用来发送的类型集合 */
+export type Sendable = string | MessageElem | (string | MessageElem)[];
+```
+
+#### 一些其他的核心方法
+
+- sdk.toCqCode(): 将 `MessageElem` 类型数组转变为 cqcode 码的格式，不支持合并转发消息 `ForwardElem`。
+- sdk.toMessageRecepElem(): 将 cqcode 码转换为事件接收到的格式的对象 `MessageRecepElem[]`;
+
 ### 插件入口函数格式变更
 
 新版插件不再以 `init` 函数的方式配置插件配置项，改为默认导出一个变量的方式。
@@ -702,7 +800,7 @@ A: 请发送你的账号 cookie 来绑定私人服务
 Q: ltuid=15......
 A: 绑定成功
 // 或在一定时间未回复时
-Q: 操作超时
+A: 操作超时
 ```
 
 新版 `Enquire` 的定义如下：
@@ -810,11 +908,7 @@ export default defineDirective( "enquire", async i => {
 ```javascript
 config = {
     base: {
-        number: 123456789,
-        password: "",
-        qrcode: false,
         master: 987654321,
-        platform: 1,
         inviteAuth: 2,
         logLevel: "info",
         atUser: false,
@@ -823,7 +917,7 @@ config = {
         renderPort: 80
     },
     directive: {
-        header: "#",
+        header: [ "#" ],
         groupIntervalTime: 1500,
         privateIntervalTime: 2000,
         helpMessageStyle: "message",
@@ -882,6 +976,7 @@ config = {
     },
     webConsole: {
         enable: true,
+        password: "",
         tcpLoggerPort: 54921,
         logHighWaterMark: 64,
         jwtSecret: getRandomString( 16 )
@@ -916,4 +1011,4 @@ config = {
 
 ### 前端页面本地静态资源引入路径变更
 
-由于使用了 `vue-router`，相对路径不再准确，建议使用绝对路径，参考上文 **静态资源服务器**
+由于使用了 `vue-router`，相对路径不再准确，建议使用绝对路径，参考上文 [静态资源服务器](#静态资源服务器)

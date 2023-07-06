@@ -96,7 +96,7 @@ import { onMounted, computed, reactive, watch, ref, nextTick } from "vue";
 import { useRoute } from "vue-router";
 import { ElMessage, ElNotification, ElScrollbar } from "element-plus";
 import { LogMessage } from "@/web-console/types/logger";
-import { LogLevel } from "icqq";
+import { LogLevel } from "@/modules/lib";
 
 interface QueryParams {
 	logLevel: Uppercase<LogLevel> | "";

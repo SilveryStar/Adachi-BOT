@@ -40,7 +40,7 @@ export default express.Router()
 		const delData: IMessage = { user, content, date };
 		await bot.redis.delListElement( dbKey, JSON.stringify( delData ) );
 		
-		await bot.client.pickUser( user ).sendMsg( `BOT持有者回复：${ message }` );
+		await bot.client.sendPrivateMsg( user, `BOT持有者回复：${ message }` );
 		
 		res.status( 200 ).send( { code: 200, data: delData, msg: "Success" } );
 	} )

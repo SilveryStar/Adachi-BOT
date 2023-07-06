@@ -1,4 +1,4 @@
-import { LogLevel } from "icqq";
+import { LogLevel } from "@/modules/lib";
 
 export interface LogMessage {
 	category: string;

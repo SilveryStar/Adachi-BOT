@@ -4,13 +4,6 @@
 		<el-form v-if="setting" :model="setting" class="config-form" @submit.prevent>
 			<div class="config-section">
 				<section-title title="基本设置"/>
-				<form-item label="登录方式">
-					<el-radio-group v-model="setting.base.qrcode" :disabled="pageLoading"
-					                @change="updateConfig('base', 'qrcode')">
-						<el-radio :label="false">密码登录</el-radio>
-						<el-radio :label="true">扫码登陆</el-radio>
-					</el-radio-group>
-				</form-item>
 				<spread-form-item
 					v-model="setting.base.master"
 					:active-spread="activeSpread"
@@ -21,12 +14,6 @@
 					@change="updateConfig('base', 'master')"
 					@open="activeSpreadItem"
 				/>
-				<form-item label="登录平台">
-					<el-radio-group v-model="setting.base.platform" :disabled="pageLoading"
-					                @change="updateConfig('base', 'platform')">
-						<el-radio v-for="(p, pKey) of platformList" :key="pKey" :label="pKey + 1">{{ p }}</el-radio>
-					</el-radio-group>
-				</form-item>
 				<form-item label="邀请入群权限" desc="邀请 BOT 入群时，BOT 自动接受入群邀请的权限等级。">
 					<el-radio-group v-model="setting.base.inviteAuth" :disabled="pageLoading"
 					                @change="updateConfig('base', 'inviteAuth')">

@@ -1,6 +1,6 @@
 import { defineDirective } from "@/modules/command";
 import { getRealName, NameResult } from "#/genshin/utils/name";
-import { segment, Sendable } from "icqq";
+import { segment, Sendable } from "@/modules/lib";
 import { getCharacterGuide } from "#/genshin/utils/meta";
 
 export default defineDirective( "order", async ( { sendMessage, messageData } ) => {

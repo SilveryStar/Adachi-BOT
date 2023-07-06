@@ -102,7 +102,7 @@ export default express.Router()
 			return;
 		}
 		
-		const codePath = `src/data/${ bot.config.base.number }/code.txt`;
+		const codePath = `src/data/${ bot.client.uin }/code.txt`;
 		bot.file.writeFile( codePath, data, "root" );
 		res.status( 200 ).send( { code: 200, data: {}, msg: "Success" } );
 	} )
@@ -113,7 +113,7 @@ export default express.Router()
 			return;
 		}
 		
-		const ticketPath = `src/data/${ bot.config.base.number }/ticket.txt`;
+		const ticketPath = `src/data/${ bot.client.uin }/ticket.txt`;
 		bot.file.writeFile( ticketPath, data, "root" );
 		res.status( 200 ).send( { code: 200, data: {}, msg: "Success" } );
 	} )

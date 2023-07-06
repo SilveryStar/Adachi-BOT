@@ -1,6 +1,6 @@
 import bot from "ROOT";
 import express from "express";
-import { GroupInfo, GroupRole, MemberInfo } from "icqq";
+import { GroupInfo } from "@/modules/lib";
 import { GroupData } from "@/web-console/types/group";
 import { sleep } from "@/utils/async";
 import { getRandomNumber } from "@/utils/random";
@@ -37,11 +37,6 @@ export default express.Router()
 			} else if ( sub === 2 ) {
 				groupData = groupData.filter( ( [ key ] ) => !Object.keys( userSubData ).includes( key.toString() ) );
 			}
-			
-			// 按入群时间排序
-			groupData.sort( ( [ _, { last_join_time: prevTime } ], [ __, { last_join_time: nextTime } ] ) => {
-				return nextTime - prevTime;
-			} );
 			
 			const pageGroupData = groupData.slice( ( page - 1 ) * length, page * length );
 			
@@ -164,7 +159,7 @@ export default express.Router()
 		}
 		
 		try {
-			await bot.client.pickGroup( groupId ).quit();
+			await bot.client.setGroupLeave( groupId, true );
 			await bot.client.reloadGroupList();
 			res.status( 200 ).send( { code: 200, data: {}, msg: "Success" } );
 		} catch ( error: any ) {
@@ -184,7 +179,7 @@ export default express.Router()
 				if ( !first ) {
 					await sleep( getRandomNumber( 100, 1000 ) );
 				}
-				await bot.client.pickGroup( id ).quit();
+				await bot.client.setGroupLeave( id, true );
 				first = false;
 			}
 			await bot.client.reloadGroupList();
@@ -199,13 +194,13 @@ async function getGroupInfo( info: GroupInfo ): Promise<GroupData | undefined> {
 	const groupName: string = info.group_name;
 	const groupAvatar: string = `http://p.qlogo.cn/gh/${ groupId }/${ groupId }/100/`;
 	
-	const botGroupInfo: MemberInfo | undefined = ( await bot.client.pickMember( groupId, bot.config.base.number ) ).info;
+	const botGroupInfo = await bot.client.getGroupMemberInfo( groupId, bot.client.uin );
 	
 	if ( !botGroupInfo ) {
 		return undefined;
 	}
 	
-	const groupRole: GroupRole = botGroupInfo.role;
+	const groupRole = botGroupInfo.role;
 	
 	const isBanned: boolean = await bot.redis.existListElement(
 		"adachi.banned-group", groupId
@@ -225,7 +220,7 @@ function sendToGroupMsg( groupId: number, content: string, delay: number, count:
 	const minSec = count % splitRandom === 0 ? 6 : 1;
 	const randomSeconds: number = Math.floor( ( Math.random() * ( maxSec - minSec ) + minSec ) * 1000 ) + delay;
 	setTimeout( async () => {
-		await bot.client.pickGroup( groupId ).sendMsg( content );
+		await bot.client.sendGroupMsg( groupId, content );
 	}, randomSeconds );
 	
 	return randomSeconds;

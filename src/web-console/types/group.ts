@@ -1,5 +1,5 @@
 import { AuthLevel } from "@/modules/management/auth";
-import { GroupRole } from "icqq";
+import { GroupRole } from "@/modules/lib";
 
 export interface GroupData {
 	groupId: number;

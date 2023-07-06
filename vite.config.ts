@@ -5,12 +5,15 @@ import path from "path";
 // https://vitejs.dev/config/
 export default ( env: any ) => {
 	console.log( env );
-	
+	const isDev = env.mode === "development";
 	return defineConfig( {
 		root: __dirname,
 		base: "/",
 		publicDir: "./public",
 		plugins: [ vue() ],
+		server: {
+			hmr: isDev
+		},
 		resolve: {
 			alias: {
 				"ROOT": path.resolve( __dirname, "./app.ts" ),
@@ -19,6 +22,8 @@ export default ( env: any ) => {
 				"&": path.resolve( __dirname, "./src/web-console/frontend" )
 			}
 		},
+		logLevel: isDev ? "info" : "silent",
+		clearScreen: isDev,
 		build: {
 			rollupOptions: {
 				input: {

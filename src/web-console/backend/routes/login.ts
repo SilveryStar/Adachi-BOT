@@ -6,13 +6,12 @@ import { getToken } from "../utils/jwt";
 export default express.Router().post( "/", ( req, res ) => {
 	const num: number = parseInt( <string>req.body.num );
 	const pwd: string = req.body.pwd;
-	
-	if ( bot.config.base.number === num &&
-	   ( pwd === bot.config.base.password || pwd === Md5.init( bot.config.base.password ) )
+	if ( bot.client.uin === num &&
+	   ( pwd === bot.config.webConsole.password || pwd === Md5.init( bot.config.webConsole.password ) )
 	) {
 		res.status( 200 ).send( {
 			code: 200,
-			data: getToken( bot.config.webConsole.jwtSecret, bot.config.base.number ) }
+			data: getToken( bot.config.webConsole.jwtSecret, bot.client.uin ) }
 		);
 	} else {
 		res.status( 401 ).send( { code: 401, data: {}, msg: "Number or password is incorrect" } );

@@ -1,4 +1,4 @@
-import { resolve, isAbsolute, dirname } from "path"
+import { resolve, dirname } from "path"
 import { parse, stringify } from "yaml";
 import * as fs from "fs";
 import axios from "axios";

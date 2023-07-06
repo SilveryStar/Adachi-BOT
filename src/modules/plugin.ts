@@ -47,7 +47,6 @@ export interface PluginInfo {
 	servers: ServerRouters[];
 	renders: RenderRoutes[];
 	subscribe: PluginSetting["subscribe"];
-	unmounted?: PluginHook;
 }
 
 interface IOssListObject {
@@ -105,6 +104,8 @@ export default class Plugin {
 	private static _instance: Plugin | null = null;
 	public pluginList: Record<string, PluginInfo> = {};
 	
+	private pluginSettings: Record<string, PluginSetting> = {};
+	
 	constructor( private readonly bot: BOT ) {
 	}
 	
@@ -118,18 +119,22 @@ export default class Plugin {
 		return Plugin._instance;
 	}
 	
-	public async load(): Promise<Record<string, PluginInfo>> {
+	public async load( reload: boolean = false ): Promise<Record<string, PluginSetting>> {
 		const plugins: string[] = this.bot.file.getDirFiles( "", "plugin" );
 		
 		/* 从 plugins 文件夹从导入 init.ts 进行插件初始化 */
 		for ( let pluginKey of plugins ) {
-			await this.loadSingle( pluginKey, false );
+			await this.loadSingle( pluginKey, reload );
 		}
 		await this.bot.command.reload();
-		return this.pluginList;
+		return this.pluginSettings;
 	}
 	
-	/* 加载插件 */
+	/**
+	 * 加载单个插件
+	 * @param pluginKey 插件目录名
+	 * @param reload 是否为插件重载
+	 */
 	public async loadSingle( pluginKey: string, reload: boolean = true ) {
 		try {
 			// 清楚指定插件的文件缓存
@@ -145,8 +150,7 @@ export default class Plugin {
 				aliases,
 				assets,
 				subscribe,
-				mounted,
-				unmounted
+				mounted
 			}: PluginSetting = init.default;
 			
 			// 检查更新插件静态资源
@@ -160,8 +164,7 @@ export default class Plugin {
 				cmdConfigs: cfgList,
 				servers: [],
 				renders: [],
-				subscribe,
-				unmounted
+				subscribe
 			}
 			
 			// 加载前端渲染页面路由
@@ -194,18 +197,20 @@ export default class Plugin {
 				plugin.upgrade = "https://api.github.com/repos/" + serverUrl;
 			}
 			
-			// 生命周期：插件加载完成
-			if ( mounted ) {
-				await mounted( this.getPluginParameter( pluginKey ) );
-			}
-			
-			this.pluginList[pluginKey] = plugin;
-			
+			/* 仅重载时直接执行生命周期钩子 */
 			if ( reload ) {
+				// 生命周期：插件加载完成
+				const mountState = await this.doMount( pluginKey );
+				if ( !mountState ) {
+					throw new Error( `插件 ${ pluginKey } mounted 钩子执行异常` );
+				}
 				await this.bot.command.reload();
 			}
 			
 			this.bot.logger.info( `插件 ${ pluginName } 加载完成` );
+			
+			this.pluginList[pluginKey] = plugin;
+			this.pluginSettings[pluginKey] = init.default;
 		} catch ( error ) {
 			this.bot.logger.error( `插件 ${ pluginKey } 加载异常: ${ <string>error }` );
 		}
@@ -213,15 +218,16 @@ export default class Plugin {
 	
 	public async reloadSingle( pluginKey: string, reload: boolean = true ) {
 		try {
-			const oldInfo = this.pluginList[pluginKey];
-			if ( oldInfo.unmounted ) {
-				oldInfo.unmounted( this.getPluginParameter( pluginKey ) );
+			const oldSetting = this.pluginSettings[pluginKey];
+			if ( oldSetting.unmounted ) {
+				oldSetting.unmounted( this.getPluginParameter( pluginKey ) );
 			}
 			Reflect.deleteProperty( this.pluginList, pluginKey );
+			Reflect.deleteProperty( this.pluginSettings, pluginKey );
 			await this.loadSingle( pluginKey, reload );
 			return {
-				oldInfo,
-				newInfo: this.pluginList[pluginKey]
+				oldSetting,
+				newSetting: this.pluginSettings[pluginKey]
 			}
 		} catch ( error ) {
 			this.bot.logger.error( `插件 ${ pluginKey } 重载异常: ${ <string>error }` );
@@ -229,37 +235,67 @@ export default class Plugin {
 	}
 	
 	public async reload() {
-		for ( const pluginKey in this.pluginList ) {
-			const pluginInfo = this.pluginList[pluginKey];
-			if ( pluginInfo.unmounted ) {
-				try {
-					await pluginInfo.unmounted( this.getPluginParameter( pluginKey ) );
-				} catch ( error ) {
-					this.bot.logger.error( `插件 ${ pluginKey } unmounted 钩子执行异常: ${ <string>error }` );
-				}
-			}
+		for ( const pluginKey in this.pluginSettings ) {
+			await this.doUnMount( pluginKey );
 		}
-		const oldList = this.pluginList;
+		const oldSettings = this.pluginSettings;
+		this.pluginSettings = {};
 		this.pluginList = {};
-		await this.load();
+		await this.load( true );
 		return {
-			oldList,
-			newList: this.pluginList
+			oldSettings,
+			newSettings: this.pluginSettings
 		}
 	}
 	
 	/* 卸载插件 */
 	public async unLoadSingle( pluginKey: string ) {
 		try {
-			const pluginInfo = this.pluginList[pluginKey];
-			if ( pluginInfo.unmounted ) {
-				pluginInfo.unmounted( this.getPluginParameter( pluginKey ) );
-			}
+			await this.doUnMount( pluginKey );
+			const setting = this.pluginSettings[pluginKey];
+			
 			Reflect.deleteProperty( this.pluginList, pluginKey );
+			Reflect.deleteProperty( this.pluginSettings, pluginKey );
 			await this.bot.command.reload();
-			return pluginInfo;
+			return setting;
 		} catch ( error ) {
 			this.bot.logger.error( `插件 ${ pluginKey } 卸载异常: ${ <string>error }` );
+		}
+	}
+	
+	/**
+	 * 执行插件 mounted 钩子
+	 * @param pluginKey 插件目录名
+	 */
+	public async doMount( pluginKey: string ) {
+		const setting = this.pluginSettings[ pluginKey ];
+		try {
+			if ( setting.mounted ) {
+				await setting.mounted( this.getPluginParameter( pluginKey ) );
+			}
+			return true;
+		} catch ( error ) {
+			Reflect.deleteProperty( this.pluginList, pluginKey );
+			Reflect.deleteProperty( this.pluginSettings, pluginKey );
+			this.bot.logger.error( `插件 ${ pluginKey } mounted 钩子执行异常: ${ <string>error }` );
+			return false;
+		}
+	}
+	
+	/**
+	 * 执行插件 unmounted 钩子
+	 * @param pluginKey 插件路目录名
+	 */
+	public async doUnMount( pluginKey: string ) {
+		const setting = this.pluginSettings[pluginKey];
+		try {
+			if ( setting.unmounted ) {
+				await setting.unmounted( this.getPluginParameter( pluginKey ) );
+			}
+			return true;
+		} catch ( error ) {
+			this.bot.logger.error( `插件 ${ pluginKey } unmounted 钩子执行异常: ${ <string>error }` );
+			return false;
 		}
 	}
 	
@@ -292,7 +328,7 @@ export default class Plugin {
 	
 	public async parse( pluginKey: string, configData: Record<string, any> ): Promise<Record<string, any>> {
 		const configList: Record<string, any> = {};
-		const pluginInfo = this.pluginList[ pluginKey ];
+		const pluginInfo = this.pluginList[pluginKey];
 		pluginInfo.commands = [];
 		
 		let cmdEntry: any = {};
@@ -344,6 +380,11 @@ export default class Plugin {
 		return configList;
 	}
 	
+	/**
+	 * 获取插件钩子函数参数
+	 * @param key 插件目录名
+	 * @private
+	 */
 	private getPluginParameter( key: string ): PluginParameter {
 		const bot = this.bot;
 		return {

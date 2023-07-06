@@ -1,6 +1,5 @@
 import { createClient, RedisClientType } from "redis";
 import { Logger } from "log4js";
-import FileManagement from "./file";
 import { BotConfig } from "@/modules/config";
 
 type Argument = Buffer | string;

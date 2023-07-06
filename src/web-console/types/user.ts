@@ -1,5 +1,5 @@
 import { AuthLevel } from "@/modules/management/auth";
-import { MemberInfo } from "icqq";
+import { GroupMemberInfo } from "@/modules/lib";
 
 export interface UserInfo {
 	userID: number;
@@ -9,6 +9,6 @@ export interface UserInfo {
 	botAuth: AuthLevel;
 	interval: number;
 	limits: string[];
-	groupInfoList: ( string | MemberInfo )[];
+	groupInfoList: ( string | GroupMemberInfo )[];
 	subInfo?: string[]
 }

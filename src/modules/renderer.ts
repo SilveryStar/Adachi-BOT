@@ -1,5 +1,5 @@
 import { URL, URLSearchParams } from "url";
-import { ImageElem, segment, Sendable } from "icqq";
+import { ImageElem, segment, Sendable } from "@/modules/lib";
 import { RefreshCatch } from "./management/refresh";
 import * as puppeteer from "puppeteer";
 import bot from "ROOT";

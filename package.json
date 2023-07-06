@@ -1,16 +1,15 @@
 {
   "name": "adachi-bot",
   "private": true,
-  "version": "3.2.9",
+  "version": "3.3.0",
   "scripts": {
     "dev": "ts-node-dev -r tsconfig-paths/register --files app.ts",
-    "win-start": "ts-node app.ts",
-    "stage": "cross-env NODE_ENV=production ts-node app.ts",
-    "start": "pm2 start adachi-bot.config.js",
+    "start": "cross-env NODE_ENV=production ts-node app.ts",
+    "build:start": "vite build & cross-env NODE_ENV=build ts-node app.ts",
+    "server": "pm2 start adachi-bot.config.js",
     "docker-start": "pm2-runtime start adachi-bot.config.js",
-    "restart": "npm i --registry https://registry.npmmirror.com && pm2 restart adachi-bot.config.js",
-    "stop": "pm2 delete adachi-bot.config.js",
-    "build:client": "vite build"
+    "restart": "pnpm install --registry https://registry.npmmirror.com && pm2 restart adachi-bot.config.js",
+    "stop": "pm2 delete adachi-bot.config.js"
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.1.0",
@@ -22,7 +21,6 @@
     "express": "^4.18.2",
     "express-jwt": "^8.4.1",
     "express-ws": "^5.0.2",
-    "icqq": "^0.3.14",
     "jsonwebtoken": "^9.0.0",
     "lodash": "^4.17.21",
     "log4js": "^6.9.1",

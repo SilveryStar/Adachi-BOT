@@ -1,4 +1,4 @@
-import { Forwardable, Sendable } from "icqq";
+import { ForwardElem, Sendable } from "@/modules/lib";
 import { BasicConfig, defineDirective, InputParameter, Order } from "@/modules/command";
 import Command from "@/modules/command/main";
 import FileManagement from "@/modules/file";
@@ -27,9 +27,12 @@ function messageStyle( title: string, list: string[], command: Command ): Sendab
 
 async function forwardStyle(
 	title: string, list: string[],
-	{ config, client, command }: InputParameter
+	{ client, command }: InputParameter
 ): Promise<Sendable> {
-	const content: Forwardable[] = [];
+	const content: ForwardElem = {
+		type: "forward",
+		messages: []
+	};
 	
 	const DETAIL = <Order>command.getSingle( "adachi.detail" );
 	if ( DETAIL ) {
@@ -37,19 +40,21 @@ async function forwardStyle(
 	}
 	list.push( "- 表示仅允许群聊, * 表示仅允许私聊" );
 	list.push( "[] 表示必填, () 表示选填, | 表示选择" );
-	list.forEach( ( el: string ) => content.push( {
-		user_id: config.base.number,
-		nickname: "BOT",
-		message: el
+	list.forEach( ( el: string ) => content.messages.push( {
+		uin: client.uin,
+		name: "BOT",
+		content: el
 	} ) );
 	
-	const reply = await client.makeForwardMsg( content );
-	
-	const replyContent: string = reply.data;
-	reply.data = replyContent.replace( "[聊天记录]", "[Adachi-BOT 帮助信息]" )
-		.replace( "转发的聊天记录", title )
-		.replace( /查看\d+条转发消息/, "点击查看更多指令" );
-	return reply.data;
+	/**
+	 * todo 自定义转发封面
+	 */
+	// const replyContent: string = reply.data;
+	// reply.data = replyContent.replace( "[聊天记录]", "[Adachi-BOT 帮助信息]" )
+	// 	.replace( "转发的聊天记录", title )
+	// 	.replace( /查看\d+条转发消息/, "点击查看更多指令" );
+	// return reply.data;
+	return content;
 }
 
 function xmlStyle( title: string, list: string[], command: Command ): Sendable {

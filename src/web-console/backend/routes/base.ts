@@ -1,5 +1,4 @@
 import express from "express";
-// import { totalmem, freemem, cpus } from "os";
 import { cpus } from "os";
 import bot from "ROOT";
 import { parseZone } from "moment";
@@ -35,11 +34,9 @@ export default express.Router()
 			const userCount = userData.length;
 			
 			/* 群组数量 */
-			const groupCount = bot.client.gl.size;
+			const groupCount = ( await bot.client.getGroupList() ).length;
 			
 			/* 内存占用 */
-			// const totalMem = formatMemories( totalmem(), "G" );
-			// const usedMem = formatMemories( totalmem() - freemem(), "G" );
 			const mem = await si.mem();
 			const usedMem = formatMemories( mem.active, "G" );
 			const totalMem = formatMemories( mem.total, "G" );
@@ -68,7 +65,7 @@ export default express.Router()
 			res.status( 500 ).send( { code: 500, data: {}, msg: error.message || "Server Error" } );
 		}
 	} )
-	// .post( "/restart", async ( req, res ) => {
-	// 	restartPm2();
-	// 	res.status( 200 ).send( { code: 200, data: {} } );
-	// } );
+// .post( "/restart", async ( req, res ) => {
+// 	restartPm2();
+// 	res.status( 200 ).send( { code: 200, data: {} } );
+// } );

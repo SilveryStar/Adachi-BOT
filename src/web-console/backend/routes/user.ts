@@ -1,7 +1,7 @@
 import bot from "ROOT";
 import express from "express";
 import { AuthLevel } from "@/modules/management/auth";
-import { MemberInfo } from "icqq";
+import { GroupMemberInfo } from "@/modules/lib";
 import PluginManager from "@/modules/plugin";
 import { UserInfo } from "@/web-console/types/user";
 import { sleep } from "@/utils/async";
@@ -54,7 +54,7 @@ export default express.Router()
 			userInfos = userInfos.sort( ( prev, next ) => next.botAuth - prev.botAuth );
 			
 			res.status( 200 ).send( { code: 200, data: { userInfos, cmdKeys }, total: userData.length } );
-		} catch ( error:any ) {
+		} catch ( error: any ) {
 			res.status( 500 ).send( { code: 500, data: {}, msg: error.message || "Server Error" } );
 		}
 		
@@ -91,7 +91,7 @@ export default express.Router()
 		res.status( 200 ).send( "success" );
 	} )
 	.post( "/sub/remove", async ( req, res ) => {
-		const userId = req.body.userId ;
+		const userId = req.body.userId;
 		if ( !userId ) {
 			res.status( 400 ).send( { code: 400, data: [], msg: "Error Params" } );
 			return;
@@ -119,7 +119,7 @@ export default express.Router()
 					await sleep( getRandomNumber( 100, 1000 ) );
 				}
 				// 删除好友
-				await bot.client.pickFriend( id ).delete();
+				await bot.client.deleteFriend( id );
 				// 清除数据库
 				await bot.redis.deleteKey( `adachi.user-used-groups-${ id }` );
 				first = false;
@@ -139,7 +139,7 @@ async function getUserInfo( userID: number ): Promise<UserInfo> {
 	const interval: number = bot.interval.get( userID, "private" );
 	const limits: string[] = await bot.redis.getList( `adachi.user-command-limit-${ userID }` );
 	
-	const groupInfoList: Array<MemberInfo | string> = [];
+	const groupInfoList: Array<GroupMemberInfo | string> = [];
 	
 	const usedGroups: string[] = await bot.redis.getSet( `adachi.user-used-groups-${ userID }` );
 	const nickname: string = publicInfo.nickname;
@@ -150,7 +150,7 @@ async function getUserInfo( userID: number ): Promise<UserInfo> {
 			groupInfoList.push( "私聊方式使用" );
 			continue;
 		}
-		const data: MemberInfo | undefined = ( await bot.client.pickMember( groupID, userID ) ).info;
+		const data = await bot.client.getGroupMemberInfo( groupID, userID );
 		if ( data ) {
 			groupInfoList.push( data );
 		}

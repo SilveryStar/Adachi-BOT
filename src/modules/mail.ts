@@ -2,6 +2,7 @@ import mail from "nodemailer";
 import { BotConfig } from "@/modules/config";
 import { Logger } from "log4js";
 import { sleep } from "@/utils/async";
+import { Client } from "@/modules/lib";
 
 enum InfoMessage {
 	SUCCESS_SEND = "邮件发送成功。",
@@ -18,23 +19,24 @@ interface MailManagementMethod {
 
 export default class MailManagement implements MailManagementMethod {
 	private sender: mail.Transporter;
-	private readonly senderInfo: mail.SendMailOptions["from"];
+	private readonly name = "Adachi-BOT";
 	
 	constructor(
 		private config: BotConfig,
+		private client: Client,
 		private logger: Logger
 	) {
-		this.senderInfo = {
-			name: "Adachi-BOT",
-			address: `${ config.base.number }@qq.com`
-		}
 		this.sender = this.getSender();
-		config.base.on( "refresh", newCfg => {
-			this.senderInfo.address = `${ newCfg.number }@qq.com`;
-		} );
 		config.mail.on( "refresh", newCfg => {
 			this.sender = this.getSender();
 		} )
+	}
+	
+	get senderInfo(): mail.SendMailOptions["from"] {
+		return {
+			name: this.name,
+			address: `${ this.client.uin }@qq.com`
+		}
 	}
 	
 	private getSender() {

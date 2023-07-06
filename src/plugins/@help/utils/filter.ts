@@ -1,4 +1,3 @@
-import { GroupMessageEvent } from "icqq";
 import { AuthLevel } from "@/modules/management/auth";
 import { BasicConfig, InputParameter } from "@/modules/command/main";
 import Database from "@/modules/database";

@@ -1,7 +1,7 @@
 import { defineDirective, InputParameter } from "@/modules/command";
 import { Private } from "#/genshin/module/private/main";
 import { Abyss } from "#/genshin/types";
-import { Forwardable, segment } from "icqq";
+import { segment, ForwardElem } from "@/modules/lib";
 import { RenderResult } from "@/modules/renderer";
 import { getPrivateAccount } from "#/genshin/utils/private";
 import { getRegion } from "#/genshin/utils/region";
@@ -13,8 +13,6 @@ async function forwardAchieves( abyss: Abyss, uid: string, userID: number, {
 	client,
 	redis,
 	logger,
-	config,
-	messageData,
 	sendMessage
 }: InputParameter<"switch"> ) {
 	const userInfo: string = `UID-${ uid }`;
@@ -46,7 +44,10 @@ async function forwardAchieves( abyss: Abyss, uid: string, userID: number, {
 		} );
 	}
 	
-	const content: Forwardable[] = [];
+	const content: ForwardElem = {
+		type: "forward",
+		messages: []
+	};
 	for ( let floor of floorList ) {
 		const res: RenderResult = await renderer.asBase64(
 			"/abyss", { qq: userID, floor }
@@ -55,18 +56,13 @@ async function forwardAchieves( abyss: Abyss, uid: string, userID: number, {
 			logger.error( res.error );
 			continue;
 		}
-		const msgNode: Forwardable = {
-			user_id: config.base.number,
-			message: segment.image( <string>res.data )
-		};
-		content.push( msgNode );
+		content.messages.push( {
+			uin: client.uin,
+			content: segment.image( <string>res.data )
+		} );
 	}
 	
-	/* 是否为私聊消息 */
-	const isPrivate = messageData.message_type === "private";
-	
-	const replyMessage = await client.makeForwardMsg( content, isPrivate );
-	await sendMessage( replyMessage, false );
+	await sendMessage( content, false );
 }
 
 /* 回复深渊单图消息 */

@@ -1,7 +1,6 @@
 import apis from "./api";
 import { FetchServer, register } from "@/utils/request";
 import { tokenSession } from "&/utils/session";
-// import { router } from "&/client";
 import { ElNotification } from "element-plus";
 
 export type FetchResponse<D = any> = {

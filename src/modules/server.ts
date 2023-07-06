@@ -128,11 +128,11 @@ export default class RenderServer {
 	
 	/* 创建服务 */
 	public async createServer() {
-		const isProd = process.env.NODE_ENV === "production";
+		const isBuild = process.env.NODE_ENV === "build";
 		const packageData = this.file.loadFile( "package.json", "root" );
 		const ADACHI_VERSION = isJsonString( packageData ) ? JSON.parse( packageData ).version || "" : "";
 		
-		if ( isProd ) {
+		if ( isBuild ) {
 			// 为打包目录挂载静态资源服务
 			this.app.use( express.static( resolve( __dirname, "../../dist" ) ) );
 		} else {
@@ -143,6 +143,7 @@ export default class RenderServer {
 				this.vite = await createViteServer( {
 					base: "/",
 					root: process.cwd(),
+					mode: process.env.NODE_ENV || "development",
 					server: { middlewareMode: true },
 					appType: "custom"
 				} );
