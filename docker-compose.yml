@@ -21,6 +21,24 @@ services:
       docker: "yes"
     depends_on:
       - redis
+      - qsign
     volumes:
       - ./:/bot
       - /bot/node_modules/
+  qsign:
+    image: bennettwu/qsign-server:1.1.4
+    container_name: qsign
+    # 如果需要把这个服务让其他 BOT 调用可以把端口映射到宿主机
+    #    ports:
+    #      - "8080:80"
+    deploy:
+      resources:
+        limits:
+          memory: 300M
+          cpus: '0.7'
+      # 不挂载资源默认用8.9.63，key是114514，最终地址为http://qsign/sign?key=114514
+      # 如果要修改则需要挂载资源
+      #    volumes:
+      # 可以放txlib目录中的.so文件
+    #      - ./qsign/txlib/:/app/txlib
+    restart: always
