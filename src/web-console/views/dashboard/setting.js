@@ -56,6 +56,16 @@ const template = `<div class="table-container config">
 			<form-item label="阈值使用限制" desc="开启后当用户使用超过阈值时，本小时内 BOT 将不再响应其指令。">
 				<el-switch v-model="setting.ThresholdInterval" :disabled="pageLoading" @change="updateConfig('ThresholdInterval')" />
 			</form-item>
+			<spread-form-item
+				v-model="setting.signApiAddr"
+				:active-spread="activeSpread"
+				:disabled="pageLoading"
+				label="登录签名API地址"
+				desc="参考 unidbg-fetch-qsign 项目，Docker用户会直接启动一个Qsign，即提示的地址，这个项目只能用协议1和2。"
+				placeholder="http://qsign/sign?key=114514"
+				@change="updateConfig('signApiAddr')"
+				@open="activeSpreadItem"
+			/>
 		</div>
 		<div class="config-section">
 			<section-title title="指令设置" />
