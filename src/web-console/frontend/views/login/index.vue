@@ -11,18 +11,12 @@
 					</a>
 					<h2 class="login-title">
 						<span>BOT 网页控制台</span>
+						<span v-if="isCreateRoot" class="desc">（初次进入，请先创建 root 账号）</span>
 					</h2>
 				</div>
 				<div class="login-main-form">
-					<el-input v-model.number="state.number" placeholder="BOT 账号" maxlength="13" clearable
-					          @input="accountInput" @keyup.enter="loginByPassword"/>
-					<el-input v-model.trim="state.password" placeholder="BOT 密码" maxlength="20" clearable
-					          show-password @keyup.enter="loginByPassword"/>
-					<p class="remember-account">
-						<el-checkbox v-model="state.rememberAccount">记住账号</el-checkbox>
-					</p>
-					<el-button type="primary" :loading="state.loading" @click="loginByPassword" round>账号登入
-					</el-button>
+					<register v-show="isCreateRoot" @completed="initUserName"/>
+					<login v-show="!isCreateRoot" ref="loginRef" />
 				</div>
 			</div>
 		</main>
@@ -34,59 +28,34 @@
 </template>
 
 <script lang="ts" setup>
-import { ElNotification } from "element-plus";
-import { useRoute, useRouter } from "vue-router";
-import { reactive, computed, onMounted } from "vue";
-import { loginInfoSession } from "&/utils/session";
-import { useAppStore, useUserStore } from "&/store";
-
-const state = reactive( {
-	number: "",
-	password: "",
-	loading: false,
-	rememberAccount: true
-} );
+import { computed, ref } from "vue";
+import { useAppStore } from "&/store";
+import { useRoute } from "vue-router";
+import Login from "./login.vue";
+import Register from "./register.vue";
 
 const currentYear: number = new Date().getFullYear();
 
-onMounted( () => {
-	const loginInfo = loginInfoSession.get();
-	state.number = loginInfo?.number;
-	state.rememberAccount = loginInfo?.rememberAccount;
-} )
-
-const route = useRoute();
-const router = useRouter();
-const user = useUserStore();
 const app = useAppStore();
 const isMobile = computed( () => app.device === "mobile" );
 
-function loginByPassword() {
-	state.loading = true
-	user.USER_LOGIN( state.number, state.password ).then( () => {
-		if ( state.rememberAccount ) {
-			loginInfoSession.set( {
-				number: state.number,
-				rememberAccount: state.rememberAccount
-			} )
-		} else {
-			loginInfoSession.remove()
-		}
-		state.loading = false
-		router.push( { path: <string>( route.query?.redirect ) || "/system/home" } );
-	} ).catch( err => {
-		ElNotification( {
-			title: "提示信息",
-			message: err.message,
-			type: "error",
-			duration: 2500
-		} );
-		state.loading = false
-	} )
-}
+const route = useRoute();
+const createComplete = ref( false );
+const isCreateRoot = computed( () => {
+	return !createComplete.value && route.query.createRoot === "true";
+} );
 
-function accountInput(val: string) {
-	state.number = val.replace(/\D/g, "");
+const title = computed( () => {
+	return isCreateRoot.value ? "创建 root 账号" : "BOT 网页控制台"
+} );
+
+const loginRef = ref<InstanceType<typeof Login> | null>( null );
+function initUserName( username: string ) {
+	createComplete.value = true;
+	console.log( username, "???" )
+	if ( loginRef.value ) {
+		loginRef.value.setNickname( username );
+	}
 }
 </script>
 
@@ -153,12 +122,19 @@ function accountInput(val: string) {
 				}
 
 				.login-title {
+					display: flex;
+					flex-direction: column;
+					align-items: center;
 					font-size: 1.6rem;
 					font-weight: 500;
+
+					.desc {
+						font-size: 1rem;
+					}
 				}
 			}
 
-			.login-main-form {
+			::v-deep( .login-main-form ) {
 				.el-input {
 					margin-bottom: 1.25rem;
 				}

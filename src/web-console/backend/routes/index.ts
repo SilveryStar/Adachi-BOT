@@ -6,6 +6,7 @@ import GroupRouter from "./group";
 import BaseRouter from "./base";
 import MessageRouter from "./message";
 import ConfigRouter from "./config";
+import AccountRouter from "./account";
 
 export {
 	CheckRouter,
@@ -15,5 +16,6 @@ export {
 	GroupRouter,
 	BaseRouter,
 	MessageRouter,
-	ConfigRouter
+	ConfigRouter,
+	AccountRouter
 }

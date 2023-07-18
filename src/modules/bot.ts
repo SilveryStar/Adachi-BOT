@@ -1,4 +1,4 @@
-import * as core from "./lib";
+import * as core from "@/modules/lib";
 import { Logger } from "log4js";
 import moment from "moment";
 import FileManagement from "./file";

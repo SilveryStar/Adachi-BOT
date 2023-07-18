@@ -26,7 +26,9 @@ export default {
 	MESSAGE_REMOVE: "/message/remove",
 	/* 检测 */
 	TOKEN_CHECK: "/check",
-	CHECK_PASSWORD: "/check/password",
+	ROOT_CHECK: "/check/root",
+	/* 账号 */
+	ROOT_CREATE: "/account/root/create",
 	/* 配置 */
 	CONFIG_GET: "/config",
 	CONFIG_BASE: "/config/base",

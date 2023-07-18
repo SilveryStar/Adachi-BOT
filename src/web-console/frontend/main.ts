@@ -1,6 +1,6 @@
 import { createApp } from "vue";
 import router from "./router";
-import { createStore } from "./store";
+import { createPinia } from "pinia";
 import App from "./App.vue";
 import ElementPlus from "element-plus";
 import "element-plus/dist/index.css";
@@ -11,7 +11,7 @@ import "./permission";
 
 const app = createApp( App );
 app.config.warnHandler = () => null;
-const pinia = createStore();
+const pinia = createPinia();
 app.use( router )
 	.use( pinia )
 	.use( ElementPlus )

@@ -25,7 +25,7 @@ export default express.Router()
 			/* 用户订阅信息 */
 			const userSubData: Record<string, string[]> = await formatSubUsers( bot, "group" );
 			
-			let groupData = Array.from( bot.client.gl );
+			let groupData: [ number, GroupInfo ][] = Array.from( bot.client.gl );
 			
 			// 过滤条件：id
 			if ( groupId ) {

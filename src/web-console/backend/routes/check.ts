@@ -1,8 +1,8 @@
 import express from "express";
 import bot from "ROOT";
-import { Md5 } from "md5-typescript";
 import { getTokenByRequest } from "../utils/request";
 import { validateToken } from "../utils/jwt";
+import { hasRootAccount } from "@/web-console/backend/utils/account";
 
 export default express.Router()
 	.get( "/", ( req, res ) => {
@@ -14,12 +14,11 @@ export default express.Router()
 			res.status( 403 ).send( "Token Expired" );
 		}
 	} )
-	.post( "/password", ( req, res ) => {
-		const pwd = req.body.pwd;
-		
-		if ( pwd === bot.config.base.password || pwd === Md5.init( bot.config.base.password ) ) {
-			res.status( 200 ).send( { code: 200, data: {}, msg: "Success" } );
-		} else {
-			res.status( 403 ).send( { code: 403, data: {}, msg: "Password is incorrect" } );
+	.get( "/root", async ( req, res ) => {
+		try {
+			const hasRoot = await hasRootAccount();
+			res.status( 200 ).send( { code: 200, data: hasRoot, msg: "Success" } );
+		} catch ( error: any ) {
+			res.status( 500 ).send( { code: 500, data: [], msg: error.message || "Server Error" } );
 		}
-	} );
+	} )

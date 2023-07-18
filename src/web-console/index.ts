@@ -36,6 +36,7 @@ export default class WebConsole {
 		/* 创建接口 */
 		this.useApi( "/api/check", r.CheckRouter, false );
 		this.useApi( "/api/login", r.LoginRouter, false );
+		this.useApi( "/api/account", r.AccountRouter, false  );
 		this.useApi( "/api/bot", r.BaseRouter );
 		this.useApi( "/api/log", r.LogRouter );
 		this.useApi( "/api/user", r.UserRouter );

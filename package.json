@@ -1,7 +1,7 @@
 {
   "name": "adachi-bot",
   "private": true,
-  "version": "3.3.0",
+  "version": "3.3.1",
   "scripts": {
     "dev": "ts-node-dev -r tsconfig-paths/register --files app.ts",
     "start": "cross-env NODE_ENV=production ts-node app.ts",
