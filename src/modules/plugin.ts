@@ -1,4 +1,5 @@
 import * as cmd from "./command";
+import pLimit from "p-limit";
 import { BasicConfig, InitType } from "./command";
 import { BOT } from "@/modules/bot";
 import { extname } from "path";
@@ -83,8 +84,11 @@ export interface PluginSetting {
 		repoName: string;// 仓库名称
 		ref?: string;// 分支名称
 	}; // 设置为非必须兼容低版本插件
-	assets?: string | { // 是否从线上同步更新静态资源
+	assets?: { // 是否从线上同步更新静态资源
 		manifestUrl: string; // 线上 manifest.yml 文件地址
+		downloadBaseUrl: string; // 下载基地址
+		pathField?: string; // manifest 文件中作为文件路径的字段名
+		modifiedField?: string; // manifest 文件中作为校验文件变动的字段名（最后修改时间/文件唯一值等）
 		overflowPrompt?: string; // 超出最大更新数量后给予的提示消息
 		noOverride?: string[];  // 此配置项列举的拓展名文件，当位于用户配置的忽略文件中时，仍下载更新，但仅更新新增内容不对原内容进行覆盖
 		replacePath?: ( path: string ) => string; // 修改下载后的文件路径
@@ -424,18 +428,25 @@ export default class Plugin {
 		
 		let data: IOssListObject[];
 		
+		const pathField: string = assets.pathField || "name";
+		const modifiedField: string = assets.modifiedField || "lastModified";
+		
 		try {
 			res = await axios.post( "https://api-kozakura.marrydream.top/common/adachi/v1/oss/update/files", {
-				url: typeof assets === "string" ? assets : assets.manifestUrl,
-				list: manifest
+				url: assets.manifestUrl,
+				list: manifest,
+				pathField,
+				modifiedField
+			}, {
+				maxContentLength: Infinity
 			} );
 			data = res.data.data;
 		} catch ( error: any ) {
 			if ( ( <AxiosError>error ).response?.status === 415 ) {
-				throw getObjectKeyValue( assets, "overflowPrompt", "更新文件数量超过阈值，请手动更新资源包" );
+				throw assets.overflowPrompt || "更新文件数量超过阈值，请手动更新资源包";
 			} else {
 				data = [];
-				this.bot.logger.error( `检查更新失败，远程服务器异常：${ <string>error }` )
+				this.bot.logger.error( `检查更新失败，远程服务器异常，请联系开发者解决：${ ( <AxiosError>error ).response?.data?.[ "msg" ] || <string>error }` )
 			}
 		}
 		// 不存在更新项，返回
@@ -450,27 +461,42 @@ export default class Plugin {
 		// 更新图片promise列表
 		const updatePromiseList: Promise<void>[] = [];
 		
+		// 最大下载并发数 20
+		const limiter = pLimit( 10 );
+		
 		data.forEach( file => {
 			const replacePath = getObjectKeyValue( assets, "replacePath", null );
-			const filePath = replacePath ? replacePath( file.name ) : file.name;
+			const filePath: string = file[ pathField ];
+			
+			/* 获取文件下载 url，处理用户传入的 url 可能存在的格式不规范问题 */
+			let downloadUrl = assets.downloadBaseUrl + filePath;
+			if ( assets.downloadBaseUrl.endsWith( "/" ) && filePath.startsWith( "/" ) ) {
+				downloadUrl = assets.downloadBaseUrl + filePath.slice(1);
+			}
+			if ( !assets.downloadBaseUrl.endsWith( "/" ) && !filePath.startsWith( "/" ) ) {
+				downloadUrl = assets.downloadBaseUrl + "/" + filePath;
+			}
+			
+			/* 修改格式化后的文件路径 */
+			const fileFormatPath: string = replacePath ? replacePath( filePath ) : filePath;
 			
 			// 是否为清单排除文件
-			const isIgnore = isIgnorePath( ignorePath, this.bot.file.getFilePath( `${ baseUrl }/${ filePath }`, "root" ) );
+			const isIgnore = isIgnorePath( ignorePath, this.bot.file.getFilePath( `${ baseUrl }/${ fileFormatPath }`, "root" ) );
 			const noOverrideList = getObjectKeyValue( assets, "noOverride", [ "yml", "json" ] )
 			
-			const fileExt = extname( file.url ).slice( 1 );
+			const fileExt = extname( downloadUrl ).slice( 1 );
 			// 位于排除文件中，不进行更新
 			if ( isIgnore && !noOverrideList.includes( fileExt ) ) {
 				return;
 			}
-			updatePromiseList.push( ( async () => {
+			updatePromiseList.push( limiter( () => ( async () => {
 				try {
-					const pathList = [ `${ baseUrl }/${ filePath }` ];
+					const pathList = [ `${ baseUrl }/${ fileFormatPath }` ];
 					
 					if ( process.env.NODE_ENV === "production" ) {
-						pathList.push( `dist/${ commonUrl }/${ filePath }` );
+						pathList.push( `dist/${ commonUrl }/${ fileFormatPath }` );
 					}
-					await this.bot.file.downloadFile( file.url, pathList, data => {
+					await this.bot.file.downloadFile( downloadUrl, pathList, data => {
 						// 不再忽略清单文件中时直接返回原数据
 						if ( !isIgnore ) {
 							return data;
@@ -500,7 +526,7 @@ export default class Plugin {
 					
 					// 下载成功后新增清单项
 					// 若清单项已存在则先删除再添加
-					const key = manifest.findIndex( item => item.name === file.name );
+					const key = manifest.findIndex( item => item[ pathField ] === file[ pathField ] )
 					if ( key !== -1 ) {
 						manifest.splice( key, 1, file );
 					} else {
@@ -511,7 +537,7 @@ export default class Plugin {
 				}
 				downloadNum++;
 				progress.renderer( downloadNum, `下载失败：${ errorNum }`, this.bot.config.webConsole.enable );
-			} )() );
+			} )() ) );
 		} );
 		
 		// 不存在更新项，返回

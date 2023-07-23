@@ -52,6 +52,9 @@ export default definePlugin( {
 	},
 	assets: {
 		manifestUrl: "https://mari-plugin.oss-cn-beijing.aliyuncs.com/Version3/help_assets_manifest.yml",
+		downloadBaseUrl: "https://mari-plugin.oss-cn-beijing.aliyuncs.com/",
+		pathField: "name",
+		modifiedField: "lastModified",
 		replacePath: path => {
 			return path.replace( "Version3/help/", "" );
 		}
