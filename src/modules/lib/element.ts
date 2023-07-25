@@ -73,12 +73,6 @@ export const segment = {
 	},
 	json( data: Record<string, any>, resid?: number ): el.JsonElem {
 		return { type: "json", data, resid  };
-	},
-	forward( messages: el.ForwardElem["messages"] ) {
-		return {
-			type: "forward",
-			messages
-		}
 	}
 };
 

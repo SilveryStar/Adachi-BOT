@@ -700,7 +700,7 @@ export type Sendable = string | MessageElem | (string | MessageElem)[];
 
 #### 一些其他的核心方法
 
-- sdk.toCqCode(): 将 `MessageElem` 类型数组转变为 cqcode 码的格式，不支持合并转发消息 `ForwardElem`。
+- sdk.toCqCode(): 将 `MessageElem` 类型数组转变为 cqcode 码的格式。
 - sdk.toMessageRecepElem(): 将 cqcode 码转换为事件接收到的格式的对象 `MessageRecepElem[]`;
 
 ### 插件入口函数格式变更

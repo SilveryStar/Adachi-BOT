@@ -162,13 +162,12 @@ export interface ForwardElemCustomNode {
 }
 
 export interface ForwardElem {
-	type: "forward";
+	type: "forward",
 	messages: ( ForwardElemNode | ForwardElemCustomNode )[];
 };
 
 export type MessageElem = TextElem | FaceElem | RecordElem | VideoElem | AtElem | ShareElem | MusicElem |
-	MusicCustomElem | ImageElem | FlashElem | ReplayElem | ReplayCustomElem | PokeElem | GiftElem | JsonElem |
-	ForwardElem;
+	MusicCustomElem | ImageElem | FlashElem | ReplayElem | ReplayCustomElem | PokeElem | GiftElem | JsonElem;
 
 /** 可用来发送的类型集合 */
 export type Sendable = string | MessageElem | (string | MessageElem)[];

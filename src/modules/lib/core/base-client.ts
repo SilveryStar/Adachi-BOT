@@ -134,17 +134,21 @@ export default class BaseClient extends EventEmitter {
 					data.reply = ( content: Sendable ) => quickOperation( { reply: formatSendMessage( content ) } );
 					switch ( data.sub_type ) {
 						case "friend":
-							this.logger.info( `来自好友 ${ data.sender.nickname }( ${ data.sender.user_id } ) 的私聊消息: ${ data.raw_message }` );
+							this.logger.info( `来自好友 ${ data.sender.nickname }(${ data.sender.user_id }) 的私聊消息: ${ data.raw_message }` );
 							this.emit( "message.private.friend", data );
 							break;
 						case "group":
-							this.logger.info( `来自群 ${ data.sender.group_id } 内 ${ data.sender.nickname }( ${ data.sender.user_id } ) 的临时会话消息: ${ data.raw_message }` );
+							const groupInfo = this.gl.get( data.sender.group_id );
+							const groupName = groupInfo ? groupInfo.group_name : "";
+							this.logger.info( `来自群 ${ groupName }(${ data.sender.group_id }) 内 ${ data.sender.nickname }(${ data.sender.user_id }) 的临时会话消息: ${ data.raw_message }` );
 							this.emit( "message.private.group", data );
 							break;
 					}
 					this.emit( "message.private", data );
 				}
 				if ( data.sub_type === "normal" || data.sub_type === "anonymous" ) {
+					const groupInfo = this.gl.get( data.group_id );
+					const groupName = groupInfo ? groupInfo.group_name : "";
 					data.reply = ( content: Sendable, at = true ) => quickOperation( {
 						reply: formatSendMessage( content ),
 						at_sender: at
@@ -154,11 +158,11 @@ export default class BaseClient extends EventEmitter {
 					data.ban = ( duration ) => quickOperation( { ban: true, ban_duration: duration } );
 					switch ( data.sub_type ) {
 						case "normal":
-							this.logger.info( `来自群 ${ data.group_id } 内 ${ data.sender.nickname }( ${ data.sender.user_id } ) 的消息: ${ data.raw_message }` );
+							this.logger.info( `来自群 ${ groupName }(${ data.group_id }) 内 ${ data.sender.card || data.sender.nickname }(${ data.sender.user_id }) 的消息: ${ data.raw_message }` );
 							this.emit( "message.group.normal", data );
 							break;
 						case "anonymous":
-							this.logger.info( `来自群 ${ data.group_id } 内 ${ data.anonymous.name } 的匿名消息: ${ data.raw_message }` );
+							this.logger.info( `来自群 ${ groupName }(${ data.group_id }) 内 ${ data.anonymous.name } 的匿名消息: ${ data.raw_message }` );
 							this.emit( "message.group.anonymous", data );
 					}
 					this.emit( "message.group", data );

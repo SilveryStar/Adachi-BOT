@@ -28,7 +28,7 @@ function messageStyle( title: string, list: string[], command: Command ): Sendab
 async function forwardStyle(
 	title: string, list: string[],
 	{ client, command }: InputParameter
-): Promise<Sendable> {
+): Promise<ForwardElem> {
 	const content: ForwardElem = {
 		type: "forward",
 		messages: []
@@ -125,12 +125,12 @@ async function cardStyle( i: InputParameter, commands: BasicConfig[] ) {
 	}
 }
 
-async function getHelpMessage( title: string, commands: BasicConfig[], list: string[], i: InputParameter ): Promise<Sendable> {
+async function getHelpMessage( title: string, commands: BasicConfig[], list: string[], i: InputParameter ): Promise<Sendable | ForwardElem> {
 	switch ( i.config.directive.helpMessageStyle ) {
 		case "message":
 			return messageStyle( title, list, i.command );
 		case "forward":
-			return await forwardStyle( title, list, i );
+			return forwardStyle( title, list, i );
 		case "xml":
 			return xmlStyle( title, list, i.command );
 		case "card":

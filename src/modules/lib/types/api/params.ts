@@ -2,7 +2,7 @@
  * 请求 api 需要传递的参数格式
  */
 
-import { ForwardElem } from "@/modules/lib/types/element/send";
+import { ForwardElem, ForwardElemCustomNode, ForwardElemNode } from "@/modules/lib/types/element/send";
 import { Anonymous, HonorType, RecordFormat } from "@/modules/lib/types/common";
 
 
@@ -93,16 +93,21 @@ interface SendMsgGroup extends CommonSendMsg, OperateGroupParam {
 /** 发送消息 */
 export type SendMsgParam = SendMsgPrivate | SendMsgGroup;
 
+export interface ForwardElemParam {
+	type: "node";
+	data: ForwardElemNode | ForwardElemCustomNode;
+}
+
 /** 发送合并转发 ( 群聊 ) */
 export interface SendGroupForwardMsgParam extends OperateGroupParam {
 	/** 自定义转发消息 */
-	messages: ForwardElem;
+	messages: ForwardElemParam[];
 }
 
 /** 发送合并转发 ( 私聊 ) */
 export interface SendPrivateForwardMsgParam extends OperateUserParam {
 	/** 自定义转发消息 */
-	messages: ForwardElem;
+	messages: ForwardElemParam[];
 }
 
 /** 获取群消息历史记录 */

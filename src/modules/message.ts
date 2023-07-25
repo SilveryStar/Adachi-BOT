@@ -15,7 +15,7 @@ export enum MessageType {
 	Unknown
 }
 
-export type SendFunc = ( content: core.Sendable, allowAt?: boolean ) => Promise<number | null>;
+export type SendFunc = ( content: core.Sendable | core.ForwardElem, allowAt?: boolean ) => Promise<number | null>;
 export type Message = core.PrivateMessageEvent | core.GroupMessageEvent;
 
 interface MsgManagementMethod {
@@ -23,8 +23,16 @@ interface MsgManagementMethod {
 	sendMaster( content: string ): Promise<number | null>;
 }
 
-function checkIterator( obj: core.MessageElem | Iterable<core.MessageElem | string> ): obj is Iterable<core.MessageElem | string> {
+function checkIterator( obj: core.ForwardElem | core.MessageElem | Iterable<core.MessageElem | string> ): obj is Iterable<core.MessageElem | string> {
 	return typeof obj[Symbol.iterator] === "function";
+}
+
+function checkoutForward( obj: core.Sendable | core.ForwardElem ): obj is core.ForwardElem {
+	if ( typeof obj === "string" ||  checkIterator( obj ) ) {
+		return false;
+	} else {
+		return obj.type === "forward";
+	}
 }
 
 export default class MsgManagement implements MsgManagementMethod {
@@ -45,11 +53,21 @@ export default class MsgManagement implements MsgManagementMethod {
 		const atUser = this.atUser;
 		if ( type === MessageType.Private ) {
 			return async content => {
+				/* 发送转发消息 */
+				if ( checkoutForward( content ) ) {
+					const sendRes = await client.sendPrivateForwardMessage( <number>userID, content );
+					return sendRes.retcode === 0 ? sendRes.data.message_id : null;
+				}
 				const sendRes = await client.sendPrivateMsg( <number>userID, content );
 				return sendRes.retcode === 0 ? sendRes.data : null;
 			}
 		} else {
 			return async function ( content, allowAt ) {
+				/* 发送转发消息 */
+				if ( checkoutForward( content ) ) {
+					const sendRes = await client.sendGroupForwardMessage( groupID, content )
+					return sendRes.retcode === 0 ? sendRes.data.message_id : null;
+				}
 				if ( userID === "all" ) {
 					const atAllRemainRes = await client.getGroupAtAllRemain( groupID );
 					if ( atAllRemainRes.retcode === 0 ) {

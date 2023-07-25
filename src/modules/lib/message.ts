@@ -6,9 +6,26 @@ import {
 	Sendable
 } from "@/modules/lib/types/element/send";
 import { MessageRecepElem } from "@/modules/lib/types/element";
+import { ForwardElemParam } from "@/modules/lib/types/api";
 
-function checkForwardNode( node: ForwardElemCustomNode | ForwardElemNode ): node is ForwardElemCustomNode {
+export function checkForwardNode( node: ForwardElemCustomNode | ForwardElemNode ): node is ForwardElemCustomNode {
 	return !!( <ForwardElemCustomNode>node ).content;
+}
+
+export function makeForwardMessage( message: ForwardElem ): ForwardElemParam[] {
+	return message.messages.map( m => {
+		const data: any = { ...m };
+		if ( checkForwardNode( m ) ) {
+			data.content = formatSendMessage( m.content );
+			if ( m.seq ) {
+				data.seq = formatSendMessage( m.seq );
+			}
+		}
+		return {
+			type: "node",
+			data
+		}
+	} );
 }
 
 /** 实体化处理 */
@@ -52,21 +69,6 @@ export function formatSendMessage( message: Sendable ) {
 		}
 		
 		let data: any;
-		if ( msg.type === "forward" ) {
-			return msg.messages.map( m => {
-				const data: any = { ...m };
-				if ( checkForwardNode( m ) ) {
-					data.content = formatSendMessage( m.content );
-					if ( m.seq ) {
-						data.seq = formatSendMessage( m.seq );
-					}
-				}
-				return {
-					type: "node",
-					data
-				}
-			} )
-		}
 		if ( msg.type === "musicCustom" || msg.type === "replayCustom" ) {
 			data = {
 				...msg,
@@ -127,12 +129,9 @@ export function toMessageRecepElem( message: string ): MessageRecepElem[] {
 }
 
 /** 暂不支持合并转发消息的转换 */
-export function toCqCode( message: Exclude<MessageElem, ForwardElem>[] ) {
+export function toCqCode( message: MessageElem[] ) {
 	const format = formatSendMessage( message );
 	format.map( msg => {
-		if ( msg instanceof Array ) {
-			throw new Error( "未知错误" );
-		}
 		if ( msg.type === "text" ) {
 			return msg.data.text;
 		}

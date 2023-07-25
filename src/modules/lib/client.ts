@@ -12,9 +12,8 @@ import {
 	UploadPrivateFileParam
 } from "@/modules/lib/types/api";
 import { Anonymous, HonorType, RecordFormat } from "@/modules/lib/types/common";
-import { ForwardElem, MessageElem, Sendable } from "./types/element/send";
-import message from "@/web-console/backend/routes/message";
-import { formatSendMessage } from "@/modules/lib/message";
+import { ForwardElem, Sendable } from "./types/element/send";
+import { formatSendMessage, makeForwardMessage } from "@/modules/lib/message";
 
 export type LogLevel = "trace" | "debug" | "info" | "warn" | "error" | "fatal" | "mark" | "off";
 
@@ -265,18 +264,23 @@ export class Client {
 	/** 获取合并转发内容 */
 	public async getForwardMessage( message_id: number ) {
 		const result = await this.baseClient.fetchApi( "get_forward_msg", { message_id } );
-		;
 		return this.getApiResponse( result, result.data.messages );
 	}
 	
 	/** 发送合并转发 ( 群聊 ) */
 	public sendGroupForwardMessage( group_id: number, messages: ForwardElem ) {
-		return this.baseClient.fetchApi( "send_group_forward_msg", { group_id, messages } );
+		return this.baseClient.fetchApi( "send_group_forward_msg", {
+			group_id,
+			messages: makeForwardMessage( messages )
+		} );
 	}
 	
 	/** 发送合并转发 ( 好友 ) */
 	public sendPrivateForwardMessage( user_id: number, messages: ForwardElem ) {
-		return this.baseClient.fetchApi( "send_private_forward_msg", { user_id, messages } );
+		return this.baseClient.fetchApi( "send_private_forward_msg", {
+			user_id,
+			messages: makeForwardMessage( messages )
+		} );
 	}
 	
 	/** 获取群消息历史记录 */
