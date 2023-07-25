@@ -26,7 +26,6 @@ async function checkToken() {
 /* 检查 token */
 async function checkHasRoot(): Promise<boolean> {
 	const hasRoot = await $http.ROOT_CHECK.get();
-	console.log(hasRoot)
 	return hasRoot.data;
 }
 

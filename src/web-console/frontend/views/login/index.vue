@@ -52,7 +52,6 @@ const title = computed( () => {
 const loginRef = ref<InstanceType<typeof Login> | null>( null );
 function initUserName( username: string ) {
 	createComplete.value = true;
-	console.log( username, "???" )
 	if ( loginRef.value ) {
 		loginRef.value.setNickname( username );
 	}

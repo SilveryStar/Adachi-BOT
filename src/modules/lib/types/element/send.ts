@@ -89,8 +89,6 @@ export interface ImageElem {
 	type: "image";
 	/** 文件名 & 本地绝对路径 & URL & Base64 */
 	file: string | Buffer;
-	/** 图片 url */
-	url?: string;
 	/** 图片子类型, 只出现在群聊. 0 正常图 1 表情包 ... */
 	subType?: number;
 	/** 使用 url 发送是时否使用缓存，默认 true */

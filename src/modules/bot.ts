@@ -113,7 +113,7 @@ export default class Adachi {
 		this.bot.redis.deleteKey( Enquire.redisKey ).then();
 		
 		const pluginInstance = PluginManager.getInstance();
-		pluginInstance.load().then( ( pluginSettings ) => {
+		pluginInstance.load( false ).then( ( pluginSettings ) => {
 			/* 成功连接 gocq 后执行各插件装载方法 */
 			this.bot.client.connect().then( async () => {
 				for ( const key of Object.keys( pluginSettings ) ) {
@@ -423,8 +423,10 @@ export default class Adachi {
 				"adachi.banned-group", groupID
 			);
 			
-			const groupInfo = await bot.client.getGroupMemberInfo( groupID, bot.client.uin );
-			if ( !isBanned && groupInfo.shut_up_timestamp === 0 ) {
+			const groupInfoRes = await bot.client.getGroupMemberInfo( groupID, bot.client.uin );
+			const shutUpTime = groupInfoRes.retcode === 0 ? groupInfoRes.data.shut_up_timestamp : 0;
+			
+			if ( !isBanned && shutUpTime === 0 ) {
 				const auth: AuthLevel = await bot.auth.get( userID );
 				const gLim: string[] = await bot.redis.getList( `adachi.group-command-limit-${ groupID }` );
 				const uLim: string[] = await bot.redis.getList( `adachi.user-command-limit-${ userID }` );

@@ -116,6 +116,9 @@ export function compareAssembleObject<T extends Record<string, any>>( oldValue: 
 export function compareAssembleObject<T extends Record<string, any>>( oldValue: Record<string, any>, newValue: T, clean: any = true, arrayType: "ignore" | "merge" = "ignore" ): T | Record<string, any> {
 	const getArrayValue = ( newValue: any[], oldValue: any ) => {
 		if ( oldValue instanceof Array ) {
+			if ( arrayType === "ignore" ) {
+				return oldValue;
+			}
 			// 新增项中的不重复数组
 			const noRepeatItem = newValue.filter( el => !includesValue( oldValue, el, v => {
 				return v instanceof Array ? true : v;
@@ -125,20 +128,18 @@ export function compareAssembleObject<T extends Record<string, any>>( oldValue: 
 		return newValue;
 	}
 	if ( newValue instanceof Array ) {
-		if ( arrayType === "ignore" ) {
-			return oldValue;
-		}
 		return getArrayValue( newValue, oldValue );
 	}
 	const targetValue = clean ? newValue : oldValue;
 	return <T>Object.fromEntries( Object.keys( targetValue ).map( k => {
 		const cOldItem = oldValue[k];
 		const cNewItem = newValue[k];
+		/* 当两者数据类型不同时，直接返回新数据 */
+		if ( Object.prototype.toString.call( cOldItem ) !== Object.prototype.toString.call( cNewItem ) ) {
+			return [ k, cNewItem ];
+		}
 		if ( typeof cNewItem === "object" && cNewItem !== null ) {
 			if ( cNewItem instanceof Array ) {
-				if ( arrayType === "ignore" ) {
-					return [ k, cOldItem ];
-				}
 				return [ k, getArrayValue( cNewItem, cOldItem ) ]
 			}
 			if ( !cOldItem ) {
@@ -147,6 +148,6 @@ export function compareAssembleObject<T extends Record<string, any>>( oldValue: 
 			const a = compareAssembleObject( cOldItem, cNewItem, clean )
 			return [ k, a ];
 		}
-		return [ k, oldValue[k] ?? cNewItem ];
+		return [ k, cOldItem ?? cNewItem ];
 	} ) );
 }

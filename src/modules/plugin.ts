@@ -123,12 +123,12 @@ export default class Plugin {
 		return Plugin._instance;
 	}
 	
-	public async load( reload: boolean = false ): Promise<Record<string, PluginSetting>> {
+	public async load( immediate = true ): Promise<Record<string, PluginSetting>> {
 		const plugins: string[] = this.bot.file.getDirFiles( "", "plugin" );
 		
 		/* 从 plugins 文件夹从导入 init.ts 进行插件初始化 */
 		for ( let pluginKey of plugins ) {
-			await this.loadSingle( pluginKey, reload );
+			await this.loadSingle( pluginKey, immediate, false );
 		}
 		await this.bot.command.reload();
 		return this.pluginSettings;
@@ -137,9 +137,10 @@ export default class Plugin {
 	/**
 	 * 加载单个插件
 	 * @param pluginKey 插件目录名
-	 * @param reload 是否为插件重载
+	 * @param immediate 是否为立即执行插件 mounted 方法
+	 * @param reloadCmd 是否为执行加载 command 方法
 	 */
-	public async loadSingle( pluginKey: string, reload: boolean = true ) {
+	public async loadSingle( pluginKey: string, immediate = true, reloadCmd = true ) {
 		try {
 			// 清楚指定插件的文件缓存
 			removeKeysStartsWith( require.cache, this.bot.file.getFilePath( pluginKey, "plugin" ) );
@@ -153,8 +154,7 @@ export default class Plugin {
 				repo,
 				aliases,
 				assets,
-				subscribe,
-				mounted
+				subscribe
 			}: PluginSetting = init.default;
 			
 			// 检查更新插件静态资源
@@ -201,34 +201,39 @@ export default class Plugin {
 				plugin.upgrade = "https://api.github.com/repos/" + serverUrl;
 			}
 			
-			/* 仅重载时直接执行生命周期钩子 */
-			if ( reload ) {
-				// 生命周期：插件加载完成
-				const mountState = await this.doMount( pluginKey );
-				if ( !mountState ) {
-					throw new Error( `插件 ${ pluginKey } mounted 钩子执行异常` );
-				}
-				await this.bot.command.reload();
-			}
-			
 			this.bot.logger.info( `插件 ${ pluginName } 加载完成` );
 			
 			this.pluginList[pluginKey] = plugin;
 			this.pluginSettings[pluginKey] = init.default;
+			
+			if ( immediate ) {
+				await this.doMount( pluginKey );
+			}
+			
+			if ( reloadCmd ) {
+				await this.bot.command.reload();
+			}
 		} catch ( error ) {
 			this.bot.logger.error( `插件 ${ pluginKey } 加载异常: ${ <string>error }` );
 		}
 	}
 	
-	public async reloadSingle( pluginKey: string, reload: boolean = true ) {
+	/**
+	 * 重载单个插件
+	 * @param pluginKey 插件目录名
+	 * @param immediate 是否为立即执行插件 mounted 方法
+	 * @param reloadCmd 是否为执行加载 command 方法
+	 */
+	public async reloadSingle( pluginKey: string, immediate = true, reloadCmd = true ) {
 		try {
 			const oldSetting = this.pluginSettings[pluginKey];
-			if ( oldSetting.unmounted ) {
-				oldSetting.unmounted( this.getPluginParameter( pluginKey ) );
-			}
+			await this.doUnMount( pluginKey );
+			
 			Reflect.deleteProperty( this.pluginList, pluginKey );
 			Reflect.deleteProperty( this.pluginSettings, pluginKey );
-			await this.loadSingle( pluginKey, reload );
+			
+			await this.loadSingle( pluginKey, immediate, reloadCmd );
+			
 			return {
 				oldSetting,
 				newSetting: this.pluginSettings[pluginKey]
@@ -245,7 +250,8 @@ export default class Plugin {
 		const oldSettings = this.pluginSettings;
 		this.pluginSettings = {};
 		this.pluginList = {};
-		await this.load( true );
+		
+		await this.load();
 		return {
 			oldSettings,
 			newSettings: this.pluginSettings
@@ -253,14 +259,17 @@ export default class Plugin {
 	}
 	
 	/* 卸载插件 */
-	public async unLoadSingle( pluginKey: string ) {
+	public async unLoadSingle( pluginKey: string, reloadCmd = true  ) {
 		try {
 			await this.doUnMount( pluginKey );
 			const setting = this.pluginSettings[pluginKey];
 			
 			Reflect.deleteProperty( this.pluginList, pluginKey );
 			Reflect.deleteProperty( this.pluginSettings, pluginKey );
-			await this.bot.command.reload();
+			
+			if ( reloadCmd ) {
+				await this.bot.command.reload();
+			}
 			return setting;
 		} catch ( error ) {
 			this.bot.logger.error( `插件 ${ pluginKey } 卸载异常: ${ <string>error }` );

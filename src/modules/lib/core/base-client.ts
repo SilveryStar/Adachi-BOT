@@ -8,6 +8,7 @@ import EventEmitter from "@/modules/lib/core/event-emitter";
 import { ApiMap } from "@/modules/lib/types/map/api";
 import { FriendInfo, GroupInfo, Sendable, toMessageRecepElem } from "@/modules/lib";
 import { formatSendMessage } from "@/modules/lib/message";
+import { reject } from "lodash";
 
 type ApiParam<T extends ( param: any ) => any> = T extends () => any
 	? undefined
@@ -98,11 +99,15 @@ export default class BaseClient extends EventEmitter {
 						if ( this.online ) {
 							/* 初始化群组列表 */
 							this.fetchApi( "get_group_list", { no_cache: true } ).then( data => {
-								this.gl = new Map( data.map( d => [ d.group_id, d ] ) );
+								this.gl = data.retcode === 0
+									? new Map( data.data.map( d => [ d.group_id, d ] ) )
+									: new Map();
 							} );
 							/* 初始化好友列表 */
 							this.fetchApi( "get_friend_list", undefined ).then( data => {
-								this.fl = new Map( data.map( d => [ d.user_id, d ] ) );
+								this.fl = data.retcode === 0
+									? new Map( data.data.map( d => [ d.user_id, d ] ) )
+									: new Map();
 							} );
 							this.emit( "system.online", data );
 						} else {
@@ -260,14 +265,13 @@ export default class BaseClient extends EventEmitter {
 	}
 	
 	/** 请求 api */
-	public fetchApi<T extends keyof ApiMap>( action: T, params: ApiParam<ApiMap[T]> ): Promise<ReturnType<ApiMap[T]>> {
+	public fetchApi<T extends keyof ApiMap>( action: T, params: ApiParam<ApiMap[T]> ): Promise<ActionResponse<ReturnType<ApiMap[T]>>> {
 		const echo = Date.now().toString( 36 );
 		this.sendMessage( { action, params, echo } );
 		return new Promise( resolve => {
 			this.onApi( echo, data => {
-				if ( data.retcode === 0 ) {
-					resolve( <any>data.data );
-				} else {
+				resolve( data );
+				if ( data.retcode !== 0 ) {
 					this.logger.error( data.msg );
 				}
 			} );

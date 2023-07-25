@@ -34,7 +34,7 @@ export default express.Router()
 			const userCount = userData.length;
 			
 			/* 群组数量 */
-			const groupCount = ( await bot.client.getGroupList() ).length;
+			const groupCount = bot.client.gl.size;
 			
 			/* 内存占用 */
 			const mem = await si.mem();

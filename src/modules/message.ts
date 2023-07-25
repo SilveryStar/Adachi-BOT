@@ -15,12 +15,12 @@ export enum MessageType {
 	Unknown
 }
 
-export type SendFunc = ( content: core.Sendable, allowAt?: boolean ) => Promise<number>;
+export type SendFunc = ( content: core.Sendable, allowAt?: boolean ) => Promise<number | null>;
 export type Message = core.PrivateMessageEvent | core.GroupMessageEvent;
 
 interface MsgManagementMethod {
 	getSendMessageFunc( userID: number, type: MessageType, groupID?: number ): SendFunc;
-	sendMaster( content: string ): Promise<void>;
+	sendMaster( content: string ): Promise<number | null>;
 }
 
 function checkIterator( obj: core.MessageElem | Iterable<core.MessageElem | string> ): obj is Iterable<core.MessageElem | string> {
@@ -44,14 +44,19 @@ export default class MsgManagement implements MsgManagementMethod {
 		const client = this.client;
 		const atUser = this.atUser;
 		if ( type === MessageType.Private ) {
-			return function ( content ) {
-				return client.sendPrivateMsg( <number>userID, content );
+			return async content => {
+				const sendRes = await client.sendPrivateMsg( <number>userID, content );
+				return sendRes.retcode === 0 ? sendRes.data : null;
 			}
 		} else {
-			return async function ( content, allowAt ): Promise<number> {
+			return async function ( content, allowAt ) {
 				if ( userID === "all" ) {
-					const atAllRemain = await client.getGroupAtAllRemain( groupID );
-					allowAt = atAllRemain.can_at_all ? allowAt : false;
+					const atAllRemainRes = await client.getGroupAtAllRemain( groupID );
+					if ( atAllRemainRes.retcode === 0 ) {
+						allowAt = atAllRemainRes.data.can_at_all ? allowAt : false;
+					} else {
+						allowAt = false;
+					}
 				}
 				const at = core.segment.at( userID );
 				if ( atUser && allowAt !== false ) {
@@ -64,13 +69,15 @@ export default class MsgManagement implements MsgManagementMethod {
 						content = [ at, " ", content ];
 					}
 				}
-				return await client.sendGroupMsg( groupID, content );
+				const sendRes =  await client.sendGroupMsg( groupID, content );
+				return sendRes.retcode === 0 ? sendRes.data : null;
 			}
 		}
 	}
 	
-	public async sendMaster( content: string ): Promise<void> {
-		await this.client.sendPrivateMsg( this.master, content );
+	public async sendMaster( content: string ): Promise<number | null> {
+		const sendRes = await this.client.sendPrivateMsg( this.master, content );
+		return sendRes.retcode === 0 ? sendRes.data : null;
 	}
 }
 

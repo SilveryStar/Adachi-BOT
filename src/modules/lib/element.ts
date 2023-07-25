@@ -43,20 +43,18 @@ export const segment = {
 			image
 		}
 	},
-	image( file: string | Buffer, url?: string, subType?: number, cache?: boolean ): el.ImageElem {
+	image( file: string | Buffer, subType?: number, cache: boolean = true ): el.ImageElem {
 		return {
 			type: "image",
 			file,
-			url,
 			subType,
 			cache: cache ? 1 : 0
 		}
 	},
-	flash( file: string, url: string, subType: number, cache?: boolean ): el.FlashElem {
+	flash( file: string | Buffer, url: string, subType: number, cache: boolean = true ): el.FlashElem {
 		return {
 			type: "flash",
 			file,
-			url,
 			subType,
 			cache: cache ? 1 : 0
 		}

@@ -1,7 +1,7 @@
 import bot from "ROOT";
 import express from "express";
 import { AuthLevel } from "@/modules/management/auth";
-import { GroupMemberInfo } from "@/modules/lib";
+import { GroupMemberInfo, StrangerInfo } from "@/modules/lib";
 import PluginManager from "@/modules/plugin";
 import { UserInfo } from "@/web-console/types/user";
 import { sleep } from "@/utils/async";
@@ -133,7 +133,8 @@ export default express.Router()
 
 async function getUserInfo( userID: number ): Promise<UserInfo> {
 	const avatar = `https://q1.qlogo.cn/g?b=qq&s=640&nk=${ userID }`;
-	const publicInfo = await bot.client.getStrangerInfo( userID );
+	const publicInfoRes = await bot.client.getStrangerInfo( userID );
+	
 	const isFriend: boolean = bot.client.fl.get( userID ) !== undefined;
 	const botAuth: AuthLevel = await bot.auth.get( userID );
 	const interval: number = bot.interval.get( userID, "private" );
@@ -142,7 +143,7 @@ async function getUserInfo( userID: number ): Promise<UserInfo> {
 	const groupInfoList: Array<GroupMemberInfo | string> = [];
 	
 	const usedGroups: string[] = await bot.redis.getSet( `adachi.user-used-groups-${ userID }` );
-	const nickname: string = publicInfo.nickname;
+	const nickname: string = publicInfoRes.retcode === 0 ? publicInfoRes.data.nickname : "";
 	
 	for ( let el of usedGroups ) {
 		const groupID: number = Number.parseInt( el );
@@ -150,9 +151,9 @@ async function getUserInfo( userID: number ): Promise<UserInfo> {
 			groupInfoList.push( "私聊方式使用" );
 			continue;
 		}
-		const data = await bot.client.getGroupMemberInfo( groupID, userID );
-		if ( data ) {
-			groupInfoList.push( data );
+		const groupMemberInfoRes = await bot.client.getGroupMemberInfo( groupID, userID );
+		if ( groupMemberInfoRes.retcode === 0 ) {
+			groupInfoList.push( groupMemberInfoRes.data );
 		}
 	}
 	

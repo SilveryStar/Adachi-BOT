@@ -45,7 +45,6 @@ async function forwardStyle(
 		name: "BOT",
 		content: el
 	} ) );
-	
 	/**
 	 * todo 自定义转发封面
 	 */

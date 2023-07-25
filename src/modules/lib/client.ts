@@ -2,7 +2,7 @@ import BaseClient from "./core/base-client";
 import { BotConfig } from "@/modules/config";
 import CoreLogger from "./core/logger";
 import { getLogger, Logger } from "log4js";
-import { ActionRequest } from "./types/action";
+import { ActionRequest, ActionResponse } from "./types/action";
 import { EventMap } from "./types/map/event";
 import {
 	FriendInfo,
@@ -134,14 +134,18 @@ export class Client {
 	
 	/** 重载群列表 */
 	public async reloadGroupList() {
-		const groupList = await this.getGroupList( true );
-		this.gl = new Map( groupList.map( data => [ data.group_id, data ] ) );
+		const data = await this.getGroupList( true );
+		this.gl = data.retcode === 0
+			? new Map( data.data.map( data => [ data.group_id, data ] ) )
+			: new Map();
 	}
 	
 	/** 重载好友列表 */
 	public async reloadFriendList() {
-		const groupList = await this.getFriendList();
-		this.fl = new Map( groupList.map( data => [ data.user_id, data ] ) );
+		const data = await this.getFriendList();
+		this.fl = data.retcode === 0
+			? new Map( data.data.map( data => [ data.user_id, data ] ) )
+			: new Map();
 	}
 	
 	/** 获取登录号信息 */
@@ -154,10 +158,17 @@ export class Client {
 		return this.baseClient.fetchApi( "set_qq_profile", info );
 	}
 	
+	private getApiResponse<T>( result: ActionResponse<any>, data: T ): ActionResponse<T> {
+		return <any>{
+			...result,
+			data
+		}
+	}
+	
 	/** 获取在线机型 */
 	public async getModelShow( model: string ) {
 		const result = await this.baseClient.fetchApi( "_get_model_show", { model } );
-		return result.variants;
+		return this.getApiResponse( result, result.data.variants );
 	}
 	
 	/** 设置在线机型 */
@@ -168,7 +179,7 @@ export class Client {
 	/** 获取当前账号在线客户端列表 */
 	public async getOnlineClients( no_cache = false ) {
 		const result = await this.baseClient.fetchApi( "get_online_clients", { no_cache } );
-		return result.clients;
+		return this.getApiResponse( result, result.data.clients );
 	}
 	
 	/** 获取陌生人信息 */
@@ -202,7 +213,7 @@ export class Client {
 			user_id,
 			message: formatSendMessage( message )
 		} );
-		return result.message_id;
+		return this.getApiResponse( result, result.data.message_id );
 	}
 	
 	/** 发送临时会话消息 */
@@ -212,7 +223,7 @@ export class Client {
 			message: formatSendMessage( message ),
 			group_id
 		} );
-		return result.message_id;
+		return this.getApiResponse( result, result.data.message_id );
 	}
 	
 	/** 发送群聊消息 */
@@ -221,19 +232,19 @@ export class Client {
 			group_id,
 			message: formatSendMessage( message )
 		} );
-		return result.message_id;
+		return this.getApiResponse( result, result.data.message_id );
 	}
 	
 	/** 发送消息 */
-	public sendMsg( type: "private", user_id: number, message: Sendable ): Promise<number>;
-	public sendMsg( type: "group", group_id: number, message: Sendable ): Promise<number>;
+	public sendMsg( type: "private", user_id: number, message: Sendable ): Promise<ActionResponse<number>>;
+	public sendMsg( type: "group", group_id: number, message: Sendable ): Promise<ActionResponse<number>>;
 	public async sendMsg( type: "private" | "group", userOrGroupId: number, message: Sendable ) {
 		const result = await this.baseClient.fetchApi( "send_msg", <any>{
 			message_type: type,
 			[type === "private" ? "user_id" : "group_id"]: userOrGroupId,
 			message: formatSendMessage( message )
 		} );
-		return result.message_id;
+		return this.getApiResponse( result, result.data.message_id );
 	}
 	
 	/** 获取消息 */
@@ -255,7 +266,7 @@ export class Client {
 	public async getForwardMessage( message_id: number ) {
 		const result = await this.baseClient.fetchApi( "get_forward_msg", { message_id } );
 		;
-		return result.messages;
+		return this.getApiResponse( result, result.data.messages );
 	}
 	
 	/** 发送合并转发 ( 群聊 ) */
@@ -271,7 +282,7 @@ export class Client {
 	/** 获取群消息历史记录 */
 	public async getGroupMsgHistory( group_id: number, message_seq: number ) {
 		const result = await this.baseClient.fetchApi( "get_group_msg_history", { group_id, message_seq } );
-		return result.messages;
+		return this.getApiResponse( result, result.data.messages );
 	}
 	
 	/** 获取图片信息 */
@@ -282,7 +293,7 @@ export class Client {
 	/** 检查是否可以发送图片 */
 	public async canSendImage() {
 		const result = await this.baseClient.fetchApi( "can_send_image", undefined );
-		return result.yes;
+		return this.getApiResponse( result, result.data.yes );
 	}
 	
 	/** 图片 OCR */
@@ -293,13 +304,13 @@ export class Client {
 	/** 获取语音 */
 	public async getRecord( file: string, out_format: RecordFormat ) {
 		const result = await this.baseClient.fetchApi( "get_record", { file, out_format } );
-		return result.file;
+		return this.getApiResponse( result, result.data.file );
 	}
 	
 	/** 获取语音 */
 	public async canSendRecord( file: string, out_format: RecordFormat ) {
 		const result = await this.baseClient.fetchApi( "can_send_record", undefined );
-		return result.yes;
+		return this.getApiResponse( result, result.data.yes );
 	}
 	
 	/** 处理加好友请求 */
@@ -402,8 +413,8 @@ export class Client {
 	}
 	
 	/** 群匿名用户禁言 */
-	public setGroupAnonymousBan( group_id: number, anonymous: Anonymous, duration: number ): Promise<void>;
-	public setGroupAnonymousBan( group_id: number, flag: string, duration: number ): Promise<void>;
+	public setGroupAnonymousBan( group_id: number, anonymous: Anonymous, duration: number ): Promise<ActionResponse<void>>;
+	public setGroupAnonymousBan( group_id: number, flag: string, duration: number ): Promise<ActionResponse<void>>;
 	public setGroupAnonymousBan( group_id: number, anonymousFlag: Anonymous | string, duration = 30 * 60 ) {
 		return this.baseClient.fetchApi( "set_group_anonymous_ban", {
 			group_id,
@@ -485,7 +496,7 @@ export class Client {
 	/** 获取群文件资源链接 */
 	public async getGroupFileUrl( group_id: number, file_id: string, busid: number ) {
 		const result = await this.baseClient.fetchApi( "get_group_file_url", { group_id, file_id, busid } );
-		return result.url;
+		return this.getApiResponse( result, result.data.url );
 	}
 	
 	/** 上传私聊文件 */
@@ -511,19 +522,19 @@ export class Client {
 	/** 下载文件到缓存目录 */
 	public async downloadFile( url: string, thread_count?: number, headers?: string | string[] ) {
 		const result = await this.baseClient.fetchApi( "download_file", { url, thread_count, headers } );
-		return result.file;
+		return this.getApiResponse( result, result.data.file );
 	}
 	
 	/** 检查链接安全性 */
 	public async checkUrlSafely( url: string ) {
 		const result = await this.baseClient.fetchApi( "check_url_safely", { url } );
-		return result.level;
+		return this.getApiResponse( result, result.data.level );
 	}
 	
 	/** 获取中文分词 ( 隐藏 API ) */
 	public async getWordSlices( content: string ) {
 		const result = await this.baseClient.fetchApi( ".get_word_slices", { content } );
-		return result.slices;
+		return this.getApiResponse( result, result.data.slices );
 	}
 }
 

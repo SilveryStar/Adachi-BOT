@@ -77,8 +77,16 @@ export function formatSendMessage( message: Sendable ) {
 			if ( msg.type === "json" ) {
 				data.data = materialize( JSON.stringify( msg.data ) );
 			}
+			if ( msg.type === "image" || msg.type === "flash" ) {
+				if ( msg.file instanceof Buffer ) {
+					data.file = "base64://" + msg.file.toString( "base64" );
+				}
+			}
 			if ( msg.type !== "flash" ) {
 				Reflect.deleteProperty( data, "type" );
+			}
+			if ( msg.type === "music" ) {
+				data.type = msg.platform;
 			}
 		}
 		return { type: msg.type, data };

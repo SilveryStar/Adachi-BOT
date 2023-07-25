@@ -244,8 +244,7 @@ export default defineDirective( "order", async ( i ) => {
 	if ( isRestart ) {
 		try {
 			for ( const pluginInfo of upgrade_plugins ) {
-				await pluginInstance.reloadSingle( pluginInfo.key, false );
-				await pluginInstance.doMount( pluginInfo.key );
+				await pluginInstance.reloadSingle( pluginInfo.key, true, false );
 			}
 			await i.command.reload();
 			await serverInstance.reloadPluginRouters( pluginInstance.pluginList );

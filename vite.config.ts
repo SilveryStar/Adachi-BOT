@@ -4,7 +4,6 @@ import path from "path";
 
 // https://vitejs.dev/config/
 export default ( env: any ) => {
-	console.log( env );
 	const isDev = env.mode === "development";
 	return defineConfig( {
 		root: __dirname,

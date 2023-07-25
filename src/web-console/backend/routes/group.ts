@@ -196,11 +196,11 @@ async function getGroupInfo( info: GroupInfo ): Promise<GroupData | undefined> {
 	
 	const botGroupInfo = await bot.client.getGroupMemberInfo( groupId, bot.client.uin );
 	
-	if ( !botGroupInfo ) {
+	if ( botGroupInfo.retcode !== 0 ) {
 		return undefined;
 	}
 	
-	const groupRole = botGroupInfo.role;
+	const groupRole = botGroupInfo.data.role;
 	
 	const isBanned: boolean = await bot.redis.existListElement(
 		"adachi.banned-group", groupId
