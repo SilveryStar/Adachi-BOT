@@ -23,8 +23,7 @@ export default class MailManagement implements MailManagementMethod {
 	
 	constructor(
 		private config: BotConfig,
-		private client: Client,
-		private logger: Logger
+		private client: Client
 	) {
 		this.sender = this.getSender();
 		config.mail.on( "refresh", newCfg => {
@@ -64,13 +63,13 @@ export default class MailManagement implements MailManagementMethod {
 					to: address,
 					...mailOptions
 				} );
-				this.logger.info( InfoMessage.SUCCESS_SEND );
+				this.client.logger.info( InfoMessage.SUCCESS_SEND );
 			} catch ( error ) {
 				if ( retry ) {
 					await sleep( retryWait );
 					await sendMailFunc( mailOptions, retry - 1, retryWait );
 				} else {
-					this.logger.error( InfoMessage.ERROR_SEND + ( <Error>error ).message );
+					this.client.logger.error( InfoMessage.ERROR_SEND + ( <Error>error ).message );
 				}
 			}
 		};
@@ -89,13 +88,13 @@ export default class MailManagement implements MailManagementMethod {
 				to: `${ this.config.base.master }@qq.com`,
 				...mailOptions
 			} );
-			this.logger.info( InfoMessage.SUCCESS_SEND );
+			this.client.logger.info( InfoMessage.SUCCESS_SEND );
 		} catch ( error ) {
 			if ( retry ) {
 				await sleep( retryWait );
 				await this.sendMaster( mailOptions, retry - 1, retryWait );
 			} else {
-				this.logger.error( InfoMessage.ERROR_SEND + ( <Error>error ).message );
+				this.client.logger.error( InfoMessage.ERROR_SEND + ( <Error>error ).message );
 			}
 		}
 	}

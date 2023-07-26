@@ -9,6 +9,7 @@ import * as r from "./backend/routes";
 import { getTokenByRequest } from "./backend/utils/request";
 import { LogMessage } from "@/web-console/types/logger";
 import { Logger } from "log4js";
+import { Client } from "@/modules/lib";
 
 interface Ref<T> {
 	value: T;
@@ -22,7 +23,7 @@ export default class WebConsole {
 	constructor(
 		private readonly app: Application,
 		private readonly config: BotConfig["webConsole"],
-		private readonly logger: Logger,
+		private readonly client: Client,
 		firstListener: boolean
 	) {
 		this.createConsole( firstListener );
@@ -80,7 +81,7 @@ export default class WebConsole {
 					if ( error ) {
 						reject( error );
 					} else {
-						this.logger.info( `原tcp端口已关闭` )
+						this.client.logger.info( `原tcp端口已关闭` )
 						this.server = null;
 						resolve();
 					}
@@ -98,7 +99,7 @@ export default class WebConsole {
 				msg.value += res;
 			} );
 		} ).listen( tcp, () => {
-			this.logger.info( "tcp服务启动" );
+			this.client.logger.info( "tcp服务启动" );
 		} );
 	}
 	

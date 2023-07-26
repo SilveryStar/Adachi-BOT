@@ -4,7 +4,8 @@ CreateTime: 2022/6/21
  */
 import * as msg from "./message";
 import fetch from "node-fetch";
-import { Client } from "tencentcloud-sdk-nodejs-nlp/tencentcloud/services/nlp/v20190408/nlp_client";
+import { Client as CoreClient } from "@/modules/lib";
+import { Client as NlpClient } from "tencentcloud-sdk-nodejs-nlp/tencentcloud/services/nlp/v20190408/nlp_client";
 import { BotConfig } from "@/modules/config";
 import { Logger } from "log4js";
 import { Sendable, segment } from "@/modules/lib";
@@ -38,11 +39,11 @@ const checkXiaoAiSuccess = ( res: XiaoAiResult ): res is XiaoAiResultSuccess => 
 
 export default class AiChat {
 	private enable = false;
-	private nlpClient: Client | null = null;
+	private nlpClient: NlpClient | null = null;
 	
 	constructor(
 		private config: BotConfig["autoChat"],
-		private logger: Logger
+		private coreClient: CoreClient
 	) {
 		this.initChat();
 		config.on( "refresh", () => {
@@ -56,7 +57,7 @@ export default class AiChat {
 			return;
 		}
 		if ( ![ 1, 2, 3 ].includes( this.config.type ) ) {
-			this.logger.error( "自动聊天类型配置异常，仅支持 1 - 3" );
+			this.coreClient.logger.error( "自动聊天类型配置异常，仅支持 1 - 3" );
 			return;
 		}
 		if ( this.config.type === 2 ) {
@@ -74,7 +75,7 @@ export default class AiChat {
 				},
 			};
 			//实例化NLP对象
-			this.nlpClient = new Client( clientConfig );
+			this.nlpClient = new NlpClient( clientConfig );
 		}
 	}
 	
@@ -94,7 +95,7 @@ export default class AiChat {
 				await sendMessage( await this.getReplyMessage( messageData ) );
 			} catch ( error: any ) {
 				const errMsg = error.stack || error.message || error;
-				this.logger.error( "自动聊天出错：" + errMsg );
+				this.coreClient.logger.error( "自动聊天出错：" + errMsg );
 			}
 		}
 	}

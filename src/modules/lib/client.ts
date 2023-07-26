@@ -167,7 +167,7 @@ export class Client {
 	/** 获取在线机型 */
 	public async getModelShow( model: string ) {
 		const result = await this.baseClient.fetchApi( "_get_model_show", { model } );
-		return this.getApiResponse( result, result.data.variants );
+		return this.getApiResponse( result, result.data && result.data.variants );
 	}
 	
 	/** 设置在线机型 */
@@ -178,7 +178,7 @@ export class Client {
 	/** 获取当前账号在线客户端列表 */
 	public async getOnlineClients( no_cache = false ) {
 		const result = await this.baseClient.fetchApi( "get_online_clients", { no_cache } );
-		return this.getApiResponse( result, result.data.clients );
+		return this.getApiResponse( result, result.data && result.data.clients );
 	}
 	
 	/** 获取陌生人信息 */
@@ -212,7 +212,7 @@ export class Client {
 			user_id,
 			message: formatSendMessage( message )
 		} );
-		return this.getApiResponse( result, result.data.message_id );
+		return this.getApiResponse( result, result.data && result.data.message_id );
 	}
 	
 	/** 发送临时会话消息 */
@@ -222,7 +222,7 @@ export class Client {
 			message: formatSendMessage( message ),
 			group_id
 		} );
-		return this.getApiResponse( result, result.data.message_id );
+		return this.getApiResponse( result, result.data && result.data.message_id );
 	}
 	
 	/** 发送群聊消息 */
@@ -231,7 +231,7 @@ export class Client {
 			group_id,
 			message: formatSendMessage( message )
 		} );
-		return this.getApiResponse( result, result.data.message_id );
+		return this.getApiResponse( result, result.data && result.data.message_id );
 	}
 	
 	/** 发送消息 */
@@ -243,7 +243,7 @@ export class Client {
 			[type === "private" ? "user_id" : "group_id"]: userOrGroupId,
 			message: formatSendMessage( message )
 		} );
-		return this.getApiResponse( result, result.data.message_id );
+		return this.getApiResponse( result, result.data && result.data.message_id );
 	}
 	
 	/** 获取消息 */
@@ -264,7 +264,7 @@ export class Client {
 	/** 获取合并转发内容 */
 	public async getForwardMessage( message_id: number ) {
 		const result = await this.baseClient.fetchApi( "get_forward_msg", { message_id } );
-		return this.getApiResponse( result, result.data.messages );
+		return this.getApiResponse( result, result.data && result.data.messages );
 	}
 	
 	/** 发送合并转发 ( 群聊 ) */
@@ -286,7 +286,7 @@ export class Client {
 	/** 获取群消息历史记录 */
 	public async getGroupMsgHistory( group_id: number, message_seq: number ) {
 		const result = await this.baseClient.fetchApi( "get_group_msg_history", { group_id, message_seq } );
-		return this.getApiResponse( result, result.data.messages );
+		return this.getApiResponse( result, result.data && result.data.messages );
 	}
 	
 	/** 获取图片信息 */
@@ -297,7 +297,7 @@ export class Client {
 	/** 检查是否可以发送图片 */
 	public async canSendImage() {
 		const result = await this.baseClient.fetchApi( "can_send_image", undefined );
-		return this.getApiResponse( result, result.data.yes );
+		return this.getApiResponse( result, result.data && result.data.yes );
 	}
 	
 	/** 图片 OCR */
@@ -308,13 +308,13 @@ export class Client {
 	/** 获取语音 */
 	public async getRecord( file: string, out_format: RecordFormat ) {
 		const result = await this.baseClient.fetchApi( "get_record", { file, out_format } );
-		return this.getApiResponse( result, result.data.file );
+		return this.getApiResponse( result, result.data && result.data.file );
 	}
 	
 	/** 获取语音 */
 	public async canSendRecord( file: string, out_format: RecordFormat ) {
 		const result = await this.baseClient.fetchApi( "can_send_record", undefined );
-		return this.getApiResponse( result, result.data.yes );
+		return this.getApiResponse( result, result.data && result.data.yes );
 	}
 	
 	/** 处理加好友请求 */
@@ -500,7 +500,7 @@ export class Client {
 	/** 获取群文件资源链接 */
 	public async getGroupFileUrl( group_id: number, file_id: string, busid: number ) {
 		const result = await this.baseClient.fetchApi( "get_group_file_url", { group_id, file_id, busid } );
-		return this.getApiResponse( result, result.data.url );
+		return this.getApiResponse( result, result.data && result.data.url );
 	}
 	
 	/** 上传私聊文件 */
@@ -526,19 +526,19 @@ export class Client {
 	/** 下载文件到缓存目录 */
 	public async downloadFile( url: string, thread_count?: number, headers?: string | string[] ) {
 		const result = await this.baseClient.fetchApi( "download_file", { url, thread_count, headers } );
-		return this.getApiResponse( result, result.data.file );
+		return this.getApiResponse( result, result.data && result.data.file );
 	}
 	
 	/** 检查链接安全性 */
 	public async checkUrlSafely( url: string ) {
 		const result = await this.baseClient.fetchApi( "check_url_safely", { url } );
-		return this.getApiResponse( result, result.data.level );
+		return this.getApiResponse( result, result.data && result.data.level );
 	}
 	
 	/** 获取中文分词 ( 隐藏 API ) */
 	public async getWordSlices( content: string ) {
 		const result = await this.baseClient.fetchApi( ".get_word_slices", { content } );
-		return this.getApiResponse( result, result.data.slices );
+		return this.getApiResponse( result, result.data && result.data.slices );
 	}
 }
 

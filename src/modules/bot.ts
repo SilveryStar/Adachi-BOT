@@ -82,27 +82,30 @@ export default class Adachi {
 		}
 		
 		const client = core.createClient( config );
-		const logger = client.logger;
 		
 		process.on( "unhandledRejection", ( reason: any ) => {
-			logger.error( reason?.stack || reason?.message || reason );
+			client.logger.error( reason?.stack || reason?.message || reason );
 		} );
 		
-		this.aiChat = new AiChat( config.autoChat, logger );
+		this.aiChat = new AiChat( config.autoChat, client );
 		
-		const redis = new Database( config.db, logger );
+		const redis = new Database( config.db, client );
 		const interval = new Interval( config.directive, redis );
 		const auth = new Authorization( config.base, redis );
 		const message = new msg.default( config.base, client );
-		const mail = new MailManagement( config, client, logger );
+		const mail = new MailManagement( config, client );
 		const renderer = new BasicRenderer();
 		
 		this.bot = {
 			client, command, file, redis,
-			logger, message, mail, auth,
-			interval, config, refresh, renderer
+			message, mail, auth, interval,
+			config, refresh, renderer,
+			get logger() {
+				return client.logger;
+			}
 		};
-		RenderServer.getInstance( config, file, logger );
+		
+		RenderServer.getInstance( config, file, client );
 		PluginManager.getInstance( this.bot );
 		refresh.register( renderer );
 		refresh.register( "commands", command );

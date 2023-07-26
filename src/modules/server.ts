@@ -1,7 +1,6 @@
 import fs from "fs";
 import { resolve } from "path";
 import express from "express";
-import { Logger } from "log4js";
 import { createServer as createViteServer, ViteDevServer } from "vite";
 import { PluginInfo, RenderRoutes, ServerRouters } from "@/modules/plugin";
 import * as process from "process";
@@ -12,6 +11,7 @@ import FileManagement from "@/modules/file";
 import { Server } from "http";
 import { isEqualObject } from "@/utils/object";
 import { isJsonString } from "@/utils/verify";
+import { Client } from "@/modules/lib";
 
 export default class RenderServer {
 	private static _instance: RenderServer | null = null;
@@ -26,7 +26,7 @@ export default class RenderServer {
 	constructor(
 		private readonly config: BotConfig,
 		private readonly file: FileManagement,
-		private readonly logger: Logger
+		private readonly client: Client
 	) {
 		const wsInstance = useWebsocket( express() );
 		this.app = wsInstance.app;
@@ -48,17 +48,17 @@ export default class RenderServer {
 				return;
 			}
 			await this.closePromise();
-			this.logger.info( `原公共服务端口 ${ oldCfg.renderPort } 已关闭` );
+			this.client.logger.info( `原公共服务端口 ${ oldCfg.renderPort } 已关闭` );
 			this.server = this.listenerPort();
 		} );
 	}
 	
-	public static getInstance( config?: BotConfig, file?: FileManagement, logger?: Logger ): RenderServer {
+	public static getInstance( config?: BotConfig, file?: FileManagement, client?: Client ): RenderServer {
 		if ( !RenderServer._instance ) {
-			if ( !config || !file || !logger ) {
+			if ( !config || !file || !client ) {
 				throw new Error( "获取 server 实例出错" );
 			}
-			RenderServer._instance = new RenderServer( config, file, logger );
+			RenderServer._instance = new RenderServer( config, file, client );
 		}
 		return RenderServer._instance;
 	}
@@ -119,7 +119,7 @@ export default class RenderServer {
 		await this.closePromise();
 		const wsInstance = useWebsocket( express() );
 		this.app = wsInstance.app;
-		this.logger.info( `原公共服务端口 ${ this.config.base.renderPort } 已关闭` );
+		this.client.logger.info( `原公共服务端口 ${ this.config.base.renderPort } 已关闭` );
 		await this.createServer();
 		for ( const r of this.serverRouters ) {
 			this.app.use( r.path, r.router );
@@ -161,7 +161,7 @@ export default class RenderServer {
 		}
 		
 		if ( this.config.webConsole.enable ) {
-			this.webConsole = new WebConsole( this.app, this.config.webConsole, this.logger, this.firstListener );
+			this.webConsole = new WebConsole( this.app, this.config.webConsole, this.client, this.firstListener );
 			this.firstListener = false;
 		}
 		
@@ -208,7 +208,7 @@ export default class RenderServer {
 				// 捕获到了一个错误后，后让 Vite 修复该堆栈，并映射回实际源码中。
 				const err: Error = <Error>e;
 				this.vite?.ssrFixStacktrace( err );
-				this.logger.error( err.stack );
+				this.client.logger.error( err.stack );
 				res.status( 500 ).end( err.stack );
 			}
 		} );
@@ -237,7 +237,7 @@ export default class RenderServer {
 	
 	private listenerPort() {
 		return this.app.listen( this.config.base.renderPort, () => {
-			this.logger.info( `公共 Express 服务已启动, 端口为: ${ this.config.base.renderPort }` );
+			this.client.logger.info( `公共 Express 服务已启动, 端口为: ${ this.config.base.renderPort }` );
 			if ( this.config.webConsole.enable ) {
 				console.log( `网页控制台已启动，请浏览器打开 http://127.0.0.1:${ this.config.base.renderPort } 查看，若为云服务器，请将 127.0.0.1 替换为服务器的公网ip。` )
 			}

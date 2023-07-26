@@ -1,6 +1,6 @@
 import { createClient, RedisClientType } from "redis";
-import { Logger } from "log4js";
 import { BotConfig } from "@/modules/config";
+import { Client as CoreClient } from "@/modules/lib";
 
 type Argument = Buffer | string;
 type SetFieldValue = Argument | number;
@@ -44,18 +44,18 @@ export default class Database implements DatabaseMethod {
 	public client: RedisClientType;
 	private onLine = false;
 	
-	constructor( config: BotConfig["db"], logger: Logger ) {
-		this.client = this.initClient( config.port, config.password, logger );
+	constructor( config: BotConfig["db"], coreClient: CoreClient ) {
+		this.client = this.initClient( config.port, config.password, coreClient );
 		config.on( "refresh", async ( newCfg ) => {
 			if ( this.onLine ) {
 				await this.client.quit();
 				this.onLine = false;
 			}
-			this.client = this.initClient( newCfg.port, newCfg.password, logger );
+			this.client = this.initClient( newCfg.port, newCfg.password, coreClient );
 		} );
 	}
 	
-	private initClient( port: number, password: string, logger: Logger ): any {
+	private initClient( port: number, password: string, coreClient: CoreClient ): any {
 		const host: string = process.env.docker === "yes" ? "redis" : "localhost";
 		const client = createClient( {
 			socket: { port, host },
@@ -63,7 +63,7 @@ export default class Database implements DatabaseMethod {
 		} );
 		client.on( "connect", () => {
 			this.onLine = true;
-			logger.info( "Redis 数据库已连接" );
+			coreClient.logger.info( "Redis 数据库已连接" );
 		} );
 		client.connect().then();
 		return client;

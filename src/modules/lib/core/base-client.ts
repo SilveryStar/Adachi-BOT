@@ -276,7 +276,7 @@ export default class BaseClient extends EventEmitter {
 			this.onApi( echo, data => {
 				resolve( data );
 				if ( data.retcode !== 0 ) {
-					this.logger.error( data.msg );
+					this.logger.error( data.wording );
 				}
 			} );
 		} )

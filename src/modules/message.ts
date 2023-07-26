@@ -15,7 +15,7 @@ export enum MessageType {
 	Unknown
 }
 
-export type SendFunc = ( content: core.Sendable | core.ForwardElem, allowAt?: boolean ) => Promise<number | null>;
+export type SendFunc = ( content: core.Sendable | core.ForwardElem, allowAt?: boolean ) => Promise<number>;
 export type Message = core.PrivateMessageEvent | core.GroupMessageEvent;
 
 interface MsgManagementMethod {
@@ -56,17 +56,26 @@ export default class MsgManagement implements MsgManagementMethod {
 				/* 发送转发消息 */
 				if ( checkoutForward( content ) ) {
 					const sendRes = await client.sendPrivateForwardMessage( <number>userID, content );
-					return sendRes.retcode === 0 ? sendRes.data.message_id : null;
+					if ( sendRes.retcode === 0 ) {
+						return sendRes.data.message_id;
+					}
+					throw new Error( sendRes.wording );
 				}
 				const sendRes = await client.sendPrivateMsg( <number>userID, content );
-				return sendRes.retcode === 0 ? sendRes.data : null;
+				if ( sendRes.retcode === 0 ) {
+					return sendRes.data;
+				}
+				throw new Error( sendRes.wording );
 			}
 		} else {
 			return async function ( content, allowAt ) {
 				/* 发送转发消息 */
 				if ( checkoutForward( content ) ) {
-					const sendRes = await client.sendGroupForwardMessage( groupID, content )
-					return sendRes.retcode === 0 ? sendRes.data.message_id : null;
+					const sendRes = await client.sendGroupForwardMessage( groupID, content );
+					if ( sendRes.retcode === 0 ) {
+						return sendRes.data.message_id;
+					}
+					throw new Error( sendRes.wording );
 				}
 				if ( userID === "all" ) {
 					const atAllRemainRes = await client.getGroupAtAllRemain( groupID );
@@ -88,7 +97,10 @@ export default class MsgManagement implements MsgManagementMethod {
 					}
 				}
 				const sendRes =  await client.sendGroupMsg( groupID, content );
-				return sendRes.retcode === 0 ? sendRes.data : null;
+				if ( sendRes.retcode === 0 ) {
+					return sendRes.data;
+				}
+				throw new Error( sendRes.wording );
 			}
 		}
 	}
