@@ -47,7 +47,6 @@ export interface BOT {
 	readonly message: msg.default;
 	readonly mail: MailManagement;
 	readonly command: Command;
-	readonly refresh: RefreshConfig;
 	readonly renderer: BasicRenderer;
 }
 
@@ -72,7 +71,7 @@ export default class Adachi {
 		// 是否需要初始化环境
 		const exist = file.isExist( file.getFilePath( "base.yml" ) );
 		const command = new Command( file );
-		const refresh = new RefreshConfig();
+		const refresh = RefreshConfig.getInstance();
 		
 		/* 初始化应用模块 */
 		const config = this.getBotConfig( file, refresh );
@@ -99,7 +98,7 @@ export default class Adachi {
 		this.bot = {
 			client, command, file, redis,
 			message, mail, auth, interval,
-			config, refresh, renderer,
+			config, renderer,
 			get logger() {
 				return client.logger;
 			}
@@ -145,7 +144,7 @@ export default class Adachi {
 	}
 	
 	private getBotConfig( file: FileManagement, refresh: RefreshConfig ): BotConfig {
-		return <any>( new Proxy( new BotConfigManager( file, refresh ), {
+		return <any>( new Proxy( new BotConfigManager( file ), {
 			get( target: BotConfigManager, p: string, receiver: any ) {
 				if ( p in target.value ) {
 					return target.value[p];
@@ -235,7 +234,8 @@ export default class Adachi {
 			return;
 		}
 		
-		if ( this.bot.refresh.isRefreshing ) {
+		const refresh = RefreshConfig.getInstance();
+		if ( refresh.isRefreshing ) {
 			return;
 		}
 		

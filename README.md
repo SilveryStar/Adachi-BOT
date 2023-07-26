@@ -383,9 +383,24 @@ export default definePlugin( {
 } );
 ```
 
+### refreshRegister
+
+在 `mounted` 等生命周期钩子函数的参数中提供，其使用方式与原来的 `bot.refresh.register` 方法完全相同，为了替代后者而诞生。
+
+```ts
+export default definePlugin( {
+    // ...
+    mounted( params ) {
+        params.refreshRegister( () => {
+            // 刷新方法
+        } );
+    }
+} );
+```
+
 ### renderRegister
 
-在 `mounted` 生命周期钩子函数的参数中提供， `PluginSetting.renderer.register` 的插件便捷使用方式。
+在 `mounted` 等生命周期钩子函数的参数中提供， `PluginSetting.renderer.register` 的插件便捷使用方式。
 
 免去了提供第一个参数 `route`，自动以 `/插件名（插件目录名）` 作为基地址来注册渲染器。
 
@@ -606,7 +621,7 @@ const information: OrderConfig = {
 - [ "行秋", "-skill" ]
 ```
 
-## brake change
+## break change
 
 ### bot.client 重写
 
@@ -702,6 +717,18 @@ export type Sendable = string | MessageElem | (string | MessageElem)[];
 
 - sdk.toCqCode(): 将 `MessageElem` 类型数组转变为 cqcode 码的格式。
 - sdk.toMessageRecepElem(): 将 cqcode 码转换为事件接收到的格式的对象 `MessageRecepElem[]`;
+
+### 移除的全局工具类 refresh
+
+全局对象 `bot` 已不再包含 `refresh` 对象。请改为通过在插件钩子函数的形参中提供的 [refreshRegister](#refreshRegister) 方法来注册刷新事件。
+
+当然如果你有特殊需要，必须使用 `refresh` 工具类中的方法。可通过以下方式来获取 `refresh` 实例对象。
+
+```ts
+import Refreshable from "@/modules/management/refresh";
+
+const refresh = Refreshable.getInstance();
+```
 
 ### 插件入口函数格式变更
 

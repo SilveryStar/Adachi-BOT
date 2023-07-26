@@ -5,6 +5,7 @@ import { parseZone } from "moment";
 import { formatMemories } from "../utils/format";
 import si from "systeminformation";
 import { DayData, WeekData } from "@/web-console/types/stat";
+import Refreshable from "@/modules/management/refresh";
 // import { restartPm2 } from "&/utils/pm2";
 
 export default express.Router()
@@ -59,7 +60,8 @@ export default express.Router()
 	} )
 	.post( "/refresh", async ( req, res ) => {
 		try {
-			const resp: string[] = await bot.refresh.do();
+			const refresh = Refreshable.getInstance();
+			const resp: string[] = await refresh.do();
 			res.status( 200 ).send( { code: 200, data: resp } );
 		} catch ( error: any ) {
 			res.status( 500 ).send( { code: 500, data: {}, msg: error.message || "Server Error" } );

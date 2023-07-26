@@ -1,5 +1,4 @@
-import FileManagement, { PresetPlace } from "@/modules/file";
-import Command from "@/modules/command/main";
+import { PresetPlace } from "@/modules/file";
 import bot from "ROOT";
 
 interface RefreshTargetFun {
@@ -38,37 +37,58 @@ interface RefreshableFunc {
 type RefreshableSetting = RefreshableFile | RefreshableFunc | RefreshableObj;
 
 interface RefreshableMethod {
-	register( fileName: string, target: RefreshTarget<"file">, place?: PresetPlace ): void;
-	register( target: RefreshTarget<"file"> ): void;
-	register( target: RefreshTarget<"fun"> ): void;
+	register( fileName: string, target: RefreshTarget<"file">, place?: PresetPlace, type?: string ): void;
+	register( target: RefreshTarget<"file">, type?: string ): void;
+	register( target: RefreshTarget<"fun">, type?: string ): void;
+	do(): Promise<string[]>;
 }
 
 export default class Refreshable implements RefreshableMethod {
-	private readonly include: RefreshableSetting[] = [];
+	private systemKey = Symbol( "adachi" );
+	private static _instance: Refreshable | null = null;
+	private readonly include: Map<string | symbol, RefreshableSetting[]> = new Map();
 	public isRefreshing: boolean = false;
 	
-	public register( fileName: string, target: RefreshTarget<"file">, place?: PresetPlace ): void;
-	public register( target: RefreshTarget<"file"> ): void;
-	public register( target: RefreshTarget<"fun"> ): void;
+	public static getInstance() {
+		if ( !Refreshable._instance ) {
+			Refreshable._instance = new Refreshable();
+		}
+		return Refreshable._instance;
+	}
+	
+	public register( fileName: string, target: RefreshTarget<"file">, place?: PresetPlace, type?: string ): void;
+	public register( target: RefreshTarget<"file">, type?: string ): void;
+	public register( target: RefreshTarget<"fun">, type?: string ): void;
 	
 	public register(
 		fileNameOrTarget: string | RefreshTarget<"fun"> | RefreshTarget<"file">,
-		target?: RefreshTarget<"file">,
-		place: PresetPlace = "config"
+		targetOrType?: RefreshTarget<"file"> | string,
+		place: PresetPlace = "config",
+		type?: string
 	): void {
-		if ( typeof fileNameOrTarget === "string" ) {
-			target && this.include.push( { type: "file", fileName: fileNameOrTarget, place, target } );
-		} else if ( typeof fileNameOrTarget === "function" ) {
-			this.include.push( { type: "func", target: fileNameOrTarget } );
-		} else {
-			this.include.push( { type: "obj", target: fileNameOrTarget } );
+		let registerKey: string | symbol = type || this.systemKey;
+		if ( typeof targetOrType === "string" ) {
+			registerKey = targetOrType;
 		}
+		const events = this.include.get( registerKey ) || [];
+		if ( typeof fileNameOrTarget === "string" ) {
+			typeof targetOrType === "object" && events.push( { type: "file", fileName: fileNameOrTarget, place, target: targetOrType } );
+		} else if ( typeof fileNameOrTarget === "function" ) {
+			events.push( { type: "func", target: fileNameOrTarget } );
+		} else {
+			events.push( { type: "obj", target: fileNameOrTarget } );
+		}
+		this.include.set( registerKey, events );
+	}
+	
+	public logout( type: string ) {
+		this.include.delete( type );
 	}
 	
 	public async do(): Promise<string[]> {
 		this.isRefreshing = true;
 		const respList: string[] = [];
-		for ( let setting of this.include ) {
+		for ( let setting of [ ...this.include.values() ].flat() ) {
 			try {
 				let message: string | void;
 				if ( setting.type === "file" ) {

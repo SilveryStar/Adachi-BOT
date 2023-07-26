@@ -16,7 +16,7 @@ export interface FaceElem {
 export interface RecordElem {
 	type: "record";
 	/** 文件名 & 本地绝对路径 & URL & Base64 */
-	file: string;
+	file: string | Buffer;
 	/** 1 变声 */
 	magic?: 0 | 1;
 	/** 使用 url 发送是时否使用缓存，默认1 */

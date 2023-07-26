@@ -79,7 +79,7 @@ export function formatSendMessage( message: Sendable ) {
 			if ( msg.type === "json" ) {
 				data.data = materialize( JSON.stringify( msg.data ) );
 			}
-			if ( msg.type === "image" || msg.type === "flash" ) {
+			if ( msg.type === "image" || msg.type === "flash" || msg.type === "record" ) {
 				if ( msg.file instanceof Buffer ) {
 					data.file = "base64://" + msg.file.toString( "base64" );
 				}

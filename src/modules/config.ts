@@ -218,13 +218,13 @@ class ConfigInstance<T extends Record<string, any>> {
 export default class BotConfigManager {
 	public readonly value: BotConfigValue;
 	
-	constructor( file: FileManagement, refresh: RefreshConfig ) {
+	constructor( file: FileManagement ) {
 		const registerConfig = <T extends BotConfigValue[keyof BotConfigValue]>(
 			filename: string,
 			initCfg: T,
 			setValueCallBack: ( config: T ) => T = config => config
 		) => {
-			return this.register<T>( filename, initCfg, setValueCallBack, file, refresh );
+			return this.register<T>( filename, initCfg, setValueCallBack, undefined, file );
 		};
 		
 		this.value = {
@@ -277,9 +277,12 @@ export default class BotConfigManager {
 		filename: string,
 		initCfg: T,
 		setValueCallBack: ( config: T ) => T = config => config,
-		file: FileManagement = bot.file,
-		refresh: RefreshConfig = bot.refresh
+		pluginName?: string,
+		file: FileManagement = bot.file
 	) {
+		if ( pluginName ) {
+			filename = `${ pluginName }/${ filename }`;
+		}
 		const path: string = file.getFilePath( `${ filename }.yml` );
 		const isExist: boolean = file.isExist( path );
 		let cfg: T;
@@ -293,7 +296,8 @@ export default class BotConfigManager {
 		const configInstance = new ConfigInstance( filename, cfg, setValueCallBack );
 		
 		file.writeYAML( filename, configInstance.value );
-		refresh.register( filename, configInstance );
+		const refresh = RefreshConfig.getInstance();
+		refresh.register( filename, configInstance, undefined, pluginName );
 		
 		return <ExportConfig<T>><any>( new Proxy( configInstance, {
 			get( target: ConfigInstance<T>, p: string ): any {

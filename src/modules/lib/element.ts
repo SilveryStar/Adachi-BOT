@@ -7,7 +7,7 @@ export const segment = {
 	face( id: number ): el.FaceElem {
 		return { type: "face", id };
 	},
-	record( file: string, magic = true, cache = true, timeout = 0 ): el.RecordElem {
+	record( file: string | Buffer, magic = true, cache = true, timeout = 0 ): el.RecordElem {
 		return {
 			type: "record",
 			file,

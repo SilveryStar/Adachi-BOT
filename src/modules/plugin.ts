@@ -12,6 +12,8 @@ import { isIgnorePath } from "@/utils/path";
 import { parse, stringify } from "yaml";
 import { isJsonString } from "@/utils/verify";
 import { ExportConfig } from "@/modules/config";
+import { PresetPlace } from "@/modules/file";
+import Refreshable, { RefreshTarget } from "@/modules/management/refresh";
 
 export interface RenderRoutes {
 	path: string;
@@ -28,7 +30,14 @@ export interface ServerRouters {
 	router: Router;
 }
 
+interface RefreshRegister {
+	( fileName: string, target: RefreshTarget<"file">, place?: PresetPlace ): void;
+	( target: RefreshTarget<"file"> ): void;
+	( target: RefreshTarget<"fun"> ): void;
+}
+
 export type PluginParameter = {
+	refreshRegister: RefreshRegister;
 	renderRegister: ( defaultSelector: string ) => Renderer;
 	configRegister: <T extends Record<string, any>>(
 		fileName: string,
@@ -229,6 +238,10 @@ export default class Plugin {
 			const oldSetting = this.pluginSettings[pluginKey];
 			await this.doUnMount( pluginKey );
 			
+			/* 卸载插件刷新事件 */
+			const refresh = Refreshable.getInstance();
+			refresh.logout( pluginKey );
+			
 			Reflect.deleteProperty( this.pluginList, pluginKey );
 			Reflect.deleteProperty( this.pluginSettings, pluginKey );
 			
@@ -244,8 +257,11 @@ export default class Plugin {
 	}
 	
 	public async reload() {
+		const refresh = Refreshable.getInstance();
 		for ( const pluginKey in this.pluginSettings ) {
 			await this.doUnMount( pluginKey );
+			/* 卸载插件刷新事件 */
+			refresh.logout( pluginKey );
 		}
 		const oldSettings = this.pluginSettings;
 		this.pluginSettings = {};
@@ -262,6 +278,9 @@ export default class Plugin {
 	public async unLoadSingle( pluginKey: string, reloadCmd = true  ) {
 		try {
 			await this.doUnMount( pluginKey );
+			const refresh = Refreshable.getInstance();
+			refresh.logout( pluginKey );
+			
 			const setting = this.pluginSettings[pluginKey];
 			
 			Reflect.deleteProperty( this.pluginList, pluginKey );
@@ -400,10 +419,22 @@ export default class Plugin {
 	 */
 	private getPluginParameter( key: string ): PluginParameter {
 		const bot = this.bot;
+		const refresh = Refreshable.getInstance();
 		return {
 			...bot,
+			refreshRegister(
+				fileNameOrTarget: string | RefreshTarget<"fun"> | RefreshTarget<"file">,
+				target?: RefreshTarget<"file">,
+				place: PresetPlace = "config",
+			) {
+				if ( typeof fileNameOrTarget === "string" ) {
+					return refresh.register( fileNameOrTarget, target!, place, key );
+				} else {
+					return refresh.register( <any>fileNameOrTarget, key );
+				}
+			},
 			configRegister( fileName, initCfg, setValueCallBack?, refreshCallBack? ) {
-				return bot.config.register( `${ key }/${ fileName }`, initCfg, setValueCallBack );
+				return bot.config.register( fileName, initCfg, setValueCallBack, key );
 			},
 			renderRegister( defaultSelector ) {
 				return bot.renderer.register( `/${ key }`, defaultSelector );
