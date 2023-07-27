@@ -96,16 +96,14 @@ export class Order extends BasicConfig {
 	
 	public getExtReg( pair: RegPair ) {
 		const config = bot.config.directive;
-		/* 是否存在指令起始符 */
-		const hasHeader = config.header.length
-			? config.header.findIndex( h => pair.header.includes( h ) ) !== -1
-			: false;
+		/* 当前指令起始符 */
+		const curStarter = config.header.find( h => pair.header.includes( h ) );
 		const rawHeader = this.getPairHeader( pair );
 		
 		let extRegStr: string = "";
 		if ( config.fuzzyMatch && rawHeader.length !== 0 && /[\u4e00-\u9fa5]/.test( rawHeader ) ) {
-			extRegStr = `${ hasHeader ? "(?=^" + config.header + ")" : "" }(?=.*?${ rawHeader })`;
-		} else if ( config.matchPrompt && config.header && pair.header ) {
+			extRegStr = `${ curStarter ? "(?=^" + curStarter + ")" : "" }(?=.*?${ rawHeader })`;
+		} else if ( config.matchPrompt && pair.header ) {
 			extRegStr = "^" + pair.header;
 		}
 		

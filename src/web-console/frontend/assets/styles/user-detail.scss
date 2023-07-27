@@ -29,10 +29,18 @@
     .group-info {
         height: 60px;
 
-        p {
-            line-height: 24px;
-            font-size: 15px;
-            padding-left: 20px;
+        .group-info-list {
+            display: flex;
+            flex-wrap: wrap;
+            padding: 0 10px;
+
+            li {
+                width: 33%;
+                padding-left: 10px;
+                line-height: 24px;
+                font-size: 15px;
+                box-sizing: border-box;
+            }
         }
     }
 
@@ -237,7 +245,7 @@
             height: 40px;
         }
 
-        .group-info p,
+        .group-info .group-info-list > li,
         .limit-info .limit-list > li,
         .sub-info .sub-list > li {
             font-size: 12px;

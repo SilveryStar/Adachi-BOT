@@ -1,14 +1,12 @@
 import WebSocket from "ws";
 import { isJsonString } from "@/utils/verify";
-import { EventData } from "../types/event";
-import { ActionRequest, ActionResponse } from "../types/action";
+import { ActionRequest, ActionResponse, EventData, FriendInfo, GroupInfo, Sendable, toMessageRecepElem } from "@/modules/lib";
 import WsMessage from "@/utils/message";
 import { getLogger, Logger } from "log4js";
 import EventEmitter from "@/modules/lib/core/event-emitter";
 import { ApiMap } from "@/modules/lib/types/map/api";
-import { FriendInfo, GroupInfo, Sendable, toMessageRecepElem } from "@/modules/lib";
 import { formatSendMessage } from "@/modules/lib/message";
-import { reject } from "lodash";
+import { getRandomString } from "@/utils/random";
 
 type ApiParam<T extends ( param: any ) => any> = T extends () => any
 	? undefined
@@ -67,6 +65,22 @@ export default class BaseClient extends EventEmitter {
 		} );
 	}
 	
+	public setGroupList() {
+		this.fetchApi( "get_group_list", { no_cache: true } ).then( data => {
+			this.gl = data.retcode === 0
+				? new Map( data.data.map( d => [ d.group_id, d ] ) )
+				: new Map();
+		} );
+	}
+	
+	public setFriendList() {
+		this.fetchApi( "get_friend_list", undefined ).then( data => {
+			this.fl = data.retcode === 0
+				? new Map( data.data.map( d => [ d.user_id, d ] ) )
+				: new Map();
+		} );
+	}
+	
 	private initEventWs( this: BaseClient, ws: WebSocket ) {
 		ws.on( "open", () => {
 			this.logger.info( `已连接到 event 事件服务器：${ this.target }` );
@@ -98,17 +112,9 @@ export default class BaseClient extends EventEmitter {
 						this.online = data.status.online;
 						if ( this.online ) {
 							/* 初始化群组列表 */
-							this.fetchApi( "get_group_list", { no_cache: true } ).then( data => {
-								this.gl = data.retcode === 0
-									? new Map( data.data.map( d => [ d.group_id, d ] ) )
-									: new Map();
-							} );
+							this.setGroupList();
 							/* 初始化好友列表 */
-							this.fetchApi( "get_friend_list", undefined ).then( data => {
-								this.fl = data.retcode === 0
-									? new Map( data.data.map( d => [ d.user_id, d ] ) )
-									: new Map();
-							} );
+							this.setFriendList();
 							this.emit( "system.online", data );
 						} else {
 							this.emit( "system.offline", data );
@@ -177,6 +183,7 @@ export default class BaseClient extends EventEmitter {
 					if ( this.checkNoticePrivateEvent( data ) ) {
 						switch ( data.notice_type ) {
 							case "friend_add":
+								this.setFriendList();
 								this.logger.info( `更新好友列表：新增好友 ${ data.user_id }` );
 								this.emit( "notice.friend.add", data );
 								break;
@@ -201,6 +208,7 @@ export default class BaseClient extends EventEmitter {
 							case "group_increase":
 								this.emit( "notice.group.increase", data );
 								if ( data.user_id === this.uin ) {
+									this.setGroupList();
 									this.logger.info( `更新群列表：新增群聊 ${ data.group_id }` );
 									this.emit( "notice.group.increase", data );
 								} else {
@@ -209,6 +217,7 @@ export default class BaseClient extends EventEmitter {
 								break;
 							case "group_decrease":
 								if ( data.sub_type === "kick_me" || data.user_id === this.uin ) {
+									this.setGroupList();
 									this.logger.info( `更新群列表：移除群聊 ${ data.group_id }` );
 									this.emit( "notice.group.decrease", data );
 								} else {
@@ -270,10 +279,22 @@ export default class BaseClient extends EventEmitter {
 	
 	/** 请求 api */
 	public fetchApi<T extends keyof ApiMap>( action: T, params: ApiParam<ApiMap[T]> ): Promise<ActionResponse<ReturnType<ApiMap[T]>>> {
-		const echo = Date.now().toString( 36 );
+		const echo = Date.now().toString( 36 ) + getRandomString( 6 );
 		this.sendMessage( { action, params, echo } );
+		/* 10000ms 超时 */
+		const timer = setTimeout( () => {
+			this.emitApi( echo, {
+				retcode: 408,
+				status: "failed",
+				data: null,
+				msg: "Request_Timeout",
+				wording: "请求超时",
+				echo
+			} )
+		}, 10000 );
 		return new Promise( resolve => {
 			this.onApi( echo, data => {
+				clearTimeout( timer );
 				resolve( data );
 				if ( data.retcode !== 0 ) {
 					this.logger.error( data.wording );

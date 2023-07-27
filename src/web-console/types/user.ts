@@ -9,6 +9,6 @@ export interface UserInfo {
 	botAuth: AuthLevel;
 	interval: number;
 	limits: string[];
-	groupInfoList: ( string | GroupMemberInfo )[];
+	groupInfoList: ( string | number )[];
 	subInfo?: string[]
 }

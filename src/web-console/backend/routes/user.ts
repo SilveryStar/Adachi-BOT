@@ -1,7 +1,6 @@
 import bot from "ROOT";
 import express from "express";
 import { AuthLevel } from "@/modules/management/auth";
-import { GroupMemberInfo, StrangerInfo } from "@/modules/lib";
 import PluginManager from "@/modules/plugin";
 import { UserInfo } from "@/web-console/types/user";
 import { sleep } from "@/utils/async";
@@ -140,22 +139,14 @@ async function getUserInfo( userID: number ): Promise<UserInfo> {
 	const interval: number = bot.interval.get( userID, "private" );
 	const limits: string[] = await bot.redis.getList( `adachi.user-command-limit-${ userID }` );
 	
-	const groupInfoList: Array<GroupMemberInfo | string> = [];
 	
 	const usedGroups: string[] = await bot.redis.getSet( `adachi.user-used-groups-${ userID }` );
 	const nickname: string = publicInfoRes.retcode === 0 ? publicInfoRes.data.nickname : "";
 	
-	for ( let el of usedGroups ) {
+	const groupInfoList: Array<number | string> = usedGroups.map( el => {
 		const groupID: number = Number.parseInt( el );
-		if ( groupID === -1 ) {
-			groupInfoList.push( "私聊方式使用" );
-			continue;
-		}
-		const groupMemberInfoRes = await bot.client.getGroupMemberInfo( groupID, userID );
-		if ( groupMemberInfoRes.retcode === 0 ) {
-			groupInfoList.push( groupMemberInfoRes.data );
-		}
-	}
+		return groupID === -1 ? "私聊方式使用" : groupID;
+	} );
 	
 	return { userID, avatar, nickname, isFriend, botAuth, interval, limits, groupInfoList }
 }

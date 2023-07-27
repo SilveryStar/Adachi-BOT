@@ -383,6 +383,19 @@ export default definePlugin( {
 } );
 ```
 
+### setAlias
+
+在 `mounted` 等生命周期钩子函数的参数中提供，用于设置插件的别名，插件的别名可用于 更新插件、重载插件 等命令。
+
+```ts
+export default definePlugin( {
+    // ...
+    mounted( params ) {
+        params.setAlias( [ "茉莉" ] );
+    }
+} );
+```
+
 ### refreshRegister
 
 在 `mounted` 等生命周期钩子函数的参数中提供，其使用方式与原来的 `bot.refresh.register` 方法完全相同，为了替代后者而诞生。

@@ -37,13 +37,13 @@ interface RefreshRegister {
 }
 
 export type PluginParameter = {
+	setAlias: ( aliases: string[] ) => void;
 	refreshRegister: RefreshRegister;
 	renderRegister: ( defaultSelector: string ) => Renderer;
 	configRegister: <T extends Record<string, any>>(
 		fileName: string,
 		initCfg: T,
-		setValueCallBack?: ( config: T ) => T,
-		refreshCallBack?: ( config: T ) => string | void
+		setValueCallBack?: ( config: T ) => T
 	) => ExportConfig<T>;
 } & BOT;
 
@@ -80,7 +80,6 @@ type SubUser = {
 export interface PluginSetting {
 	name: string;
 	cfgList: cmd.ConfigType[];
-	aliases?: string[];
 	renderer?: boolean | {
 		dirname?: string;
 		mainFiles?: string[];
@@ -161,7 +160,6 @@ export default class Plugin {
 				server,
 				cfgList,
 				repo,
-				aliases,
 				assets,
 				subscribe
 			}: PluginSetting = init.default;
@@ -172,7 +170,7 @@ export default class Plugin {
 			const plugin: PluginInfo = {
 				key: pluginKey,
 				name: pluginName,
-				aliases: aliases || [],
+				aliases: [],
 				commands: [],
 				cmdConfigs: cfgList,
 				servers: [],
@@ -338,23 +336,19 @@ export default class Plugin {
 		} );
 	}
 	
-	/* 移除指定目标下的指定插件的所有订阅 */
-	public remPluginSub( { subscribe, name }: PluginInfo, type: "private" | "group", targetId: number ) {
-		try {
-			if ( subscribe ) {
-				for ( const { reSub } of subscribe ) {
-					reSub( targetId, type, this.bot );
-				}
-			}
-		} catch ( error ) {
-			this.bot.logger.error( `插件${ name }取消订阅事件执行异常：${ <string>error }` )
-		}
-	}
-	
 	/* 移除指定目标下的所有订阅 */
 	public remSub( type: "private" | "group", targetId: number ) {
 		for ( const pluginKey in this.pluginList ) {
-			this.remPluginSub( this.pluginList[pluginKey], type, targetId );
+			const { subscribe, name } = this.pluginList[pluginKey];
+			try {
+				if ( subscribe ) {
+					for ( const { reSub } of subscribe ) {
+						reSub( targetId, type, this.bot );
+					}
+				}
+			} catch ( error ) {
+				this.bot.logger.error( `插件${ name }取消订阅事件执行异常：${ <string>error }` )
+			}
 		}
 	}
 	
@@ -419,9 +413,13 @@ export default class Plugin {
 	 */
 	private getPluginParameter( key: string ): PluginParameter {
 		const bot = this.bot;
+		const that = this;
 		const refresh = Refreshable.getInstance();
 		return {
 			...bot,
+			setAlias( aliases ) {
+				that.pluginList[ key ].aliases = aliases;
+			},
 			refreshRegister(
 				fileNameOrTarget: string | RefreshTarget<"fun"> | RefreshTarget<"file">,
 				target?: RefreshTarget<"file">,
@@ -433,7 +431,7 @@ export default class Plugin {
 					return refresh.register( <any>fileNameOrTarget, key );
 				}
 			},
-			configRegister( fileName, initCfg, setValueCallBack?, refreshCallBack? ) {
+			configRegister( fileName, initCfg, setValueCallBack? ) {
 				return bot.config.register( fileName, initCfg, setValueCallBack, key );
 			},
 			renderRegister( defaultSelector ) {
@@ -532,10 +530,11 @@ export default class Plugin {
 			updatePromiseList.push( limiter( () => ( async () => {
 				try {
 					const pathList = [ `${ baseUrl }/${ fileFormatPath }` ];
-					
-					if ( process.env.NODE_ENV === "production" ) {
-						pathList.push( `dist/${ commonUrl }/${ fileFormatPath }` );
-					}
+
+					/** todo 未来的打包环境下使用 */
+					// if ( process.env.NODE_ENV === "production" ) {
+					// 	pathList.push( `dist/${ commonUrl }/${ fileFormatPath }` );
+					// }
 					await this.bot.file.downloadFile( downloadUrl, pathList, data => {
 						// 不再忽略清单文件中时直接返回原数据
 						if ( !isIgnore ) {

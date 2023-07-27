@@ -133,18 +133,12 @@ export class Client {
 	
 	/** 重载群列表 */
 	public async reloadGroupList() {
-		const data = await this.getGroupList( true );
-		this.gl = data.retcode === 0
-			? new Map( data.data.map( data => [ data.group_id, data ] ) )
-			: new Map();
+		this.baseClient.setGroupList();
 	}
 	
 	/** 重载好友列表 */
 	public async reloadFriendList() {
-		const data = await this.getFriendList();
-		this.fl = data.retcode === 0
-			? new Map( data.data.map( data => [ data.user_id, data ] ) )
-			: new Map();
+		this.baseClient.setFriendList();
 	}
 	
 	/** 获取登录号信息 */
