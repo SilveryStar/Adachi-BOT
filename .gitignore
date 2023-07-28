@@ -26,9 +26,13 @@ dist
 !/src/plugins/genshin/
 !/src/plugins/tools/
 
+/go-cqhttp/
+!/go-cqhttp/config-default.yml
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
+.pnpm-store/
 .idea
 .DS_Store
 *.suo

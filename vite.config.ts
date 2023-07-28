@@ -1,6 +1,7 @@
 import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
 import path from "path";
+import http from "http";
 
 // https://vitejs.dev/config/
 export default ( env: any ) => {
@@ -11,7 +12,14 @@ export default ( env: any ) => {
 		publicDir: "./public",
 		plugins: [ vue() ],
 		server: {
-			hmr: isDev
+			hmr: {
+				server: isDev ? undefined : http.createServer( ( req, res ) => {
+					res.end('adachi');
+				} )
+			},
+			watch: {
+				ignored: () => !isDev
+			}
 		},
 		resolve: {
 			alias: {

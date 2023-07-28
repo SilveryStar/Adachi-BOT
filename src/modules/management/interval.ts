@@ -16,8 +16,11 @@ class IntervalSetting {
 	constructor( redis: Database, dbKey: string, limit: number ) {
 		this.dbKey = dbKey;
 		this.globalLimit = limit;
-		redis.getHash( dbKey ).then( res => {
-			this.limitList = { ...res };
+		/* 等待 redis 连接成功 */
+		redis.waitConnected().then( () => {
+			redis.getHash( this.dbKey ).then( res => {
+				this.limitList = { ...res };
+			} );
 		} );
 	}
 	

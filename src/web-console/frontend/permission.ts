@@ -53,17 +53,16 @@ router.beforeEach( async ( to, from, next ) => {
 		if ( to.name === "Login" && to.query.createRoot === "true" ) {
 			return next( { name: "Login" } );
 		}
-	}
-	
-	const hasToken = await checkToken();
-	
-	if ( hasToken && whiteList.includes( to.path ) ) {
-		return next( { name: "Home" } );
-	}
-	
-	if ( !hasToken && !whiteList.includes( to.path ) ) {
-		// 需要权限且不存在于白名单内的目标，添加跳转来源参数后跳转至登录页.
-		return next( { name: "Login" } );
+		
+		const hasToken = tokenSession.get();
+		if ( hasToken && whiteList.includes( to.path ) ) {
+			return next( { name: "Home" } );
+		}
+		
+		if ( !hasToken && !whiteList.includes( to.path ) ) {
+			// 需要权限且不存在于白名单内的目标，添加跳转来源参数后跳转至登录页.
+			return next( { name: "Login" } );
+		}
 	}
 	next();
 } );

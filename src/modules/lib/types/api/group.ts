@@ -34,6 +34,8 @@ export interface GroupMemberInfo extends PostMessageGroupSender {
 	card_changeable: boolean;
 	/** 禁言到期时间 */
 	shut_up_timestamp: number;
+	/** 是否被禁言 */
+	is_shut_up: boolean;
 }
 
 interface BaseHonor {

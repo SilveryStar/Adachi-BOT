@@ -173,6 +173,7 @@ const privateSubscribe: EnquireConfig = {
 	headers: [ "ps" ],
 	main: "achieves/private/subscribe",
 	scope: MessageScope.Private,
+	ignoreCase: false,
 	timeout: 180,
 	detail: "私人服务，一类通过使用个人 cookie 获取私密信息\n" +
 		"目前包含实时便笺订阅功能，未来可能会添加新功能"

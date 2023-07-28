@@ -4,7 +4,7 @@ export interface EventMap {
 	/** 上线事件 */
 	"system.online": ( event: e.SystemHeartbeatEvent ) => void;
 	/** 下线事件 */
-	"system.offline": ( event: e.SystemHeartbeatEvent ) => void;
+	"system.offline": ( event: e.SystemHeartbeatEvent | null ) => void;
 	/** 生命周期事件 */
 	"system.lifecycle": ( event: e.SystemLifecycleEvent ) => void;
 	/** 系统事件 */

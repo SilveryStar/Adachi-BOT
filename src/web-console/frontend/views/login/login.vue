@@ -10,7 +10,7 @@ const router = useRouter();
 const user = useUserStore();
 
 const state = reactive( {
-	nickname: "",
+	username: "",
 	password: "",
 	loading: false,
 	rememberAccount: true
@@ -18,10 +18,10 @@ const state = reactive( {
 
 function loginByPassword() {
 	state.loading = true
-	user.USER_LOGIN( state.nickname, state.password ).then( () => {
+	user.USER_LOGIN( state.username, state.password ).then( () => {
 		if ( state.rememberAccount ) {
 			loginInfoSession.set( {
-				nickname: state.nickname,
+				username: state.username,
 				rememberAccount: state.rememberAccount
 			} )
 		} else {
@@ -42,22 +42,22 @@ function loginByPassword() {
 
 onMounted( () => {
 	const loginInfo = loginInfoSession.get();
-	state.nickname = loginInfo?.nickname;
+	state.username = loginInfo?.username;
 	state.rememberAccount = loginInfo?.rememberAccount;
 } );
 
-function setNickname( nickname: string ) {
-	state.nickname = nickname;
+function setUsername( username: string ) {
+	state.username = username;
 }
 
 defineExpose( {
-	setNickname
+	setUsername
 } );
 </script>
 
 <template>
 	<div class="login">
-		<el-input v-model.number="state.nickname" placeholder="用户名" maxlength="13" clearable
+		<el-input v-model.number="state.username" placeholder="用户名" maxlength="13" clearable
 		          @keyup.enter="loginByPassword"/>
 		<el-input v-model.trim="state.password" placeholder="密码" maxlength="20" clearable
 		          show-password @keyup.enter="loginByPassword"/>

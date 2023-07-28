@@ -144,7 +144,9 @@ export default class RenderServer {
 					base: "/",
 					root: process.cwd(),
 					mode: process.env.NODE_ENV || "development",
-					server: { middlewareMode: true },
+					server: {
+						middlewareMode: true
+					},
 					appType: "custom"
 				} );
 			}

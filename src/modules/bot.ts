@@ -65,9 +65,9 @@ export default class Adachi {
 	/* 自动聊天 */
 	private readonly aiChat: AiChat;
 	
-	constructor( root: string ) {
+	constructor() {
 		/* 初始化运行环境 */
-		const file = new FileManagement( root );
+		const file = FileManagement.getInstance();
 		// 是否需要初始化环境
 		const exist = file.isExist( file.getFilePath( "base.yml" ) );
 		const command = new Command( file );
@@ -111,11 +111,10 @@ export default class Adachi {
 	}
 	
 	public run(): BOT {
-		/* 删除存储的待问答指令 */
-		this.bot.redis.deleteKey( Enquire.redisKey ).then();
-		
 		const pluginInstance = PluginManager.getInstance();
 		pluginInstance.load( false ).then( ( pluginSettings ) => {
+			/* 删除存储的待问答指令 */
+			this.bot.redis.deleteKey( Enquire.redisKey ).then();
 			/* 成功连接 gocq 后执行各插件装载方法 */
 			this.bot.client.connect().then( async () => {
 				for ( const key of Object.keys( pluginSettings ) ) {
@@ -427,9 +426,9 @@ export default class Adachi {
 			);
 			
 			const groupInfoRes = await bot.client.getGroupMemberInfo( groupID, bot.client.uin );
-			const shutUpTime = groupInfoRes.retcode === 0 ? groupInfoRes.data.shut_up_timestamp : 0;
+			const isShutUp = groupInfoRes.retcode === 0 ? groupInfoRes.data.is_shut_up : false;
 			
-			if ( !isBanned && shutUpTime === 0 ) {
+			if ( !isBanned && !isShutUp ) {
 				const auth: AuthLevel = await bot.auth.get( userID );
 				const gLim: string[] = await bot.redis.getList( `adachi.group-command-limit-${ groupID }` );
 				const uLim: string[] = await bot.redis.getList( `adachi.user-command-limit-${ userID }` );

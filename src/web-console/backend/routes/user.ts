@@ -6,6 +6,7 @@ import { UserInfo } from "@/web-console/types/user";
 import { sleep } from "@/utils/async";
 import { getRandomNumber } from "@/utils/random";
 import { formatSubUsers } from "@/web-console/backend/utils/format";
+import { GroupMemberInfo } from "@/modules/lib";
 
 export default express.Router()
 	.get( "/list", async ( req, res ) => {
@@ -43,14 +44,13 @@ export default express.Router()
 			
 			const filterUserKeys = userData.slice( ( page - 1 ) * length, page * length );
 			
-			let userInfos: UserInfo[] = []
-			
-			for ( const userKey of filterUserKeys ) {
-				const userInfo: UserInfo = await getUserInfo( parseInt( userKey ) );
-				userInfos.push( { ...userInfo, subInfo: userSubData[userKey] || [] } );
-			}
-			
-			userInfos = userInfos.sort( ( prev, next ) => next.botAuth - prev.botAuth );
+			const results = await Promise.all( filterUserKeys.map( userKey => getUserInfo( parseInt( userKey ) ) ) );
+			const userInfos = results
+				.map( ( info, infoKey ) => ( {
+					...info,
+					subInfo: userSubData[infoKey] || []
+				} ) )
+				.sort( ( prev, next ) => next.botAuth - prev.botAuth );
 			
 			res.status( 200 ).send( { code: 200, data: { userInfos, cmdKeys }, total: userData.length } );
 		} catch ( error: any ) {
@@ -132,7 +132,6 @@ export default express.Router()
 
 async function getUserInfo( userID: number ): Promise<UserInfo> {
 	const avatar = `https://q1.qlogo.cn/g?b=qq&s=640&nk=${ userID }`;
-	const publicInfoRes = await bot.client.getStrangerInfo( userID );
 	
 	const isFriend: boolean = bot.client.fl.get( userID ) !== undefined;
 	const botAuth: AuthLevel = await bot.auth.get( userID );
@@ -141,12 +140,25 @@ async function getUserInfo( userID: number ): Promise<UserInfo> {
 	
 	
 	const usedGroups: string[] = await bot.redis.getSet( `adachi.user-used-groups-${ userID }` );
-	const nickname: string = publicInfoRes.retcode === 0 ? publicInfoRes.data.nickname : "";
 	
-	const groupInfoList: Array<number | string> = usedGroups.map( el => {
+	const memberInfoResponseList: Promise<GroupMemberInfo | string>[] = usedGroups.map( async el => {
 		const groupID: number = Number.parseInt( el );
-		return groupID === -1 ? "私聊方式使用" : groupID;
+		if ( groupID === -1 ) {
+			return "私聊方式使用";
+		}
+		const res = await bot.client.getGroupMemberInfo( groupID, userID );
+		return res.retcode === 0 ? res.data : "";
 	} );
+	
+	const publicInfoRequest = async () => {
+		const res = await bot.client.getStrangerInfo( userID );
+		return res.retcode === 0 ? res.data.nickname : "";
+	}
+	
+	let groupInfoList: Array<GroupMemberInfo | string> = await Promise.all( [ publicInfoRequest(), ...memberInfoResponseList ] );
+	const nickname = <string>groupInfoList[0];
+	
+	groupInfoList = groupInfoList.slice(1).filter( el => !!el );
 	
 	return { userID, avatar, nickname, isFriend, botAuth, interval, limits, groupInfoList }
 }

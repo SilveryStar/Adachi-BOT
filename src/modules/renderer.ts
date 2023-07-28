@@ -204,9 +204,13 @@ export class BasicRenderer implements RenderMethods {
 			await this.pageLoaded( page );
 			
 			const option: puppeteer.ScreenshotOptions = { encoding: "base64", type: "jpeg", quality: 100 };
-			;
 			const element = await page.$( selector );
-			const result = <string>await element?.screenshot( option );
+			
+			if ( !element ) {
+				throw new Error( "未找到目标元素" );
+			}
+			
+			const result = <string>await element.screenshot( option );
 			const base64: string = `base64://${ result }`;
 			await page.close();
 			

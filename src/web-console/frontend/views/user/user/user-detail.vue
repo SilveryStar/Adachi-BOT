@@ -28,9 +28,7 @@
 			<div class="section-info">
 				<p class="title">指令使用分布</p>
 				<el-scrollbar class="group-info" wrap-class="scrollbar-wrapper">
-					<ul class="group-info-list">
-						<li v-for="(el, elKey) in data.groupInfoList" :key="elKey">{{ getUsedInfo( el ) }}</li>
-					</ul>
+					<p v-for="(el, elKey) in data.groupInfoList" :key="elKey">{{ getUsedInfo( el ) }}</p>
 				</el-scrollbar>
 			</div>
 			<div class="section-info">
@@ -160,7 +158,7 @@ function getUsedInfo( el ) {
 	if ( typeof el === "string" ) {
 		return el;
 	}
-	return `群 ${ el }`;
+	return `群 ${ el.group_id } - [${ formatRole( el.role )?.label }]${ el.card || el.nickname }`;
 }
 
 /* 根据切换到的 key 更改按钮状态 */

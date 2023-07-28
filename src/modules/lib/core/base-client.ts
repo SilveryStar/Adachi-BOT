@@ -275,11 +275,27 @@ export default class BaseClient extends EventEmitter {
 				return;
 			}
 		} );
+		ws.on( "close", ( ) => {
+			if ( this.online ) {
+				this.online = false;
+				this.emit( "system.offline", null );
+			}
+		} )
 	}
 	
 	/** 请求 api */
 	public fetchApi<T extends keyof ApiMap>( action: T, params: ApiParam<ApiMap[T]> ): Promise<ActionResponse<ReturnType<ApiMap[T]>>> {
 		const echo = Date.now().toString( 36 ) + getRandomString( 6 );
+		if ( !this.online ) {
+			return Promise.resolve( <ActionResponse>{
+				retcode: 401,
+				status: "failed",
+				data: null,
+				msg: "Not_Login",
+				wording: "未登录",
+				echo
+			} );
+		}
 		this.sendMessage( { action, params, echo } );
 		/* 10000ms 超时 */
 		const timer = setTimeout( () => {

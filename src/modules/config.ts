@@ -10,7 +10,7 @@ import { LogLevel } from "@/modules/lib";
 const initBase = {
 	tip: "前往 https://docs.adachi.top/config 查看配置详情",
 	master: 987654321,
-	wsServer: "127.0.0.1:11451",
+	wsServer: process.env.docker === "yes" ? "go-cqhttp:80" : "127.0.0.1:11451",
 	inviteAuth: 2,
 	logLevel: "info",
 	atUser: false,

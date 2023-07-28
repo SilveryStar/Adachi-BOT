@@ -37,6 +37,7 @@ RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositorie
     cp /usr/share/zoneinfo/$TZ /etc/localtime && \
     echo $TZ > /etc/timezone && \
     npm config set registry https://registry.npmmirror.com && \
+    npm i pnpm -g && \
     rm -rf /var/cache/apk/* && \
     addgroup -S adachi && adduser -S adachi -G adachi && \
     set -eux; \
@@ -73,4 +74,4 @@ RUN chmod +x docker-entrypoint.sh && sed -i 's/\r$//' docker-entrypoint.sh
 
 ENTRYPOINT ["sh", "docker-entrypoint.sh"]
 
-CMD sh -c "npm i && npm run docker-start"
+CMD sh -c "pnpm install && pnpm docker-start"

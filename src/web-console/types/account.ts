@@ -1,6 +1,6 @@
 export interface WebAccount {
-	nickname: string;
+	username: string;
 	password: string;
-	role: "root";
-	creatTime: number;
+	role: "root" | "user";
+	createTime: number;
 }

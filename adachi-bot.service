@@ -1,0 +1,13 @@
+[Unit]
+Description=Adachi Bot Service
+After=network.target
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=5s
+WorkingDirectory=/opt/Adachi-BOT
+ExecStart=/usr/bin/npm run win-start
+
+[Install]
+WantedBy=multi-user.target

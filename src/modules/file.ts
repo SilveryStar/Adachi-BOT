@@ -2,6 +2,7 @@ import { resolve, dirname } from "path"
 import { parse, stringify } from "yaml";
 import * as fs from "fs";
 import axios from "axios";
+import * as process from "process";
 
 export type PresetPlace = "config" | "plugin" | "root";
 
@@ -39,14 +40,22 @@ interface ManagementMethod {
 }
 
 export default class FileManagement implements ManagementMethod {
+	private static _instance: FileManagement | null = null;
 	public readonly root: string;
 	public readonly config: string;
 	public readonly plugin: string;
 	
-	constructor( root: string ) {
-		this.root = root;
+	constructor() {
+		this.root = process.cwd();
 		this.config = this.createDir( "config", "root" ).path;
 		this.plugin = this.createDir( "src/plugins", "root" ).path;
+	}
+	
+	public static getInstance() {
+		if ( !FileManagement._instance ) {
+			FileManagement._instance = new FileManagement();
+		}
+		return FileManagement._instance;
 	}
 	
 	public isExist( path: string ): boolean {

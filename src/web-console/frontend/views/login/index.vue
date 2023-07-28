@@ -53,7 +53,7 @@ const loginRef = ref<InstanceType<typeof Login> | null>( null );
 function initUserName( username: string ) {
 	createComplete.value = true;
 	if ( loginRef.value ) {
-		loginRef.value.setNickname( username );
+		loginRef.value.setUsername( username );
 	}
 }
 </script>

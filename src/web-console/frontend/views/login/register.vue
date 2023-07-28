@@ -12,7 +12,7 @@ const app = useAppStore();
 const user = useUserStore();
 
 const state = reactive( {
-	nickname: "",
+	username: "",
 	password: "",
 	confirmPassword: "",
 	secret: "",
@@ -20,12 +20,12 @@ const state = reactive( {
 } );
 
 const emits = defineEmits<{
-	( e: "completed", nickname: string ): void;
+	( e: "completed", username: string ): void;
 }>();
 
 function createAccount() {
 	state.loading = true;
-	if ( !state.nickname || !state.password || !state.secret ) {
+	if ( !state.username || !state.password || !state.secret ) {
 		ElNotification( {
 			title: "提示信息",
 			message: "还有东西没填写呢",
@@ -46,13 +46,13 @@ function createAccount() {
 		return;
 	}
 	$http.ROOT_CREATE.post( {
-		nickname: state.nickname,
+		username: state.username,
 		password: Md5.init( state.password ),
 		secret: Md5.init( state.secret )
 	} ).then( () => {
 		state.loading = false;
 		app.hasRoot = true;
-		emits( "completed", state.nickname );
+		emits( "completed", state.username );
 		ElNotification( {
 			title: "成功",
 			message: "创建账号成功",
@@ -67,7 +67,7 @@ function createAccount() {
 
 <template>
 	<div class="register">
-		<el-input v-model.number="state.nickname" placeholder="用户名" maxlength="13" clearable
+		<el-input v-model.number="state.username" placeholder="用户名" maxlength="13" clearable
 		          @keyup.enter="createAccount"/>
 		<el-input v-model.trim="state.password" placeholder="密码" maxlength="20" clearable
 		          show-password @keyup.enter="createAccount"/>

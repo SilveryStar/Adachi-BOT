@@ -337,8 +337,11 @@ export class Client {
 	}
 	
 	/** 获取群成员信息 */
-	public getGroupMemberInfo( group_id: number, user_id: number, no_cache = false ) {
-		return this.baseClient.fetchApi( "get_group_member_info", { group_id, user_id, no_cache } );
+	public async getGroupMemberInfo( group_id: number, user_id: number, no_cache = false ) {
+		const data = await this.baseClient.fetchApi( "get_group_member_info", { group_id, user_id, no_cache } );
+		if ( data.retcode !== 0 ) return data;
+		data.data.is_shut_up = Date.now() / 1000 <= data.data.shut_up_timestamp;
+		return data;
 	}
 	
 	/** 获取群成员列表 */
