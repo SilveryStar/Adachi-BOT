@@ -1,6 +1,6 @@
 import { BotConfig } from "@/modules/config";
 import bot from "ROOT";
-import { escapeRegExp } from "lodash";
+import { escapeRegExp, trimStart } from "lodash";
 import { CommandCfg, CommandFunc, CommonInit, BasicConfig, FollowInfo, Unmatch } from "../main";
 
 export interface OrderMatchResult {
@@ -34,9 +34,14 @@ export class Order extends BasicConfig {
 		
 		this.run = config.run;
 		
-		const headers: string[] = config.headers.map( el => botCfg.directive.header.map( h => {
-			return Order.header( el, h );
-		} ) ).flat();
+		const headers: string[] = config.headers.map( el => {
+			if ( el.slice( 0, 2 ) === "__" ) {
+				return trimStart( el, "_" );
+			}
+			return botCfg.directive.header.map( h => {
+				return Order.header( el, h );
+			} );
+		} ).flat();
 		
 		const regParam = this.checkRegexps( config.regexps ) ? config.regexps : [ config.regexps ];
 		this.regPairs = headers.map( header => ( {

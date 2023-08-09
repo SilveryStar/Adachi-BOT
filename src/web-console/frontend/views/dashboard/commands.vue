@@ -18,7 +18,7 @@
 							<el-radio v-for="(s, sKey) of scopeList" :key="sKey" :label="sKey + 1">{{ s }}</el-radio>
 						</el-radio-group>
 					</form-item>
-					<template v-if="c.type === 'order'">
+					<template v-if="c.type === 'order' || c.type === 'enquire'">
 						<form-item label="指令头" desc="以 __ 开头来屏蔽 setting 中配置的 header。">
 							<Tags v-if="c.headers" v-model="c.headers" :disabled="pageLoading" :limit="1"
 							      @change="updateConfig(cKey, 'headers')"/>

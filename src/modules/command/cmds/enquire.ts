@@ -10,7 +10,7 @@ import {
 import { BotConfig } from "@/modules/config";
 import { scheduleJob, Job } from "node-schedule";
 import bot from "ROOT";
-import { escapeRegExp } from "lodash";
+import { escapeRegExp, trimStart } from "lodash";
 
 export interface EnquireMatchResult {
 	type: Enquire["type"];
@@ -53,9 +53,14 @@ export class Enquire extends BasicConfig {
 		this.run = config.run;
 		this.timeout = config.timeout <= 0 ? 300 : config.timeout;
 		
-		const headers: string[] = config.headers.map( el => botCfg.directive.header.map( h => {
-			return Enquire.header( el, h );
-		} ) ).flat();
+		const headers: string[] = config.headers.map( el => {
+			if ( el.slice( 0, 2 ) === "__" ) {
+				return trimStart( el, "_" );
+			}
+			return botCfg.directive.header.map( h => {
+				return Enquire.header( el, h );
+			} );
+		} ).flat();
 		
 		this.regPairs = headers.map( header => {
 			const pattern: string = Enquire.addStartStopChar(

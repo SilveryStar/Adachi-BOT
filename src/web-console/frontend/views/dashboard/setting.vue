@@ -5,6 +5,15 @@
 			<div class="config-section">
 				<section-title title="基本设置"/>
 				<spread-form-item
+					v-model="setting.base.wsServer"
+					:active-spread="activeSpread"
+					:disabled="pageLoading"
+					label="消息服务地址"
+					placeholder="go-cqhttp 提供的正向 websocket 服务地址"
+					@change="updateConfig('base', 'wsServer')"
+					@open="activeSpreadItem"
+				/>
+				<spread-form-item
 					v-model="setting.base.master"
 					:active-spread="activeSpread"
 					:disabled="pageLoading"
@@ -89,7 +98,7 @@
 					</el-radio-group>
 				</form-item>
 				<form-item label="模糊匹配"
-				           desc="开启后BOT会对中文指令以及指令名称进行模糊匹配，要求必须以header开头且中文指令不得拆开。">
+				           desc="开启后BOT会对中文指令进行模糊匹配，要求必须以header开头且中文指令不得拆开。">
 					<el-switch v-model="setting.directive.fuzzyMatch" :disabled="pageLoading"
 					           @change="updateConfig('directive', 'fuzzyMatch')"/>
 				</form-item>
@@ -285,7 +294,7 @@
 						:disabled="pageLoading"
 						label="读日志数据量"
 						type="number"
-						desc="控制日志单次读取的数据量，单位 kb，不填或置 0 时默认 64，越大读取越快，内存占用越大，反之同理。"
+						desc="控制日志单次读取的数据量，单位 kb，不填或置 0 时默认 64，越大读取越快，内存占用越高，反之同理。"
 						@change="updateConfig('webConsole', 'logHighWaterMark')"
 						@open="activeSpreadItem"
 					/>

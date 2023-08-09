@@ -9,8 +9,8 @@ import { LogLevel } from "@/modules/lib";
 // 基本设置
 const initBase = {
 	tip: "前往 https://docs.adachi.top/config 查看配置详情",
+	wsServer: "127.0.0.1:11451",
 	master: 987654321,
-	wsServer: process.env.docker === "yes" ? "go-cqhttp:80" : "127.0.0.1:11451",
 	inviteAuth: 2,
 	logLevel: "info",
 	atUser: false,
@@ -36,14 +36,14 @@ const initDirective = {
 // ffmpeg配置
 const initFfmpeg = {
 	tip: "前往 https://docs.adachi.top/config 查看配置详情",
-	ffmpegPath: "",
-	ffprobePath: ""
+	ffmpegPath: process.env.docker === "yes" ? "/usr/bin/ffmpeg" : "",
+	ffprobePath: process.env.docker === "yes" ? "/usr/bin/ffprobe" : "",
 }
 
 // 数据库设置
 const initDB = {
 	tip: "前往 https://docs.adachi.top/config 查看配置详情",
-	port: 56379,
+	port: process.env.docker === "yes" ? 56379 : 6379,
 	password: ""
 }
 
