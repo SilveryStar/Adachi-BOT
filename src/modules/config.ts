@@ -9,7 +9,7 @@ import { LogLevel } from "@/modules/lib";
 // 基本设置
 const initBase = {
 	tip: "前往 https://docs.adachi.top/config 查看配置详情",
-	wsServer: "127.0.0.1:11451",
+	wsServer: process.env.docker === "yes" ? "adachi-go-cqhttp:80" : "127.0.0.1:11451",
 	master: 987654321,
 	inviteAuth: 2,
 	logLevel: "info",
@@ -31,13 +31,6 @@ const initDirective = {
 	callTimes: 3,
 	countThreshold: 60,
 	ThresholdInterval: false
-}
-
-// ffmpeg配置
-const initFfmpeg = {
-	tip: "前往 https://docs.adachi.top/config 查看配置详情",
-	ffmpegPath: process.env.docker === "yes" ? "/usr/bin/ffmpeg" : "",
-	ffprobePath: process.env.docker === "yes" ? "/usr/bin/ffprobe" : "",
 }
 
 // 数据库设置
@@ -118,7 +111,6 @@ export interface BotConfigValue {
 		inviteAuth: AuthLevel
 	}>;
 	directive: ExportConfig<Omit<typeof initDirective, "tip">>;
-	ffmpeg: ExportConfig<Omit<typeof initFfmpeg, "tip">>;
 	db: ExportConfig<Omit<typeof initDB, "tip">>;
 	mail: ExportConfig<Omit<typeof initMail, "tip">>;
 	autoChat: ExportConfig<Omit<typeof initAutoChat, "tip">>;
@@ -253,7 +245,6 @@ export default class BotConfigManager {
 					? cfg.helpMessageStyle : "message";
 				return cfg;
 			} ),
-			ffmpeg: registerConfig<BotConfigValue["ffmpeg"]>( "ffmpeg", <any>initFfmpeg ),
 			db: registerConfig<BotConfigValue["db"]>( "db", <any>initDB ),
 			mail: registerConfig<BotConfigValue["mail"]>( "mail", <any>initMail ),
 			autoChat: registerConfig<BotConfigValue["autoChat"]>( "autoChat", <any>initAutoChat ),

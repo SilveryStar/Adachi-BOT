@@ -28,7 +28,7 @@ function checkIterator( obj: core.ForwardElem | core.MessageElem | Iterable<core
 }
 
 function checkoutForward( obj: core.Sendable | core.ForwardElem ): obj is core.ForwardElem {
-	if ( typeof obj === "string" ||  checkIterator( obj ) ) {
+	if ( typeof obj === "string" || checkIterator( obj ) ) {
 		return false;
 	} else {
 		return obj.type === "forward";
@@ -77,16 +77,9 @@ export default class MsgManagement implements MsgManagementMethod {
 					}
 					throw new Error( sendRes.wording );
 				}
-				if ( userID === "all" ) {
-					const atAllRemainRes = await client.getGroupAtAllRemain( groupID );
-					if ( atAllRemainRes.retcode === 0 ) {
-						allowAt = atAllRemainRes.data.can_at_all ? allowAt : false;
-					} else {
-						allowAt = false;
-					}
-				}
-				const at = core.segment.at( userID );
-				if ( atUser && allowAt !== false ) {
+				
+				const buildAtMsg = ( content: core.Sendable ) => {
+					const at = core.segment.at( userID );
 					if ( typeof content === "string" ) {
 						const split = content.length < 60 ? " " : "\n";
 						content = [ at, split, content ];
@@ -95,8 +88,27 @@ export default class MsgManagement implements MsgManagementMethod {
 					} else {
 						content = [ at, " ", content ];
 					}
+					return content;
 				}
-				const sendRes =  await client.sendGroupMsg( groupID, content );
+				
+				if ( userID === "all" ) {
+					const atAllRemainRes = await client.getGroupAtAllRemain( groupID );
+					if ( atAllRemainRes.retcode === 0 ) {
+						allowAt = atAllRemainRes.data.can_at_all ? allowAt : false;
+					} else {
+						allowAt = false;
+					}
+					// 强制使用 @全体成员，不受atUser配置控制
+					if ( allowAt ) {
+						content = buildAtMsg( content );
+					}
+				} else {
+					if ( atUser && allowAt !== false ) {
+						content = buildAtMsg( content );
+					}
+				}
+				
+				const sendRes = await client.sendGroupMsg( groupID, content );
 				if ( sendRes.retcode === 0 ) {
 					return sendRes.data;
 				}

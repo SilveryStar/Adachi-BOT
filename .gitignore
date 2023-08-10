@@ -28,6 +28,7 @@ dist
 
 /go-cqhttp/
 !/go-cqhttp/config-default.yml
+/qsign/
 
 # Editor directories and files
 .vscode/*
