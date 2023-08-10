@@ -133,8 +133,8 @@ export default class RenderServer {
 		const ADACHI_VERSION = isJsonString( packageData ) ? JSON.parse( packageData ).version || "" : "";
 		
 		if ( isBuild ) {
-			// 为打包目录挂载静态资源服务
-			this.app.use( express.static( resolve( __dirname, "../../dist" ) ) );
+			// todo 为打包目录挂载静态资源服务
+			// this.app.use( express.static( resolve( __dirname, "../../dist" ) ) );
 		} else {
 			// 以中间件模式创建 Vite 应用，这将禁用 Vite 自身的 HTML 服务逻辑
 			// 并让上级服务器接管控制
@@ -155,6 +155,9 @@ export default class RenderServer {
 			// 如果你使用了自己的 express 路由（express.Router()），你应该使用 router.use
 			this.app.use( this.vite.middlewares );
 		}
+		
+		// 资源目录挂载静态资源服务
+		this.app.use( express.static( resolve( process.cwd(), "./public" ) ) );
 		
 		// 为插件目录挂载静态资源服务
 		// this.app.use( express.static( resolve( __dirname, "../plugins" ) ) );

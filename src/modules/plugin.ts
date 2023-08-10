@@ -499,7 +499,7 @@ export default class Plugin {
 		// 更新图片promise列表
 		const updatePromiseList: Promise<void>[] = [];
 		
-		// 最大下载并发数 20
+		// 最大下载并发数 10
 		const limiter = pLimit( 10 );
 		
 		data.forEach( file => {
