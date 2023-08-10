@@ -178,7 +178,7 @@ export class DailyClass {
 		}
 		for ( let targetName of set ) {
 			try {
-				const data = getInfo( targetName );
+				const data = await getInfo( targetName );
 				if ( data ) {
 					this.getDataSet( week ).push( data );
 				}

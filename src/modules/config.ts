@@ -284,18 +284,18 @@ export default class BotConfigManager {
 			filename = `${ pluginName }/${ filename }`;
 		}
 		const path: string = file.getFilePath( `${ filename }.yml` );
-		const isExist: boolean = file.isExist( path );
+		const isExist: boolean = file.isExistSync( path );
 		let cfg: T;
 		if ( isExist ) {
-			const config: any = file.loadYAML( filename ) || {};
+			const config: any = file.loadYAMLSync( filename ) || {};
 			cfg = compareAssembleObject( config, initCfg );
 		} else {
-			file.createYAML( filename, initCfg );
+			file.createYAMLSync( filename, initCfg );
 			cfg = initCfg;
 		}
 		const configInstance = new ConfigInstance( filename, cfg, setValueCallBack );
 		
-		file.writeYAML( filename, configInstance.value );
+		file.writeYAMLSync( filename, configInstance.value );
 		const refresh = RefreshConfig.getInstance();
 		refresh.register( filename, configInstance, undefined, pluginName );
 		

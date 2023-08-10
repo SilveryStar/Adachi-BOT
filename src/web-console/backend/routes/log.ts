@@ -19,12 +19,12 @@ export default express.Router().get( "/", async ( req, res ) => {
 	const path: string = bot.file.getFilePath( fileName, "root" );
 	
 	try {
-		if ( bot.file.isExist( path ) ) {
-			const file = await bot.file.readFileByStream( fileName, "root", bot.config.webConsole.logHighWaterMark );
-			if ( !file ) {
-				res.status( 500 ).send( { code: 500, data: {}, msg: "读取日志文件失败" } );
-				return;
+		if ( await bot.file.isExist( path ) ) {
+			const fileBuffer = await bot.file.loadFileByStream( fileName, bot.config.webConsole.logHighWaterMark, "root" );
+			if ( !fileBuffer ) {
+				return res.status( 500 ).send( { code: 500, data: {}, msg: "读取日志文件失败" } );
 			}
+			const file = fileBuffer.toString( "utf-8" );
 			const fullData = file.split( /[\n\r]/g ).filter( el => el.length !== 0 );
 			const respData = fullData
 				.map( el => JSON.parse( el ) )

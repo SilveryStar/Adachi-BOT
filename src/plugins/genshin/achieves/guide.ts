@@ -11,7 +11,7 @@ export default defineDirective( "order", async ( { sendMessage, messageData } ) 
 	
 	if ( result.definite ) {
 		/* 检查是否存在该攻略图 */
-		const data = getCharacterGuide( <string>result.info );
+		const data = await getCharacterGuide( <string>result.info );
 		if ( data ) {
 			message = segment.image( Buffer.from( data, "binary" ) );
 		} else {

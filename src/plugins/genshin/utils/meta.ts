@@ -8,7 +8,7 @@ import { CharacterList, WeaponList } from "#/genshin/module/type";
 import { isJsonString } from "@/utils/verify";
 
 const basePath = "public/assets/genshin";
-const getMetaData = ( filename: string ) => bot.file.loadYAML( `${ basePath }/meta/${ filename }`, "root" );
+const getMetaData = ( filename: string ) => bot.file.loadYAMLSync( `${ basePath }/meta/${ filename }`, "root" );
 
 export function getDomain(): OssDomain {
 	return <OssDomain>( getMetaData( "domain" ) || [] );
@@ -73,12 +73,14 @@ export function getSlip(): SlipDetail {
 	return <SlipDetail>getMetaData( "slip" ) || { SlipInfo: [] };
 }
 
-export function getInfo( name: string ): InfoResponse | null {
+export async function getInfo( name: string ): Promise<InfoResponse | null> {
 	const typeList = [ "character", "weapon", "artifact" ];
 	for ( const type of typeList ) {
 		const filePath: string = `${ basePath }/${ type }/${ name }/data.json`;
-		const data = bot.file.loadFile( filePath, "root" );
-		if ( data ) return isJsonString( data ) ? JSON.parse( data ) : null;
+		const data = await bot.file.loadFile( filePath, "root" );
+		if ( data ) {
+			return isJsonString( data ) ? JSON.parse( data ) : null
+		}
 	}
 	return null;
 }
@@ -119,6 +121,6 @@ export function getWeaponList(): WeaponList {
 	return getMetaData( "weapon" ) || {};
 }
 
-export function getCharacterGuide( name: string ): string {
-	return bot.file.loadFile( `${ basePath }/resource/guide/${ name }.png`, "root", "binary" );
+export async function getCharacterGuide( name: string ) {
+	return await bot.file.loadFile( `${ basePath }/resource/guide/${ name }.png`, "root", "binary" );
 }

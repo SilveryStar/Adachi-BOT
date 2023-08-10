@@ -184,7 +184,7 @@ export default class Command {
 	public readonly cmdKeys: string[];
 	
 	constructor( file: FileManagement ) {
-		this.cmdKeys = without( Object.keys( ( file.loadYAML( "commands" ) || {} ) ), "tips" );
+		this.cmdKeys = without( Object.keys( ( file.loadYAMLSync( "commands" ) || {} ) ), "tips" );
 	}
 	
 	private static initAuthObject(): Record<AuthLevel, any> {
@@ -214,7 +214,7 @@ export default class Command {
 		this.gUnionReg = Command.initAuthObject();
 		
 		const pluginInstance = Plugin.getInstance();
-		const commandConfig: Record<string, any> = bot.file.loadYAML( "commands" ) || {};
+		const commandConfig: Record<string, any> = await bot.file.loadYAML( "commands" ) || {};
 		// 要写入的 command.yml 配置文件内容
 		let cmdConfig: Record<string, any> = {};
 		for ( const pluginInfo of Object.values( pluginInstance.pluginList ) ) {
@@ -222,7 +222,7 @@ export default class Command {
 			this.add( pluginInfo.commands );
 			cmdConfig = { ...cmdConfig, ...cmdConfigItem };
 		}
-		bot.file.writeYAML( "commands", cmdConfig );
+		await bot.file.writeYAML( "commands", cmdConfig );
 	}
 	
 	public add( commands: BasicConfig[] ): void {

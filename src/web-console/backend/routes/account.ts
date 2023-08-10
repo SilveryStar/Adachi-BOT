@@ -16,7 +16,7 @@ export default express.Router()
 			}
 			
 			/* 是否已经存在 root 用户 */
-			const errorMsg = account.createRoot( username, password );
+			const errorMsg = await account.createRoot( username, password );
 			if ( errorMsg ) {
 				res.status( 405 ).send( { code: 405, data: {}, msg: errorMsg } );
 				return;

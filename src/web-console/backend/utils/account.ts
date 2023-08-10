@@ -9,7 +9,7 @@ class WebConsoleAccount {
 	private root: WebAccount | null;
 	
 	constructor() {
-		const rootData = FileManagement.getInstance().loadYAML( this.rootFile, "root" );
+		const rootData = FileManagement.getInstance().loadYAMLSync( this.rootFile, "root" );
 		if ( rootData?.username && rootData?.password && rootData?.createTime ) {
 			this.root = <WebAccount>{ ...rootData, role: "root" };
 		} else {
@@ -21,7 +21,7 @@ class WebConsoleAccount {
 		return !!this.root;
 	}
 	
-	public createRoot( username: string, password: string ): string | undefined {
+	public async createRoot( username: string, password: string ): Promise<string | undefined> {
 		if ( this.root ) {
 			return "仅允许存在一个 root 用户";
 		}
@@ -31,7 +31,7 @@ class WebConsoleAccount {
 			role: "root",
 			createTime: Date.now()
 		}
-		bot.file.writeYAML( this.rootFile, data, "root" )
+		await bot.file.writeYAML( this.rootFile, data, "root" )
 		this.root = data;
 	}
 	

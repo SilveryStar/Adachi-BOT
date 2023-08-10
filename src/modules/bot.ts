@@ -69,7 +69,7 @@ export default class Adachi {
 		/* 初始化运行环境 */
 		const file = FileManagement.getInstance();
 		// 是否需要初始化环境
-		const exist = file.isExist( file.getFilePath( "base.yml" ) );
+		const exist = file.isExistSync( file.getFilePath( "base.yml" ) );
 		const command = new Command( file );
 		const refresh = RefreshConfig.getInstance();
 		
@@ -169,10 +169,10 @@ export default class Adachi {
 ====================================================================`
 		console.log( greet );
 		
-		file.createDir( "database", "root" );
-		file.createDir( "logs", "root" );
+		file.createDirSync( "database", "root" );
+		file.createDirSync( "logs", "root" );
 		
-		file.createYAML(
+		file.createYAMLSync(
 			"commands",
 			{ tips: "此文件修改后需重启应用" }
 		);
@@ -341,8 +341,8 @@ export default class Adachi {
 	/* 清除缓存图片 */
 	private clearImageCache( that: Adachi ) {
 		const bot = that.bot;
-		return function () {
-			const files: string[] = bot.file.getDirFiles( "data/image", "root" );
+		return async function () {
+			const files: string[] = await bot.file.getDirFiles( "data/image", "root" );
 			files.forEach( f => {
 				const path: string = bot.file.getFilePath(
 					`data/image/${ f }`, "root"

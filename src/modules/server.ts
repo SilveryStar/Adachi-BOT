@@ -129,7 +129,7 @@ export default class RenderServer {
 	/* 创建服务 */
 	public async createServer() {
 		const isBuild = process.env.NODE_ENV === "build";
-		const packageData = this.file.loadFile( "package.json", "root" );
+		const packageData = await this.file.loadFile( "package.json", "root" );
 		const ADACHI_VERSION = isJsonString( packageData ) ? JSON.parse( packageData ).version || "" : "";
 		
 		if ( isBuild ) {
@@ -158,7 +158,8 @@ export default class RenderServer {
 		
 		// 为插件目录挂载静态资源服务
 		// this.app.use( express.static( resolve( __dirname, "../plugins" ) ) );
-		for ( const plugin of this.file.getDirFiles( "src/plugins", "root" ) ) {
+		const pluginDirList = await this.file.getDirFiles( "src/plugins", "root" );
+		for ( const plugin of pluginDirList ) {
 			this.app.use( `/${ plugin }`, express.static( this.file.getFilePath( plugin, "plugin" ) ) );
 		}
 		
