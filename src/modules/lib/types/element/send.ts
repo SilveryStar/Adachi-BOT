@@ -102,7 +102,7 @@ export type FlashElem = Omit<ImageElem, "type">  & {
 
 /** 回复 */
 export interface ReplayElem {
-	type: "replay";
+	type: "reply";
 	/** 所引用的消息id */
 	id: number;
 }

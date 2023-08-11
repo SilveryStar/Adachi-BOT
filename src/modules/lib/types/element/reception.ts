@@ -77,7 +77,7 @@ export interface ImageRecepElem {
 
 /** 回复 */
 export interface ReplayRecepElem {
-	type: "replay";
+	type: "reply";
 	data: {
 		/** 所引用的消息id */
 		id: string;

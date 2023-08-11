@@ -59,8 +59,8 @@ export const segment = {
 			cache: cache ? 1 : 0
 		}
 	},
-	replay( id: number ): el.ReplayElem {
-		return { type: "replay", id };
+	reply( id: number ): el.ReplayElem {
+		return { type: "reply", id };
 	},
 	replayCustom( text: string, qq: number, time: number, seq: number ): el.ReplayCustomElem {
 		return { type: "replayCustom", text, qq, time, seq  };

@@ -221,8 +221,8 @@ export default class Adachi {
 		isAt: boolean
 	): Promise<void> {
 		// 群组内的回复消息会at被回复的用户，需要把这个内容也去掉
-		const replyReg = new RegExp( `\\[CQ:reply,id=[\\w=+/]+]\\s*(\\[CQ:at,type=at,qq=\\d+,text=.*])?` );
-		let content: string = messageData.raw_message.replace( replyReg, "" ).trim() || '';
+		const replyReg = new RegExp( `\\[CQ:reply,id=[\\w=+\-/]+]\\s*(\\[CQ:at,qq=\\d+]\\s*)*` );
+		const content: string = messageData.raw_message.replace( replyReg, "" ).trim() || '';
 		
 		const userID: number = messageData.sender.user_id;
 		const groupID: number = msg.isGroupMessage( messageData ) ? messageData.group_id : -1;

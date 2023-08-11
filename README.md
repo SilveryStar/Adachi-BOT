@@ -376,8 +376,8 @@ const configData = <MyConfig>bot.config.register( "test-plugin/main", { setting1
 /* test-plugin 插件 */
 export default definePlugin( {
     completed( params ) {
-        // 在 config 目录下创建 test-plugin.yml 配置文件
-        const configData = params.configRegister( { setting1: true, setting2: false } );
+        // 在 config 目录下创建 test-plugin/main.yml 配置文件
+        const configData = params.configRegister( "main", { setting1: true, setting2: false } );
         console.log( configData ); // { setting1: true, setting2: false }
     }
 } );

@@ -10,7 +10,7 @@ import { config } from "#/genshin/init";
 import { register } from "@/utils/request";
 import { getRandomString, randomSleep } from "@/utils/random";
 
-export const apis = {
+const apis = {
 	FETCH_ROLE_ID: "https://api-takumi-record.mihoyo.com/game_record/app/card/wapi/getGameRecordCard",
 	FETCH_ROLE_INDEX: "https://api-takumi-record.mihoyo.com/game_record/app/genshin/api/index",
 	FETCH_ROLE_CHARACTERS: "https://api-takumi-record.mihoyo.com/game_record/app/genshin/api/character",

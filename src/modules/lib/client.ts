@@ -13,7 +13,7 @@ import {
 } from "@/modules/lib/types/api";
 import { Anonymous, HonorType, RecordFormat } from "@/modules/lib/types/common";
 import { ForwardElem, Sendable } from "./types/element/send";
-import { formatSendMessage, makeForwardMessage } from "@/modules/lib/message";
+import { formatSendMessage, makeForwardMessage, toMessageRecepElem } from "@/modules/lib/message";
 
 export type LogLevel = "trace" | "debug" | "info" | "warn" | "error" | "fatal" | "mark" | "off";
 
@@ -241,8 +241,12 @@ export class Client {
 	}
 	
 	/** 获取消息 */
-	public getMessage( message_id: number ) {
-		return this.baseClient.fetchApi( "get_msg", { message_id } );
+	public async getMessage( message_id: number ) {
+		const result = await this.baseClient.fetchApi( "get_msg", { message_id } );
+		if ( result.data ) {
+			result.data.message = toMessageRecepElem( <string><any>result.data.message );
+		}
+		return result;
 	}
 	
 	/** 撤回消息 */
