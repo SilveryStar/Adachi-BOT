@@ -4,12 +4,12 @@ import idParser from "#/@help/utils/id-parser";
 import { MessageType } from "@/modules/message";
 
 export default defineDirective( "switch", async ( { sendMessage, messageData, matchResult, redis, auth } ) => {
-	const match = <SwitchMatchResult>matchResult;
+	const match = matchResult;
 	const [ msgType, targetID ] = idParser( match.match[0] );
 	const userID: number = messageData.user_id;
 	
 	/* 封禁 */
-	if ( match.isOn() ) {
+	if ( match.isOn ) {
 		if ( msgType === MessageType.Group ) {
 			await redis.addListElement( `adachi.banned-group`, targetID.toString() );
 			await sendMessage( `群 ${ targetID } 已被屏蔽，将不触发任何指令` );

@@ -1,6 +1,5 @@
 import mail from "nodemailer";
 import { BotConfig } from "@/modules/config";
-import { Logger } from "log4js";
 import { sleep } from "@/utils/async";
 import { Client } from "@/modules/lib";
 
@@ -9,15 +8,15 @@ enum InfoMessage {
 	ERROR_SEND = "邮件发送失败，错误："
 }
 
-export type SendFunc = ( mailOptions: mail.SendMailOptions, retry: number, retryWait: number ) => Promise<void>;
+export type SendFunc = ( mailOptions: mail.SendMailOptions, retry?: number, retryWait?: number ) => Promise<void>;
 
-interface MailManagementMethod {
+interface MailManagementImplement {
 	getSendMailFunc( address: mail.SendMailOptions["to"] ): SendFunc;
 	sendMaster: SendFunc;
 }
 
 
-export default class MailManagement implements MailManagementMethod {
+export default class MailManagement implements MailManagementImplement {
 	private sender: mail.Transporter;
 	private readonly name = "Adachi-BOT";
 	
@@ -31,7 +30,7 @@ export default class MailManagement implements MailManagementMethod {
 		} )
 	}
 	
-	get senderInfo(): mail.SendMailOptions["from"] {
+	private get senderInfo(): mail.SendMailOptions["from"] {
 		return {
 			name: this.name,
 			address: `${ this.client.uin }@qq.com`

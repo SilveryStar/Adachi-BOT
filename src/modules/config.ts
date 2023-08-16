@@ -81,7 +81,7 @@ const initBanScreenSwipe = {
 	limit: 10,
 	duration: 1800,
 	prompt: true,
-	promptMsg: "请不要刷屏哦~"
+	promptMsg: "请不要刷屏"
 }
 
 // 过量at限制
@@ -91,7 +91,7 @@ const initBanHeavyAt = {
 	limit: 10,
 	duration: 1800,
 	prompt: true,
-	promptMsg: "你at太多人了，会被讨厌的哦~"
+	promptMsg: "请不要同时at太多人"
 }
 
 // 网站控制台相关
@@ -123,7 +123,17 @@ export interface BotConfigValue {
 	webConsole: ExportConfig<Omit<typeof initWebConsole, "tip">>;
 }
 
-export type BotConfig = Omit<BotConfigManager, "value"> & BotConfigValue;
+interface BotConfigManagerImplement {
+	readonly value: BotConfigValue,
+	register<T extends Record<string, any>>(
+		filename: string,
+		initCfg: T,
+		setValueCallBack?: ( config: T ) => T,
+		pluginName?: string
+	) : ExportConfig<T>
+}
+
+export type BotConfig = Omit<BotConfigManagerImplement, "value"> & BotConfigValue;
 
 type EventType = "refresh";
 type EventHandle<T> = ( newCfg: T, oldCfg: T ) => any;
@@ -164,7 +174,7 @@ class ConfigInstance<T extends Record<string, any>> {
 				for ( const handler of handles ) {
 					try {
 						const tip = await handler( newValue, oldValue );
-						if ( typeof tip === "string" ) {
+						if ( type === "refresh" && typeof tip === "string" ) {
 							diyTips.push( tip );
 						}
 					} catch ( error ) {
@@ -207,26 +217,21 @@ class ConfigInstance<T extends Record<string, any>> {
 	}
 }
 
-export default class BotConfigManager {
+export default class BotConfigManager implements BotConfigManagerImplement {
 	public readonly value: BotConfigValue;
 	
-	constructor( file: FileManagement ) {
+	constructor() {
 		const registerConfig = <T extends BotConfigValue[keyof BotConfigValue]>(
 			filename: string,
 			initCfg: T,
 			setValueCallBack: ( config: T ) => T = config => config
 		) => {
-			return this.register<T>( filename, initCfg, setValueCallBack, undefined, file );
+			return this.register<T>( filename, initCfg, setValueCallBack );
 		};
 		
 		this.value = {
 			base: registerConfig<BotConfigValue["base"]>( "base", <any>initBase, cfg => {
-				const authMap: Record<string, AuthLevel> = {
-					master: AuthLevel.Master,
-					manager: AuthLevel.Manager,
-					user: AuthLevel.User
-				}
-				cfg.inviteAuth = authMap[cfg.inviteAuth] || AuthLevel.Master;
+				cfg.inviteAuth = AuthLevel[cfg.inviteAuth] && cfg.inviteAuth !== 0 ? cfg.inviteAuth : AuthLevel.Master;
 				
 				const logLevelList: string[] = [
 					"trace", "debug", "info", "warn",
@@ -268,12 +273,12 @@ export default class BotConfigManager {
 		filename: string,
 		initCfg: T,
 		setValueCallBack: ( config: T ) => T = config => config,
-		pluginName?: string,
-		file: FileManagement = bot.file
+		pluginName?: string
 	) {
 		if ( pluginName ) {
 			filename = `${ pluginName }/${ filename }`;
 		}
+		const file = FileManagement.getInstance();
 		const path: string = file.getFilePath( `${ filename }.yml` );
 		const isExist: boolean = file.isExistSync( path );
 		let cfg: T;

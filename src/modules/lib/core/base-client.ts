@@ -94,14 +94,11 @@ export default class BaseClient extends EventEmitter {
 			data = JSON.parse( resp );
 			
 			const quickOperation = ( params: Record<string, any> ) => {
-				this.sendMessage( {
-					action: ".handle_quick_operation",
-					params: {
-						context: data,
-						operation: params
-					}
-				} );
-			}
+				return this.fetchApi( <any>".handle_quick_operation", {
+					context: data,
+					operation: params
+				} )
+			};
 			
 			if ( data.post_type === "meta_event" ) {
 				if ( data.meta_event_type === "lifecycle" ) {

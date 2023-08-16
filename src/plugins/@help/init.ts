@@ -51,12 +51,12 @@ export default definePlugin( {
 		routers: serverRouters
 	},
 	assets: {
-		manifestUrl: "https://mari-plugin.oss-cn-beijing.aliyuncs.com/Version3/help_assets_manifest.yml",
-		downloadBaseUrl: "https://mari-plugin.oss-cn-beijing.aliyuncs.com/",
+		manifestUrl: "https://mari-files.oss-cn-beijing.aliyuncs.com/adachi-bot/version3/help_assets_manifest.yml",
+		downloadBaseUrl: "https://mari-files.oss-cn-beijing.aliyuncs.com/",
 		pathField: "name",
 		modifiedField: "lastModified",
 		replacePath: path => {
-			return path.replace( "Version3/help/", "" );
+			return path.replace( "adachi-bot/version3/help/", "" );
 		}
 	},
 	mounted( params ) {

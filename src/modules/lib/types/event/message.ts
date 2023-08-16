@@ -8,7 +8,7 @@ import {
 	PostMessageType
 } from "../common";
 import { MessageRecepElem } from "@/modules/lib/types/element/reception";
-import { Sendable } from "@/modules/lib";
+import {ActionResponse, Sendable} from "@/modules/lib";
 
 /** 消息 */
 export type MessageEvent = PrivateFriendMessageEvent | PrivateGroupMessageEvent |
@@ -40,7 +40,7 @@ interface CommonMessageEvent extends CommonEvent {
 	 * 快捷回复该消息
 	 * @param content 回复内容
 	 */
-	reply( content: Sendable ): void;
+	reply( content: Sendable ): Promise<ActionResponse<void>>;
 }
 
 /** 私聊消息 */
@@ -86,11 +86,11 @@ export interface GroupMessageEvent extends CommonMessageEvent {
 	/** 匿名信息, 如果不是匿名消息则为 null */
 	anonymous: Anonymous | null;
 	/** 快捷撤回该消息 */
-	recall(): void;
+	recall(): Promise<ActionResponse<void>>;
 	/** 快捷踢出该消息发送者 */
-	kick(): void;
+	kick(): Promise<ActionResponse<void>>;
 	/** 快捷禁言该用户，默认 30分钟 */
-	ban( duration?: number ): void;
+	ban( duration?: number ): Promise<ActionResponse<void>>;
 }
 
 /** 群正常消息 */

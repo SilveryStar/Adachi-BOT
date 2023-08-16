@@ -21,8 +21,8 @@ interface DatabaseMethod {
 	delHash( key: Argument, ...fields: Argument[] ): Promise<void>;
 	incHash( key: Argument, field: Argument, increment: number ): Promise<void>;
 	existHashKey( key: Argument, field: Argument ): Promise<boolean>;
-	setHashField( key: Argument, field: SetFieldValue, value: SetFieldValue ): Promise<void>
-	getHashField( key: Argument, field: string ): Promise<string>;
+	setHashField( key: Argument, field: SetFieldValue, value: SetFieldValue ): Promise<void>;
+	getHashField( key: Argument, field: Argument ): Promise<string>;
 	/* String */
 	setString( key: Argument, value: Argument | number, timeout?: number ): Promise<void>;
 	getString( key: Argument ): Promise<string>;
@@ -31,7 +31,7 @@ interface DatabaseMethod {
 	getListLength( key: Argument ): Promise<number>;
 	addListElement( key: Argument, ...value: Argument[] ): Promise<void>;
 	delListElement( key: Argument, ...value: Argument[] ): Promise<void>;
-	existListElement( key: Argument, value: any ): Promise<boolean>;
+	existListElement( key: Argument, value: SetFieldValue ): Promise<boolean>;
 	/* Set */
 	getSet( key: Argument ): Promise<string[]>;
 	getSetMemberNum( key: string ): Promise<number>;
@@ -193,7 +193,7 @@ export default class Database implements DatabaseMethod {
 		}
 	}
 	
-	public async existListElement( key: Argument, value: any ): Promise<boolean> {
+	public async existListElement( key: Argument, value: SetFieldValue ): Promise<boolean> {
 		this.throwNotOnlineError();
 		const list: string[] = await this.getList( key );
 		return list.includes( value.toString() );

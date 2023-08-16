@@ -3,7 +3,8 @@ import { getLogger, Logger } from "log4js";
 
 
 export default class Progress {
-	private logger: Logger = getLogger("[progress]");
+	private logger: Logger = getLogger( "[progress]" );
+	
 	constructor(
 		private description: string,
 		private total: number,
@@ -15,7 +16,7 @@ export default class Progress {
 		this.total = val;
 	}
 	
-	public renderer( completed: number, extra: string = "", tcp: boolean = false) {
+	public renderer( completed: number, extra: string = "", tcp: boolean = false ) {
 		const cellNum: number = Math.floor( completed / this.total * this.length );
 		
 		const processStr: string = Array.from( { length: this.length }, ( _, index ) => {
@@ -31,7 +32,7 @@ export default class Progress {
 			slog( cmdText );
 			// 终止后打印换行符
 			if ( processStr.length === cellNum ) {
-				console.log("");
+				console.log( "" );
 			}
 		}
 	}

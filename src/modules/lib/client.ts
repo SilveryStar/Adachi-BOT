@@ -37,16 +37,8 @@ export class Client {
 		return this.baseClient.gl;
 	}
 	
-	set gl( data: Map<number, GroupInfo> ) {
-		this.baseClient.gl = data;
-	}
-	
 	get fl() {
 		return this.baseClient.fl;
-	}
-	
-	set fl( data: Map<number, FriendInfo> ) {
-		this.baseClient.fl = data;
 	}
 	
 	get logger() {
@@ -61,12 +53,8 @@ export class Client {
 		return this.baseClient.uin;
 	}
 	
-	set uin( uin: number ) {
-		this.baseClient.uin = uin;
-	}
-	
 	private initLogger( uin: number, logLevel: string ) {
-		this.uin = uin;
+		this.baseClient.uin = uin;
 		this.logger = getLogger( `[${ this.uin }]` );
 		this.logger.level = logLevel;
 	}

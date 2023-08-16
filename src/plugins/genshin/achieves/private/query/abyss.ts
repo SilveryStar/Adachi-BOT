@@ -115,7 +115,7 @@ export default defineDirective( "switch", async ( i ) => {
 	
 	const { uid, cookie } = info.setting;
 	const server: string = getRegion( uid[0] );
-	const period: number = matchResult.isOn() ? 1 : 2;
+	const period: number = matchResult.isOn ? 1 : 2;
 	try {
 		await redis.setString( `silvery-star.abyss-querying-${ userID }`, uid );
 		await abyssInfoPromise( userID, server, period, cookie );

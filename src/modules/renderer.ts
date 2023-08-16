@@ -30,8 +30,8 @@ export interface RenderMethods {
 	register( route: string, defaultSelector: string ): Renderer;
 	/* 浏览器相关 */
 	closeBrowser(): Promise<void>;
-	launchBrowser(): Promise<puppeteer.Browser>;
-	restartBrowser(): Promise<void>;
+	launchBrowser(): Promise<puppeteer.Browser | null>;
+	restartBrowser(): Promise<puppeteer.Browser | null>;
 	refresh(): Promise<string>;
 	/* 截图 */
 	screenshot( url: string, viewPort: puppeteer.Viewport | null, selector: string, encoding: 'base64' | 'binary' ): Promise<Buffer | string | void>;
@@ -123,8 +123,9 @@ export class BasicRenderer implements RenderMethods {
 	static screenshotLimit = <const>233;
 
 	constructor() {
-		this.launchBrowser()
-			.then( browser => this.browser = browser );
+		this.launchBrowser().then( browser => {
+			browser && ( this.browser = browser );
+		} );
 	}
 	
 	public register( route: string, defaultSelector: string ): Renderer {
@@ -141,34 +142,37 @@ export class BasicRenderer implements RenderMethods {
 		this.browser = undefined;
 	}
 	
-	public async launchBrowser(): Promise<puppeteer.Browser> {
-		return new Promise( async ( resolve, reject ) => {
-			if ( this.browser ) {
-				reject( "浏览器已经启动" );
-			}
-			try {
-				const browser = await puppeteer.launch( {
-					headless: "new",
-					args: [
-						"--no-sandbox",
-						"--disable-setuid-sandbox",
-						"--disable-dev-shm-usage"
-					]
-				} );
-				bot.logger.info( "浏览器启动成功" );
-				resolve( browser );
-			} catch ( error ) {
-				const err: string = `浏览器启动失败: ${ ( <Error>error ).stack }`;
-				await bot.message.sendMaster( err );
-				bot.logger.error( err );
-			}
-		} );
+	public async launchBrowser(): Promise<puppeteer.Browser | null> {
+		if ( this.browser ) {
+			return this.browser;
+		}
+		try {
+			const browser = await puppeteer.launch( {
+				headless: "new",
+				args: [
+					"--no-sandbox",
+					"--disable-setuid-sandbox",
+					"--disable-dev-shm-usage"
+				]
+			} );
+			bot.logger.info( "浏览器启动成功" );
+			return browser;
+		} catch ( error ) {
+			await bot.message.sendMaster( `浏览器启动失败: ${ ( <Error>error ).message }` );
+			bot.logger.error( `浏览器启动失败: ${ ( <Error>error ).stack }` );
+			return null;
+		}
 	}
 	
-	public async restartBrowser(): Promise<void> {
+	public async restartBrowser(): Promise<puppeteer.Browser | null> {
 		await this.closeBrowser();
-		this.browser = await this.launchBrowser();
-		this.screenshotCount = 0;
+		const browser = await this.launchBrowser();
+		if ( browser ) {
+			this.browser = browser;
+			this.screenshotCount = 0;
+			return this.browser;
+		}
+		return null;
 	}
 	
 	public async refresh(): Promise<string> {

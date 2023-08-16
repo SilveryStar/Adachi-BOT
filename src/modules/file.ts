@@ -33,20 +33,22 @@ interface ManagementMethod {
 	createDir( dirName: string, place?: PresetPlace, recursive?: boolean ): Promise<CreateResponse>;
 	createDirSync( dirName: string, place?: PresetPlace, recursive?: boolean ): CreateResponse;
 	
-	createParentDir( fileName: string, place: PresetPlace ): Promise<CreateResponse>;
-	createParentDirSync( fileName: string, place: PresetPlace ): CreateResponse;
+	createParentDir( fileName: string, place?: PresetPlace ): Promise<CreateResponse>;
+	createParentDirSync( fileName: string, place?: PresetPlace ): CreateResponse;
 	
 	getDirFiles( dirName: string, place?: PresetPlace ): Promise<string[]>;
 	getDirFilesSync( dirName: string, place?: PresetPlace ): string[];
 	
-	copyFile( originPath: string, targetPath: string ): Promise<void>;
-	copyFileSync( originPath: string, targetPath: string ): void;
+	copyFile( originPath: string, targetPath: string, place?: PresetPlace ): Promise<string>;
+	copyFileSync( originPath: string, targetPath: string, place?: PresetPlace ): string;
 	
 	createFile( fileName: string, data: any, place?: PresetPlace ): Promise<CreateResponse>;
 	createFileSync( fileName: string, data: any, place?: PresetPlace ): CreateResponse;
 	
 	loadFile( fileName: string, place?: PresetPlace, encoding?: BufferEncoding ): Promise<string | null>;
 	loadFileSync( fileName: string, place?: PresetPlace, encoding?: BufferEncoding ): string | null;
+	
+	loadFileByStream( readSteam: fs.ReadStream ): Promise<Buffer | null>;
 	loadFileByStream( fileName: string, highWaterMark?: number, place?: PresetPlace ): Promise<Buffer | null>;
 	
 	writeFile( fileName: string, data: any, place?: PresetPlace ): Promise<string>;
@@ -61,8 +63,8 @@ interface ManagementMethod {
 	writeYAML( ymlName: string, data: any, place?: PresetPlace ): Promise<string>;
 	writeYAMLSync( ymlName: string, data: any, place?: PresetPlace ): string;
 	
-	updateYAML( ymlName: string, data: any, place?: PresetPlace, ...index: string[] ): Promise<string>;
-	updateYAMLSync( ymlName: string, data: any, place?: PresetPlace, ...index: string[] ): string;
+	// updateYAML( ymlName: string, data: any, place?: PresetPlace, ...index: string[] ): Promise<string>;
+	// updateYAMLSync( ymlName: string, data: any, place?: PresetPlace, ...index: string[] ): string;
 	
 	downloadFile<T extends string | string[]>( url: string, savePath: T, setValueCallBack?: ( data: Buffer ) => any, place?: PresetPlace, retry?: number ): Promise<T>;
 	downloadFileStream<T extends string | string[]>( url: string, savePath: T, place?: PresetPlace, retry?: number ): Promise<T>;
@@ -98,7 +100,7 @@ export default class FileManagement implements ManagementMethod {
 		return new Promise( resolve => {
 			fs.access( path, error => {
 				resolve( !error );
-			} );;
+			} );
 		} );
 	}
 	
@@ -176,7 +178,7 @@ export default class FileManagement implements ManagementMethod {
 	}
 	
 	// 创建父级目录
-	public async createParentDir( fileName: string, place: PresetPlace ): Promise<CreateResponse> {
+	public async createParentDir( fileName: string, place: PresetPlace = "config" ): Promise<CreateResponse> {
 		const parentDir: string = dirname( fileName );
 		await this.createDir( parentDir, place );
 		const path: string = this.getFilePath( fileName, place );
@@ -184,7 +186,7 @@ export default class FileManagement implements ManagementMethod {
 		return { path, exist };
 	}
 	
-	public createParentDirSync( fileName: string, place: PresetPlace ): CreateResponse {
+	public createParentDirSync( fileName: string, place: PresetPlace = "config" ): CreateResponse {
 		const parentDir: string = dirname( fileName );
 		this.createDirSync( parentDir, place );
 		const path: string = this.getFilePath( fileName, place );
@@ -213,20 +215,26 @@ export default class FileManagement implements ManagementMethod {
 		}
 	}
 	
-	public async copyFile( originPath: string, targetPath: string ): Promise<void> {
+	public async copyFile( originPath: string, targetPath: string, place: PresetPlace = "config" ): Promise<string> {
+		originPath = this.getFilePath( originPath, place );
+		targetPath = this.getFilePath( targetPath, place );
+		const { path: tPath } = await this.createParentDir( targetPath, place );
 		return new Promise( ( resolve, reject ) => {
 			fs.copyFile( originPath, targetPath, error => {
 				if ( error ) {
 					reject( error );
 				} else {
-					resolve();
+					resolve( tPath );
 				}
 			} )
 		} );
 	}
 	
-	public async copyFileSync( originPath: string, targetPath: string ): Promise<void> {
-		fs.copyFileSync( originPath, targetPath );
+	public copyFileSync( originPath: string, targetPath: string, place: PresetPlace = "config" ): string {
+		originPath = this.getFilePath( originPath, place );
+		const { path: tPath } = this.createParentDirSync( targetPath, place );
+		fs.copyFileSync( originPath, tPath );
+		return tPath;
 	}
 	
 	public async createFile( fileName: string, data: any, place: PresetPlace = "config" ): Promise<CreateResponse> {
@@ -262,7 +270,7 @@ export default class FileManagement implements ManagementMethod {
 				if ( error ) {
 					return resolve( null );
 				}
-				resolve( data || null );
+				resolve( data );
 			} );
 		} );
 	}
@@ -270,7 +278,7 @@ export default class FileManagement implements ManagementMethod {
 	public loadFileSync( fileName: string, place: PresetPlace = "config", encoding: BufferEncoding = "utf-8" ): string | null {
 		const path: string = this.getFilePath( fileName, place );
 		try {
-			return fs.readFileSync( path, encoding ) || null;
+			return fs.readFileSync( path, encoding );
 		} catch {
 			return null;
 		}
@@ -392,29 +400,29 @@ export default class FileManagement implements ManagementMethod {
 		return path;
 	}
 	
-	public async updateYAML(
-		ymlName: string,
-		data: any,
-		place: PresetPlace = "config",
-		...index: string[]
-	): Promise<string> {
-		const oldData: any = ( await this.loadYAML( ymlName, place ) ) || {};
-		// @ts-ignore
-		const newData: any = set( oldData, index, data );
-		return await this.writeYAML( ymlName, newData, place );
-	}
-	
-	public updateYAMLSync(
-		ymlName: string,
-		data: any,
-		place: PresetPlace = "config",
-		...index: string[]
-	): string {
-		const oldData: any = this.loadYAMLSync( ymlName, place ) || {};
-		// @ts-ignore
-		const newData: any = set( oldData, index, data );
-		return this.writeYAMLSync( ymlName, newData, place );
-	}
+	// public async updateYAML(
+	// 	ymlName: string,
+	// 	data: any,
+	// 	place: PresetPlace = "config",
+	// 	...index: string[]
+	// ): Promise<string> {
+	// 	const oldData: any = ( await this.loadYAML( ymlName, place ) ) || {};
+	// 	// @ts-ignore
+	// 	const newData: any = set( oldData, index, data );
+	// 	return await this.writeYAML( ymlName, newData, place );
+	// }
+	//
+	// public updateYAMLSync(
+	// 	ymlName: string,
+	// 	data: any,
+	// 	place: PresetPlace = "config",
+	// 	...index: string[]
+	// ): string {
+	// 	const oldData: any = this.loadYAMLSync( ymlName, place ) || {};
+	// 	// @ts-ignore
+	// 	const newData: any = set( oldData, index, data );
+	// 	return this.writeYAMLSync( ymlName, newData, place );
+	// }
 	
 	public async downloadFile<T extends string | string[]>(
 		url: string,
@@ -436,9 +444,10 @@ export default class FileManagement implements ManagementMethod {
 			if ( typeof savePath === "string" ) {
 				return <T>( await this.writeFile( savePath, data, place ));
 			} else {
-				const pathList: string[] = [];
-				for ( const path of savePath ) {
-					pathList.push( await this.writeFile( path, data, place ) );
+				const originPath = await this.writeFile( savePath[0], data, place );
+				const pathList: string[] = [ originPath ];
+				for ( const path of savePath.slice( 1 ) ) {
+					pathList.push( await this.copyFile( originPath, path, place ) );
 				}
 				return <T>pathList;
 			}

@@ -2,7 +2,7 @@ import { AuthLevel } from "@/modules/management/auth";
 import { defineDirective } from "@/modules/command";
 
 export default defineDirective( "switch", async ( { sendMessage, redis, matchResult } ) => {
-	const isOn: boolean = matchResult.isOn();
+	const isOn: boolean = matchResult.isOn;
 	const userID: number = parseInt( matchResult.match[0] );
 	
 	if ( isOn ) {

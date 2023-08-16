@@ -8,6 +8,12 @@ export interface IntervalSettingData {
 	prefix: string
 }
 
+interface IntervalImplement {
+	set( id: number | string, type: IntervalType, time: number ): Promise<void>
+	get( id: number | string, type: IntervalType ): number
+	check( id: number | string, type: IntervalType ): boolean;
+}
+
 class IntervalSetting {
 	public dbKey: string;
 	public globalLimit: number;
@@ -29,7 +35,7 @@ class IntervalSetting {
 	}
 }
 
-export default class Interval {
+export default class Interval implements IntervalImplement {
 	private readonly unixTimeTemp: Record<number, number>;
 	private readonly settingData: Record<IntervalType, IntervalSettingData>;
 	
@@ -51,7 +57,7 @@ export default class Interval {
 		} );
 	}
 	
-	public check( id: string | number, type: IntervalType ): boolean {
+	public check( id: number | string, type: IntervalType ): boolean {
 		const nowTime: number = new Date().getTime();
 		const pId: string = this.settingData[type].prefix + id;
 		const past: number = nowTime - ( this.unixTimeTemp[pId] || 0 );
@@ -65,7 +71,7 @@ export default class Interval {
 		}
 	}
 	
-	public get( id: string | number, type: IntervalType ): number {
+	public get( id: number | string, type: IntervalType ): number {
 		const intervalSetting: IntervalSetting = this.settingData[type].setting;
 		return intervalSetting.get( id );
 	}

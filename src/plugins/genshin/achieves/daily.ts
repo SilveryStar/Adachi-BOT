@@ -9,8 +9,8 @@ export default defineDirective( "switch", async ( { sendMessage, messageData, ma
 	
 	const isGroupID: boolean = intReg.test( name ) && name.length >= 6;
 	const result: string = isGroupID
-		? await dailyClass.modifySubscriptGroup( name, matchResult.isOn() )
-		: await dailyClass.modifySubscriptUser( userID, matchResult.isOn(), name );
+		? await dailyClass.modifySubscriptGroup( name, matchResult.isOn )
+		: await dailyClass.modifySubscriptUser( userID, matchResult.isOn, name );
 	
 	await sendMessage( result );
 } );

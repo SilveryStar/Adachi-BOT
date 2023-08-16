@@ -54,13 +54,13 @@ export default definePlugin( {
 		routers
 	},
 	assets: {
-		manifestUrl: "https://mari-plugin.oss-cn-beijing.aliyuncs.com/Version3/genshin_assets_manifest.yml",
-		downloadBaseUrl: "https://mari-plugin.oss-cn-beijing.aliyuncs.com",
+		manifestUrl: "https://mari-files.oss-cn-beijing.aliyuncs.com/adachi-bot/version3/genshin_assets_manifest.yml",
+		downloadBaseUrl: "https://mari-files.oss-cn-beijing.aliyuncs.com",
 		pathField: "name",
 		modifiedField: "lastModified",
 		overflowPrompt: "更新文件数量超过阈值，请手动前往 https://github.com/SilveryStar/Adachi-BOT/release 更新资源包",
 		replacePath: path => {
-			return path.replace( "Version3/genshin/", "" );
+			return path.replace( "adachi-bot/version3/genshin/", "" );
 		}
 	},
 	subscribe: [

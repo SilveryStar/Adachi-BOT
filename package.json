@@ -51,6 +51,7 @@
     "@types/node": "^18.16.1",
     "@types/node-fetch": "^2.6.3",
     "@types/node-schedule": "^2.1.0",
+    "@types/nodemailer": "^6.4.10",
     "@types/single-line-log": "^1.1.0",
     "@vitejs/plugin-vue": "^4.2.3",
     "cross-env": "^7.0.3",

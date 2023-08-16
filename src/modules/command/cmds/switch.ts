@@ -1,13 +1,14 @@
 import { BasicConfig, CommandCfg, CommandFunc, CommonInit, FollowInfo, Unmatch } from "../main";
 import { BotConfig } from "@/modules/config";
 import bot from "ROOT";
-import { escapeRegExp, trimStart } from "lodash";
+import { escapeRegExp } from "lodash";
 
 export interface SwitchMatchResult {
 	type: Switch["type"];
+	header: string;
 	switch: string;
 	match: string[];
-	isOn(): boolean;
+	isOn: boolean;
 }
 
 export type SwitchConfig = CommandCfg & {
@@ -16,7 +17,7 @@ export type SwitchConfig = CommandCfg & {
 	onKey: string;
 	offKey: string;
 	header: string;
-	regexp: string | string[];
+	regexps: string[] | string[][];
 };
 
 export type SwitchInit = SwitchConfig & CommonInit & {
@@ -25,7 +26,7 @@ export type SwitchInit = SwitchConfig & CommonInit & {
 
 interface RegPair {
 	header: string;
-	regExp: RegExp;
+	genRegExps: RegExp[];
 }
 
 export class Switch extends BasicConfig {
@@ -52,34 +53,31 @@ export class Switch extends BasicConfig {
 		const addChar: ( s: string ) => string = s => Switch.addStartStopChar(
 			s, config.start !== false, config.stop !== false
 		);
-		
+
+		const regParam = this.checkRegexps( config.regexps ) ? config.regexps : [ config.regexps ];
 		this.regPairs = botCfg.directive.header.map( header => {
 			const getHeaderRegStr: ( h: string ) => string = h => escapeRegExp( Switch.header( h, header ) );
-			
+
+			let h: string;
 			if ( this.checkSingleSwitch( this.keys ) ) {
-				let reg: string = config.regexp instanceof Array
-					? [ "", ...config.regexp ].join( "\\s*" )
-					: config.regexp;
-				const h: string = getHeaderRegStr( config.header );
-				const r: string = reg.replace(
-					"#{OPT}",
-					`(${ config.onKey }|${ config.offKey })`
-				);
-				return {
-					header: h,
-					regExp: Switch.regexp( addChar( h + r ), this.ignoreCase )
-				}
+				h = getHeaderRegStr( config.header );
 			} else {
-				const r: string = config.regexp instanceof Array
-					? [ "", ...config.regexp.filter( el => el !== "#{OPT}" ) ].join( "\\s*" )
-					: config.regexp.replace( "#{OPT}", "" ).trim();
-				const h1: string = getHeaderRegStr( config.onKey );
-				const h2: string = getHeaderRegStr( config.offKey );
+				const h1 = getHeaderRegStr( config.onKey );
+				const h2 = getHeaderRegStr( config.offKey );
 				this.keys.push( [ h1, h2 ] );
-				return {
-					header: "",
-					regExp: Switch.regexp( addChar( `(${ h1 }|${ h2 })${ r }` ), this.ignoreCase )
-				};
+				h = `(?:${ h1 }|${ h2 })`;
+			}
+			return {
+				header: this.checkSingleSwitch( this.keys ) ? h : "",
+				genRegExps: regParam.map( reg => {
+					const regList = this.captureParams( reg );
+					/* 将 ${OPT} 替换为的目标字符串 */
+					const replaceStr = this.checkSingleSwitch( this.keys )
+						? `(${ config.onKey }|${ config.offKey })`
+						: "";
+					const r = ["", ...regList].join( "\\s*" ).replace( "(#{OPT})", replaceStr );
+					return Switch.regexp( addChar( h + r ), this.ignoreCase );
+				} )
 			}
 		} )
 	}
@@ -99,8 +97,13 @@ export class Switch extends BasicConfig {
 			offKey: cfg.offKey,
 			header: cfg.header,
 			enable: this.enable,
+			display: this.display,
 			priority: this.priority
 		};
+	}
+
+	private checkRegexps( regexps: SwitchConfig["regexps"] ): regexps is string[][] {
+		return regexps.some( el => el instanceof Array );
 	}
 	
 	public static read( cfg: SwitchInit, loaded ) {
@@ -117,50 +120,30 @@ export class Switch extends BasicConfig {
 	public match( content: string ): SwitchMatchResult | Unmatch {
 		for ( const pairKey in this.regPairs ) {
 			const pair = this.regPairs[pairKey];
-			const res: RegExpExecArray | null = pair.regExp.exec( content );
-			if ( !res ) {
-				continue;
-			}
-			
-			const [ onKey, offKey ] = this.checkSingleSwitch( this.keys ) ? this.keys : this.keys[pairKey];
-			const temp: string[] = res.splice( 1 );
-			
-			let switchKey: string = "";
-			if ( temp.includes( onKey ) ) {
-				switchKey = onKey;
-			}
-			if ( temp.includes( offKey ) ) {
-				switchKey = offKey;
-			}
-			
-			const isOn = () => switchKey === onKey;
-			const match = res[0].replace( / +/g, " " )
-				.split( " " )
-				.filter( el => el !== switchKey )
-				.map( el => trimStart( el ) );
-			if ( match.length !== 0 ) {
-				if ( this.mode === "single" ) {
-					if ( match[0].includes( pair.header ) ) {
-						match[0] = match[0].split( pair.header ).join( "" );
-					}
-				} else if ( this.mode === "divided" ) {
-					if ( match[0].includes( onKey ) ) {
-						match[0] = match[0].split( onKey ).join( "" );
-					}
-					if ( match[0].includes( offKey ) ) {
-						match[0] = match[0].split( offKey ).join( "" );
-					}
+
+			for ( const reg of pair.genRegExps ) {
+				const res = reg.exec( content );
+				if ( !res ) {
+					continue;
 				}
-				if ( match[0].length === 0 ) {
-					match.shift();
+				console.log( res, reg )
+				const [ onKey, offKey ] = this.checkSingleSwitch( this.keys ) ? this.keys : this.keys[pairKey];
+				let switchKey: string = "";
+				if ( res[0].includes( onKey ) ) {
+					switchKey = onKey;
 				}
+				if ( res[0].includes( offKey ) ) {
+					switchKey = offKey;
+				}
+
+				return {
+					type: this.type,
+					header: pair.header,
+					switch: switchKey,
+					match: [ ...res ].slice( 1 ),
+					isOn: switchKey === onKey
+				};
 			}
-			
-			return {
-				type: this.type,
-				switch: switchKey,
-				match, isOn
-			};
 		}
 		
 		return { type: "unmatch", missParam: false };

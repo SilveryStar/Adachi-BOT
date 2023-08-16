@@ -91,6 +91,7 @@ export class Enquire extends BasicConfig {
 			scope: this.scope,
 			headers: cfg.headers,
 			enable: this.enable,
+			display: this.display,
 			priority: this.priority
 		};
 	}

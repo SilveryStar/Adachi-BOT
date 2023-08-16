@@ -19,8 +19,9 @@ export type SendFunc = ( content: core.Sendable | core.ForwardElem, allowAt?: bo
 export type Message = core.PrivateMessageEvent | core.GroupMessageEvent;
 
 interface MsgManagementMethod {
-	getSendMessageFunc( userID: number, type: MessageType, groupID?: number ): SendFunc;
-	sendMaster( content: string ): Promise<number | null>;
+	getSendMessageFunc( userID: number | "all" | string, type: MessageType, groupID?: number ): SendFunc;
+	sendMaster( content: core.Sendable ): Promise<number | null>;
+	sendMaster( content: core.ForwardElem ): Promise<core.SendForwardMessage | null>;
 }
 
 function checkIterator( obj: core.ForwardElem | core.MessageElem | Iterable<core.MessageElem | string> ): obj is Iterable<core.MessageElem | string> {
@@ -117,8 +118,15 @@ export default class MsgManagement implements MsgManagementMethod {
 		}
 	}
 	
-	public async sendMaster( content: string ): Promise<number | null> {
-		const sendRes = await this.client.sendPrivateMsg( this.master, content );
+	public async sendMaster( content: core.Sendable ): Promise<number | null>
+	public async sendMaster( content: core.ForwardElem ): Promise<core.SendForwardMessage | null>
+	public async sendMaster( content: core.Sendable | core.ForwardElem ): Promise<core.SendForwardMessage | number | null> {
+		let sendRes: core.ActionResponse;
+		if ( checkoutForward( content ) ) {
+			sendRes = await this.client.sendPrivateForwardMessage( this.master, content );
+		} else {
+			sendRes = await this.client.sendPrivateMsg( this.master, content );
+		}
 		return sendRes.retcode === 0 ? sendRes.data : null;
 	}
 }

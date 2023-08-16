@@ -8,13 +8,13 @@ export enum AuthLevel {
 	Master
 }
 
-interface AuthorizationMethod {
+interface AuthorizationImplement {
 	set( userID: number, level: AuthLevel ): Promise<void>;
 	get( userID: number ): Promise<AuthLevel>;
 	check( userID: number, limit: AuthLevel ): Promise<boolean>;
 }
 
-export default class Authorization implements AuthorizationMethod {
+export default class Authorization implements AuthorizationImplement {
 	private master: number;
 	
 	constructor( config: BotConfig["base"], private readonly redis: Database ) {

@@ -2,7 +2,7 @@ import * as cmd from "./command";
 import { BasicConfig, InitType } from "./command";
 import pLimit from "p-limit";
 import { BOT } from "@/modules/bot";
-import { extname } from "path";
+import { extname, join } from "path";
 import { Router } from "express";
 import axios, { AxiosError, AxiosResponse } from "axios";
 import Progress from "@/utils/progress";
@@ -213,12 +213,12 @@ export default class Plugin {
 			this.pluginList[pluginKey] = plugin;
 			this.pluginSettings[pluginKey] = init.default;
 			
-			if ( immediate ) {
-				await this.doMount( pluginKey );
-			}
-			
 			if ( reloadCmd ) {
 				await this.bot.command.reload();
+			}
+			
+			if ( immediate ) {
+				await this.doMount( pluginKey );
 			}
 		} catch ( error ) {
 			this.bot.logger.error( `插件 ${ pluginKey } 加载异常: ${ <string>error }` );
@@ -361,12 +361,12 @@ export default class Plugin {
 		/* 此处删除所有向后兼容代码 */
 		for ( const config of pluginInfo.cmdConfigs ) {
 			/* 允许 main 传入函数 */
-			if ( typeof config.main === "string" ) {
-				const main: string = config.main || "index";
-				const entry = await import(`#/${ pluginInfo.key }/${ main }`);
-				cmdEntry = entry.default;
-			} else {
+			if ( config.main instanceof Function ) {
 				cmdEntry = config.main;
+			} else {
+				const main: string = config.main || "index";
+				const entry = await import( `#/${ join( pluginInfo.key, main ) }` );
+				cmdEntry = entry.default;
 			}
 			
 			const initConfig: InitType = {

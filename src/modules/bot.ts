@@ -71,16 +71,16 @@ export default class Adachi {
 		// 是否需要初始化环境
 		const exist = file.isExistSync( file.getFilePath( "base.yml" ) );
 		const command = new Command( file );
-		const refresh = RefreshConfig.getInstance();
 		
 		/* 初始化应用模块 */
-		const config = this.getBotConfig( file, refresh );
+		const config = this.getBotConfig();
 		
 		if ( !exist ) {
 			Adachi.setEnv( file );
 		}
 		
 		const client = core.createClient( config );
+		const refresh = RefreshConfig.getInstance();
 		
 		process.on( "unhandledRejection", ( reason: any ) => {
 			client.logger.error( reason?.stack || reason?.message || reason );
@@ -142,8 +142,8 @@ export default class Adachi {
 		return this.bot;
 	}
 	
-	private getBotConfig( file: FileManagement, refresh: RefreshConfig ): BotConfig {
-		return <any>( new Proxy( new BotConfigManager( file ), {
+	private getBotConfig(): BotConfig {
+		return <any>( new Proxy( new BotConfigManager(), {
 			get( target: BotConfigManager, p: string, receiver: any ) {
 				if ( p in target.value ) {
 					return target.value[p];
@@ -314,7 +314,7 @@ export default class Adachi {
 				sendMessage, ...this.bot,
 				messageData, matchResult: res
 			};
-			if ( cmd.checkEnquire( cmd ) ) {
+			if ( this.bot.command.checkEnquire( cmd ) ) {
 				await cmd.activate( userID, groupID, input );
 			} else {
 				await cmd.run( input );

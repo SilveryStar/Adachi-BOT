@@ -4,11 +4,11 @@ import bot from "ROOT";
 import Plugin from "@/modules/plugin";
 import FileManagement from "@/modules/file";
 import { RefreshCatch } from "@/modules/management/refresh";
+import * as msg from "@/modules/message";
 import { Message, MessageScope, SendFunc } from "@/modules/message";
 import { AuthLevel } from "../management/auth";
 import { BOT } from "@/modules/bot";
 import { trimStart, without } from "lodash";
-import * as msg from "@/modules/message";
 
 type Optional<T> = {
 	-readonly [key in keyof T]?: T[key];
@@ -52,16 +52,16 @@ export type CommandEntry = CommandFunc<"order"> | CommandFunc<"switch"> | Comman
 /* 指令通用配置项 */
 export interface CommandCfg {
 	cmdKey: string;
-	main: string | CommandEntry;
 	desc: [ string, string ];
+	main?: string | CommandEntry;
 	detail?: string;
 	auth?: AuthLevel;
 	scope?: MessageScope;
 	display?: boolean;
 	ignoreCase?: boolean;
+	priority?: number;
 	start?: boolean;
 	stop?: boolean;
-	priority?: number;
 }
 
 /* 指令配置项 */
@@ -122,6 +122,14 @@ export abstract class BasicConfig {
 	abstract getFollow(): FollowInfo;
 	
 	abstract getDesc( headerNum?: number ): string;
+
+	// 非捕获正则字符串中的分组，并捕获整段参数
+	protected captureParams( regList: string[] ) {
+		return regList.map( r => {
+			const fr = r.replace( /\((.+?)\)/g, "(?:$1)" );
+			return `(${ fr })`;
+		} );
+	}
 	
 	protected static header( raw: string, h: string ): string {
 		if ( raw.slice( 0, 2 ) === "__" ) {
@@ -160,26 +168,14 @@ export abstract class BasicConfig {
 		const [ func ] = this.desc;
 		return `${ func } -- ${ this.cmdKey }`;
 	}
-	
-	public checkOrder( cmd: BasicConfig ): cmd is Order {
-		return cmd.type === "order";
-	}
-	
-	public checkSwitch( cmd: BasicConfig ): cmd is Switch {
-		return cmd.type === "switch";
-	}
-	
-	public checkEnquire( cmd: BasicConfig ): cmd is Enquire {
-		return cmd.type === "enquire";
-	}
 }
 
 export default class Command {
-	public privates: CommandList = Command.initAuthObject();
-	public groups: CommandList = Command.initAuthObject();
-	public all: CommandList = Command.initAuthObject();
-	public pUnionReg: Record<AuthLevel, RegExp> = Command.initAuthObject();
-	public gUnionReg: Record<AuthLevel, RegExp> = Command.initAuthObject();
+	private privates: CommandList = Command.initAuthObject();
+	private groups: CommandList = Command.initAuthObject();
+	private all: CommandList = Command.initAuthObject();
+	private pUnionReg: Record<AuthLevel, RegExp> = Command.initAuthObject();
+	private gUnionReg: Record<AuthLevel, RegExp> = Command.initAuthObject();
 	public raws: ConfigType[] = [];
 	public readonly cmdKeys: string[];
 	
@@ -225,7 +221,7 @@ export default class Command {
 		await bot.file.writeYAML( "commands", cmdConfig );
 	}
 	
-	public add( commands: BasicConfig[] ): void {
+	private add( commands: BasicConfig[] ): void {
 		this.raws = [];
 		commands.forEach( cmd => {
 			this.raws.push( cmd.raw );
@@ -250,9 +246,7 @@ export default class Command {
 			cmdSet.forEach( cmd => {
 				if ( cmd.type === "order" ) {
 					cmd.regPairs.forEach( el => {
-						list.push(
-							...el.genRegExps.map( r => `(${ r.source })` )
-						);
+						list.push( ...el.genRegExps.map( r => `(${ r.source })` ) );
 						
 						const unMatchHeader = cmd.getExtReg( el );
 						if ( unMatchHeader ) {
@@ -260,7 +254,9 @@ export default class Command {
 						}
 					} );
 				} else if ( cmd.type === "switch" ) {
-					list.push( ...cmd.regPairs.map( r => `(${ r.regExp.source })` ) );
+					cmd.regPairs.forEach( el => {
+						list.push( ...el.genRegExps.map( r => `(${ r.source })` ) );
+					} );
 				} else if ( cmd.type === "enquire" ) {
 					list.push( ...cmd.regPairs.map( r => `(${ r.regExp.source })` ) );
 				}
@@ -269,7 +265,7 @@ export default class Command {
 		}
 	}
 	
-	public getUnion( auth: AuthLevel, scope: MessageScope ): RegExp {
+	public getUnion( auth: AuthLevel, scope: MessageScope.Group | MessageScope.Private ): RegExp {
 		if ( scope === MessageScope.Private ) {
 			return this.pUnionReg[auth];
 		} else {
@@ -303,10 +299,30 @@ export default class Command {
 	
 	public getSingle(
 		key: string,
-		level: AuthLevel = AuthLevel.User,
-		type: string = "privates"
+		auth: AuthLevel = AuthLevel.User,
+		scope: MessageScope = MessageScope.Both
 	): BasicConfig | undefined {
-		const commands: BasicConfig[] = this[type][level];
+		const commandsMap = {
+			[ MessageScope.Private ]: this.privates,
+			[ MessageScope.Group ]: this.groups,
+			[ MessageScope.Both ]: this.all
+		}
+		const commands: BasicConfig[] = commandsMap[scope]?.[auth];
+		if ( !commands ) {
+			return;
+		}
 		return commands.find( el => el.cmdKey == key );
+	}
+	
+	public checkOrder( cmd: BasicConfig ): cmd is Order {
+		return cmd.type === "order";
+	}
+	
+	public checkSwitch( cmd: BasicConfig ): cmd is Switch {
+		return cmd.type === "switch";
+	}
+	
+	public checkEnquire( cmd: BasicConfig ): cmd is Enquire {
+		return cmd.type === "enquire";
 	}
 }

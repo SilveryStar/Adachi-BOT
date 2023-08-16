@@ -47,11 +47,7 @@ export class Order extends BasicConfig {
 		this.regPairs = headers.map( header => ( {
 			header,
 			genRegExps: regParam.map( reg => {
-				// 非捕获正则字符串中的分组，并捕获整段参数
-				const regList = reg.map( r => {
-					const fr = r.replace( /\((.+?)\)/g, "(?:$1)" );
-					return `(${ fr })`;
-				} );
+				const regList = this.captureParams( reg );
 				const r: string = [ "", ...regList ].join( "\\s*" );
 				const h: string = escapeRegExp( header );
 				const pattern: string = Order.addStartStopChar(
@@ -84,6 +80,7 @@ export class Order extends BasicConfig {
 			scope: this.scope,
 			headers: cfg.headers,
 			enable: this.enable,
+			display: this.display,
 			priority: this.priority
 		};
 	}

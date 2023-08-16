@@ -5,13 +5,13 @@ import { AuthLevel } from "@/modules/management/auth";
 
 export default defineDirective( "switch", async ( { sendMessage, matchResult, messageData, auth, redis } ) => {
 	const match = matchResult;
-	const states: string = match.isOn() ? "开启" : "关闭";
+	const states: string = match.isOn ? "开启" : "关闭";
 	
 	const userID: number = messageData.user_id;
 	const [ id, key ] = match.match;
 	const [ type, targetID ] = idParser( id );
 	
-	if ( type === MessageType.Private && !match.isOn() ) {
+	if ( type === MessageType.Private && !match.isOn ) {
 		if ( targetID === userID ) {
 			await sendMessage( "不能对自己进行操作" );
 			return;
@@ -33,7 +33,7 @@ export default defineDirective( "switch", async ( { sendMessage, matchResult, me
 		reply = `群聊 ${ targetID } 的 ${ key } 权限已${ states }`;
 	}
 	
-	if ( match.isOn() ) {
+	if ( match.isOn ) {
 		await redis.delListElement( dbKey, key );
 	} else {
 		await redis.addListElement( dbKey, key );
