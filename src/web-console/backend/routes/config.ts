@@ -40,7 +40,6 @@ export default express.Router()
 		const getBaseData = async ( fileName: string ) => {
 			const data: FileData = await getFileData( fileName );
 			if ( data.code !== 200 ) {
-				res.status( data.code ).send( { code: data.code, data: {}, msg: data.data } );
 				throw data;
 			}
 			return data.data;
@@ -50,7 +49,6 @@ export default express.Router()
 			const config: BotConfigValue = {
 				base: await getBaseData( "base" ),
 				directive: await getBaseData( "directive" ),
-				ffmpeg: await getBaseData( "ffmpeg" ),
 				db: await getBaseData( "db" ),
 				mail: await getBaseData( "mail" ),
 				autoChat: await getBaseData( "autoChat" ),

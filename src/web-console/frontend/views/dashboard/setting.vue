@@ -132,27 +132,6 @@
 				</form-item>
 			</div>
 			<div class="config-section">
-				<section-title title="ffmpeg配置" desc="当有发送语音与视频需求时需要配置此项"/>
-				<spread-form-item
-					v-model="setting.ffmpeg.ffmpegPath"
-					:active-spread="activeSpread"
-					:disabled="pageLoading"
-					label="ffmpeg路径"
-					placeholder="ffmpeg路径"
-					@change="updateConfig('ffmpeg', 'ffmpegPath')"
-					@open="activeSpreadItem"
-				/>
-				<spread-form-item
-					v-model="setting.ffmpeg.ffprobePath"
-					:active-spread="activeSpread"
-					:disabled="pageLoading"
-					label="ffprobe路径"
-					placeholder="ffprobe路径"
-					@change="updateConfig('ffmpeg', 'ffprobePath')"
-					@open="activeSpreadItem"
-				/>
-			</div>
-			<div class="config-section">
 				<section-title title="数据库设置"/>
 				<spread-form-item
 					v-model="setting.db.port"
