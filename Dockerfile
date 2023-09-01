@@ -3,6 +3,7 @@ RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositorie
     apk add --no-cache --update \
         		ca-certificates \
         		dpkg &&  \
+    update-ca-certificates && \
     dpkgArch="$(dpkg --print-architecture | awk -F- '{ print $NF }')" && \
     wget https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-${dpkgArch}-static.tar.xz && \
     mkdir -p /res/ffmpeg && \
@@ -26,19 +27,19 @@ RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositorie
     chromium \
     nss \
     freetype \
-    font-noto-emoji	\
     harfbuzz \
     ca-certificates \
     git \
     nodejs \
     npm \
     tzdata \
+    dos2unix \
     dumb-init && \
     cp /usr/share/zoneinfo/$TZ /etc/localtime && \
     echo $TZ > /etc/timezone && \
     npm config set registry https://registry.npmmirror.com && \
     rm -rf /var/cache/apk/* && \
-    addgroup -S adachi && adduser -S adachi -G adachi && \
+    addgroup -S -g 1000 adachi && adduser -S -G adachi -u 999 adachi && \
     set -eux; \
     	\
     	apk add --no-cache --update --virtual .gosu-deps \
@@ -47,6 +48,7 @@ RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositorie
     		gnupg \
     	; \
     	\
+        update-ca-certificates; \
     	dpkgArch="$(dpkg --print-architecture | awk -F- '{ print $NF }')"; \
     	wget -O /usr/local/bin/gosu "https://ghproxy.com/https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$dpkgArch"; \
     	wget -O /usr/local/bin/gosu.asc "https://ghproxy.com/https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$dpkgArch.asc"; \
@@ -69,7 +71,7 @@ RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositorie
 COPY . /bot
 WORKDIR /bot
 
-RUN chmod +x docker-entrypoint.sh && sed -i 's/\r$//' docker-entrypoint.sh
+RUN chmod +x docker-entrypoint.sh && dos2unix docker-entrypoint.sh
 
 ENTRYPOINT ["sh", "docker-entrypoint.sh"]
 

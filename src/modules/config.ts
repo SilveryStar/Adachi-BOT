@@ -1,6 +1,7 @@
-import { AuthLevel } from "./management/auth";
+import {AuthLevel} from "./management/auth";
 import FileManagement from "@modules/file";
-import { getRandomStr } from "@modules/utils";
+import {getRandomStr} from "@modules/utils";
+import {getApkInfoList} from "icqq/lib/core";
 
 export default class BotConfig {
 	public readonly qrcode: boolean;
@@ -102,9 +103,10 @@ export default class BotConfig {
 			secretId: "",
 			secretKey: ""
 		},
-		signApiAddr: ""
+        signApiAddr: process.env.docker === "yes" ? "http://qsign/sign?key=114514" : "",
+        ver: ""
 	};
-	
+
 	public readonly mailConfig: {
 		readonly host: string;
 		readonly port: number;
@@ -118,7 +120,7 @@ export default class BotConfig {
 		readonly retry: number;
 		readonly retryWait: number;
 	}
-	
+
 	public readonly banScreenSwipe: {
 		readonly enable: boolean;
 		readonly limit: number;
@@ -126,7 +128,7 @@ export default class BotConfig {
 		readonly prompt: boolean;
 		readonly promptMsg: string;
 	}
-	
+
 	public readonly banHeavyAt: {
 		readonly enable: boolean;
 		readonly limit: number;
@@ -134,16 +136,16 @@ export default class BotConfig {
 		readonly prompt: boolean;
 		readonly promptMsg: string;
 	}
-	
-	public readonly webConsole: {
+
+    public readonly webConsole: {
 		readonly enable: boolean;
 		readonly consolePort: number;
 		readonly tcpLoggerPort: number;
 		readonly logHighWaterMark: number;
 		readonly jwtSecret: string;
 	};
-	
-	public readonly autoChat: {
+
+    public readonly autoChat: {
 		readonly enable: boolean;
 		readonly type: number;
 		readonly audio: boolean;
@@ -152,7 +154,8 @@ export default class BotConfig {
 	}
 	public readonly logKeepDays: number;
 	public readonly signApiAddr: string;
-	
+    public readonly ver: string;
+
 	constructor( file: FileManagement ) {
 		const config: any = file.loadYAML( "setting" );
 		const checkFields: Array<keyof BotConfig> = [
@@ -160,17 +163,17 @@ export default class BotConfig {
 			"helpPort", "autoChat", "callTimes",
 			"fuzzyMatch", "matchPrompt", "useWhitelist",
 			"banScreenSwipe", "banHeavyAt", "ThresholdInterval",
-			"ffmpegPath", "ffprobePath", "mailConfig", "logKeepDays", "signApiAddr"
+            "ffmpegPath", "ffprobePath", "mailConfig", "logKeepDays", "signApiAddr", "ver"
 		];
-		
-		for ( let key of checkFields ) {
+
+        for ( let key of checkFields ) {
 			if ( config[key] === undefined ) {
 				config[key] = BotConfig.initObject[key];
 			}
 		}
 		file.writeYAML( "setting", config );
-		
-		this.atBOT = config.atBOT;
+
+        this.atBOT = config.atBOT;
 		this.qrcode = config.qrcode;
 		this.number = config.number;
 		this.master = config.master;
@@ -217,36 +220,36 @@ export default class BotConfig {
 			prompt: config.banScreenSwipe.prompt,
 			promptMsg: config.banScreenSwipe.promptMsg
 		}
-		
-		this.banHeavyAt = {
+
+        this.banHeavyAt = {
 			enable: config.banHeavyAt.enable,
 			limit: config.banHeavyAt.limit,
 			duration: config.banHeavyAt.duration,
 			prompt: config.banHeavyAt.prompt,
 			promptMsg: config.banHeavyAt.promptMsg
 		}
-		
-		this.webConsole = {
+
+        this.webConsole = {
 			enable: config.webConsole.enable,
 			consolePort: config.webConsole.consolePort,
 			tcpLoggerPort: config.webConsole.tcpLoggerPort,
 			logHighWaterMark: config.webConsole.logHighWaterMark,
 			jwtSecret: config.webConsole.jwtSecret?.toString()
 		}
-		
-		const authMap: Record<string, AuthLevel> = {
+
+        const authMap: Record<string, AuthLevel> = {
 			master: AuthLevel.Master,
 			manager: AuthLevel.Manager,
 			user: AuthLevel.User
 		}
-		
-		this.inviteAuth = authMap[config.inviteAuth] || AuthLevel.Master;
-		
-		const helpList: string[] = [ "message", "forward", "xml", "card" ];
+
+        this.inviteAuth = authMap[config.inviteAuth] || AuthLevel.Master;
+
+        const helpList: string[] = [ "message", "forward", "xml", "card" ];
 		this.helpMessageStyle = helpList.includes( config.helpMessageStyle )
 			? config.helpMessageStyle : "message";
-		
-		const logLevelList: string[] = [
+
+        const logLevelList: string[] = [
 			"trace", "debug", "info", "warn",
 			"error", "fatal", "mark", "off"
 		];
@@ -254,5 +257,17 @@ export default class BotConfig {
 			? config.logLevel : "info";
 		this.logKeepDays = config.logKeepDays;
 		this.signApiAddr = config.signApiAddr;
+        if (!config.ver) {
+            // 设置为空icqq自动获取qsign使用的协议版本号
+            this.ver = "";
+            return;
+        }
+        const verList = getApkInfoList(this.platform).map(apk => apk.ver);
+        if (verList.includes(config.ver)) {
+            this.ver = config.ver;
+        } else {
+            // 取最低支持的版本(比如8.9.63)
+            this.ver = verList[verList.length - 1];
+        }
 	}
 }
