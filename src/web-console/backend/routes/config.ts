@@ -1,6 +1,7 @@
 import express from "express";
-import { mergeWith } from "lodash";
+import {mergeWith} from "lodash";
 import bot from "ROOT";
+import {getApkInfoList} from "icqq/lib/core";
 
 interface FileData {
 	code: number;
@@ -19,13 +20,14 @@ export default express.Router()
 			res.status( fileData.code ).send( { code: fileData.code, data: {}, msg: fileData.data } );
 			return;
 		}
-		
+
 		const data = fileData.data;
-		
-		if ( fileName === "setting" ) {
+
+        if ( fileName === "setting" ) {
 			delete data.password;
 			delete data.dbPassword;
 			delete data.webConsole.jwtSecret
+            data['verList'] = getApkInfoList(bot.config.platform).map(apk => apk.ver);
 		}
 		res.status( 200 ).send( { code: 200, data, msg: "Success" } );
 	} )
@@ -37,8 +39,8 @@ export default express.Router()
 			res.status( 400 ).send( { code: 400, data: {}, msg: "Error Params" } );
 			return;
 		}
-		
-		let data: any;
+
+        let data: any;
 		if ( force ) {
 			data = content;
 		} else {
@@ -48,8 +50,8 @@ export default express.Router()
 				return;
 			}
 			data = fileData.data;
-			
-			mergeWith( data, content, ( objValue, srcValue ) => {
+
+            mergeWith( data, content, ( objValue, srcValue ) => {
 				if ( objValue instanceof Array ) {
 					return srcValue;
 				}
@@ -64,8 +66,8 @@ export default express.Router()
 			res.status( 400 ).send( { code: 400, data: {}, msg: "Error Params" } );
 			return;
 		}
-		
-		const dirName = `src/data/${ bot.config.number }`;
+
+        const dirName = `src/data/${ bot.config.number }`;
 		const codePath = `${ dirName }/code.txt`;
 		bot.file.createDir( dirName, "root", true );
 		const exist = bot.file.createFile( codePath, data, "root" );
@@ -80,8 +82,8 @@ export default express.Router()
 			res.status( 400 ).send( { code: 400, data: {}, msg: "Error Params" } );
 			return;
 		}
-		
-		const dirName = `src/data/${ bot.config.number }`;
+
+        const dirName = `src/data/${ bot.config.number }`;
 		const ticketPath = `${ dirName }/ticket.txt`;
 		bot.file.createDir( dirName, "root", true );
 		const exist = bot.file.createFile( ticketPath, data, "root" );
@@ -98,15 +100,15 @@ export default express.Router()
 			if ( [ "setting", "commands", "cookies", "whitelist" ].includes( fileName ) ) {
 				return null;
 			}
-			
-			const fileData: FileData = getFileData( fileName );
+
+            const fileData: FileData = getFileData( fileName );
 			if ( fileData.code !== 200 ) {
 				return null;
 			}
 			return { name: fileName, data: fileData.data };
 		} ).filter( c => !!c );
-		
-		res.status( 200 ).send( { code: 200, data, msg: "Success" } );
+
+        res.status( 200 ).send( { code: 200, data, msg: "Success" } );
 	} )
 
 function getFileData( fileName: string ): FileData {

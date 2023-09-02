@@ -66,6 +66,12 @@ const template = `<div class="table-container config">
 				@change="updateConfig('signApiAddr')"
 				@open="activeSpreadItem"
 			/>
+			<form-item label="QQ版本号" desc="指定QQ版本号，默认会探测Qsign服务里使用的QQ版本号(参数只对Android、aPad、Tim有效)。">
+				<el-select v-model="setting.ver" placeholder="自动探测" @change="updateConfig('ver')">
+					<el-option value="">自动探测</el-option>
+					<el-option v-for="(v, vKey) of setting.verList" :key="vKey" :label="v" :value="v"/>
+				</el-select>
+			</form-item>
 		</div>
 		<div class="config-section">
 			<section-title title="指令设置" />
@@ -448,7 +454,7 @@ import $http from "../../api/index.js";
 import FormItem from "../../components/form-item/index.js";
 import SpreadFormItem from "../../components/spread-form-item/index.js";
 import SectionTitle from "../../components/section-title/index.js";
-import { objectGet, objectSet } from "../../utils/utils.js";
+import {objectGet, objectSet} from "../../utils/utils.js";
 
 const { defineComponent, onMounted, reactive, toRefs } = Vue;
 const { ElNotification } = ElementPlus;
@@ -473,7 +479,7 @@ export default defineComponent( {
 			pageLoading: false,
 			activeSpread: ""
 		} );
-		
+
 		const platformList = [ "安卓手机", "aPad", "安卓手表", "MacOS", "iPad", "Tim" ];
 		const authList = [ "master", "manager", "user" ];
 		const helpStyleList = [ {
@@ -489,9 +495,9 @@ export default defineComponent( {
 			label: "图片",
 			value: "card"
 		} ];
-		
+
 		const logLevel = [ "trace", "debug", "info", "warn", "error", "fatal", "mark", "off" ];
-		
+
 		function getSettingConfig() {
 			state.pageLoading = true;
 			$http.CONFIG_GET( { fileName: "setting" }, "GET" ).then( res => {
@@ -501,13 +507,14 @@ export default defineComponent( {
 				state.pageLoading = false;
 			} )
 		}
-		
+
 		async function updateConfig( field ) {
 			state.pageLoading = true;
 			const value = objectGet( state.setting, field );
 			const data = {};
 			objectSet( data, field, value );
 			try {
+				console.log('update data:', data)
 				await $http.CONFIG_SET( { fileName: "setting", data } );
 				ElNotification( {
 					title: "成功",
@@ -520,17 +527,17 @@ export default defineComponent( {
 				state.pageLoading = false;
 			}
 		}
-		
+
 		/* 设置当前正在展开的项目 */
 		function activeSpreadItem( index ) {
 			state.activeSpread = index;
 		}
-		
-		
+
+
 		onMounted( () => {
 			getSettingConfig();
 		} );
-		
+
 		return {
 			...toRefs( state ),
 			platformList,

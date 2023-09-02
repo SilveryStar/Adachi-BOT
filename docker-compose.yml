@@ -26,7 +26,7 @@ services:
       - ./:/bot
       - /bot/node_modules/
   qsign:
-    image: bennettwu/qsign-server:1.1.4
+    image: bennettwu/qsign-server:1.1.9
     container_name: qsign
     # 如果需要把这个服务让其他 BOT 调用可以把端口映射到宿主机
     #    ports:
