@@ -38,6 +38,9 @@ export default ( env: any ) => {
 					console: path.resolve(__dirname, "./src/web-console/frontend/index.html"),
 				}
 			},
+		},
+		optimizeDeps: {
+			exclude: [ "fsevents" ]
 		}
 	} )
 }

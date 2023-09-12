@@ -21,12 +21,12 @@ services:
       docker: "yes"
     depends_on:
       - redis
-      - go-cqhttp
+      - gocq
     volumes:
       - ./:/bot
       - /bot/node_modules/
       - /bot/.pnpm-store/
-  go-cqhttp:
+  gocq:
     # 用dev分支处理qsign等功能
     image: ghcr.io/mrs4s/go-cqhttp:dev
     container_name: adachi-go-cqhttp
@@ -34,13 +34,14 @@ services:
     # ports:
     # - "8081:80"
     volumes:
-      # 把gocq的配置、设备文件、日志等全部挂载出来
-      - ./data:/data
+      # 把gocq的配置、设备文件挂载出来
+      - ./data/config.yml:/data/config.yml
+      - ./data/device.json:/data/device.json
     depends_on:
       - qsign
     restart: always
   qsign:
-    image: bennettwu/qsign-server:1.1.7
+    image: bennettwu/qsign-server:1.1.9
     container_name: adachi-qsign
     # 如果需要把这个服务让其他 BOT 调用可以把端口映射到宿主机
     # ports:
@@ -50,9 +51,9 @@ services:
         limits:
           memory: 300M
           cpus: '0.7'
-    # 不挂载资源默认用8.9.63，key是114514，最终地址为http://qsign/sign?key=114514
+      # 不挂载资源默认用8.9.63，key是114514，最终地址为http://adachi-qsign/sign?key=114514
     # 如果要修改则需要挂载资源
-    volumes:
+      #    volumes:
       # 可以放txlib目录中的.so文件
-      - ./qsign/txlib:/app/txlib
+    #      - ./txlib:/app/txlib
     restart: always

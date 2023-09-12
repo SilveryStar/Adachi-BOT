@@ -1,37 +1,38 @@
-import { Configuration, addLayout, configure, Logger, getLogger } from "log4js";
+import { addLayout, Configuration, configure, DateFileAppender } from "log4js";
 import { parseZone } from "moment";
+import * as util from "util";
 
 function getTimeString( date: Date ): string {
 	return parseZone( date ).local().format( "HH:mm:ss.SSS" );
 }
 
 export default class CoreLogger {
-	private deviceName: string;
-	
+	private readonly deviceName: string;
+
 	constructor(
 		private uin: number = 0,
 		private logLevel: string,
 		tcpLoggerPort: number,
 		tcpEnable: boolean
 	) {
-		this.deviceName = uin ? `[${ uin }]` : "[adachi]";
+		this.deviceName = this.uin ? `[${ this.uin }]` : "[adachi]";
 		this.setNetworkLayout();
 		const cfg = this.getConfiguration( tcpEnable, tcpLoggerPort );
 		configure( cfg );
 	}
-	
+
 	private setNetworkLayout(): void {
-		addLayout( "JSON", config => event => JSON.stringify( {
+		addLayout( "JSON", _config => event => JSON.stringify( {
 			category: event.categoryName,
 			level: event.level.levelStr,
 			color: event.level.colour,
-			message: event.data[0],
+			message: util.format( ...event.data ),
 			time: getTimeString( event.startTime )
 		} ) );
 	}
-	
+
 	private getConfiguration( tcpEnable: boolean, tcpLoggerPort: number ): Configuration {
-		const appConsole = { type: "console" };
+		const appConsole = { type: "stdout" };
 		const appNetwork = {
 			type: "tcp",
 			port: tcpLoggerPort,
@@ -39,17 +40,20 @@ export default class CoreLogger {
 			layout: { type: "JSON" }
 		};
 		
-		const logFile = {
+		const logFile: DateFileAppender = {
 			type: "dateFile",
 			filename: "logs/bot",
 			pattern: "yyyy-MM-dd.log",
 			alwaysIncludePattern: true,
-			layout: { type: "JSON" }
+			layout: { type: "JSON" },
+			numBackups: 0
 		};
 		
-		const Default = { appenders: [ "console" ], level: "off" };
+		const Default = { appenders: [ "console" ], level: this.logLevel };
+		const device_appenders = [ "logFile", "console" ];
+		tcpEnable && device_appenders.push( "network" );
 		const Device = {
-			appenders: [ "logFile", tcpEnable ? "network" : "console" ],
+			appenders: device_appenders,
 			level: this.logLevel
 		};
 		

@@ -1,6 +1,6 @@
 import * as cmd from "./command";
-import pLimit from "p-limit";
 import { BasicConfig, InitType } from "./command";
+import pLimit from "p-limit";
 import { BOT } from "@/modules/bot";
 import { extname } from "path";
 import { Router } from "express";
@@ -115,7 +115,7 @@ export const definePlugin = <T extends PluginSetting>( config: T ) => config;
 export default class Plugin {
 	private static _instance: Plugin | null = null;
 	public pluginList: Record<string, PluginInfo> = {};
-	
+
 	private pluginSettings: Record<string, PluginSetting> = {};
 	
 	constructor( private readonly bot: BOT ) {
@@ -164,9 +164,9 @@ export default class Plugin {
 				subscribe
 			}: PluginSetting = init.default;
 			
-			// 检查更新插件静态资源
-			await this.checkUpdate( pluginKey, pluginName, assets );
-			
+			// 异步去检查更新插件静态资源
+			this.checkUpdate( pluginKey, pluginName, assets ).then();
+
 			const plugin: PluginInfo = {
 				key: pluginKey,
 				name: pluginName,

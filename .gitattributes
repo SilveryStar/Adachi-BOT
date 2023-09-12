@@ -1,0 +1,2 @@
+# 使 .sh 文件始终使用 LF 作为换行符
+*.sh text eol=lf

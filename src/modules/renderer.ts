@@ -1,5 +1,5 @@
 import { URL, URLSearchParams } from "url";
-import { ImageElem, segment, Sendable } from "@/modules/lib";
+import { segment, Sendable } from "@/modules/lib";
 import { RefreshCatch } from "./management/refresh";
 import * as puppeteer from "puppeteer";
 import bot from "ROOT";
@@ -34,8 +34,8 @@ export interface RenderMethods {
 	restartBrowser(): Promise<void>;
 	refresh(): Promise<string>;
 	/* 截图 */
-	screenshot( url: string, viewPort: puppeteer.Viewport | null, selector: string ): Promise<string>;
-	screenshotForFunction( url: string, viewPort: puppeteer.Viewport | null, pageFunction: PageFunction ): Promise<string>
+	screenshot( url: string, viewPort: puppeteer.Viewport | null, selector: string, encoding: 'base64' | 'binary' ): Promise<Buffer | string | void>;
+	screenshotForFunction( url: string, viewPort: puppeteer.Viewport | null, pageFunction: PageFunction ): Promise<Buffer | string | void>
 }
 
 export class Renderer implements ScreenshotRendererMethods {
@@ -44,23 +44,11 @@ export class Renderer implements ScreenshotRendererMethods {
 		private readonly route: string
 	) {
 	}
-	
+
 	private getBaseHttp() {
 		return `http://localhost:${ bot.config.base.renderPort }${ this.route }`;
 	}
-	
-	private getURL( route: string, params?: Record<string, any> ): string {
-		const paramStr: string = new URLSearchParams( params ).toString();
-		
-		try {
-			new URL( route );
-			return `${ route }?${ paramStr }`;
-		} catch ( e ) {
-			const url: string = this.getBaseHttp() + route;
-			return `${ url }?${ paramStr }`;
-		}
-	}
-	
+
 	public async asBase64(
 		route: string,
 		params: Record<string, any> = {},
@@ -69,15 +57,14 @@ export class Renderer implements ScreenshotRendererMethods {
 	): Promise<RenderResult> {
 		try {
 			const url: string = this.getURL( route, params );
-			console.log( url )
-			const base64: string = await bot.renderer.screenshot( url, viewPort, selector );
-			return { code: "ok", data: base64 };
+			const data: Buffer | string | void = await bot.renderer.screenshot( url, viewPort, selector, 'base64' );
+			return { code: "ok", data: data ? `base64://${ <string>data }` : "" };
 		} catch ( error ) {
 			const err = <string>( <Error>error ).stack;
 			return { code: "error", error: err };
 		}
 	}
-	
+
 	public async asSegment(
 		route: string,
 		params: Record<string, any> = {},
@@ -86,16 +73,20 @@ export class Renderer implements ScreenshotRendererMethods {
 	): Promise<RenderResult> {
 		try {
 			const url: string = this.getURL( route, params );
-			console.log( url )
-			const base64: string = await bot.renderer.screenshot( url, viewPort, selector );
-			const segmentImg: ImageElem = segment.image( base64 );
-			return { code: "ok", data: segmentImg };
+			const data: Buffer | string | void = await bot.renderer.screenshot( url, viewPort, selector, 'binary' );
+			if ( !data ) {
+				return { code: "ok", data: "" };
+			}
+			if ( typeof data === 'string' ) {
+				return { code: "ok", data: segment.image( `base64://${ data }` ) };
+			}
+			return { code: "ok", data: segment.image( data ) };
 		} catch ( error ) {
 			const err = <string>( <Error>error ).stack;
 			return { code: "error", error: err };
 		}
 	}
-	
+
 	public async asForFunction(
 		route: string,
 		pageFunction: PageFunction,
@@ -104,11 +95,23 @@ export class Renderer implements ScreenshotRendererMethods {
 	): Promise<RenderResult> {
 		try {
 			const url: string = this.getURL( route, params );
-			const data: string = await bot.renderer.screenshotForFunction( url, viewPort, pageFunction );
-			return { code: "ok", data };
+			const data: Buffer | string | void = await bot.renderer.screenshotForFunction( url, viewPort, pageFunction );
+			return { code: "ok", data: data ? segment.image( data ) : "" };
 		} catch ( error ) {
 			const err = <string>( <Error>error ).stack;
 			return { code: "error", error: err };
+		}
+	}
+
+	private getURL( route: string, params?: Record<string, any> ): string {
+		const paramStr: string = new URLSearchParams( params ).toString();
+
+		try {
+			new URL( route );
+			return `${ route }?${ paramStr }`;
+		} catch ( e ) {
+			const url: string = this.getBaseHttp() + route;
+			return `${ url }?${ paramStr }`;
 		}
 	}
 }
@@ -116,9 +119,9 @@ export class Renderer implements ScreenshotRendererMethods {
 export class BasicRenderer implements RenderMethods {
 	private browser?: puppeteer.Browser;
 	private screenshotCount: number = 0;
-	
+
 	static screenshotLimit = <const>233;
-	
+
 	constructor() {
 		this.launchBrowser()
 			.then( browser => this.browser = browser );
@@ -187,7 +190,7 @@ export class BasicRenderer implements RenderMethods {
 		}, { timeout: 10000 } )
 	}
 	
-	public async screenshot( url: string, viewPort: puppeteer.Viewport | null, selector: string ): Promise<string> {
+	public async screenshot( url: string, viewPort: puppeteer.Viewport | null, selector: string, encoding: 'base64' | 'binary' ): Promise<Buffer | string | void> {
 		if ( !this.browser ) {
 			throw new Error( "浏览器未启动" );
 		}
@@ -197,21 +200,21 @@ export class BasicRenderer implements RenderMethods {
 			if ( viewPort ) {
 				await page.setViewport( viewPort );
 			}
+			console.log( url );
 			await page.goto( url, {
 				waitUntil: "networkidle0",
 				timeout: 30000
 			} );
 			await this.pageLoaded( page );
 			
-			const option: puppeteer.ScreenshotOptions = { encoding: "base64", type: "jpeg", quality: 100 };
+			const option: puppeteer.ScreenshotOptions = { encoding, type: 'jpeg', quality: 100 };
 			const element = await page.$( selector );
 			
 			if ( !element ) {
 				throw new Error( "未找到目标元素" );
 			}
 			
-			const result = <string>await element.screenshot( option );
-			const base64: string = `base64://${ result }`;
+			const result = await element?.screenshot( option );
 			await page.close();
 			
 			this.screenshotCount++;
@@ -219,14 +222,14 @@ export class BasicRenderer implements RenderMethods {
 				await bot.renderer.restartBrowser();
 			}
 			
-			return base64;
+			return result;
 		} catch ( err: any ) {
 			await page.close();
 			throw err;
 		}
 	}
 	
-	public async screenshotForFunction( url: string, viewPort: puppeteer.Viewport | null, pageFunction: PageFunction ): Promise<string> {
+	public async screenshotForFunction( url: string, viewPort: puppeteer.Viewport | null, pageFunction: PageFunction ): Promise<Buffer | string | void> {
 		if ( !this.browser ) {
 			throw new Error( "浏览器未启动" );
 		}
@@ -236,6 +239,7 @@ export class BasicRenderer implements RenderMethods {
 			if ( viewPort ) {
 				await page.setViewport( viewPort );
 			}
+			console.log( url );
 			await page.goto( url, {
 				waitUntil: "networkidle0",
 				timeout: 30000
@@ -250,7 +254,12 @@ export class BasicRenderer implements RenderMethods {
 				await bot.renderer.restartBrowser();
 			}
 			
-			return result === undefined ? "" : result.toString();
+			if ( result && typeof result === 'string' ) {
+				// 兼容低版本插件的返回
+				return result.startsWith( "base64://" ) ? result : `base64://${ result }`;
+			}
+			
+			return result;
 		} catch ( err: any ) {
 			await page.close();
 			throw err;
