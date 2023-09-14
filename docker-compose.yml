@@ -53,7 +53,7 @@ services:
           cpus: '0.7'
       # 不挂载资源默认用8.9.63，key是114514，最终地址为http://adachi-qsign/sign?key=114514
     # 如果要修改则需要挂载资源
-      #    volumes:
+#    volumes:
       # 可以放txlib目录中的.so文件
-    #      - ./txlib:/app/txlib
+#      - ./txlib:/app/txlib
     restart: always
