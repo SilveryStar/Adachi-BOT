@@ -46,7 +46,7 @@ export default class CoreLogger {
 			pattern: "yyyy-MM-dd.log",
 			alwaysIncludePattern: true,
 			layout: { type: "JSON" },
-			numBackups: 0
+			numBackups: 30
 		};
 		
 		const Default = { appenders: [ "console" ], level: this.logLevel };
