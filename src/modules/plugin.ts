@@ -39,7 +39,7 @@ interface RefreshRegister {
 export type PluginParameter = {
 	setAlias: ( aliases: string[] ) => void;
 	refreshRegister: RefreshRegister;
-	renderRegister: ( defaultSelector: string ) => Renderer;
+	renderRegister: ( defaultSelector: string, baseUrl?: string ) => Renderer;
 	configRegister: <T extends Record<string, any>>(
 		fileName: string,
 		initCfg: T,
@@ -55,7 +55,6 @@ export interface PluginInfo {
 	commands: BasicConfig[];
 	cmdConfigs: cmd.ConfigType[];
 	servers: ServerRouters[];
-	renders: RenderRoutes[];
 	subscribe: PluginSetting["subscribe"];
 }
 
@@ -80,10 +79,6 @@ type SubUser = {
 export interface PluginSetting {
 	name: string;
 	cfgList: cmd.ConfigType[];
-	renderer?: boolean | {
-		dirname?: string;
-		mainFiles?: string[];
-	};
 	server?: {
 		routers?: Record<string, Router>;
 	};
@@ -96,6 +91,7 @@ export interface PluginSetting {
 		manifestUrl: string; // 线上 manifest.yml 文件地址
 		downloadBaseUrl: string; // 下载基地址
 		pathField?: string; // manifest 文件中作为文件路径的字段名
+		folderName?: string; // 下载目录名称
 		modifiedField?: string; // manifest 文件中作为校验文件变动的字段名（最后修改时间/文件唯一值等）
 		overflowPrompt?: string; // 超出最大更新数量后给予的提示消息
 		noOverride?: string[];  // 此配置项列举的拓展名文件，当位于用户配置的忽略文件中时，仍下载更新，但仅更新新增内容不对原内容进行覆盖
@@ -156,7 +152,6 @@ export default class Plugin {
 			const init = await import( `#/${ pluginKey }/init.ts` );
 			const {
 				name: pluginName,
-				renderer,
 				server,
 				cfgList,
 				repo,
@@ -164,8 +159,7 @@ export default class Plugin {
 				subscribe
 			}: PluginSetting = init.default;
 			
-			// 异步去检查更新插件静态资源
-			this.checkUpdate( pluginKey, pluginName, assets ).then();
+			await this.checkUpdate( pluginKey, pluginName, assets );
 
 			const plugin: PluginInfo = {
 				key: pluginKey,
@@ -174,22 +168,9 @@ export default class Plugin {
 				commands: [],
 				cmdConfigs: cfgList,
 				servers: [],
-				renders: [],
 				subscribe
 			}
 			
-			// 加载前端渲染页面路由
-			if ( renderer ) {
-				const renderDir = getObjectKeyValue( renderer, "dirname", "views" );
-				const mainFiles = getObjectKeyValue( renderer, "mainFiles", [ "index" ] );
-				const views = await this.bot.file.getDirFiles( `${ pluginKey }/${ renderDir }`, "plugin" );
-				for ( const v of views ) {
-					const route = await this.setRenderRoute( pluginKey, renderDir, mainFiles, v );
-					if ( route ) {
-						plugin.renders.push( route );
-					}
-				}
-			}
 			// 加载 express server 路由
 			if ( server?.routers ) {
 				Object.entries( server.routers ).forEach( ( [ path, router ] ) => {
@@ -434,8 +415,11 @@ export default class Plugin {
 			configRegister( fileName, initCfg, setValueCallBack? ) {
 				return bot.config.register( fileName, initCfg, setValueCallBack, key );
 			},
-			renderRegister( defaultSelector ) {
-				return bot.renderer.register( `/${ key }`, defaultSelector );
+			renderRegister( defaultSelector, baseUrl = "" ) {
+				if ( baseUrl.startsWith( "/" ) ) {
+					baseUrl = baseUrl.slice( 1 );
+				}
+				return bot.renderer.register( `/${ key }/${ baseUrl }`, defaultSelector );
 			}
 		}
 	}
@@ -449,15 +433,15 @@ export default class Plugin {
 	 */
 	private async checkUpdate( plugin: string, pluginName: string, assets: PluginSetting["assets"] ): Promise<void> {
 		if ( !assets ) return;
-		const commonUrl = `assets/${ plugin }`;
-		const baseUrl = `public/${ commonUrl }`;
+		const downloadFolder = getObjectKeyValue( assets, "folderName", "adachi-assets" );
+		const baseUrl = `${ plugin }/${ downloadFolder }`;
 		const manifestName = `${ baseUrl }/manifest`;
 		// 该清单列表中的文件内容不会进行覆盖，仅做更新处理
 		const ignoreName = `${ baseUrl }/.adachiignore`;
 		
-		const { path: ignorePath } = await this.bot.file.createFile( ignoreName, "", "root" );
+		const { path: ignorePath } = await this.bot.file.createFile( ignoreName, "", "plugin" );
 		
-		const manifest = <IOssListObject[]>( await this.bot.file.loadYAML( manifestName, "root" ) || [] );
+		const manifest = <IOssListObject[]>( await this.bot.file.loadYAML( manifestName, "plugin" ) || [] );
 		let res: AxiosResponse<{
 			code: number;
 			data: IOssListObject[];
@@ -466,8 +450,8 @@ export default class Plugin {
 		
 		let data: IOssListObject[];
 		
-		const pathField: string = assets.pathField || "name";
-		const modifiedField: string = assets.modifiedField || "lastModified";
+		const pathField = getObjectKeyValue( assets, "pathField", "name" );
+		const modifiedField = getObjectKeyValue( assets, "modifiedField", "lastModified" );
 		
 		try {
 			res = await axios.post( "https://api-kozakura.marrydream.top/common/adachi/v1/oss/update/files", {
@@ -519,7 +503,7 @@ export default class Plugin {
 			const fileFormatPath: string = replacePath ? replacePath( filePath ) : filePath;
 			
 			// 是否为清单排除文件
-			const isIgnore = isIgnorePath( ignorePath, this.bot.file.getFilePath( `${ baseUrl }/${ fileFormatPath }`, "root" ) );
+			const isIgnore = isIgnorePath( ignorePath, this.bot.file.getFilePath( `${ baseUrl }/${ fileFormatPath }`, "plugin" ) );
 			const noOverrideList = getObjectKeyValue( assets, "noOverride", [ "yml", "json" ] )
 			
 			const fileExt = extname( downloadUrl ).slice( 1 );
@@ -530,11 +514,7 @@ export default class Plugin {
 			updatePromiseList.push( limiter( () => ( async () => {
 				try {
 					const pathList = [ `${ baseUrl }/${ fileFormatPath }` ];
-
-					/** todo 未来的打包环境下使用 */
-					// if ( process.env.NODE_ENV === "production" ) {
-					// 	pathList.push( `dist/${ commonUrl }/${ fileFormatPath }` );
-					// }
+					
 					await this.bot.file.downloadFile( downloadUrl, pathList, async data => {
 						// 不再忽略清单文件中时直接返回原数据
 						if ( !isIgnore ) {
@@ -542,7 +522,7 @@ export default class Plugin {
 						}
 						// 对仅更新新内容不覆盖原内容的文件数据进行处理
 						const onlineData: string = data.toString();
-						const oldFileData = await this.bot.file.loadFile( pathList[0], "root" ) || "";
+						const oldFileData = await this.bot.file.loadFile( pathList[0], "plugin" ) || "";
 						let oldValue: any, newValue: any;
 						if ( fileExt === "yml" ) {
 							oldValue = parse( oldFileData );
@@ -561,7 +541,7 @@ export default class Plugin {
 						}
 						const newFileData = compareAssembleObject( oldValue, newValue, false, "merge" );
 						return fileExt === "yml" ? stringify( newFileData ) : JSON.stringify( newFileData );
-					} );
+					}, "plugin" );
 					
 					// 下载成功后新增清单项
 					// 若清单项已存在则先删除再添加
@@ -592,48 +572,6 @@ export default class Plugin {
 		await Promise.all( updatePromiseList );
 		
 		// 写入清单文件
-		await this.bot.file.writeYAML( manifestName, manifest, "root" );
-	}
-	
-	/* 获取插件渲染页的路由对象 */
-	private async setRenderRoute( plugin: string, renderDir: string, mainFiles: string[], view: string ): Promise<RenderRoutes | null> {
-		let route: RenderRoutes | null = null;
-		const ext: string = extname( view );
-		if ( ext === ".vue" ) {
-			// 加载后缀名为 vue 的文件
-			const fileName: string = view.replace( /\.vue$/, "" );
-			route = {
-				path: `/${ plugin }/${ fileName }`,
-				componentData: {
-					plugin,
-					renderDir,
-					fileName
-				}
-			}
-		} else if ( !ext ) {
-			// 后缀名不存在且为目录时，加载目录下的 index.vue 文件
-			const fileType = await this.bot.file.getFileType( `${ plugin }/${ renderDir }/${ view }`, "plugin" );
-			if ( fileType === "directory" ) {
-				for ( const mainFile of mainFiles ) {
-					const path: string = this.bot.file.getFilePath( `${ plugin }/${ renderDir }/${ view }/${ mainFile }.vue`, "plugin" );
-					// 判断目录下是否存在 mainFile
-					const isExist: boolean = this.bot.file.isExistSync( path );
-					if ( isExist ) {
-						route = {
-							path: `/${ plugin }/${ view }`,
-							componentData: {
-								plugin,
-								renderDir,
-								fileDir: view,
-								fileName: mainFile
-							}
-						};
-						break;
-					}
-				}
-			}
-		}
-		
-		return route;
+		await this.bot.file.writeYAML( manifestName, manifest, "plugin" );
 	}
 }

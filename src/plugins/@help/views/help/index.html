@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>help</title>
+	<link rel="stylesheet" href="index.css"/>
+</head>
+<body>
+
+<div id="app"></div>
+
+<script type="importmap">
+	{
+	  "imports": {
+		"vue": "https://unpkg.com/vue@3.2.47/dist/vue.esm-browser.js"
+	  }
+	}
+</script>
+<script type="module">
+	import App from "./components/app.js";
+	import {createApp} from "vue";
+
+	createApp(App).mount("#app");
+</script>
+
+</body>
+</html>
+
+<style>
+	#app {
+		width: 750px;
+	}
+</style>

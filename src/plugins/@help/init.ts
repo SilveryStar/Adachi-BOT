@@ -46,18 +46,8 @@ export let renderer: Renderer;
 export default definePlugin( {
 	name: "help",
 	cfgList: [ help, detail, call ],
-	renderer: true,
 	server: {
 		routers: serverRouters
-	},
-	assets: {
-		manifestUrl: "https://mari-files.oss-cn-beijing.aliyuncs.com/adachi-bot/version3/help_assets_manifest.yml",
-		downloadBaseUrl: "https://mari-files.oss-cn-beijing.aliyuncs.com/",
-		pathField: "name",
-		modifiedField: "lastModified",
-		replacePath: path => {
-			return path.replace( "adachi-bot/version3/help/", "" );
-		}
 	},
 	mounted( params ) {
 		/* 未启用卡片帮助时不启动服务 */

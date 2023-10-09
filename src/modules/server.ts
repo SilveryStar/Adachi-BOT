@@ -17,7 +17,6 @@ export default class RenderServer {
 	private static _instance: RenderServer | null = null;
 	private app: Application;
 	private serverRouters: Array<ServerRouters> = [];
-	private renderRoutes: Array<RenderRoutes> = [];
 	private webConsole: WebConsole | null = null;
 	private vite: ViteDevServer | null = null;
 	private server: Server | null = null;
@@ -65,13 +64,10 @@ export default class RenderServer {
 	
 	public async reloadPluginRouters( pluginList: Record<string, PluginInfo> ) {
 		const serverRoutes: ServerRouters[] = [];
-		const renderRoutes: RenderRoutes[] = [];
-		for ( const pluginInfo of Object.values(pluginList) ) {
-			renderRoutes.push( ...pluginInfo.renders );
+		for ( const pluginInfo of Object.values( pluginList ) ) {
 			serverRoutes.push( ...pluginInfo.servers );
 		}
 		// 设置插件路由
-		this.setRenderRoutes( renderRoutes );
 		await this.setServerRouters( serverRoutes );
 	}
 	
@@ -107,10 +103,6 @@ export default class RenderServer {
 		this.addServerRouters( routers );
 	}
 	
-	public setRenderRoutes( routes: Array<RenderRoutes> ) {
-		this.renderRoutes = routes;
-	}
-	
 	/* 重载服务 */
 	public async reloadServer() {
 		if ( this.vite ) {
@@ -128,52 +120,60 @@ export default class RenderServer {
 	
 	/* 创建服务 */
 	public async createServer() {
-		const isBuild = process.env.NODE_ENV === "build";
+		const isProd = process.env.NODE_ENV === "production";
 		const packageData = await this.file.loadFile( "package.json", "root" );
 		const ADACHI_VERSION = isJsonString( packageData ) ? JSON.parse( packageData ).version || "" : "";
 		
-		if ( isBuild ) {
-			// todo 为打包目录挂载静态资源服务
-			// this.app.use( express.static( resolve( __dirname, "../../dist" ) ) );
-		} else {
-			// 以中间件模式创建 Vite 应用，这将禁用 Vite 自身的 HTML 服务逻辑
-			// 并让上级服务器接管控制
-			// 执行此方法后将会调用指定 root 目录下的 vite.config.ts
-			if ( !this.vite ) {
-				this.vite = await createViteServer( {
-					base: "/",
-					root: process.cwd(),
-					mode: process.env.NODE_ENV || "development",
-					server: {
-						middlewareMode: true
-					},
-					appType: "custom"
-				} );
+		this.app.get(/(.*)\.html$/, async (req, res, next)=>{
+			let template = await this.file.loadFile( `.${ req.path }`, "plugin" );
+			if ( !template ) {
+				return res.status( 404 ).end( "404 Not Found" );;
 			}
-			
-			// 使用 vite 的 Connect 实例作为中间件
-			// 如果你使用了自己的 express 路由（express.Router()），你应该使用 router.use
-			this.app.use( this.vite.middlewares );
-		}
-		
-		// 资源目录挂载静态资源服务
-		this.app.use( express.static( resolve( process.cwd(), "./public" ) ) );
+			template = template.replace(
+				/<head>([\w\W]+?)<\/head>/g,
+				`<head><script>window.ADACHI_VERSION = "${ ADACHI_VERSION }"</script>$1</head>`
+			);
+			res.status( 200 ).set( { "Content-Type": "text/html" } ).end( template );
+		})
 		
 		// 为插件目录挂载静态资源服务
-		// this.app.use( express.static( resolve( __dirname, "../plugins" ) ) );
 		const pluginDirList = await this.file.getDirFiles( "src/plugins", "root" );
 		for ( const plugin of pluginDirList ) {
 			this.app.use( `/${ plugin }`, express.static( this.file.getFilePath( plugin, "plugin" ) ) );
 		}
 		
 		if ( this.config.webConsole.enable ) {
+			if ( !isProd ) {
+				// 以中间件模式创建 Vite 应用，这将禁用 Vite 自身的 HTML 服务逻辑
+				// 并让上级服务器接管控制
+				// 执行此方法后将会调用指定 root 目录下的 vite.config.ts
+				if ( !this.vite ) {
+					this.vite = await createViteServer( {
+						base: "/",
+						root: process.cwd(),
+						mode: process.env.NODE_ENV || "development",
+						server: {
+							middlewareMode: true
+						},
+						appType: "custom"
+					} );
+				}
+				
+				// 使用 vite 的 Connect 实例作为中间件
+				// 如果你使用了自己的 express 路由（express.Router()），你应该使用 router.use
+				this.app.use( this.vite.middlewares );
+			}
 			this.webConsole = new WebConsole( this.app, this.config.webConsole, this.client, this.firstListener );
 			this.firstListener = false;
 		}
 		
 		this.app.use( '*', async ( req, res, next ) => {
+			// 生产环境或未开启控制台时，不做处理
+			if ( isProd || !this.config.webConsole.enable ) {
+				return next();
+			}
 			const baseUrl = req.baseUrl;
-			// 如果是 render 注册路由，放行
+			// 如果是 plugin 注册的 server 路由，放行
 			const isRenderRouter = this.serverRouters.findIndex( r => {
 				if ( r.path === baseUrl ) return true;
 				return findRouter( r.router, baseUrl, r.path ) !== -1;
@@ -182,16 +182,8 @@ export default class RenderServer {
 				return next();
 			}
 			
-			// 是否是插件前端渲染路由
-			const isRenderRoute = this.renderRoutes.findIndex( r => r.path === baseUrl ) !== -1;
-			// 是否渲染插件前端页面而非控制台页面
-			const renderRender = isRenderRoute || !this.config.webConsole.enable;
-			let htmlPath: string;
-			if ( this.vite ) {
-				htmlPath = renderRender ? "../render/index.html" : "../web-console/frontend/index.html";
-			} else {
-				htmlPath = renderRender ? "../../dist/src/render/index.html" : "../../dist/src/web-console/index.html";
-			}
+			// 网页控制台静态页面地址
+			const htmlPath = isProd ? "../web-console/dist/index.html" : "../web-console/frontend/index.html";
 			
 			const url = req.originalUrl;
 			try {
@@ -199,13 +191,6 @@ export default class RenderServer {
 				if ( this.vite ) {
 					// 应用 Vite HTML 转换。这将会注入 Vite HMR 客户端，同时也会从 Vite 插件应用 HTML 转换。
 					template = await this.vite.transformIndexHtml( url, template );
-				}
-				// 注入生成的 vue-router 对象
-				if ( isRenderRoute ) {
-					template = template.replace( `<!--adachi-routes-->`, `
-					window.__ADACHI_ROUTES__ = ${ JSON.stringify( this.renderRoutes ) };
-					window.ADACHI_VERSION = "${ ADACHI_VERSION }"
-					` );
 				}
 				
 				// 6. 返回渲染后的 HTML。
