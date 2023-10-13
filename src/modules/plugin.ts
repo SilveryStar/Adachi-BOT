@@ -15,16 +15,6 @@ import { ExportConfig } from "@/modules/config";
 import { PresetPlace } from "@/modules/file";
 import Refreshable, { RefreshTarget } from "@/modules/management/refresh";
 
-export interface RenderRoutes {
-	path: string;
-	componentData: {
-		plugin: string;
-		renderDir: string;
-		fileDir?: string;
-		fileName: string;
-	};
-}
-
 export interface ServerRouters {
 	path: string;
 	router: Router;

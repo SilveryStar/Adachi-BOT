@@ -2,7 +2,7 @@ import bot from "ROOT";
 import express from "express";
 import { AuthLevel } from "@/modules/management/auth";
 import PluginManager from "@/modules/plugin";
-import { UserInfo } from "@/web-console/types/user";
+import { UserInfo } from "../types/user";
 import { sleep } from "@/utils/async";
 import { getRandomNumber } from "@/utils/random";
 import { formatSubUsers } from "@/web-console/backend/utils/format";

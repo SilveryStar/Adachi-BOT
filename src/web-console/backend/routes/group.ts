@@ -1,10 +1,10 @@
 import bot from "ROOT";
 import express from "express";
 import { GroupInfo } from "@/modules/lib";
-import { GroupData } from "@/web-console/types/group";
+import { GroupData } from "../types/group";
 import { sleep } from "@/utils/async";
 import { getRandomNumber } from "@/utils/random";
-import { formatSubUsers } from "@/web-console/backend/utils/format";
+import { formatSubUsers } from "../utils/format";
 import PluginManager from "@/modules/plugin";
 
 export default express.Router()

@@ -2,7 +2,7 @@ import fs from "fs";
 import { resolve } from "path";
 import express from "express";
 import { createServer as createViteServer, ViteDevServer } from "vite";
-import { PluginInfo, RenderRoutes, ServerRouters } from "@/modules/plugin";
+import { PluginInfo, ServerRouters } from "@/modules/plugin";
 import * as process from "process";
 import { BotConfig } from "@/modules/config";
 import WebConsole from "@/web-console";
@@ -12,6 +12,8 @@ import { Server } from "http";
 import { isEqualObject } from "@/utils/object";
 import { isJsonString } from "@/utils/verify";
 import { Client } from "@/modules/lib";
+import os from "os";
+import { getIPAddress } from "@/utils/network";
 
 export default class RenderServer {
 	private static _instance: RenderServer | null = null;
@@ -124,6 +126,10 @@ export default class RenderServer {
 		const packageData = await this.file.loadFile( "package.json", "root" );
 		const ADACHI_VERSION = isJsonString( packageData ) ? JSON.parse( packageData ).version || "" : "";
 		
+		if ( isProd ) {
+			this.app.use( express.static( this.file.getFilePath( "src/web-console/frontend/dist", "root" ) ) );
+		}
+		
 		this.app.get(/(.*)\.html$/, async (req, res, next)=>{
 			let template = await this.file.loadFile( `.${ req.path }`, "plugin" );
 			if ( !template ) {
@@ -150,7 +156,7 @@ export default class RenderServer {
 				if ( !this.vite ) {
 					this.vite = await createViteServer( {
 						base: "/",
-						root: process.cwd(),
+						root: this.file.getFilePath( "src/web-console/frontend", "root" ),
 						mode: process.env.NODE_ENV || "development",
 						server: {
 							middlewareMode: true
@@ -168,10 +174,10 @@ export default class RenderServer {
 		}
 		
 		this.app.use( '*', async ( req, res, next ) => {
-			// 生产环境或未开启控制台时，不做处理
-			if ( isProd || !this.config.webConsole.enable ) {
+			if ( !this.config.webConsole.enable ) {
 				return next();
 			}
+			
 			const baseUrl = req.baseUrl;
 			// 如果是 plugin 注册的 server 路由，放行
 			const isRenderRouter = this.serverRouters.findIndex( r => {
@@ -183,7 +189,7 @@ export default class RenderServer {
 			}
 			
 			// 网页控制台静态页面地址
-			const htmlPath = isProd ? "../web-console/dist/index.html" : "../web-console/frontend/index.html";
+			const htmlPath = isProd ? "../web-console/frontend/dist/index.html" : "../web-console/frontend/index.html";
 			
 			const url = req.originalUrl;
 			try {
@@ -230,7 +236,8 @@ export default class RenderServer {
 		return this.app.listen( this.config.base.renderPort, () => {
 			this.client.logger.info( `公共 Express 服务已启动, 端口为: ${ this.config.base.renderPort }` );
 			if ( this.config.webConsole.enable ) {
-				console.log( `网页控制台已启动，请浏览器打开 http://127.0.0.1:${ this.config.base.renderPort } 查看，若为云服务器，请将 127.0.0.1 替换为服务器的公网ip。` )
+				const ip = getIPAddress();
+				this.client.logger.info( `网页控制台已启动，请浏览器打开 http://${ ip }:${ this.config.base.renderPort } 查看。若为 docker 部署，请将 ${ ip } 替换为服务器的公网ip。` )
 			}
 		} )
 	}

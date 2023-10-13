@@ -7,6 +7,16 @@ export type PresetPlace = "config" | "plugin" | "root";
 
 export type FileType = "directory" | "file" | null;
 
+export interface FileResponse {
+	path: string;
+}
+export interface FileTypeResponse extends FileResponse {
+	type: FileType;
+}
+export interface FileStatusResponse extends FileResponse {
+	status: boolean;
+}
+
 export interface CreateResponse {
 	exist: boolean;
 	path: string;
@@ -24,17 +34,17 @@ interface ManagementMethod {
 	isExist( path: string ): Promise<boolean>;
 	isExistSync( path: string ): boolean;
 	
-	getFileType( path: string ): Promise<FileType>;
-	getFileTypeSync( path: string ): FileType;
+	getFileType( path: string ): Promise<FileTypeResponse>;
+	getFileTypeSync( path: string ): FileTypeResponse;
 	
 	renameFile( fileName: string, newName: string, place?: PresetPlace ): Promise<void>;
 	renameFileSync( fileName: string, newName: string, place?: PresetPlace ): void;
 	
-	createDir( dirName: string, place?: PresetPlace, recursive?: boolean ): Promise<CreateResponse>;
-	createDirSync( dirName: string, place?: PresetPlace, recursive?: boolean ): CreateResponse;
+	createDir( dirName: string, place?: PresetPlace, recursive?: boolean ): Promise<FileStatusResponse>;
+	createDirSync( dirName: string, place?: PresetPlace, recursive?: boolean ): FileStatusResponse;
 	
-	createParentDir( fileName: string, place?: PresetPlace ): Promise<CreateResponse>;
-	createParentDirSync( fileName: string, place?: PresetPlace ): CreateResponse;
+	createParentDir( fileName: string, place?: PresetPlace ): Promise<FileStatusResponse>;
+	createParentDirSync( fileName: string, place?: PresetPlace ): FileStatusResponse;
 	
 	getDirFiles( dirName: string, place?: PresetPlace ): Promise<string[]>;
 	getDirFilesSync( dirName: string, place?: PresetPlace ): string[];
@@ -42,8 +52,8 @@ interface ManagementMethod {
 	copyFile( originPath: string, targetPath: string, place?: PresetPlace ): Promise<string>;
 	copyFileSync( originPath: string, targetPath: string, place?: PresetPlace ): string;
 	
-	createFile( fileName: string, data: any, place?: PresetPlace ): Promise<CreateResponse>;
-	createFileSync( fileName: string, data: any, place?: PresetPlace ): CreateResponse;
+	createFile( fileName: string, data: any, place?: PresetPlace ): Promise<FileStatusResponse>;
+	createFileSync( fileName: string, data: any, place?: PresetPlace ): FileStatusResponse;
 	
 	loadFile( fileName: string, place?: PresetPlace, encoding?: BufferEncoding ): Promise<string | null>;
 	loadFileSync( fileName: string, place?: PresetPlace, encoding?: BufferEncoding ): string | null;
@@ -54,8 +64,8 @@ interface ManagementMethod {
 	writeFile( fileName: string, data: any, place?: PresetPlace ): Promise<string>;
 	writeFileSync( fileName: string, data: any, place?: PresetPlace ): string;
 	
-	createYAML( ymlName: string, data: any, place?: PresetPlace ): Promise<CreateResponse>;
-	createYAMLSync( ymlName: string, data: any, place?: PresetPlace ): CreateResponse;
+	createYAML( ymlName: string, data: any, place?: PresetPlace ): Promise<FileStatusResponse>;
+	createYAMLSync( ymlName: string, data: any, place?: PresetPlace ): FileStatusResponse;
 	
 	loadYAML( ymlName: string, place?: PresetPlace ): Promise<Record<string, any> | null>;
 	loadYAMLSync( ymlName: string, place?: PresetPlace ): Record<string, any> | null;
@@ -113,25 +123,25 @@ export default class FileManagement implements ManagementMethod {
 		}
 	}
 	
-	public getFileType( fileName: string, place: PresetPlace = "config" ): Promise<FileType> {
+	public getFileType( fileName: string, place: PresetPlace = "config" ): Promise<FileTypeResponse> {
 		return new Promise( resolve => {
 			const path: string = this.getFilePath( fileName, place );
 			fs.stat( path, ( error, stats ) => {
 				if ( error ) {
-					return resolve( null );
+					return resolve( { path, type: null } );
 				}
-				resolve( stats.isFile() ? "file" : "directory" );
+				resolve( { path, type: stats.isFile() ? "file" : "directory" } );
 			} );
 		} );
 	}
 	
-	public getFileTypeSync( fileName: string, place: PresetPlace = "config" ): FileType {
+	public getFileTypeSync( fileName: string, place: PresetPlace = "config" ): FileTypeResponse {
+		const path: string = this.getFilePath( fileName, place );
 		try {
-			const path: string = this.getFilePath( fileName, place );
 			const stats = fs.statSync( path );
-			return stats.isFile() ? "file" : "directory"
+			return { path, type: stats.isFile() ? "file" : "directory" };
 		} catch ( error ) {
-			return null;
+			return { path, type: null };
 		}
 	}
 	
@@ -151,47 +161,47 @@ export default class FileManagement implements ManagementMethod {
 		fs.renameSync( oldPath, newPath );
 	}
 	
-	public createDir( dirName: string, place: PresetPlace = "config", recursive: boolean = true ): Promise<CreateResponse> {
+	public createDir( dirName: string, place: PresetPlace = "config", recursive: boolean = true ): Promise<FileStatusResponse> {
 		return new Promise( ( resolve, reject ) => {
 			const path: string = this.getFilePath( dirName, place );
 			this.isExist( path ).then( exist => {
 				if ( exist ) {
-					return resolve( { path, exist } );
+					return resolve( { path, status: exist } );
 				}
 				fs.mkdir( path, { recursive }, err => {
 					if ( err ) {
 						return reject( err );
 					}
-					resolve( { path, exist } );
+					resolve( { path, status: exist } );
 				} );
 			} )
 		} );
 	}
 	
-	public createDirSync( dirName: string, place: PresetPlace = "config", recursive: boolean = true ): CreateResponse {
+	public createDirSync( dirName: string, place: PresetPlace = "config", recursive: boolean = true ): FileStatusResponse {
 		const path: string = this.getFilePath( dirName, place );
 		const exist: boolean = this.isExistSync( path );
 		if ( !exist ) {
 			fs.mkdirSync( path, { recursive } );
 		}
-		return { path, exist };
+		return { path, status: exist };
 	}
 	
 	// 创建父级目录
-	public async createParentDir( fileName: string, place: PresetPlace = "config" ): Promise<CreateResponse> {
+	public async createParentDir( fileName: string, place: PresetPlace = "config" ): Promise<FileStatusResponse> {
 		const parentDir: string = dirname( fileName );
 		await this.createDir( parentDir, place );
 		const path: string = this.getFilePath( fileName, place );
 		const exist = await this.isExist( path );
-		return { path, exist };
+		return { path, status: exist };
 	}
 	
-	public createParentDirSync( fileName: string, place: PresetPlace = "config" ): CreateResponse {
+	public createParentDirSync( fileName: string, place: PresetPlace = "config" ): FileStatusResponse {
 		const parentDir: string = dirname( fileName );
 		this.createDirSync( parentDir, place );
 		const path: string = this.getFilePath( fileName, place );
 		const exist = this.isExistSync( path );
-		return { path, exist };
+		return { path, status: exist };
 	}
 	
 	public getDirFiles( dirName: string, place: PresetPlace = "config" ): Promise<string[]> {
@@ -237,17 +247,17 @@ export default class FileManagement implements ManagementMethod {
 		return tPath;
 	}
 	
-	public async createFile( fileName: string, data: any, place: PresetPlace = "config" ): Promise<CreateResponse> {
+	public async createFile( fileName: string, data: any, place: PresetPlace = "config" ): Promise<FileStatusResponse> {
 		return new Promise( ( resolve, reject ) => {
-			this.createParentDir( fileName, place ).then( ( { path, exist } ) => {
-				if ( exist ) {
-					return resolve( { path, exist } );
+			this.createParentDir( fileName, place ).then( ( { path, status } ) => {
+				if ( status ) {
+					return resolve( { path, status } );
 				}
 				fs.writeFile( path, data, error => {
 					if ( error ) {
 						return reject( error );
 					}
-					resolve( { path, exist } );
+					resolve( { path, status } );
 				} );
 			} ).catch( error => {
 				reject( error );
@@ -255,12 +265,12 @@ export default class FileManagement implements ManagementMethod {
 		} );
 	}
 	
-	public createFileSync( fileName: string, data: any, place: PresetPlace = "config" ): CreateResponse {
-		const { path, exist } = this.createParentDirSync( fileName, place );
-		if ( !exist ) {
+	public createFileSync( fileName: string, data: any, place: PresetPlace = "config" ): FileStatusResponse {
+		const { path, status } = this.createParentDirSync( fileName, place );
+		if ( !status ) {
 			fs.writeFileSync( path, data );
 		}
-		return { path, exist };
+		return { path, status };
 	}
 	
 	public loadFile( fileName: string, place: PresetPlace = "config", encoding: BufferEncoding = "utf-8" ): Promise<string | null> {
@@ -331,17 +341,44 @@ export default class FileManagement implements ManagementMethod {
 		return path;
 	}
 	
-	public createYAML( ymlName: string, data: any, place: PresetPlace = "config" ): Promise<CreateResponse> {
+	public async deleteFile( fileName: string, place: PresetPlace = "config" ): Promise<FileStatusResponse> {
+		const { type: fileType, path: filePath } = await this.getFileType( fileName, place );
+		if ( !fileType ) {
+			return { path: filePath, status: false };
+		}
+		if ( fileType === "directory" ) {
+			const fileList = await this.getDirFiles( fileName, place );
+			const deleteResponse = await Promise.all( fileList.map( async file => {
+				if ( !fileName.endsWith( "/" ) ) {
+					fileName += "/";
+				}
+				return await this.deleteFile( fileName + file, place );
+			} ) );
+			const dDirRes: boolean = await new Promise( resolve => {
+				fs.rmdir( filePath, ( err ) => resolve( !err ) );
+			} );
+			deleteResponse.push( { status: dDirRes, path: filePath } );
+			const status = !deleteResponse.some( item => !item.status );
+			return { status, path: filePath }
+		} else {
+			const status: boolean = await new Promise( resolve => {
+				fs.unlink( filePath, ( err ) => resolve( !err ) );
+			} );
+			return { status, path: filePath };
+		}
+	}
+	
+	public createYAML( ymlName: string, data: any, place: PresetPlace = "config" ): Promise<FileStatusResponse> {
 		return new Promise( ( resolve, reject ) => {
-			this.createParentDir( ymlName + ".yml", place ).then( ( { path, exist } ) => {
-				if ( exist ) {
-					return resolve( { path, exist } );
+			this.createParentDir( ymlName + ".yml", place ).then( ( { path, status } ) => {
+				if ( status ) {
+					return resolve( { path, status } );
 				}
 				fs.writeFile( path, stringify( data ), error => {
 					if ( error ) {
 						return reject( error );
 					}
-					resolve( { path, exist } );
+					resolve( { path, status } );
 				} );
 			} ).catch( error => {
 				reject( error );
@@ -349,12 +386,12 @@ export default class FileManagement implements ManagementMethod {
 		} );
 	}
 	
-	public createYAMLSync( ymlName: string, data: any, place: PresetPlace = "config" ): CreateResponse {
-		const { path, exist } = this.createParentDirSync( ymlName + ".yml", place );
-		if ( !exist ) {
+	public createYAMLSync( ymlName: string, data: any, place: PresetPlace = "config" ): FileStatusResponse {
+		const { path, status } = this.createParentDirSync( ymlName + ".yml", place );
+		if ( !status ) {
 			fs.writeFileSync( path, stringify( data ) );
 		}
-		return { path, exist };
+		return { path, status };
 	}
 	
 	public loadYAML( ymlName: string, place: PresetPlace = "config" ): Promise<Record<string, any> | null> {

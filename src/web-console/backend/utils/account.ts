@@ -1,6 +1,6 @@
 import bot from "ROOT";
 import { isJsonString } from "@/utils/verify";
-import { WebAccount } from "@/web-console/types/account";
+import { WebAccount } from "../types/account";
 import FileManagement from "@/modules/file";
 
 class WebConsoleAccount {

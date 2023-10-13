@@ -4,9 +4,9 @@ import bot from "ROOT";
 import { parseZone } from "moment";
 import { formatMemories } from "../utils/format";
 import si from "systeminformation";
-import { DayData, WeekData } from "@/web-console/types/stat";
+import { DayData, WeekData } from "@/web-console/backend/types/stat";
 import Refreshable from "@/modules/management/refresh";
-// import { restartPm2 } from "&/utils/pm2";
+// import { restartPm2 } from @/utils/pm2";
 
 export default express.Router()
 	.get( "/stat", async ( req, res ) => {

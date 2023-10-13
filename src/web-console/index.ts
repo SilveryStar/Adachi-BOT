@@ -7,7 +7,7 @@ import { Application } from "express-ws";
 import express, { Router } from "express";
 import * as r from "./backend/routes";
 import { getTokenByRequest } from "./backend/utils/request";
-import { LogMessage } from "@/web-console/types/logger";
+import { LogMessage } from "./backend/types/logger";
 import { Client } from "@/modules/lib";
 
 interface Ref<T> {

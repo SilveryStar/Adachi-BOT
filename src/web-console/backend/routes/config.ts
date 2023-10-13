@@ -2,7 +2,7 @@ import express from "express";
 import { mergeWith } from "lodash";
 import bot from "ROOT";
 import Plugin from "@/modules/plugin";
-import { PluginConfig } from "@/web-console/types/config";
+import { PluginConfig } from "@/web-console/backend/types/config";
 import { BotConfigValue } from "@/modules/config";
 
 interface FileData {

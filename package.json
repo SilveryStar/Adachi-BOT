@@ -1,7 +1,7 @@
 {
   "name": "adachi-bot",
   "private": true,
-  "version" : "3.3.4",
+  "version": "3.3.4",
   "scripts": {
     "dev": "ts-node-dev -r tsconfig-paths/register --files app.ts",
     "start": "cross-env NODE_ENV=production ts-node app.ts",
@@ -11,12 +11,8 @@
     "stop": "pm2 delete adachi-bot.config.js"
   },
   "dependencies": {
-    "@element-plus/icons-vue": "^2.1.0",
     "@types/ws": "^8.5.5",
-    "@vueuse/core": "^10.1.2",
     "axios": "^1.3.6",
-    "echarts": "^5.4.2",
-    "element-plus": "^2.3.5",
     "express": "^4.18.2",
     "express-jwt": "^8.4.1",
     "express-ws": "^5.0.2",
@@ -30,16 +26,12 @@
     "node-schedule": "^2.1.1",
     "nodemailer": "^6.9.1",
     "p-limit": "3",
-    "pinia": "^2.0.35",
     "pm2": "^5.3.0",
     "puppeteer": "^19.11.1",
     "redis": "^4.6.5",
     "request": "^2.88.2",
     "systeminformation": "^5.17.12",
     "tencentcloud-sdk-nodejs-nlp": "^4.0.590",
-    "vue": "^3.2.47",
-    "vue-echarts": "^6.5.5",
-    "vue-router": "^4.2.1",
     "ws": "^8.13.0",
     "yaml": "^2.2.2"
   },
@@ -52,17 +44,14 @@
     "@types/node-schedule": "^2.1.0",
     "@types/nodemailer": "^6.4.10",
     "@types/single-line-log": "^1.1.0",
-    "@vitejs/plugin-vue": "^4.2.3",
+    "compressing": "^1.10.0",
     "cross-env": "^7.0.3",
-    "less": "^4.1.3",
     "nodemon": "^2.0.22",
-    "sass": "^1.62.1",
     "single-line-log": "^1.1.2",
     "ts-node": "^10.9.1",
     "ts-node-dev": "^2.0.0",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.0.4",
-    "vite": "^4.3.9",
-    "vue-tsc": "^1.6.0"
+    "vite": "^4.4.5"
   }
 }

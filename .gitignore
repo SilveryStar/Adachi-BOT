@@ -8,7 +8,7 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
-dist
+/dist/
 *.local
 
 # adachi
@@ -25,6 +25,8 @@ dist
 !/src/plugins/@management/
 !/src/plugins/genshin/
 !/src/plugins/tools/
+
+/src/web-console/frontend/dist
 
 /go-cqhttp/
 !/go-cqhttp/config-default.yml
