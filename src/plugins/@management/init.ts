@@ -103,8 +103,20 @@ const reload: OrderConfig = {
 	regexps: [ "([\u4E00-\u9FA5\\w\\-]+)?" ],
 	auth: AuthLevel.Master,
 	main: "reload",
-	detail: "用于重新加载插件源码\n" +
+	detail: "用于重新加载指定插件的源码\n" +
 		"不指定插件名将对全部插件进行重载"
+}
+
+const assets: OrderConfig = {
+	type: "order",
+	cmdKey: "adachi.assets",
+	desc: [ "更新静态资源", "(插件名)" ],
+	headers: [ "assets" ],
+	regexps: [ "([\u4E00-\u9FA5\\w\\-]+)?" ],
+	auth: AuthLevel.Master,
+	main: "assets",
+	detail: "用于检查并更新指定插件的静态资源\n" +
+		"不指定插件名将对全部插件进行更新"
 }
 
 const upgrade_plugins: OrderConfig = {
@@ -127,6 +139,7 @@ export default definePlugin( {
 	name: "management",
 	cfgList: [
 		manager, ban, limit, interval,
-		refresh, upgrade, restart, reload, upgrade_plugins
+		refresh, upgrade, assets, restart,
+		reload, upgrade_plugins
 	]
 } );

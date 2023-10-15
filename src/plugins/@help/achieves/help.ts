@@ -117,7 +117,7 @@ async function cardStyle( i: InputParameter, commands: BasicConfig[] ) {
 	} ) );
 	
 	const res: RenderResult = await renderer.asSegment(
-		"/help" );
+		"/help/index.html" );
 	if ( res.code === "ok" ) {
 		return res.data;
 	} else {

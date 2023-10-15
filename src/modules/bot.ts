@@ -20,6 +20,7 @@ import { JobCallback, scheduleJob } from "node-schedule";
 import { trim } from "lodash";
 import { unlinkSync } from "fs";
 import axios, { AxiosError } from "axios";
+import AssetsUpdate from "@/modules/management/assets";
 
 /**
  * @interface
@@ -104,6 +105,7 @@ export default class Adachi {
 			}
 		};
 		
+		AssetsUpdate.getInstance( file, config.webConsole, client.logger );
 		RenderServer.getInstance( config, file, client );
 		PluginManager.getInstance( this.bot );
 		refresh.register( renderer );

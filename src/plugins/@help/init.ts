@@ -51,6 +51,6 @@ export default definePlugin( {
 	},
 	mounted( params ) {
 		/* 未启用卡片帮助时不启动服务 */
-		renderer = params.renderRegister( "#app" );
+		renderer = params.renderRegister( "#app", "views" );
 	}
 } );

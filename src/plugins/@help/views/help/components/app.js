@@ -1,7 +1,7 @@
 const template = `<div class="help">
 	<template v-if="data">
 		<header>
-			<img src="/assets/@help/resource/top-bg.png" alt="top-bg">
+			<img src="/@help/assets/resource/top-bg.png" alt="top-bg">
 			<div class="left-header">
 				<p>Adachi-BOT</p>
 				<p>{{ model === "keys" ? "指令key值表" : "使用文档" }}</p>

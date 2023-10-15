@@ -1,19 +1,14 @@
 import * as cmd from "./command";
 import { BasicConfig, InitType } from "./command";
-import pLimit from "p-limit";
 import { BOT } from "@/modules/bot";
-import { extname, join } from "path";
+import { join } from "path";
 import { Router } from "express";
-import axios, { AxiosError, AxiosResponse } from "axios";
-import Progress from "@/utils/progress";
 import { Renderer } from "@/modules/renderer";
-import { compareAssembleObject, getObjectKeyValue, removeKeysStartsWith } from "@/utils/object";
-import { isIgnorePath } from "@/utils/path";
-import { parse, stringify } from "yaml";
-import { isJsonString } from "@/utils/verify";
+import { removeKeysStartsWith } from "@/utils/object";
 import { ExportConfig } from "@/modules/config";
 import { PresetPlace } from "@/modules/file";
 import Refreshable, { RefreshTarget } from "@/modules/management/refresh";
+import AssetsUpdate from "@/modules/management/assets";
 
 export interface ServerRouters {
 	path: string;
@@ -41,22 +36,12 @@ export interface PluginInfo {
 	key: string;
 	name: string;
 	upgrade?: string;
+	assets?: PluginAssetsSetting,
 	aliases: string[];
 	commands: BasicConfig[];
 	cmdConfigs: cmd.ConfigType[];
 	servers: ServerRouters[];
 	subscribe: PluginSetting["subscribe"];
-}
-
-interface IOssListObject {
-	name: string;
-	url: string;
-	lastModified: string;
-	etag: string;
-	type: string;
-	size: number;
-	storageClass: string;
-	owner: null;
 }
 
 export type PluginHook = ( input: PluginParameter ) => void | Promise<void>;
@@ -66,34 +51,51 @@ type SubUser = {
 	group?: number[];
 };
 
+export interface PluginAssetsSetting  {
+	/** 线上 manifest.yml 文件地址 */
+	manifestUrl: string;
+	/** 下载基地址 */
+	downloadBaseUrl: string;
+	/** manifest 文件中作为文件路径的字段名 */
+	pathField?: string;
+	/** 下载目录名称 */
+	folderName?: string;
+	/** manifest 文件中作为校验文件变动的字段名（最后修改时间/文件唯一值等） */
+	modifiedField?: string;
+	/** 超出最大更新数量后给予的提示消息 */
+	overflowHandle?: ( assets: PluginAssetsSetting ) => any;
+	/** 此配置项列举的拓展名文件，当位于用户配置的忽略文件中时，仍下载更新，但仅更新新增内容不对原内容进行覆盖 */
+	noOverride?: string[];
+	/** 修改下载后的文件路径 */
+	replacePath?: ( path: string ) => string;
+}
+
 export interface PluginSetting {
 	name: string;
 	cfgList: cmd.ConfigType[];
 	server?: {
 		routers?: Record<string, Router>;
 	};
+	/** 设置为非必须兼容低版本插件 */
 	repo?: string | {
-		owner: string;// 仓库拥有者名称
-		repoName: string;// 仓库名称
-		ref?: string;// 分支名称
-	}; // 设置为非必须兼容低版本插件
-	assets?: { // 是否从线上同步更新静态资源
-		manifestUrl: string; // 线上 manifest.yml 文件地址
-		downloadBaseUrl: string; // 下载基地址
-		pathField?: string; // manifest 文件中作为文件路径的字段名
-		folderName?: string; // 下载目录名称
-		modifiedField?: string; // manifest 文件中作为校验文件变动的字段名（最后修改时间/文件唯一值等）
-		overflowPrompt?: string; // 超出最大更新数量后给予的提示消息
-		noOverride?: string[];  // 此配置项列举的拓展名文件，当位于用户配置的忽略文件中时，仍下载更新，但仅更新新增内容不对原内容进行覆盖
-		replacePath?: ( path: string ) => string; // 修改下载后的文件路径
+		/** 仓库拥有者名称 */
+		owner: string;
+		/** 仓库名称 */
+		repoName: string;
+		/** 分支名称 */
+		ref?: string;
 	};
+	/** 是否从线上同步更新静态资源 */
+	assets?: PluginAssetsSetting;
 	subscribe?: {
 		name: string;
 		getUser: ( bot: BOT ) => Promise<SubUser> | SubUser;
 		reSub: ( userId: number, type: "private" | "group", bot: BOT ) => Promise<void> | void;
 	}[];
-	mounted?: PluginHook; // 钩子函数：插件加载完毕时触发
-	unmounted?: PluginHook; // 钩子函数：插件卸载/重载时触发
+	/** 钩子函数：插件加载完毕时触发 */
+	mounted?: PluginHook;
+	/** 钩子函数：插件卸载/重载时触发 */
+	unmounted?: PluginHook;
 }
 
 export const definePlugin = <T extends PluginSetting>( config: T ) => config;
@@ -149,11 +151,14 @@ export default class Plugin {
 				subscribe
 			}: PluginSetting = init.default;
 			
-			await this.checkUpdate( pluginKey, pluginName, assets );
+			if ( assets ) {
+				await AssetsUpdate.getInstance().checkUpdate( pluginKey, pluginName, assets );
+			}
 
 			const plugin: PluginInfo = {
 				key: pluginKey,
 				name: pluginName,
+				assets: assets,
 				aliases: [],
 				commands: [],
 				cmdConfigs: cfgList,
@@ -406,162 +411,11 @@ export default class Plugin {
 				return bot.config.register( fileName, initCfg, setValueCallBack, key );
 			},
 			renderRegister( defaultSelector, baseUrl = "" ) {
-				if ( baseUrl.startsWith( "/" ) ) {
-					baseUrl = baseUrl.slice( 1 );
+				if ( baseUrl && !baseUrl.startsWith( "/" ) ) {
+					baseUrl = "/" + baseUrl;
 				}
-				return bot.renderer.register( `/${ key }/${ baseUrl }`, defaultSelector );
+				return bot.renderer.register( `/${ key }${ baseUrl }`, defaultSelector );
 			}
 		}
-	}
-	
-	/**
-	 * todo: 未实现删除被移除的文件
-	 * 1、获取本地清单文件内容 manifestData
-	 * 2、传递本地清单文件调用接口，接口：获取线上清单目录文件，diff算法对比两个清单文件差异性，返回差异性部分
-	 * 3、依次下载清单文件列表文件，每下载完成一个时更新 manifestData 内容
-	 * 4、下载完毕后以 manifestData 内容更新本地清单文件
-	 */
-	private async checkUpdate( plugin: string, pluginName: string, assets: PluginSetting["assets"] ): Promise<void> {
-		if ( !assets ) return;
-		const downloadFolder = getObjectKeyValue( assets, "folderName", "adachi-assets" );
-		const baseUrl = `${ plugin }/${ downloadFolder }`;
-		const manifestName = `${ baseUrl }/manifest`;
-		// 该清单列表中的文件内容不会进行覆盖，仅做更新处理
-		const ignoreName = `${ baseUrl }/.adachiignore`;
-		
-		const { path: ignorePath } = await this.bot.file.createFile( ignoreName, "", "plugin" );
-		
-		const manifest = <IOssListObject[]>( await this.bot.file.loadYAML( manifestName, "plugin" ) || [] );
-		let res: AxiosResponse<{
-			code: number;
-			data: IOssListObject[];
-			msg: string;
-		}>;
-		
-		let data: IOssListObject[];
-		
-		const pathField = getObjectKeyValue( assets, "pathField", "name" );
-		const modifiedField = getObjectKeyValue( assets, "modifiedField", "lastModified" );
-		
-		try {
-			res = await axios.post( "https://api-kozakura.marrydream.top/common/adachi/v1/oss/update/files", {
-				url: assets.manifestUrl,
-				list: manifest,
-				pathField,
-				modifiedField
-			}, {
-				maxContentLength: Infinity
-			} );
-			data = res.data.data;
-		} catch ( error: any ) {
-			if ( ( <AxiosError>error ).response?.status === 415 ) {
-				throw assets.overflowPrompt || "更新文件数量超过阈值，请手动更新资源包";
-			} else {
-				data = [];
-				this.bot.logger.error( `检查更新失败，远程服务器异常，请联系开发者解决：${ ( <AxiosError>error ).response?.data?.[ "msg" ] || <string>error }` )
-			}
-		}
-		// 不存在更新项，返回
-		if ( !data.length ) {
-			this.bot.logger.info( `未检测到 ${ pluginName } 可更新静态资源` );
-			return;
-		}
-		
-		const progress = new Progress( `下载 ${ pluginName } 静态资源`, data.length );
-		
-		let downloadNum: number = 0, errorNum: number = 0;
-		// 更新图片promise列表
-		const updatePromiseList: Promise<void>[] = [];
-		
-		// 最大下载并发数 10
-		const limiter = pLimit( 10 );
-		
-		data.forEach( file => {
-			const replacePath = getObjectKeyValue( assets, "replacePath", null );
-			const filePath: string = file[ pathField ];
-			
-			/* 获取文件下载 url，处理用户传入的 url 可能存在的格式不规范问题 */
-			let downloadUrl = assets.downloadBaseUrl + filePath;
-			if ( assets.downloadBaseUrl.endsWith( "/" ) && filePath.startsWith( "/" ) ) {
-				downloadUrl = assets.downloadBaseUrl + filePath.slice(1);
-			}
-			if ( !assets.downloadBaseUrl.endsWith( "/" ) && !filePath.startsWith( "/" ) ) {
-				downloadUrl = assets.downloadBaseUrl + "/" + filePath;
-			}
-			
-			/* 修改格式化后的文件路径 */
-			const fileFormatPath: string = replacePath ? replacePath( filePath ) : filePath;
-			
-			// 是否为清单排除文件
-			const isIgnore = isIgnorePath( ignorePath, this.bot.file.getFilePath( `${ baseUrl }/${ fileFormatPath }`, "plugin" ) );
-			const noOverrideList = getObjectKeyValue( assets, "noOverride", [ "yml", "json" ] )
-			
-			const fileExt = extname( downloadUrl ).slice( 1 );
-			// 位于排除文件中，不进行更新
-			if ( isIgnore && !noOverrideList.includes( fileExt ) ) {
-				return;
-			}
-			updatePromiseList.push( limiter( () => ( async () => {
-				try {
-					const pathList = [ `${ baseUrl }/${ fileFormatPath }` ];
-					
-					await this.bot.file.downloadFile( downloadUrl, pathList, async data => {
-						// 不再忽略清单文件中时直接返回原数据
-						if ( !isIgnore ) {
-							return data;
-						}
-						// 对仅更新新内容不覆盖原内容的文件数据进行处理
-						const onlineData: string = data.toString();
-						const oldFileData = await this.bot.file.loadFile( pathList[0], "plugin" ) || "";
-						let oldValue: any, newValue: any;
-						if ( fileExt === "yml" ) {
-							oldValue = parse( oldFileData );
-							// 此时文件内容无法比对，直接返回原内容不进行覆盖
-							if ( typeof oldValue === "string" ) {
-								return oldFileData;
-							}
-							newValue = parse( onlineData );
-						} else {
-							// 此时文件内容无法比对，直接返回原内容不进行覆盖
-							if ( !isJsonString( oldFileData ) || !isJsonString( onlineData ) ) {
-								return oldFileData;
-							}
-							oldValue = JSON.parse( oldFileData );
-							newValue = JSON.parse( onlineData );
-						}
-						const newFileData = compareAssembleObject( oldValue, newValue, false, "merge" );
-						return fileExt === "yml" ? stringify( newFileData ) : JSON.stringify( newFileData );
-					}, "plugin" );
-					
-					// 下载成功后新增清单项
-					// 若清单项已存在则先删除再添加
-					const key = manifest.findIndex( item => item[ pathField ] === file[ pathField ] )
-					if ( key !== -1 ) {
-						manifest.splice( key, 1, file );
-					} else {
-						manifest.push( file );
-					}
-				} catch ( error ) {
-					errorNum++;
-				}
-				downloadNum++;
-				progress.renderer( downloadNum, `下载失败：${ errorNum }`, this.bot.config.webConsole.enable );
-			} )() ) );
-		} );
-		
-		// 不存在更新项，返回
-		if ( !updatePromiseList.length ) {
-			this.bot.logger.info( `未检测到 ${ pluginName } 可更新静态资源` );
-			return;
-		}
-		
-		// 重新设置进度条长度
-		progress.setTotal( updatePromiseList.length );
-		
-		// 遍历下载资源文件
-		await Promise.all( updatePromiseList );
-		
-		// 写入清单文件
-		await this.bot.file.writeYAML( manifestName, manifest, "plugin" );
 	}
 }

@@ -18,5 +18,5 @@ html {
 
 @font-face {
 	font-family: GenshinUsedFont;
-	src: url("/assets/@help/fonts/HYWenHei-85W.ttf");
+	src: url("/@help/assets/fonts/HYWenHei-85W.ttf");
 }

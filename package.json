@@ -3,7 +3,7 @@
   "private": true,
   "version": "3.3.4",
   "scripts": {
-    "dev": "ts-node-dev -r tsconfig-paths/register --files app.ts",
+    "dev": "cross-env NODE_ENV=development ts-node app.ts",
     "start": "cross-env NODE_ENV=production ts-node app.ts",
     "serve": "pm2 start adachi-bot.config.js --env production",
     "docker-start": "pm2-runtime start adachi-bot.config.js --env production",
@@ -21,7 +21,6 @@
     "log4js": "^6.9.1",
     "md5-typescript": "^1.0.5",
     "moment": "^2.29.4",
-    "node-dev": "^8.0.0",
     "node-fetch": "^2.6.7",
     "node-schedule": "^2.1.1",
     "nodemailer": "^6.9.1",
