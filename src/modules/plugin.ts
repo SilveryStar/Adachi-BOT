@@ -152,7 +152,7 @@ export default class Plugin {
 			}: PluginSetting = init.default;
 			
 			if ( assets ) {
-				await AssetsUpdate.getInstance().checkUpdate( pluginKey, pluginName, assets );
+				await AssetsUpdate.getInstance().registerCheckUpdateJob( pluginKey, undefined, pluginName, assets );
 			}
 
 			const plugin: PluginInfo = {
@@ -216,6 +216,10 @@ export default class Plugin {
 			const refresh = Refreshable.getInstance();
 			refresh.logout( pluginKey );
 			
+			/* 关闭静态资源更新任务 */
+			const assetsUpdate = AssetsUpdate.getInstance();
+			assetsUpdate.deregisterCheckUpdateJob( pluginKey );
+			
 			Reflect.deleteProperty( this.pluginList, pluginKey );
 			Reflect.deleteProperty( this.pluginSettings, pluginKey );
 			
@@ -232,10 +236,13 @@ export default class Plugin {
 	
 	public async reload() {
 		const refresh = Refreshable.getInstance();
+		const assetsUpdate = AssetsUpdate.getInstance();
 		for ( const pluginKey in this.pluginSettings ) {
 			await this.doUnMount( pluginKey );
 			/* 卸载插件刷新事件 */
 			refresh.logout( pluginKey );
+			/* 关闭静态资源更新任务 */
+			assetsUpdate.deregisterCheckUpdateJob( pluginKey );
 		}
 		const oldSettings = this.pluginSettings;
 		this.pluginSettings = {};
@@ -254,6 +261,10 @@ export default class Plugin {
 			await this.doUnMount( pluginKey );
 			const refresh = Refreshable.getInstance();
 			refresh.logout( pluginKey );
+			
+			/* 关闭静态资源更新任务 */
+			const assetsUpdate = AssetsUpdate.getInstance();
+			assetsUpdate.deregisterCheckUpdateJob( pluginKey );
 			
 			const setting = this.pluginSettings[pluginKey];
 			

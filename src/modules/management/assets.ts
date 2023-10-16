@@ -10,6 +10,8 @@ import { extname } from "path";
 import pLimit from "p-limit";
 import Progress from "@/utils/progress";
 import { isJsonString } from "@/utils/verify";
+import { scheduleJob } from "node-schedule";
+import { getRandomNumber } from "@/utils/random";
 
 export interface IOssListObject {
 	name: string;
@@ -28,14 +30,36 @@ export interface AssetsLifeCycle {
 	updateError?: ( errMsg: string ) => any;
 }
 
+interface AssetsJobInfo {
+	pluginKey?: string;
+	baseUrl?: string;
+	pluginName: string;
+	assets: PluginAssetsSetting;
+	lifeCycle?: AssetsLifeCycle;
+}
+
 export default class AssetsUpdate {
 	private static __instance: AssetsUpdate | null;
+	private jobMap: Map<string, AssetsJobInfo> = new Map();
 	
 	constructor(
 		private file: FileManagement,
 		private config: BotConfig["webConsole"],
 		private logger: Logger
 	) {
+		scheduleJob( "0 0 */6 * * *", () => {
+			this.jobMap.forEach( el => {
+				// 从一小时内随机取一段时间检查更新
+				const time = Date.now() + getRandomNumber( 0, 60 * 60 * 1000 );
+				scheduleJob( time, () => this.checkUpdate(
+					el.pluginKey,
+					el.baseUrl,
+					el.pluginName,
+					el.assets,
+					el.lifeCycle
+				) )
+			} );
+		} );
 	}
 	
 	public static getInstance( file?: FileManagement, config?: BotConfig["webConsole"], logger?: Logger ): AssetsUpdate {
@@ -126,6 +150,26 @@ export default class AssetsUpdate {
 		}
 	}
 	
+	public deregisterCheckUpdateJob( key: string ) {
+		this.jobMap.delete( key );
+	}
+	
+	public async registerCheckUpdateJob( pluginKey: string, baseUrl: undefined, pluginName: string, assets: PluginAssetsSetting, lifeCycle?: AssetsLifeCycle ): Promise<void>;
+	public async registerCheckUpdateJob( pluginKey: undefined, baseUrl: string, pluginName: string, assets: PluginAssetsSetting, lifeCycle?: AssetsLifeCycle ): Promise<void>;
+	public async registerCheckUpdateJob( pluginKey: string | undefined, baseUrl: string | undefined, pluginName: string, assets: PluginAssetsSetting, lifeCycle?: AssetsLifeCycle ): Promise<void> {
+		const jobKey = <string>( pluginKey || baseUrl );
+		if ( !this.jobMap.has( jobKey ) ) {
+			this.jobMap.set( <string>( pluginKey || baseUrl ), {
+				pluginKey,
+				baseUrl,
+				pluginName,
+				assets,
+				lifeCycle
+			} );
+		}
+		await this.checkUpdate( pluginKey, baseUrl, pluginName, assets, lifeCycle );
+	}
+	
 	/**
 	 * todo: 未实现删除被移除的文件
 	 * 1、获取本地清单文件内容 manifestData
@@ -133,7 +177,7 @@ export default class AssetsUpdate {
 	 * 3、依次下载清单文件列表文件，每下载完成一个时更新 manifestData 内容
 	 * 4、下载完毕后以 manifestData 内容更新本地清单文件
 	 */
-	public async checkUpdate( pluginKey: string, pluginName: string, assets: PluginAssetsSetting, lifeCycle?: AssetsLifeCycle, baseUrl?: string ): Promise<void> {
+	private async checkUpdate( pluginKey: string | undefined, baseUrl: string | undefined, pluginName: string, assets: PluginAssetsSetting, lifeCycle?: AssetsLifeCycle ): Promise<void> {
 		if ( !baseUrl ) {
 			const downloadFolder = getObjectKeyValue( assets, "folderName", "adachi-assets" );
 			baseUrl = `${ pluginKey }/${ downloadFolder }`;
