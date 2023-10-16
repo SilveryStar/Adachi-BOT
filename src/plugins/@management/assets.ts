@@ -17,7 +17,7 @@ export default defineDirective( "order", async ( { matchResult, sendMessage } ) 
 		
 		let status = true;
 		
-		await assetsInstance.checkUpdate( pluginKey, pluginName, assets, {
+		await assetsInstance.registerCheckUpdateJob( pluginKey, undefined, pluginName, assets, {
 			async noUpdated() {
 				if ( single ) {
 					await sendMessage( `未检测到 ${ pluginName } 可更新静态资源` );
@@ -52,9 +52,11 @@ export default defineDirective( "order", async ( { matchResult, sendMessage } ) 
 		}
 		await updatePluginAssets( pluginInfo, true );
 	} else {
-		const pluginList  = pluginInstance.pluginList;
+		const pluginList = Object.values( pluginInstance.pluginList ).sort( ( prev, next ) => {
+			return prev.sortIndex - next.sortIndex;
+		} );
 		let updateStatus = false;
-		for ( const pluginInfo of Object.values( pluginList ) ) {
+		for ( const pluginInfo of pluginList ) {
 			const status = await updatePluginAssets( pluginInfo, false );
 			if ( status ) {
 				updateStatus = status;

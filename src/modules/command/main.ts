@@ -213,7 +213,11 @@ export default class Command {
 		const commandConfig: Record<string, any> = await bot.file.loadYAML( "commands" ) || {};
 		// 要写入的 command.yml 配置文件内容
 		let cmdConfig: Record<string, any> = {};
-		for ( const pluginInfo of Object.values( pluginInstance.pluginList ) ) {
+		
+		const pluginList = Object.values( pluginInstance.pluginList ).sort( ( prev, next ) => {
+			return prev.sortIndex - next.sortIndex;
+		} );
+		for ( const pluginInfo of pluginList ) {
 			const cmdConfigItem = await pluginInstance.parse( pluginInfo.key, commandConfig );
 			this.add( pluginInfo.commands );
 			cmdConfig = { ...cmdConfig, ...cmdConfigItem };

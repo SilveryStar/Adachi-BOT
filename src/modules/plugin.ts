@@ -42,6 +42,7 @@ export interface PluginInfo {
 	cmdConfigs: cmd.ConfigType[];
 	servers: ServerRouters[];
 	subscribe: PluginSetting["subscribe"];
+	sortIndex: number;
 }
 
 export type PluginHook = ( input: PluginParameter ) => void | Promise<void>;
@@ -122,9 +123,11 @@ export default class Plugin {
 	public async load( immediate = true ): Promise<Record<string, PluginSetting>> {
 		const plugins: string[] = await this.bot.file.getDirFiles( "", "plugin" );
 		
+		let sortIndex = 0;
 		/* 从 plugins 文件夹从导入 init.ts 进行插件初始化 */
 		for ( let pluginKey of plugins ) {
-			await this.loadSingle( pluginKey, immediate, false );
+			await this.loadSingle( pluginKey, immediate, false, sortIndex );
+			sortIndex ++;
 		}
 		await this.bot.command.reload();
 		return this.pluginSettings;
@@ -135,8 +138,9 @@ export default class Plugin {
 	 * @param pluginKey 插件目录名
 	 * @param immediate 是否为立即执行插件 mounted 方法
 	 * @param reloadCmd 是否为执行加载 command 方法
+	 * @param sortIndex 排序
 	 */
-	public async loadSingle( pluginKey: string, immediate = true, reloadCmd = true ) {
+	public async loadSingle( pluginKey: string, immediate = true, reloadCmd = true, sortIndex = 0 ) {
 		try {
 			// 清楚指定插件的文件缓存
 			removeKeysStartsWith( require.cache, this.bot.file.getFilePath( pluginKey, "plugin" ) );
@@ -163,7 +167,8 @@ export default class Plugin {
 				commands: [],
 				cmdConfigs: cfgList,
 				servers: [],
-				subscribe
+				subscribe,
+				sortIndex
 			}
 			
 			// 加载 express server 路由
@@ -220,10 +225,11 @@ export default class Plugin {
 			const assetsUpdate = AssetsUpdate.getInstance();
 			assetsUpdate.deregisterCheckUpdateJob( pluginKey );
 			
+			const oldInfo = this.pluginList[pluginKey];
 			Reflect.deleteProperty( this.pluginList, pluginKey );
 			Reflect.deleteProperty( this.pluginSettings, pluginKey );
 			
-			await this.loadSingle( pluginKey, immediate, reloadCmd );
+			await this.loadSingle( pluginKey, immediate, reloadCmd, oldInfo.sortIndex );
 			
 			return {
 				oldSetting,

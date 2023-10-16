@@ -183,14 +183,17 @@ export default defineDirective( "order", async ( i ) => {
 	const upgrade_plugins: PluginInfo[] = [];
 	const not_support_upgrade_plugins: PluginInfo[] = [];
 	const upgrade_errors: string[] = [];
-	for ( let key in pluginInstance.pluginList ) {
-		const pluginInfo = pluginInstance.pluginList[key];
+	
+	const pluginList = Object.values( pluginInstance.pluginList ).sort( ( prev, next ) => {
+		return prev.sortIndex - next.sortIndex;
+	} );
+	
+	for ( const pluginInfo of pluginList ) {
 		if ( !pluginInfo.upgrade ) {
 			not_support_upgrade_plugins.push( pluginInfo );
 			continue;
-			
 		}
-		dbKey = `adachi.${ key }.update-time`;
+		dbKey = `adachi.${ pluginInfo.key }.update-time`;
 		const checkResult: {
 			check: boolean;
 			newDate?: string,

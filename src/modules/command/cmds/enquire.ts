@@ -37,6 +37,7 @@ interface RegPair {
 interface taskInfo {
 	job: Job;
 	header: string;
+	input: InputParameter<"enquire">;
 }
 
 export class Enquire extends BasicConfig {
@@ -107,18 +108,23 @@ export class Enquire extends BasicConfig {
 		return { type: "unmatch", missParam: false };
 	}
 	
-	public async activate( userID: number, groupID: number, input: InputParameter<"enquire"> ) {
+	private getActivateJob( userID: number, groupID: number, input: InputParameter<"enquire"> ) {
 		const d = new Date();
+		return scheduleJob( d.setSeconds( d.getSeconds() + this.timeout ), async () => {
+			input.matchResult.status = "timeout";
+			await bot.command.cmdRunError( async () => {
+				await this.inactivate( userID, groupID, input );
+			}, userID, groupID );
+		} )
+	}
+	
+	public async activate( userID: number, groupID: number, input: InputParameter<"enquire"> ) {
 		const key = Enquire.getTaskKey( userID, groupID );
-		Reflect.set( this.taskList, key, {
-			job: scheduleJob( d.setSeconds( d.getSeconds() + this.timeout ), async () => {
-				input.matchResult.status = "timeout";
-				await bot.command.cmdRunError( async () => {
-					await this.inactivate( userID, groupID, input );
-				}, userID, groupID );
-			} ),
-			header: input.matchResult.header
-		} );
+		this.taskList[ key ] = {
+			job: this.getActivateJob( userID, groupID, input ),
+			header: input.matchResult.header,
+			input
+		};
 		await bot.redis.setHashField( Enquire.redisKey, key, this.cmdKey );
 		input.matchResult.status = "activate";
 		await this.run( input );
@@ -130,6 +136,12 @@ export class Enquire extends BasicConfig {
 		const matchResult = this.getMatchResult( task.header, "confirm" );
 		const completed = await this.run( { ...input, matchResult } );
 		if ( typeof completed === "boolean" && !completed ) {
+			// 重置超市时间
+			const task = this.taskList[ key ];
+			if ( task ) {
+				task.job.cancel();
+				task.job = this.getActivateJob( userID, groupID, task.input )
+			}
 			// 未执行完毕，不进行关闭
 			return;
 		}
