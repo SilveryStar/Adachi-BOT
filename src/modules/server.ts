@@ -158,6 +158,10 @@ export default class RenderServer {
 					replacePath: path => {
 						return path.replace( "adachi-bot/version3/web-console/", "" );
 					}
+				}, {
+					startUpdate: async () => {
+						await this.file.deleteFile( "src/web-console/frontend/dist", "root" );
+					}
 				} )
 			} else {
 				// 以中间件模式创建 Vite 应用，这将禁用 Vite 自身的 HTML 服务逻辑
