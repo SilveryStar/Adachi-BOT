@@ -27,13 +27,12 @@ export default class Progress {
 		
 		if ( tcp ) {
 			this.logger.info( cmdText );
-		} else {
-			// 在单行输出文本
-			slog( cmdText );
-			// 终止后打印换行符
-			if ( processStr.length === cellNum ) {
-				console.log( "" );
-			}
+		}
+		// 在单行输出文本
+		slog( cmdText );
+		// 终止后打印换行符
+		if ( processStr.length === cellNum ) {
+			console.log( "" );
 		}
 	}
 }

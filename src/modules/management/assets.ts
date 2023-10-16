@@ -133,9 +133,11 @@ export default class AssetsUpdate {
 	 * 3、依次下载清单文件列表文件，每下载完成一个时更新 manifestData 内容
 	 * 4、下载完毕后以 manifestData 内容更新本地清单文件
 	 */
-	public async checkUpdate( pluginKey: string, pluginName: string, assets: PluginAssetsSetting, lifeCycle?: AssetsLifeCycle ): Promise<void> {
-		const downloadFolder = getObjectKeyValue( assets, "folderName", "adachi-assets" );
-		const baseUrl = `${ pluginKey }/${ downloadFolder }`;
+	public async checkUpdate( pluginKey: string, pluginName: string, assets: PluginAssetsSetting, lifeCycle?: AssetsLifeCycle, baseUrl?: string ): Promise<void> {
+		if ( !baseUrl ) {
+			const downloadFolder = getObjectKeyValue( assets, "folderName", "adachi-assets" );
+			baseUrl = `${ pluginKey }/${ downloadFolder }`;
+		}
 		// 该清单列表中的文件内容不会进行覆盖，仅做更新处理
 		const ignoreName = `${ baseUrl }/.adachiignore`;
 		

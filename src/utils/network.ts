@@ -15,7 +15,6 @@ export function getIPAddress() {
 			return alias.family === 'IPv4' && alias.address !== '127.0.0.1' && !alias.internal;
 		} );
 		if ( targetAlias ) {
-			console.log( targetAlias )
 			return targetAlias.address;
 		}
 	}

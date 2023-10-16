@@ -14,6 +14,7 @@ import { isJsonString } from "@/utils/verify";
 import { Client } from "@/modules/lib";
 import os from "os";
 import { getIPAddress } from "@/utils/network";
+import AssetsUpdate from "@/modules/management/assets";
 
 export default class RenderServer {
 	private static _instance: RenderServer | null = null;
@@ -149,7 +150,16 @@ export default class RenderServer {
 		}
 		
 		if ( this.config.webConsole.enable ) {
-			if ( !isProd ) {
+			if ( isProd ) {
+				const assetsInstance = AssetsUpdate.getInstance();
+				await assetsInstance.checkUpdate( "", "web-console", {
+					manifestUrl: "https://mari-files.oss-cn-beijing.aliyuncs.com/adachi-bot/version3/web-console_assets_manifest.yml",
+					downloadBaseUrl: "https://mari-files.oss-cn-beijing.aliyuncs.com",
+					replacePath: path => {
+						return path.replace( "adachi-bot/version3/web-console/", "" );
+					}
+				}, undefined, "../web-console/frontend/dist" )
+			} else {
 				// 以中间件模式创建 Vite 应用，这将禁用 Vite 自身的 HTML 服务逻辑
 				// 并让上级服务器接管控制
 				// 执行此方法后将会调用指定 root 目录下的 vite.config.ts

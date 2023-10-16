@@ -16,6 +16,7 @@ export default defineDirective( "order", async ( { matchResult, sendMessage } ) 
 		}
 		
 		let status = true;
+		
 		await assetsInstance.checkUpdate( pluginKey, pluginName, assets, {
 			async noUpdated() {
 				if ( single ) {
