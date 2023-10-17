@@ -105,7 +105,7 @@ export default class Adachi {
 			}
 		};
 		
-		AssetsUpdate.getInstance( file, config.webConsole, client.logger );
+		AssetsUpdate.getInstance( this.bot );
 		RenderServer.getInstance( config, file, client );
 		PluginManager.getInstance( this.bot );
 		refresh.register( renderer );

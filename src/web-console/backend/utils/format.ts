@@ -1,17 +1,6 @@
 import { BOT } from "@/modules/bot";
 import PluginManager from "@/modules/plugin";
 
-/* 获取内存格式化 */
-export function formatMemories( memories: number, type: "G" | "M" | "KB" | "B" ) {
-	const sizeMap: Record<typeof type, number> = {
-		G: 1 << 30,
-		M: 1 << 20,
-		KB: 1 << 10,
-		B: 1
-	}
-	return ( memories / sizeMap[type] ).toFixed( 2 ) + type;
-}
-
 /* 生成订阅用户id列表 */
 export async function formatSubUsers( bot: BOT, type: "private" | "group" ): Promise<Record<string, string[]>> {
 	const userSubs: Record<string, string[]> = {};

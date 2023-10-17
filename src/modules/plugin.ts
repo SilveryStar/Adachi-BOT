@@ -8,7 +8,7 @@ import { removeKeysStartsWith } from "@/utils/object";
 import { ExportConfig } from "@/modules/config";
 import { PresetPlace } from "@/modules/file";
 import Refreshable, { RefreshTarget } from "@/modules/management/refresh";
-import AssetsUpdate from "@/modules/management/assets";
+import AssetsUpdate, { PluginAssetsSetting } from "@/modules/management/assets";
 
 export interface ServerRouters {
 	path: string;
@@ -51,25 +51,6 @@ type SubUser = {
 	person?: number[];
 	group?: number[];
 };
-
-export interface PluginAssetsSetting  {
-	/** 线上 manifest.yml 文件地址 */
-	manifestUrl: string;
-	/** 下载基地址 */
-	downloadBaseUrl: string;
-	/** manifest 文件中作为文件路径的字段名 */
-	pathField?: string;
-	/** 下载目录名称 */
-	folderName?: string;
-	/** manifest 文件中作为校验文件变动的字段名（最后修改时间/文件唯一值等） */
-	modifiedField?: string;
-	/** 超出最大更新数量后给予的提示消息 */
-	overflowHandle?: ( assets: PluginAssetsSetting ) => any;
-	/** 此配置项列举的拓展名文件，当位于用户配置的忽略文件中时，仍下载更新，但仅更新新增内容不对原内容进行覆盖 */
-	noOverride?: string[];
-	/** 修改下载后的文件路径 */
-	replacePath?: ( path: string ) => string;
-}
 
 export interface PluginSetting {
 	name: string;

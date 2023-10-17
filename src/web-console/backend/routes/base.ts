@@ -2,10 +2,10 @@ import express from "express";
 import { cpus } from "os";
 import bot from "ROOT";
 import { parseZone } from "moment";
-import { formatMemories } from "../utils/format";
 import si from "systeminformation";
 import { DayData, WeekData } from "@/web-console/backend/types/stat";
 import Refreshable from "@/modules/management/refresh";
+import { formatMemories } from "@/utils/format";
 // import { restartPm2 } from @/utils/pm2";
 
 export default express.Router()

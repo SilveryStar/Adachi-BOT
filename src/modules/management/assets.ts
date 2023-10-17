@@ -1,9 +1,5 @@
-import { PluginAssetsSetting } from "@/modules/plugin";
 import { compareAssembleObject, getObjectKeyValue } from "@/utils/object";
 import axios, { AxiosError } from "axios";
-import FileManagement from "@/modules/file";
-import { BotConfig } from "@/modules/config";
-import { Logger } from "log4js";
 import { parse, stringify } from "yaml";
 import { isIgnorePath } from "@/utils/path";
 import { extname } from "path";
@@ -12,6 +8,7 @@ import Progress from "@/utils/progress";
 import { isJsonString } from "@/utils/verify";
 import { scheduleJob } from "node-schedule";
 import { getRandomNumber } from "@/utils/random";
+import { BOT } from "@/modules/bot";
 
 export interface IOssListObject {
 	name: string;
@@ -38,15 +35,30 @@ interface AssetsJobInfo {
 	lifeCycle?: AssetsLifeCycle;
 }
 
+export interface PluginAssetsSetting  {
+	/** 线上 manifest.yml 文件地址 */
+	manifestUrl: string;
+	/** 下载基地址 */
+	downloadBaseUrl: string;
+	/** manifest 文件中作为文件路径的字段名 */
+	pathField?: string;
+	/** 下载目录名称 */
+	folderName?: string;
+	/** manifest 文件中作为校验文件变动的字段名（最后修改时间/文件唯一值等） */
+	modifiedField?: string;
+	/** 超出最大更新数量后给予的提示消息 */
+	overflowHandle?: ( assets: PluginAssetsSetting, pluginKey: string | undefined, bot: BOT ) => any;
+	/** 此配置项列举的拓展名文件，当位于用户配置的忽略文件中时，仍下载更新，但仅更新新增内容不对原内容进行覆盖 */
+	noOverride?: string[];
+	/** 修改下载后的文件路径 */
+	replacePath?: ( path: string, pluginKey: string | undefined, bot: BOT ) => string;
+}
+
 export default class AssetsUpdate {
 	private static __instance: AssetsUpdate | null;
 	private jobMap: Map<string, AssetsJobInfo> = new Map();
 	
-	constructor(
-		private file: FileManagement,
-		private config: BotConfig["webConsole"],
-		private logger: Logger
-	) {
+	constructor( private bot: BOT ) {
 		scheduleJob( "0 0 */6 * * *", () => {
 			this.jobMap.forEach( el => {
 				// 从一小时内随机取一段时间检查更新
@@ -62,18 +74,18 @@ export default class AssetsUpdate {
 		} );
 	}
 	
-	public static getInstance( file?: FileManagement, config?: BotConfig["webConsole"], logger?: Logger ): AssetsUpdate {
+	public static getInstance( bot?: BOT ): AssetsUpdate {
 		if ( !AssetsUpdate.__instance ) {
-			if ( !file || !config || !logger ) {
+			if ( !bot ) {
 				throw new Error( "Invalid parameter" );
 			}
-			AssetsUpdate.__instance = new AssetsUpdate( file, config, logger );
+			AssetsUpdate.__instance = new AssetsUpdate( bot );
 		}
 		return AssetsUpdate.__instance;
 	}
 	
 	/** 获取更新文件列表 */
-	private async getUpdateItems( assets: PluginAssetsSetting, manifest: IOssListObject[], pathField: string, lifeCycle?: AssetsLifeCycle ): Promise<IOssListObject[]> {
+	private async getUpdateItems( pluginKey: string | undefined, assets: PluginAssetsSetting, manifest: IOssListObject[], pathField: string, lifeCycle?: AssetsLifeCycle ): Promise<IOssListObject[]> {
 		const modifiedField = getObjectKeyValue( assets, "modifiedField", "lastModified" );
 		
 		let data: IOssListObject[];
@@ -91,7 +103,7 @@ export default class AssetsUpdate {
 			const errRes = <AxiosError>error;
 			if ( errRes.response?.status === 415 ) {
 				if ( assets.overflowHandle ) {
-					await assets.overflowHandle( assets );
+					await assets.overflowHandle( assets, pluginKey, this.bot );
 				} else {
 					const errorMsg: string = "更新文件数量超过阈值，请手动更新资源包";
 					if ( lifeCycle?.updateError ) {
@@ -107,7 +119,7 @@ export default class AssetsUpdate {
 					errRes.message = errorMsg;
 					await lifeCycle.updateError( errRes );
 				} else {
-					this.logger.error( errorMsg );
+					this.bot.logger.error( errorMsg );
 				}
 			}
 			data = [];
@@ -121,14 +133,14 @@ export default class AssetsUpdate {
 			const pathList = [ filePath ];
 			const fileExt = extname( downloadUrl ).slice( 1 );
 			
-			await this.file.downloadFile( downloadUrl, pathList, async data => {
+			await this.bot.file.downloadFile( downloadUrl, pathList, async data => {
 				// 不再忽略清单文件中时直接返回原数据
 				if ( !isIgnore ) {
 					return data;
 				}
 				// 对仅更新新内容不覆盖原内容的文件数据进行处理
 				const onlineData: string = data.toString();
-				const oldFileData = await this.file.loadFile( pathList[0], "plugin" ) || "";
+				const oldFileData = await this.bot.file.loadFile( pathList[0], "plugin" ) || "";
 				let oldValue: any, newValue: any;
 				if ( fileExt === "yml" ) {
 					oldValue = parse( oldFileData );
@@ -185,25 +197,25 @@ export default class AssetsUpdate {
 			const downloadFolder = getObjectKeyValue( assets, "folderName", "adachi-assets" );
 			baseUrl = `${ pluginKey }/${ downloadFolder }`;
 		}
-		// 该清单列表中的文件内容不会进行覆盖，仅做更新处理
-		const ignoreName = `${ baseUrl }/.adachiignore`;
-		
-		const { path: ignorePath } = await this.file.createFile( ignoreName, "", "plugin" );
-		
 		const pathField = getObjectKeyValue( assets, "pathField", "name" );
 		
 		const manifestName = `${ baseUrl }/manifest`;
-		const manifest = <IOssListObject[]>( await this.file.loadYAML( manifestName, "plugin" ) || [] );
-		const data = await this.getUpdateItems( assets, manifest, pathField, lifeCycle );
+		const manifest = <IOssListObject[]>( await this.bot.file.loadYAML( manifestName, "plugin" ) || [] );
+		const data = await this.getUpdateItems( pluginKey, assets, manifest, pathField, lifeCycle );
 		
 		// 不存在更新项，返回
 		if ( !data.length ) {
-			this.logger.info( `未检测到 ${ pluginName } 可更新静态资源` );
+			this.bot.logger.info( `未检测到 ${ pluginName } 可更新静态资源` );
 			if ( lifeCycle?.noUpdated ) {
 				await lifeCycle.noUpdated();
 			}
 			return;
 		}
+		
+		// 该清单列表中的文件内容不会进行覆盖，仅做更新处理
+		const ignoreName = `${ baseUrl }/.adachiignore`;
+		
+		const { path: ignorePath } = await this.bot.file.createFile( ignoreName, "", "plugin" );
 		
 		const progress = new Progress( `下载 ${ pluginName } 静态资源`, data.length );
 		
@@ -228,10 +240,10 @@ export default class AssetsUpdate {
 			}
 			
 			/* 修改格式化后的文件路径 */
-			const fileRealPath = `${ baseUrl }/${ replacePath ? replacePath( filePath ) : filePath }`;
+			const fileRealPath = `${ baseUrl }/${ replacePath ? replacePath( filePath, pluginKey, this.bot ) : filePath }`;
 			
 			// 是否为清单排除文件
-			const isIgnore = isIgnorePath( ignorePath, this.file.getFilePath( fileRealPath, "plugin" ) );
+			const isIgnore = isIgnorePath( ignorePath, this.bot.file.getFilePath( fileRealPath, "plugin" ) );
 			const noOverrideList = getObjectKeyValue( assets, "noOverride", [ "yml", "json" ] )
 			
 			const fileExt = extname( downloadUrl ).slice( 1 );
@@ -252,13 +264,15 @@ export default class AssetsUpdate {
 				errorNum++;
 			} ).finally( () => {
 				downloadNum++;
-				progress.renderer( downloadNum, `下载失败：${ errorNum }`, this.config.enable );
+				progress.renderer( downloadNum, total => {
+					return `${ downloadNum }/${ total } 下载失败：${ errorNum }`
+				}, this.bot.config.webConsole.enable );
 			} ) ) );
 		} );
 		
 		// 不存在更新项，返回
 		if ( !updatePromiseList.length ) {
-			this.logger.info( `未检测到 ${ pluginName } 可更新静态资源` );
+			this.bot.logger.info( `未检测到 ${ pluginName } 可更新静态资源` );
 			if ( lifeCycle?.noUpdated ) {
 				await lifeCycle.noUpdated();
 			}
@@ -274,6 +288,6 @@ export default class AssetsUpdate {
 		// 遍历下载资源文件
 		await Promise.all( updatePromiseList );
 		// 写入清单文件
-		await this.file.writeYAML( manifestName, manifest, "plugin" );
+		await this.bot.file.writeYAML( manifestName, manifest, "plugin" );
 	}
 }

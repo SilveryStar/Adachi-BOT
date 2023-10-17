@@ -2,6 +2,7 @@
 import { networkInterfaces } from "os";
 import { Logger } from "log4js";
 import { createServer } from "net";
+import axios from "axios";
 
 /** 获取当前环境 ip 地址 */
 export function getIPAddress() {
@@ -61,5 +62,23 @@ export async function findFreePort( port = 1024, logger?: Logger ) {
 		return await findFreePort( port );
 	} else {
 		return port;
+	}
+}
+
+/**
+ * 获取在线文件大小
+ * @param {string} url 在线文件 url
+ */
+export async function getFileSize( url: string ): Promise<number|null> {
+	try {
+		const response = await axios.head( url );
+		const contentLength = response.headers["content-length"];
+		if ( contentLength ) {
+			return Number.parseInt( contentLength );
+		} else {
+			return null;
+		}
+	} catch {
+		return null;
 	}
 }

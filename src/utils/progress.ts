@@ -16,14 +16,14 @@ export default class Progress {
 		this.total = val;
 	}
 	
-	public renderer( completed: number, extra: string = "", tcp: boolean = false ) {
+	public renderer( completed: number, rightText: ( total: number ) => string = () => "", tcp: boolean = false ) {
 		const cellNum: number = Math.floor( completed / this.total * this.length );
 		
 		const processStr: string = Array.from( { length: this.length }, ( _, index ) => {
 			return index < cellNum ? "█" : "░";
 		} ).join( "" );
 		
-		const cmdText = `${ this.description }: ${ processStr }  ${ completed }/${ this.total } ${ extra }`;
+		const cmdText = `${ this.description }: ${ processStr }  ${ rightText( this.total ) }`;
 		
 		if ( tcp ) {
 			this.logger.info( cmdText );

@@ -2,17 +2,22 @@ import { resolve, dirname } from "path"
 import { parse, stringify } from "yaml";
 import * as fs from "fs";
 import axios from "axios";
+import compressing from "compressing";
 
 export type PresetPlace = "config" | "plugin" | "root";
 
 export type FileType = "directory" | "file" | null;
 
+export type CompressType = "zip" | "tgz" | "tar";
+
 export interface FileResponse {
 	path: string;
 }
+
 export interface FileTypeResponse extends FileResponse {
 	type: FileType;
 }
+
 export interface FileStatusResponse extends FileResponse {
 	status: boolean;
 }
@@ -76,8 +81,17 @@ interface ManagementMethod {
 	// updateYAML( ymlName: string, data: any, place?: PresetPlace, ...index: string[] ): Promise<string>;
 	// updateYAMLSync( ymlName: string, data: any, place?: PresetPlace, ...index: string[] ): string;
 	
+	unCompressFile( type: CompressType, originPath: string, targetPath: string, place?: PresetPlace ): Promise<FileStatusResponse>;
+	
 	downloadFile<T extends string | string[]>( url: string, savePath: T, setValueCallBack?: ( data: Buffer ) => any, place?: PresetPlace, retry?: number ): Promise<T>;
-	downloadFileStream<T extends string | string[]>( url: string, savePath: T, place?: PresetPlace, retry?: number ): Promise<T>;
+	downloadFileStream(
+		url: string,
+		savePath: string,
+		place?: PresetPlace,
+		onData?: ( chunk: string | Buffer ) => void,
+		highWaterMark?: number,
+		retry?: number
+	): Promise<string>;
 	// updateYAMLs( ymlName: string, data: Array<{ index: UpdateIndex, data: any }>, place?: PresetPlace ): void;
 }
 
@@ -461,11 +475,46 @@ export default class FileManagement implements ManagementMethod {
 	// 	return this.writeYAMLSync( ymlName, newData, place );
 	// }
 	
+	public async unCompressFile( type: CompressType, originPath: string, targetPath: string, place: PresetPlace = "config" ): Promise<FileStatusResponse> {
+		const unCompressOrigin = this.getFilePath( originPath, place );
+		if ( !await this.isExist( unCompressOrigin ) ) {
+			return { path: "", status: false };
+		}
+		
+		const unCompressTarget = this.getFilePath( targetPath, place );
+		await compressing[type].uncompress( unCompressOrigin, unCompressTarget );
+		return { path: unCompressTarget, status: true }
+	}
+	
+	// public async unCompressFile( type: CompressType, originPath: string, targetPath: string, place: PresetPlace = "config", highWaterMark = 64 ): Promise<FileStatusResponse> {
+	// 	const unCompressOrigin = this.getFilePath( originPath, place );
+	// 	if ( !await this.isExist( unCompressOrigin ) ) {
+	// 		return { path: "", status: false };
+	// 	}
+	//
+	// 	const { path: unCompressTarget } = await this.createDir( targetPath, place );
+	// 	return new Promise( resolve => {
+	// 		const readStream = fs.createReadStream( unCompressOrigin, { highWaterMark } );
+	// 		const writeStream = new compressing[type].UncompressStream();
+	//
+	// 		writeStream.on( "finish", () => {
+	// 			writeStream.close();
+	// 			resolve( { path: unCompressTarget, status: true } );
+	// 		} );
+	// 		writeStream.on( "error", ( err ) => {
+	// 			console.log( err )
+	// 			resolve( { path: unCompressTarget, status: false } );
+	// 		} );
+	//
+	// 		readStream.pipe( writeStream );
+	// 	} )
+	// }
+	
 	public async downloadFile<T extends string | string[]>(
 		url: string,
 		savePath: T,
 		setValueCallBack?: ( data: Buffer ) => any,
-		place: PresetPlace = "root",
+		place: PresetPlace = "config",
 		retry = 3
 	): Promise<T> {
 		try {
@@ -479,7 +528,7 @@ export default class FileManagement implements ManagementMethod {
 				data = await setValueCallBack( data );
 			}
 			if ( typeof savePath === "string" ) {
-				return <T>( await this.writeFile( savePath, data, place ));
+				return <T>( await this.writeFile( savePath, data, place ) );
 			} else {
 				const originPath = await this.writeFile( savePath[0], data, place );
 				const pathList: string[] = [ originPath ];
@@ -497,12 +546,15 @@ export default class FileManagement implements ManagementMethod {
 		}
 	}
 	
-	public async downloadFileStream<T extends string | string[]>(
+	public async downloadFileStream(
 		url: string,
-		savePath: T,
-		place: PresetPlace = "root",
+		savePath: string,
+		place: PresetPlace = "config",
+		onData: ( chunk: string | Buffer ) => void = () => {
+		},
+		highWaterMark = 64,
 		retry = 3
-	): Promise<T> {
+	): Promise<string> {
 		try {
 			const res = await axios.get( url, {
 				responseType: "stream",
@@ -511,37 +563,25 @@ export default class FileManagement implements ManagementMethod {
 			} );
 			const readStream: fs.ReadStream = res.data;
 			
-			const originSavePaths: string[] = ( typeof savePath === "string" ? [ savePath ] : savePath );
+			const { path } = await this.createParentDir( savePath, place );
 			
-			const savePaths: string[] = [];
-			for ( const item of originSavePaths ) {
-				const { path } = await this.createParentDir( item, place );
-				savePaths.push( path );
-			}
-			
-			const writePromises: Promise<void>[] = savePaths.map( path => {
-				return new Promise( ( resolve, reject ) => {
-					const writeStream = fs.createWriteStream( path );
-					readStream.pipe( writeStream );
-					
-					writeStream.on( "finish", () => {
-						writeStream.close();
-						resolve();
-					} );
-					writeStream.on( "error", ( err ) => {
-						reject( err );
-					} )
+			return new Promise( ( resolve, reject ) => {
+				readStream.on( "data", onData );
+				const writeStream = fs.createWriteStream( path, { highWaterMark } );
+				writeStream.on( "finish", () => {
+					writeStream.close();
+					resolve( path );
+				} ).on( "error", ( err ) => {
+					reject( err );
 				} );
+				
+				readStream.pipe( writeStream );
 			} );
-			
-			await Promise.all( writePromises );
-			
-			return <T>( savePaths.length === 1 ? savePaths[0] : savePath );
 			
 		} catch ( error ) {
 			if ( retry > 0 ) {
 				retry--;
-				return await this.downloadFileStream( url, savePath, place, retry );
+				return await this.downloadFileStream( url, savePath, place, onData, highWaterMark, retry );
 			}
 			throw error;
 		}
