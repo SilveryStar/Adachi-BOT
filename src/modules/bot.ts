@@ -113,8 +113,12 @@ export default class Adachi {
 	}
 	
 	public run(): BOT {
+		const serverInstance = RenderServer.getInstance();
 		const pluginInstance = PluginManager.getInstance();
-		pluginInstance.load( false ).then( ( pluginSettings ) => {
+		// 避免控制台文件下载与插件文件下载冲突
+		serverInstance.downloadConsoleDist().then( () => {
+			return pluginInstance.load( false );
+		} ).then( ( pluginSettings ) => {
 			/* 删除存储的待问答指令 */
 			this.bot.redis.deleteKey( Enquire.redisKey ).then();
 			/* 成功连接 gocq 后执行各插件装载方法 */

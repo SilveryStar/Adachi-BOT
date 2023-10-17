@@ -106,6 +106,33 @@ export default class RenderServer {
 		this.addServerRouters( routers );
 	}
 	
+	public async downloadConsoleDist() {
+		if ( process.env.NODE_ENV !== "production" || !this.config.webConsole.enable ) {
+			return;
+		}
+		const packageData = await this.file.loadFile( "src/web-console/frontend/package.json", "root" );
+		const WBB_CONSOLE_VERSION = isJsonString( packageData ) ? JSON.parse( packageData ).version || "" : "";
+		
+		const assetsInstance = AssetsUpdate.getInstance();
+		await assetsInstance.registerCheckUpdateJob( undefined, "../web-console/frontend/dist", "web-console", {
+			manifestUrl: `https://files.yatserver.com/adachi-bot/Version3/web-console-${ WBB_CONSOLE_VERSION }_assets_manifest.yml`,
+			downloadBaseUrl: "https://files.yatserver.com/adachi-bot",
+			replacePath: path => {
+				return path.replace( `adachi-bot/version3/web-console-${ WBB_CONSOLE_VERSION }/`, "" );
+			}
+		}, {
+			startUpdate: async () => {
+				await this.file.deleteFile( "src/web-console/frontend/dist", "root" );
+			},
+			updateError: ( error ) => {
+				// 清单文件不存在时说明版本落后，不作处理
+				if ( error.response?.status !== 404 ) {
+					this.client.logger.info( error.message );
+				}
+			}
+		} )
+	}
+	
 	/* 重载服务 */
 	public async reloadServer() {
 		if ( this.vite ) {
@@ -150,29 +177,7 @@ export default class RenderServer {
 		}
 		
 		if ( this.config.webConsole.enable ) {
-			if ( isProd ) {
-				const packageData = await this.file.loadFile( "src/web-console/frontend/package.json", "root" );
-				const WBB_CONSOLE_VERSION = isJsonString( packageData ) ? JSON.parse( packageData ).version || "" : "";
-				
-				const assetsInstance = AssetsUpdate.getInstance();
-				await assetsInstance.registerCheckUpdateJob( undefined, "../web-console/frontend/dist", "web-console", {
-					manifestUrl: `https://mari-files.oss-cn-beijing.aliyuncs.com/adachi-bot/version3/web-console-${ WBB_CONSOLE_VERSION }_assets_manifest.yml`,
-					downloadBaseUrl: "https://mari-files.oss-cn-beijing.aliyuncs.com",
-					replacePath: path => {
-						return path.replace( `adachi-bot/version3/web-console-${ WBB_CONSOLE_VERSION }/`, "" );
-					}
-				}, {
-					startUpdate: async () => {
-						await this.file.deleteFile( "src/web-console/frontend/dist", "root" );
-					},
-					updateError: ( error ) => {
-						// 清单文件不存在时说明版本落后，不作处理
-						if ( error.response?.status !== 404 ) {
-							this.client.logger.info( error.message );
-						}
-					}
-				} )
-			} else {
+			if ( !isProd ) {
 				// 以中间件模式创建 Vite 应用，这将禁用 Vite 自身的 HTML 服务逻辑
 				// 并让上级服务器接管控制
 				// 执行此方法后将会调用指定 root 目录下的 vite.config.ts
