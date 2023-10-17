@@ -151,16 +151,25 @@ export default class RenderServer {
 		
 		if ( this.config.webConsole.enable ) {
 			if ( isProd ) {
+				const packageData = await this.file.loadFile( "src/web-console/frontend/package.json", "root" );
+				const WBB_CONSOLE_VERSION = isJsonString( packageData ) ? JSON.parse( packageData ).version || "" : "";
+				
 				const assetsInstance = AssetsUpdate.getInstance();
 				await assetsInstance.registerCheckUpdateJob( undefined, "../web-console/frontend/dist", "web-console", {
-					manifestUrl: "https://mari-files.oss-cn-beijing.aliyuncs.com/adachi-bot/version3/web-console_assets_manifest.yml",
+					manifestUrl: `https://mari-files.oss-cn-beijing.aliyuncs.com/adachi-bot/version3/web-console-${ WBB_CONSOLE_VERSION }_assets_manifest.yml`,
 					downloadBaseUrl: "https://mari-files.oss-cn-beijing.aliyuncs.com",
 					replacePath: path => {
-						return path.replace( "adachi-bot/version3/web-console/", "" );
+						return path.replace( `adachi-bot/version3/web-console-${ WBB_CONSOLE_VERSION }/`, "" );
 					}
 				}, {
 					startUpdate: async () => {
 						await this.file.deleteFile( "src/web-console/frontend/dist", "root" );
+					},
+					updateError: ( error ) => {
+						// 清单文件不存在时说明版本落后，不作处理
+						if ( error.response?.status !== 404 ) {
+							this.client.logger.info( error.message );
+						}
 					}
 				} )
 			} else {

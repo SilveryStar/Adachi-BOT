@@ -25,7 +25,7 @@ export default defineDirective( "order", async ( { matchResult, sendMessage } ) 
 				status = false;
 			},
 			async updateError( errorMsg ) {
-				await sendMessage( errorMsg );
+				await sendMessage( errorMsg.message );
 				status = false;
 			},
 			async startUpdate() {

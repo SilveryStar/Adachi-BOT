@@ -27,7 +27,7 @@ export interface IOssListObject {
 export interface AssetsLifeCycle {
 	noUpdated?: () => any;
 	startUpdate?: () => any;
-	updateError?: ( errMsg: string ) => any;
+	updateError?: ( error: AxiosError ) => any;
 }
 
 interface AssetsJobInfo {
@@ -88,23 +88,26 @@ export default class AssetsUpdate {
 			} );
 			data = res.data.data;
 		} catch ( error: any ) {
-			if ( ( <AxiosError>error ).response?.status === 415 ) {
+			const errRes = <AxiosError>error;
+			if ( errRes.response?.status === 415 ) {
 				if ( assets.overflowHandle ) {
 					await assets.overflowHandle( assets );
 				} else {
 					const errorMsg: string = "更新文件数量超过阈值，请手动更新资源包";
 					if ( lifeCycle?.updateError ) {
-						this.logger.error( errorMsg );
-						await lifeCycle.updateError( errorMsg );
+						errRes.message = errorMsg;
+						await lifeCycle.updateError( errRes );
 					} else {
 						throw errorMsg;
 					}
 				}
 			} else {
 				const errorMsg = `检查更新失败，远程服务器异常，请联系开发者解决：${ ( <AxiosError>error ).response?.data?.["msg"] || <string>error }`;
-				this.logger.error( errorMsg );
 				if ( lifeCycle?.updateError ) {
-					await lifeCycle.updateError( errorMsg );
+					errRes.message = errorMsg;
+					await lifeCycle.updateError( errRes );
+				} else {
+					this.logger.error( errorMsg );
 				}
 			}
 			data = [];
