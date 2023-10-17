@@ -115,8 +115,8 @@ export default class RenderServer {
 		
 		const assetsInstance = AssetsUpdate.getInstance();
 		await assetsInstance.registerCheckUpdateJob( undefined, "../web-console/frontend/dist", "web-console", {
-			manifestUrl: `https://files.yatserver.com/adachi-bot/Version3/web-console-${ WBB_CONSOLE_VERSION }_assets_manifest.yml`,
-			downloadBaseUrl: "https://files.yatserver.com/adachi-bot",
+			manifestUrl: `https://mari-files.oss-cn-beijing.aliyuncs.com/adachi-bot/version3/web-console-${ WBB_CONSOLE_VERSION }_assets_manifest.yml`,
+			downloadBaseUrl: "https://mari-files.oss-cn-beijing.aliyuncs.com",
 			replacePath: path => {
 				return path.replace( `adachi-bot/version3/web-console-${ WBB_CONSOLE_VERSION }/`, "" );
 			}
@@ -178,6 +178,10 @@ export default class RenderServer {
 		
 		if ( this.config.webConsole.enable ) {
 			if ( !isProd ) {
+				// 创建 build_setting.yml 文件
+				await this.file.createYAML( "src/web-console/frontend/build_setting", {
+					upload_token: ""
+				}, "root" );
 				// 以中间件模式创建 Vite 应用，这将禁用 Vite 自身的 HTML 服务逻辑
 				// 并让上级服务器接管控制
 				// 执行此方法后将会调用指定 root 目录下的 vite.config.ts

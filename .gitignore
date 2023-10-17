@@ -27,6 +27,7 @@ node_modules
 !/src/plugins/tools/
 
 /src/web-console/frontend/dist
+/src/web-console/frontend/build_setting.yml
 
 /go-cqhttp/
 !/go-cqhttp/config-default.yml

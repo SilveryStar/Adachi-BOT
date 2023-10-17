@@ -22,11 +22,6 @@ export interface FileStatusResponse extends FileResponse {
 	status: boolean;
 }
 
-export interface CreateResponse {
-	exist: boolean;
-	path: string;
-}
-
 type Tuple<T, N extends number, L extends any[] = []> =
 	L["length"] extends N ? L : Tuple<T, N, [ ...L, T ]>;
 type Union<T, N extends number, L extends any[] = [ T ]> =
@@ -68,6 +63,8 @@ interface ManagementMethod {
 	
 	writeFile( fileName: string, data: any, place?: PresetPlace ): Promise<string>;
 	writeFileSync( fileName: string, data: any, place?: PresetPlace ): string;
+	
+	deleteFile( fileName: string, place?: PresetPlace ): Promise<FileStatusResponse>;
 	
 	createYAML( ymlName: string, data: any, place?: PresetPlace ): Promise<FileStatusResponse>;
 	createYAMLSync( ymlName: string, data: any, place?: PresetPlace ): FileStatusResponse;
