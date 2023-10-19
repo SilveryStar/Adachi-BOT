@@ -4,7 +4,7 @@ import axios from "axios";
 import fs from "fs";
 import { parse } from "yaml";
 
-const packageInfo = JSON.parse( fs.readFileSync( "./package.json", "utf8" ) );
+const packageInfo = JSON.parse( fs.readFileSync( "../../../package.json", "utf8" ) );
 const version = packageInfo.version;
 
 ( async () => {

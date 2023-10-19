@@ -16,7 +16,7 @@
 				</div>
 				<div class="login-main-form">
 					<register v-if="isCreateRoot" @completed="initUsername"/>
-					<login v-else :user-name="username" ref="loginRef" />
+					<login v-else :username="username" ref="loginRef" />
 				</div>
 			</div>
 		</main>

@@ -26,6 +26,8 @@ services:
       - ./:/bot
       - /bot/node_modules/
       - /bot/.pnpm-store/
+      - /bot/go-cqhttp/
+      - /bot/src/web-console/frontend/
   gocq:
     # 用dev分支处理qsign等功能
     image: ghcr.io/mrs4s/go-cqhttp:dev
@@ -35,8 +37,7 @@ services:
     # - "8081:80"
     volumes:
       # 把gocq的配置、设备文件挂载出来
-      - ./data/config.yml:/data/config.yml
-      - ./data/device.json:/data/device.json
+      - ./go-cqhttp:/data
     depends_on:
       - qsign
     restart: always

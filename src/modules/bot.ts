@@ -21,6 +21,7 @@ import { trim } from "lodash";
 import { unlinkSync } from "fs";
 import axios, { AxiosError } from "axios";
 import AssetsUpdate from "@/modules/management/assets";
+import process from "process";
 
 /**
  * @interface

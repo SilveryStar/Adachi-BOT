@@ -110,15 +110,15 @@ export default class RenderServer {
 		if ( process.env.NODE_ENV !== "production" || !this.config.webConsole.enable ) {
 			return;
 		}
-		const packageData = await this.file.loadFile( "src/web-console/frontend/package.json", "root" );
-		const WBB_CONSOLE_VERSION = isJsonString( packageData ) ? JSON.parse( packageData ).version || "" : "";
-		
+        const packageData = await this.file.loadFile( "package.json", "root" );
+        const ADACHI_VERSION = isJsonString( packageData ) ? JSON.parse( packageData ).version || "" : "";
+
 		const assetsInstance = AssetsUpdate.getInstance();
 		await assetsInstance.registerCheckUpdateJob( undefined, "../web-console/frontend/dist", "web-console", {
-			manifestUrl: `https://mari-files.oss-cn-beijing.aliyuncs.com/adachi-bot/version3/web-console-${ WBB_CONSOLE_VERSION }_assets_manifest.yml`,
+			manifestUrl: `https://mari-files.oss-cn-beijing.aliyuncs.com/adachi-bot/version3/web-console-${ ADACHI_VERSION }_assets_manifest.yml`,
 			downloadBaseUrl: "https://mari-files.oss-cn-beijing.aliyuncs.com",
 			replacePath: path => {
-				return path.replace( `adachi-bot/version3/web-console-${ WBB_CONSOLE_VERSION }/`, "" );
+				return path.replace( `adachi-bot/version3/web-console-${ ADACHI_VERSION }/`, "" );
 			}
 		}, {
 			startUpdate: async () => {

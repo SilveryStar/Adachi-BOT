@@ -6,7 +6,7 @@ import si from "systeminformation";
 import { DayData, WeekData } from "@/web-console/backend/types/stat";
 import Refreshable from "@/modules/management/refresh";
 import { formatMemories } from "@/utils/format";
-// import { restartPm2 } from @/utils/pm2";
+import { restart } from "pm2";
 
 export default express.Router()
 	.get( "/stat", async ( req, res ) => {
@@ -67,7 +67,7 @@ export default express.Router()
 			res.status( 500 ).send( { code: 500, data: {}, msg: error.message || "Server Error" } );
 		}
 	} )
-// .post( "/restart", async ( req, res ) => {
-// 	restartPm2();
-// 	res.status( 200 ).send( { code: 200, data: {} } );
-// } );
+	.post( "/restart", async ( req, res ) => {
+		restart( "adachi-bot", () => {} );
+		res.status( 200 ).send( { code: 200, data: {} } );
+	} );

@@ -62,20 +62,20 @@
 						</template>
 					</p>
 				</el-scrollbar>
-				<el-input
-					v-model="cmdValue"
-					class="cmd-input"
-					:placeholder="cmdPlaceholder"
-					@keyup.enter="cmdSubmit"
-					:disabled="cmdInputLoading"
-				>
-					<template #prepend>
-						<el-select v-model="cmdType" class="cmd-type-select">
-							<el-option label="滑动验证码" :value="1"/>
-							<el-option label="短信验证码" :value="2"/>
-						</el-select>
-					</template>
-				</el-input>
+<!--				<el-input-->
+<!--					v-model="cmdValue"-->
+<!--					class="cmd-input"-->
+<!--					:placeholder="cmdPlaceholder"-->
+<!--					@keyup.enter="cmdSubmit"-->
+<!--					:disabled="cmdInputLoading"-->
+<!--				>-->
+<!--					<template #prepend>-->
+<!--						<el-select v-model="cmdType" class="cmd-type-select">-->
+<!--							<el-option label="滑动验证码" :value="1"/>-->
+<!--							<el-option label="短信验证码" :value="2"/>-->
+<!--						</el-select>-->
+<!--					</template>-->
+<!--				</el-input>-->
 				<el-pagination
 					v-model:current-page="currentPage"
 					:page-size="pageSize"
@@ -661,61 +661,61 @@ function copyAsReportFormat() {
 		text-align: center;
 	}
 
-	:deep(.cmd-input) {
-		margin-top: 10px;
-		flex: none;
-
-		> .el-input__wrapper {
-			padding: 0 5px;
-
-			.el-input__inner {
-				color: #fff;
-			}
-		}
-
-		> .el-input__wrapper,
-		.el-input-group__prepend {
-			background-color: transparent;
-			border-bottom: 1px solid var(--el-input-border-color);
-			border-radius: 0;
-			box-shadow: none;
-			transition: border-color 0.2s;
-		}
-
-		> .el-input__wrapper:hover,
-		.el-input-group__prepend:hover {
-			border-color: var(--el-input-hover-border-color);
-		}
-
-		> .el-input__wrapper.is-focus,
-		.el-input-group__prepend.is-focus {
-			border-color: var(--el-input-focus-border-color);
-		}
-
-		.el-input-group__prepend {
-			top: -1px;
-
-			.el-select {
-				&.cmd-type-select {
-					.el-input {
-						.el-input__wrapper {
-							padding: 0 5px;
-							background-color: transparent;
-							box-shadow: none !important;
-						}
-
-						.el-input__inner {
-							color: #fff;
-						}
-					}
-				}
-			}
-		}
-
-		.cmd-type-select {
-			width: 102px;
-		}
-	}
+	//:deep(.cmd-input) {
+	//	margin-top: 10px;
+	//	flex: none;
+	//
+	//	> .el-input__wrapper {
+	//		padding: 0 5px;
+	//
+	//		.el-input__inner {
+	//			color: #fff;
+	//		}
+	//	}
+	//
+	//	> .el-input__wrapper,
+	//	.el-input-group__prepend {
+	//		background-color: transparent;
+	//		border-bottom: 1px solid var(--el-input-border-color);
+	//		border-radius: 0;
+	//		box-shadow: none;
+	//		transition: border-color 0.2s;
+	//	}
+	//
+	//	> .el-input__wrapper:hover,
+	//	.el-input-group__prepend:hover {
+	//		border-color: var(--el-input-hover-border-color);
+	//	}
+	//
+	//	> .el-input__wrapper.is-focus,
+	//	.el-input-group__prepend.is-focus {
+	//		border-color: var(--el-input-focus-border-color);
+	//	}
+	//
+	//	.el-input-group__prepend {
+	//		top: -1px;
+	//
+	//		.el-select {
+	//			&.cmd-type-select {
+	//				.el-input {
+	//					.el-input__wrapper {
+	//						padding: 0 5px;
+	//						background-color: transparent;
+	//						box-shadow: none !important;
+	//					}
+	//
+	//					.el-input__inner {
+	//						color: #fff;
+	//					}
+	//				}
+	//			}
+	//		}
+	//	}
+	//
+	//	.cmd-type-select {
+	//		width: 102px;
+	//	}
+	//}
 }
 
 :deep(.el-pagination) {
