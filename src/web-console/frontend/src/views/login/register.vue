@@ -75,7 +75,7 @@ function createAccount() {
 		          show-password @keyup.enter="createAccount"/>
 		<el-input v-model.trim="state.secret" style="margin-bottom: 0" placeholder="密钥" maxlength="20" clearable
 		          show-password @keyup.enter="createAccount"/>
-		<p class="desc">*ps: 即配置文件 webconsole.yml 的 jwtSecret 值</p>
+		<p class="desc">*ps: 查看 data/registration_key.txt 文件内容</p>
 		<el-button type="primary" :loading="state.loading" @click="createAccount" round>创建账号</el-button>
 	</div>
 </template>

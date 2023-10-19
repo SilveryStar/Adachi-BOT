@@ -8,9 +8,11 @@ export default express.Router()
 		try {
 			const username = req.body.username;
 			const password = req.body.password;
-			const jwtSecret = req.body.secret;
+			const secret = req.body.secret;
 			
-			if ( jwtSecret !== Md5.init( bot.config.webConsole.jwtSecret ) ) {
+			const registrationKey = await bot.file.loadFile( "data/registration_key.txt", "root" );
+			
+			if ( secret !== Md5.init( registrationKey ) ) {
 				res.status( 412 ).send( { code: 412, data: {}, msg: "密钥错误" } );
 				return;
 			}

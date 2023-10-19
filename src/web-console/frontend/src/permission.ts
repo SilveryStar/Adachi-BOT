@@ -12,17 +12,6 @@ function getPageTitle( pageTitle ) {
 	return defaultTitle;
 }
 
-/* 检查token */
-async function checkToken() {
-	try {
-		await $http.TOKEN_CHECK.get();
-		return true;
-	} catch ( error ) {
-		tokenSession.remove();
-		return false;
-	}
-}
-
 /* 检查 token */
 async function checkHasRoot(): Promise<boolean> {
 	const hasRoot = await $http.ROOT_CHECK.get();

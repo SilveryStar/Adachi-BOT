@@ -24,6 +24,16 @@
 </template>
 
 <script lang="ts" setup>
+/* 检查token */
+import $http from "@/api";
+import { useUserStore } from "@/store";
+
+$http.TOKEN_CHECK.get().then( ( { data } ) => {
+	if( !data ) {
+		const user = useUserStore();
+		user.USER_LOGOUT();
+	}
+} );
 </script>
 
 <style lang="scss" scoped>

@@ -1,8 +1,9 @@
 import apis from "./api";
 import { FetchServer, register } from "@/utils/request";
-import { loginInfoSession, tokenSession } from "@/utils/session";
+import { tokenSession } from "@/utils/session";
 import { ElNotification } from "element-plus";
 import router from "@/router";
+import { useUserStore } from "@/store";
 
 export type FetchResponse<D = any> = {
 	code: number;
@@ -32,8 +33,8 @@ server.interceptors.response.use( resp => {
 	return Promise.resolve( resp.data );
 }, error => {
 	if ( error.response?.status === 401 ) {
-		loginInfoSession.remove();
-		tokenSession.remove();
+		const user = useUserStore();
+		user.USER_LOGOUT();
 		router.push( { name: "Login" } );
 	}
 	const errMsg = error.response?.data?.msg;

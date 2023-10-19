@@ -12,9 +12,9 @@ import { Server } from "http";
 import { isEqualObject } from "@/utils/object";
 import { isJsonString } from "@/utils/verify";
 import { Client } from "@/modules/lib";
-import os from "os";
 import { getIPAddress } from "@/utils/network";
 import AssetsUpdate from "@/modules/management/assets";
+import { getRandomString } from "@/utils/random";
 
 export default class RenderServer {
 	private static _instance: RenderServer | null = null;
@@ -201,6 +201,7 @@ export default class RenderServer {
 				// 如果你使用了自己的 express 路由（express.Router()），你应该使用 router.use
 				this.app.use( this.vite.middlewares );
 			}
+			await this.file.writeFile( "data/registration_key.txt", getRandomString( 16 ), "root" );
 			this.webConsole = new WebConsole( this.app, this.config.webConsole, this.client, this.firstListener );
 			this.firstListener = false;
 		}

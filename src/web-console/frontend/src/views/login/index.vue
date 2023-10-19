@@ -15,8 +15,8 @@
 					</h2>
 				</div>
 				<div class="login-main-form">
-					<register v-show="isCreateRoot" @completed="initUserName"/>
-					<login v-show="!isCreateRoot" ref="loginRef" />
+					<register v-if="isCreateRoot" @completed="initUsername"/>
+					<login v-else :user-name="username" ref="loginRef" />
 				</div>
 			</div>
 		</main>
@@ -49,12 +49,11 @@ const title = computed( () => {
 	return isCreateRoot.value ? "创建 root 账号" : "BOT 网页控制台"
 } );
 
+const username = ref( "" );
 const loginRef = ref<InstanceType<typeof Login> | null>( null );
-function initUserName( username: string ) {
+function initUsername( value: string ) {
 	createComplete.value = true;
-	if ( loginRef.value ) {
-		loginRef.value.setUsername( username );
-	}
+	username.value = value;
 }
 </script>
 

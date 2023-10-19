@@ -1,9 +1,13 @@
 <script setup lang="ts">
-import { onMounted, reactive } from "vue";
+import { onMounted, reactive, watch } from "vue";
 import { loginInfoSession } from "@/utils/session";
 import { ElNotification } from "element-plus";
 import { useRoute, useRouter } from "vue-router";
 import { useUserStore } from "@/store";
+
+const props = defineProps<{
+	username: string;
+}>();
 
 const route = useRoute();
 const router = useRouter();
@@ -46,13 +50,9 @@ onMounted( () => {
 	state.rememberAccount = loginInfo?.rememberAccount;
 } );
 
-function setUsername( username: string ) {
-	state.username = username;
-}
-
-defineExpose( {
-	setUsername
-} );
+watch( () => props.username, value => {
+	state.username = value;
+}, { immediate: true } )
 </script>
 
 <template>
