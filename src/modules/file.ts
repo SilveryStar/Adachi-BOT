@@ -479,7 +479,7 @@ export default class FileManagement implements ManagementMethod {
 		}
 		
 		const unCompressTarget = this.getFilePath( targetPath, place );
-		await compressing[type].uncompress( unCompressOrigin, unCompressTarget );
+		await compressing[type].uncompress( unCompressOrigin, unCompressTarget, { zipFileNameEncoding: "GBK" } );
 		return { path: unCompressTarget, status: true }
 	}
 	
