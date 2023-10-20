@@ -204,7 +204,6 @@ export class BasicRenderer implements RenderMethods {
 			if ( viewPort ) {
 				await page.setViewport( viewPort );
 			}
-			console.log( url );
 			await page.goto( url, {
 				waitUntil: "networkidle0",
 				timeout: 30000
@@ -243,7 +242,6 @@ export class BasicRenderer implements RenderMethods {
 			if ( viewPort ) {
 				await page.setViewport( viewPort );
 			}
-			console.log( url );
 			await page.goto( url, {
 				waitUntil: "networkidle0",
 				timeout: 30000

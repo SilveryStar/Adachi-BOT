@@ -1,6 +1,6 @@
 import fetch, { Response } from "node-fetch";
 import { exec } from "child_process";
-import { restart } from "pm2";
+import pm2 from "pm2";
 import { defineDirective, InputParameter } from "@/modules/command";
 
 /* 超时检查 */
@@ -59,7 +59,7 @@ async function updateBot( { matchResult, sendMessage, logger }: InputParameter<"
 	
 	await sendMessage( "更新成功，BOT 正在自行重启，请稍后" );
 	
-	restart( "adachi-bot", async ( error ) => {
+	pm2.restart( "adachi-bot", async ( error ) => {
 		logger.error( error );
 		await sendMessage( `重启 BOT 出错: ${ error }` );
 		throw error;
