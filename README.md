@@ -6,7 +6,7 @@
         <a href="https://github.com/SilveryStar/Adachi-Plugin" target="_blank">插件库</a> &nbsp;|&nbsp;
         <a href="https://github.com/SilveryStar/Adachi-BOT/issues/146">关于频道</a>
     </div>
-    <small>&gt; 原神Q群助手 &lt;</small>
+    <small>&gt; 功能集成的 bot 开发框架 &lt;</small>
     <div>
         <br/>
         <a href="https://github.com/SilveryStar/Adachi-BOT/issues/137">~ QQ频道上线 ~</a>

@@ -34,9 +34,18 @@ export function getRandomNumber( min: number, max: number ) {
  * @return 随机字符串
  */
 export function getRandomString( length: number ) {
-	const charSet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ,.;></~?[]{}~!@#$%^&*()-=+1234567890";
+	const charSet: string = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+	return getRandomStringBySeed( length, charSet );
+}
+
+/**
+ * 从目标字符串中获取指定长度的随机字符串
+ * @param length 长度
+ * @param seed 目标字符串
+ */
+export function getRandomStringBySeed( length: number, seed: string ): string {
 	return Array.from( { length }, () => {
-		const randNum = Math.floor( Math.random() * charSet.length );
-		return charSet[randNum];
+		const randNum = Math.floor( Math.random() * seed.length );
+		return seed[randNum];
 	} ).join( "" );
 }
