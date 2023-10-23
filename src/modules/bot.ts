@@ -119,7 +119,11 @@ export default class Adachi {
 		// 避免控制台文件下载与插件文件下载冲突
 		serverInstance.downloadConsoleDist().then( () => {
 			return pluginInstance.load( false );
-		} ).then( ( pluginSettings ) => {
+		} ).then( async pluginSettings => {
+			/* 加载插件后再创建服务 */
+			await serverInstance.createServer();
+			return pluginSettings;
+		} ).then( pluginSettings => {
 			/* 删除存储的待问答指令 */
 			this.bot.redis.deleteKey( Enquire.redisKey ).then();
 			/* 成功连接 gocq 后执行各插件装载方法 */
@@ -128,8 +132,7 @@ export default class Adachi {
 					await pluginInstance.doMount( key );
 				}
 			} );
-			const server = RenderServer.getInstance();
-			server.reloadPluginRouters( pluginInstance.pluginList ).then();
+			serverInstance.reloadPluginRouters( pluginInstance.pluginList ).then();
 			/* 事件监听 */
 			this.bot.client.on( "message.group", this.parseGroupMsg( this ) );
 			this.bot.client.on( "message.private", this.parsePrivateMsg( this ) );

@@ -37,6 +37,7 @@ export interface PluginInfo {
 	name: string;
 	upgrade?: string;
 	assets?: PluginAssetsSetting,
+	publicDirs?: string[],
 	aliases: string[];
 	commands: BasicConfig[];
 	cmdConfigs: cmd.ConfigType[];
@@ -69,6 +70,8 @@ export interface PluginSetting {
 	};
 	/** 是否从线上同步更新静态资源 */
 	assets?: PluginAssetsSetting;
+	/** 插件静态资源目录 */
+	publicDirs?: string[],
 	subscribe?: {
 		name: string;
 		getUser: ( bot: BOT ) => Promise<SubUser> | SubUser;
@@ -131,6 +134,7 @@ export default class Plugin {
 				name: pluginName,
 				server,
 				cfgList,
+				publicDirs,
 				repo,
 				assets,
 				subscribe
@@ -145,6 +149,7 @@ export default class Plugin {
 				name: pluginName,
 				assets: assets,
 				aliases: [],
+				publicDirs,
 				commands: [],
 				cmdConfigs: cfgList,
 				servers: [],

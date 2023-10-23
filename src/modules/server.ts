@@ -1,8 +1,8 @@
 import fs from "fs";
-import { resolve } from "path";
+import { join, resolve } from "path";
 import express from "express";
 import { createServer as createViteServer, ViteDevServer } from "vite";
-import { PluginInfo, ServerRouters } from "@/modules/plugin";
+import PluginManager, { PluginInfo, ServerRouters } from "@/modules/plugin";
 import * as process from "process";
 import { BotConfig } from "@/modules/config";
 import WebConsole from "@/web-console";
@@ -32,7 +32,6 @@ export default class RenderServer {
 	) {
 		const wsInstance = useWebsocket( express() );
 		this.app = wsInstance.app;
-		this.createServer().catch();
 		config.webConsole.on( "refresh", async ( newCfg, oldCfg ) => {
 			if ( newCfg.enable === oldCfg.enable ) {
 				return;
@@ -171,10 +170,17 @@ export default class RenderServer {
 		})
 		
 		// 为插件目录挂载静态资源服务
-		const pluginDirList = await this.file.getDirFiles( "src/plugins", "root" );
-		for ( const plugin of pluginDirList ) {
-			this.app.use( `/${ plugin }`, express.static( this.file.getFilePath( plugin, "plugin" ) ) );
-		}
+		const pluginInfos = PluginManager.getInstance().pluginList;
+		Object.values( pluginInfos ).forEach( ( { key ,publicDirs = [] } ) => {
+			if ( !publicDirs.length ) {
+				return;
+			}
+			publicDirs.forEach( dir => {
+				const path = join( key, dir ).replace( /\\/g, "/" );
+				console.log( "/" + path, this.file.getFilePath( path, "plugin" ) )
+				this.app.use( "/" + path, express.static( this.file.getFilePath( path, "plugin" ) ) );
+			} );
+		} )
 		
 		if ( this.config.webConsole.enable ) {
 			if ( !isProd ) {

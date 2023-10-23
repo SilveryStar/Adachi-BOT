@@ -49,6 +49,7 @@ export default definePlugin( {
 	server: {
 		routers: serverRouters
 	},
+	publicDirs: [ "assets", "views" ],
 	mounted( params ) {
 		/* 未启用卡片帮助时不启动服务 */
 		renderer = params.renderRegister( "#app", "views" );
