@@ -9,6 +9,7 @@ import { ExportConfig } from "@/modules/config";
 import { PresetPlace } from "@/modules/file";
 import Refreshable, { RefreshTarget } from "@/modules/management/refresh";
 import AssetsUpdate, { PluginAssetsSetting } from "@/modules/management/assets";
+import RenderServer from "@/modules/server";
 
 export interface ServerRouters {
 	path: string;
@@ -241,6 +242,8 @@ export default class Plugin {
 		this.pluginList = {};
 		
 		await this.load();
+		const serverInstance = RenderServer.getInstance();
+		await serverInstance.reloadServer();
 		return {
 			oldSettings,
 			newSettings: this.pluginSettings

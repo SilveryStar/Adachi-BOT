@@ -141,6 +141,7 @@ export default class RenderServer {
 		const wsInstance = useWebsocket( express() );
 		this.app = wsInstance.app;
 		this.client.logger.info( `原公共服务端口 ${ this.config.base.renderPort } 已关闭` );
+		this.webConsole?.closePromise();
 		await this.createServer();
 		for ( const r of this.serverRouters ) {
 			this.app.use( r.path, r.router );
@@ -177,7 +178,6 @@ export default class RenderServer {
 			}
 			publicDirs.forEach( dir => {
 				const path = join( key, dir ).replace( /\\/g, "/" );
-				console.log( "/" + path, this.file.getFilePath( path, "plugin" ) )
 				this.app.use( "/" + path, express.static( this.file.getFilePath( path, "plugin" ) ) );
 			} );
 		} )
