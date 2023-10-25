@@ -27,11 +27,15 @@
 /* 检查token */
 import $http from "@/api";
 import { useUserStore } from "@/store";
+import { useRouter } from "vue-router";
+
+const router = useRouter();
+const user = useUserStore();
 
 $http.TOKEN_CHECK.get().then( ( { data } ) => {
 	if( !data ) {
-		const user = useUserStore();
 		user.USER_LOGOUT();
+		router.push( "/login" );
 	}
 } );
 </script>

@@ -14,3 +14,17 @@ export function formatMemories( memories: number, type: "G" | "M" | "KB" | "B" )
 	}
 	return ( memories / sizeMap[type] ).toFixed( 2 ) + type;
 }
+
+/**
+ * 格式化版本信息
+ */
+export function formatVersion( version: string ) {
+	const [ ver = "", fixed = "" ] = version.split( "-" );
+	const [ major = "", minor = "", patch = "" ] = ver.split( "." );
+	return {
+		major: Number.parseInt( major ),
+		minor: Number.parseInt( minor ),
+		patch: Number.parseInt( patch ),
+		fixed
+	};
+}

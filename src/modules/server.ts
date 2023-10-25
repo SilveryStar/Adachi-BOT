@@ -15,6 +15,9 @@ import { Client } from "@/modules/lib";
 import { getIPAddress } from "@/utils/network";
 import AssetsUpdate from "@/modules/management/assets";
 import { getRandomString } from "@/utils/random";
+import axios from "axios";
+import { tar } from "compressing";
+import { formatVersion } from "@/utils/format";
 
 export default class RenderServer {
 	private static _instance: RenderServer | null = null;
@@ -105,19 +108,55 @@ export default class RenderServer {
 		this.addServerRouters( routers );
 	}
 	
+	/** 目标版本是否低于等于当前版本 */
+	private async isLowerVersion( targetVersion: string ) {
+		const packageData = await this.file.loadFile( "package.json", "root" );
+		const currentVersion = isJsonString( packageData ) ? JSON.parse( packageData ).version || "" : "";
+		
+		if ( !targetVersion || !currentVersion ) {
+			return false;
+		}
+		
+		const targetInfo = formatVersion( targetVersion );
+		const curInfo = formatVersion( currentVersion );
+		
+		if ( targetInfo.major < curInfo.major ) {
+			return true;
+		}
+		if ( targetInfo.major === curInfo.major ) {
+			if ( targetInfo.minor < curInfo.minor ) {
+				return true;
+			}
+			if ( targetInfo.minor === curInfo.minor ) {
+				if ( targetInfo.patch <= curInfo.patch ) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	
 	public async downloadConsoleDist() {
 		if ( process.env.NODE_ENV !== "production" || !this.config.webConsole.enable ) {
 			return;
 		}
-        const packageData = await this.file.loadFile( "package.json", "root" );
-        const ADACHI_VERSION = isJsonString( packageData ) ? JSON.parse( packageData ).version || "" : "";
-
+		
+		const baseUrl = "https://mari-files.oss-cn-beijing.aliyuncs.com";
+		const { data: onlineInfo } = await axios( `${ baseUrl }/adachi-bot/version3/web_console/info.json`, {
+			responseType: "json"
+		} );
+		
+		if ( !onlineInfo || !await this.isLowerVersion( onlineInfo.version ) ) {
+			this.client.logger.warn( `本地版本低于远程版本 ${ onlineInfo.version }，停止自动更新网页控制台页面资源` );
+			return;
+		}
+		
 		const assetsInstance = AssetsUpdate.getInstance();
 		await assetsInstance.registerCheckUpdateJob( undefined, "../web-console/frontend/dist", "web-console", {
-			manifestUrl: `https://mari-files.oss-cn-beijing.aliyuncs.com/adachi-bot/version3/web-console-${ ADACHI_VERSION }_assets_manifest.yml`,
-			downloadBaseUrl: "https://mari-files.oss-cn-beijing.aliyuncs.com",
+			manifestUrl: `${ baseUrl }/adachi-bot/version3/web_console_assets_manifest.yml`,
+			downloadBaseUrl: baseUrl,
 			replacePath: path => {
-				return path.replace( `adachi-bot/version3/web-console-${ ADACHI_VERSION }/`, "" );
+				return path.replace( `adachi-bot/version3/web_console/`, "" );
 			}
 		}, {
 			startUpdate: async () => {

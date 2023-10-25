@@ -9,6 +9,7 @@ const version = packageInfo.version;
 
 ( async () => {
 	const zipPath = "./dist.zip";
+	fs.writeFileSync( "./dist/info.json", JSON.stringify( { version } ) );
 	await compressing.zip.compressDir( "./dist", zipPath );
 	console.log( "打包完成，开始上传打包资源" );
 	const formData = new FormData();
