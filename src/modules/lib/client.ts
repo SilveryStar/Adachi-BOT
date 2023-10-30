@@ -4,13 +4,6 @@ import CoreLogger from "./core/logger";
 import { getLogger, Logger } from "log4js";
 import { ActionRequest, ActionResponse } from "./types/action";
 import { EventMap } from "./types/map/event";
-import {
-	FriendInfo,
-	GroupInfo,
-	SetQqProfileParam,
-	UploadGroupFileParam,
-	UploadPrivateFileParam
-} from "@/modules/lib/types/api";
 import { Anonymous, HonorType, RecordFormat } from "@/modules/lib/types/common";
 import { ForwardElem, Sendable } from "./types/element/send";
 import { formatSendMessage, makeForwardMessage, toMessageRecepElem } from "@/modules/lib/message";
@@ -21,7 +14,11 @@ export class Client {
 	private baseClient: BaseClient;
 	
 	constructor( private config: BotConfig ) {
-		this.baseClient = BaseClient.getInstance( config.base.wsServer, config.base.apiTimeout );
+		this.baseClient = BaseClient.getInstance(
+			config.base.wsServer,
+			config.base.wsApiServer,
+			config.base.apiTimeout
+		);
 		this.initLoggerConfig();
 		this.logger.level = config.base.logLevel;
 		this.initRefreshListener();
@@ -53,6 +50,10 @@ export class Client {
 		return this.baseClient.uin;
 	}
 	
+	get oneBotVersion() {
+		return this.baseClient.oneBotVersion;
+	}
+	
 	private initLogger( uin: number, logLevel: string ) {
 		this.baseClient.uin = uin;
 		this.logger = getLogger( `[${ this.uin }]` );
@@ -70,8 +71,8 @@ export class Client {
 	
 	private initRefreshListener() {
 		this.config.base.on( "refresh", ( newCfg, oldCfg ) => {
-			if ( newCfg.wsServer !== oldCfg.wsServer ) {
-				this.baseClient.setTarget( newCfg.wsServer );
+			if ( newCfg.wsServer !== oldCfg.wsServer || newCfg.wsApiServer !== oldCfg.wsApiServer ) {
+				this.baseClient.setTarget( newCfg.wsServer, newCfg.wsApiServer );
 				this.reConnect();
 			}
 			if ( newCfg.apiTimeout !== oldCfg.apiTimeout ) {
@@ -117,8 +118,8 @@ export class Client {
 		this.baseClient.reConnect();
 	}
 	
-	/** 自行请求 gocq api */
-	public fetchGoCq( action: string, params: any ) {
+	/** 自行请求 onebot api */
+	public fetchOneBot( action: string, params: any ) {
 		return this.baseClient.fetchApi( <any>action, params );
 	}
 	
@@ -132,14 +133,14 @@ export class Client {
 		this.baseClient.setFriendList();
 	}
 	
+	/** 点赞好友 */
+	public async sendLike( user_id: number, time: number ) {
+		return this.baseClient.fetchApi( "send_like", { user_id, time } );
+	}
+	
 	/** 获取登录号信息 */
 	public getLoginInfo() {
 		return this.baseClient.fetchApi( "get_login_info", undefined )
-	}
-	
-	/** 设置登录号资料 */
-	public setLoginInfo( info: SetQqProfileParam ) {
-		return this.baseClient.fetchApi( "set_qq_profile", info );
 	}
 	
 	private getApiResponse<T>( result: ActionResponse<any>, data: T ): ActionResponse<T> {
@@ -147,23 +148,6 @@ export class Client {
 			...result,
 			data
 		}
-	}
-	
-	/** 获取在线机型 */
-	public async getModelShow( model: string ) {
-		const result = await this.baseClient.fetchApi( "_get_model_show", { model } );
-		return this.getApiResponse( result, result.data && result.data.variants );
-	}
-	
-	/** 设置在线机型 */
-	public setModelShow( model: string, model_show: string ) {
-		return this.baseClient.fetchApi( "_set_model_show", { model, model_show } );
-	}
-	
-	/** 获取当前账号在线客户端列表 */
-	public async getOnlineClients( no_cache = false ) {
-		const result = await this.baseClient.fetchApi( "get_online_clients", { no_cache } );
-		return this.getApiResponse( result, result.data && result.data.clients );
 	}
 	
 	/** 获取陌生人信息 */
@@ -176,38 +160,13 @@ export class Client {
 		return this.baseClient.fetchApi( "get_friend_list", undefined );
 	}
 	
-	/** 获取单向好友列表 */
-	public getUnidirectionalFriendList() {
-		return this.baseClient.fetchApi( "get_unidirectional_friend_list", undefined );
-	}
-	
-	/** 删除好友 */
-	public deleteFriend( user_id: number ) {
-		return this.baseClient.fetchApi( "delete_friend", { user_id } );
-	}
-	
-	/** 删除单向好友 */
-	public deleteUnidirectionalFriend( user_id: number ) {
-		return this.baseClient.fetchApi( "delete_unidirectional_friend", { user_id } );
-	}
-	
 	/** 发送私聊消息 */
 	public async sendPrivateMsg( user_id: number, message: Sendable ) {
 		const result = await this.baseClient.fetchApi( "send_private_msg", {
 			user_id,
 			message: formatSendMessage( message )
 		} );
-		return this.getApiResponse( result, result.data && result.data.message_id );
-	}
-	
-	/** 发送临时会话消息 */
-	public async sendPrivateTempMsg( user_id: number, message: Sendable, group_id?: number ) {
-		const result = await this.baseClient.fetchApi( "send_private_msg", {
-			user_id,
-			message: formatSendMessage( message ),
-			group_id
-		} );
-		return this.getApiResponse( result, result.data && result.data.message_id );
+		return this.getApiResponse( result, result.data?.message_id );
 	}
 	
 	/** 发送群聊消息 */
@@ -216,7 +175,7 @@ export class Client {
 			group_id,
 			message: formatSendMessage( message )
 		} );
-		return this.getApiResponse( result, result.data && result.data.message_id );
+		return this.getApiResponse( result, result.data?.message_id );
 	}
 	
 	/** 发送消息 */
@@ -228,7 +187,7 @@ export class Client {
 			[type === "private" ? "user_id" : "group_id"]: userOrGroupId,
 			message: formatSendMessage( message )
 		} );
-		return this.getApiResponse( result, result.data && result.data.message_id );
+		return this.getApiResponse( result, result.data?.message_id );
 	}
 	
 	/** 获取消息 */
@@ -245,42 +204,16 @@ export class Client {
 		return this.baseClient.fetchApi( "delete_msg", { message_id } );
 	}
 	
-	/** 标记消息已读 */
-	public markMsgAsReadMessage( message_id: number ) {
-		return this.baseClient.fetchApi( "mark_msg_as_read", { message_id } );
-	}
-	
 	/** 获取合并转发内容 */
 	public async getForwardMessage( message_id: number ) {
 		const result = await this.baseClient.fetchApi( "get_forward_msg", { message_id } );
 		return this.getApiResponse( result, result.data && result.data.messages );
 	}
 	
-	/** 发送合并转发 ( 群聊 ) */
-	public sendGroupForwardMessage( group_id: number, messages: ForwardElem ) {
-		return this.baseClient.fetchApi( "send_group_forward_msg", {
-			group_id,
-			messages: makeForwardMessage( messages )
-		} );
-	}
-	
-	/** 发送合并转发 ( 好友 ) */
-	public sendPrivateForwardMessage( user_id: number, messages: ForwardElem ) {
-		return this.baseClient.fetchApi( "send_private_forward_msg", {
-			user_id,
-			messages: makeForwardMessage( messages )
-		} );
-	}
-	
-	/** 获取群消息历史记录 */
-	public async getGroupMsgHistory( group_id: number, message_seq: number ) {
-		const result = await this.baseClient.fetchApi( "get_group_msg_history", { group_id, message_seq } );
-		return this.getApiResponse( result, result.data && result.data.messages );
-	}
-	
 	/** 获取图片信息 */
-	public getImage( file: string ) {
-		return this.baseClient.fetchApi( "get_image", { file } );
+	public async getImage( file: string ) {
+		const result = await this.baseClient.fetchApi( "get_image", { file } );
+		return this.getApiResponse( result, result.data ? result.data.file : "" );
 	}
 	
 	/** 检查是否可以发送图片 */
@@ -289,18 +222,13 @@ export class Client {
 		return this.getApiResponse( result, result.data && result.data.yes );
 	}
 	
-	/** 图片 OCR */
-	public ocrImage( image: string ) {
-		return this.baseClient.fetchApi( "ocr_image", { image } );
-	}
-	
 	/** 获取语音 */
 	public async getRecord( file: string, out_format: RecordFormat ) {
 		const result = await this.baseClient.fetchApi( "get_record", { file, out_format } );
 		return this.getApiResponse( result, result.data && result.data.file );
 	}
 	
-	/** 获取语音 */
+	/** 是否能够发送语音 */
 	public async canSendRecord( file: string, out_format: RecordFormat ) {
 		const result = await this.baseClient.fetchApi( "can_send_record", undefined );
 		return this.getApiResponse( result, result.data && result.data.yes );
@@ -309,6 +237,16 @@ export class Client {
 	/** 处理加好友请求 */
 	public setFriendAddRequest( flag: string, approve?: boolean, remark?: string ) {
 		return this.baseClient.fetchApi( "set_friend_add_request", { flag, approve, remark } );
+	}
+	
+	/** 重启 OneBot 实现 */
+	public setRestart( delay: number ) {
+		return this.baseClient.fetchApi( "set_restart", { delay } );
+	}
+	
+	/** 清理缓存 */
+	public cleanCache() {
+		return this.baseClient.fetchApi( "clean_cache", undefined );
 	}
 	
 	/** 处理加群请求／邀请 */
@@ -328,54 +266,49 @@ export class Client {
 	
 	/** 获取群列表 */
 	public getGroupList( no_cache = false ) {
-		return this.baseClient.fetchApi( "get_group_list", { no_cache } );
+		return this.baseClient.fetchApi( "get_group_list", undefined );
 	}
 	
 	/** 获取群成员信息 */
 	public async getGroupMemberInfo( group_id: number, user_id: number, no_cache = false ) {
 		const data = await this.baseClient.fetchApi( "get_group_member_info", { group_id, user_id, no_cache } );
 		if ( data.retcode !== 0 ) return data;
-		data.data.is_shut_up = Date.now() / 1000 <= data.data.shut_up_timestamp;
+		if ( this.oneBotVersion?.app_name === "go-cqhttp" ) {
+			data.data.is_shut_up = Date.now() / 1000 <= <number>data.data.shut_up_timestamp;
+		}
 		return data;
 	}
 	
 	/** 获取群成员列表 */
-	public getGroupMemberList( group_id: number, no_cache = false ) {
-		return this.baseClient.fetchApi( "get_group_member_list", { group_id, no_cache } );
+	public getGroupMemberList( group_id: number ) {
+		return this.baseClient.fetchApi( "get_group_member_list", { group_id } );
 	}
 	
 	/** 获取群荣誉信息 */
-	public getGroupHonorInfo( group_id: number, type: HonorType | "all", no_cache = false ) {
-		return this.baseClient.fetchApi( "get_group_honor_info", { group_id, type, no_cache } );
+	public getGroupHonorInfo( group_id: number, type: HonorType | "all" ) {
+		return this.baseClient.fetchApi( "get_group_honor_info", { group_id, type } );
 	}
 	
-	/** 获取群系统消息 */
-	public getGroupSystemMessage() {
-		return this.baseClient.fetchApi( "get_group_system_msg", undefined );
+	/** 获取 Cookies */
+	public async getCookies( domain: string ) {
+		const result = await this.baseClient.fetchApi( "get_cookies", { domain } );
+		return this.getApiResponse( result, result.data ? result.data.cookies : "" );
 	}
 	
-	/** 获取精华消息列表 */
-	public getEssenceMessageList( group_id: number ) {
-		return this.baseClient.fetchApi( "get_essence_msg_list", { group_id } );
+	/** 获取 CSRF Token */
+	public async getCsrfToken() {
+		const result = await this.baseClient.fetchApi( "get_csrf_token", undefined );
+		return this.getApiResponse( result, result.data && result.data.token );
 	}
 	
-	/** 获取群 @全体成员 剩余次数 */
-	public getGroupAtAllRemain( group_id: number ) {
-		return this.baseClient.fetchApi( "get_group_at_all_remain", { group_id } );
+	/** 获取客户端相关接口凭证 */
+	public async getCredentials( domain: string ) {
+		return this.baseClient.fetchApi( "get_credentials", { domain } );
 	}
 	
 	/** 设置群名 */
 	public setGroupName( group_id: number, group_name: string ) {
 		return this.baseClient.fetchApi( "set_group_name", { group_id, group_name } );
-	}
-	
-	/** 设置群头像 */
-	public setGroupPortrait( group_id: number, file: string, cache = true ) {
-		return this.baseClient.fetchApi( "set_group_portrait", {
-			group_id,
-			file,
-			cache: cache ? 1 : 0
-		} );
 	}
 	
 	/** 设置群管理员 */
@@ -419,29 +352,9 @@ export class Client {
 		} );
 	}
 	
-	/** 设置精华消息 */
-	public setEssenceMessage( message_id: number ) {
-		return this.baseClient.fetchApi( "set_essence_msg", { message_id } );
-	}
-	
-	/** 移出精华消息 */
-	public deleteEssenceMessage( message_id: number ) {
-		return this.baseClient.fetchApi( "delete_essence_msg", { message_id } );
-	}
-	
-	/** 群打卡 */
-	public sendGroupSign( group_id: number ) {
-		return this.baseClient.fetchApi( "send_group_sign", { group_id } );
-	}
-	
 	/** 群设置匿名 */
 	public sendGroupAnonymous( group_id: number, enable = true ) {
 		return this.baseClient.fetchApi( "set_group_anonymous", { group_id, enable } );
-	}
-	
-	/** 发送群公告 */
-	public sendGroupNotice( group_id: number, content: string, image?: string ) {
-		return this.baseClient.fetchApi( "_send_group_notice", { group_id, content, image } );
 	}
 	
 	/** 群组踢人 */
@@ -454,52 +367,6 @@ export class Client {
 		return this.baseClient.fetchApi( "set_group_leave", { group_id, is_dismiss } );
 	}
 	
-	/** 上传群文件 */
-	public uploadGroupFile( group_id: number, file: Omit<UploadGroupFileParam, "group_id"> ) {
-		return this.baseClient.fetchApi( "upload_group_file", { group_id, ...file } );
-	}
-	
-	/** 删除群文件 */
-	public deleteGroupFile( group_id: number, file_id: string, busid: number ) {
-		return this.baseClient.fetchApi( "delete_group_file", { group_id, file_id, busid } );
-	}
-	
-	/** 创建群文件文件夹 */
-	public createGroupFileFolder( group_id: number, name: string ) {
-		return this.baseClient.fetchApi( "create_group_file_folder", { group_id, name, parent_id: "/" } );
-	}
-	
-	/** 删除群文件文件夹 */
-	public deleteGroupFileFolder( group_id: number, folder_id: string ) {
-		return this.baseClient.fetchApi( "delete_group_folder", { group_id, folder_id } );
-	}
-	
-	/** 获取群文件系统信息 */
-	public getGroupFileSystemInfo( group_id: number ) {
-		return this.baseClient.fetchApi( "get_group_file_system_info", { group_id } );
-	}
-	
-	/** 获取群根目录文件列表 */
-	public getGroupRootFiles( group_id: number ) {
-		return this.baseClient.fetchApi( "get_group_root_files", { group_id } );
-	}
-	
-	/** 获取群子目录文件列表 */
-	public getGroupFilesByFolder( group_id: number, folder_id: string ) {
-		return this.baseClient.fetchApi( "get_group_files_by_folder", { group_id, folder_id } );
-	}
-	
-	/** 获取群文件资源链接 */
-	public async getGroupFileUrl( group_id: number, file_id: string, busid: number ) {
-		const result = await this.baseClient.fetchApi( "get_group_file_url", { group_id, file_id, busid } );
-		return this.getApiResponse( result, result.data && result.data.url );
-	}
-	
-	/** 上传私聊文件 */
-	public uploadPrivateFile( user_id: number, file: Omit<UploadPrivateFileParam, "user_id"> ) {
-		return this.baseClient.fetchApi( "upload_private_file", { user_id, ...file } );
-	}
-	
 	/** 获取版本信息 */
 	public getVersionInfo() {
 		return this.baseClient.fetchApi( "get_version_info", undefined );
@@ -510,27 +377,52 @@ export class Client {
 		return this.baseClient.fetchApi( "get_status", undefined );
 	}
 	
-	/** 重载事件过滤器 */
-	public reloadEventFilter( file: string ) {
-		return this.baseClient.fetchApi( "reload_event_filter", { file } );
+	
+	/**
+	 * @deprecated 删除好友
+	 * @description go-cqhttp 限定，使用时需要判断返回值的 retcode 属性值是否为 1404（不存在）
+	 */
+	public deleteFriend( user_id: number ) {
+		return this.baseClient.fetchApi( "delete_friend", { user_id } );
 	}
 	
-	/** 下载文件到缓存目录 */
-	public async downloadFile( url: string, thread_count?: number, headers?: string | string[] ) {
-		const result = await this.baseClient.fetchApi( "download_file", { url, thread_count, headers } );
-		return this.getApiResponse( result, result.data && result.data.file );
+	/**
+	 * @deprecated 发送合并转发 ( 群聊 )
+	 * @description go-cqhttp 限定，使用时需要判断返回值的 retcode 属性值是否为 1404（不存在）
+	 */
+	public sendGroupForwardMessage( group_id: number, messages: ForwardElem ) {
+		return this.baseClient.fetchApi( "send_group_forward_msg", {
+			group_id,
+			messages: makeForwardMessage( messages )
+		} );
 	}
 	
-	/** 检查链接安全性 */
-	public async checkUrlSafely( url: string ) {
-		const result = await this.baseClient.fetchApi( "check_url_safely", { url } );
-		return this.getApiResponse( result, result.data && result.data.level );
+	/**
+	 * @deprecated 发送合并转发 ( 好友 )
+	 * @description go-cqhttp 限定，使用时需要判断返回值的 retcode 属性值是否为 1404（不存在）
+	 */
+	public sendPrivateForwardMessage( user_id: number, messages: ForwardElem ) {
+		return this.baseClient.fetchApi( "send_private_forward_msg", {
+			user_id,
+			messages: makeForwardMessage( messages )
+		} );
 	}
 	
-	/** 获取中文分词 ( 隐藏 API ) */
-	public async getWordSlices( content: string ) {
-		const result = await this.baseClient.fetchApi( ".get_word_slices", { content } );
-		return this.getApiResponse( result, result.data && result.data.slices );
+	/**
+	 * @deprecated 获取群消息历史记录
+	 * @description go-cqhttp 限定，使用时需要判断返回值的 retcode 属性值是否为 1404（不存在）
+	 */
+	public async getGroupMsgHistory( group_id: number, message_seq: number ) {
+		const result = await this.baseClient.fetchApi( "get_group_msg_history", { group_id, message_seq } );
+		return this.getApiResponse( result, result.data && result.data.messages );
+	}
+	
+	/**
+	 * @deprecated 获取群 @全体成员 剩余次数
+	 * @description go-cqhttp 限定，使用时需要判断返回值的 retcode 属性值是否为 1404（不存在）
+	 */
+	public getGroupAtAllRemain( group_id: number ) {
+		return this.baseClient.fetchApi( "get_group_at_all_remain", { group_id } );
 	}
 }
 

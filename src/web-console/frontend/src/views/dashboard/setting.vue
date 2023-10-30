@@ -8,9 +8,18 @@
 					v-model="setting.base.wsServer"
 					:active-spread="activeSpread"
 					:disabled="pageLoading"
-					label="消息服务地址"
-					placeholder="go-cqhttp 提供的正向 websocket 服务地址"
+					label="Event服务地址"
+					placeholder="onebot提供的正向websocket event服务地址"
 					@change="updateConfig('base', 'wsServer')"
+					@open="activeSpreadItem"
+				/>
+				<spread-form-item
+					v-model="setting.base.wsApiServer"
+					:active-spread="activeSpread"
+					:disabled="pageLoading"
+					label="Api服务地址"
+					placeholder="onebot提供的正向websocket api服务地址（若不填写，则默认等同于Event服务地址）"
+					@change="updateConfig('base', 'wsApiServer')"
 					@open="activeSpreadItem"
 				/>
 				<spread-form-item

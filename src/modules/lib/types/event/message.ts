@@ -8,7 +8,7 @@ import {
 	PostMessageType
 } from "../common";
 import { MessageRecepElem } from "@/modules/lib/types/element/reception";
-import {ActionResponse, Sendable} from "@/modules/lib";
+import { ActionResponse, Sendable } from "@/modules/lib";
 
 /** 消息 */
 export type MessageEvent = PrivateFriendMessageEvent | PrivateGroupMessageEvent |
@@ -48,13 +48,9 @@ export interface PrivateMessageEvent extends CommonMessageEvent {
 	/** 消息类型 */
 	message_type: "private";
 	/** 消息子类型  friend:好友 group:群临时会话 */
-	sub_type: "friend" | "group";
+	sub_type: "friend" | "group" | "other";
 	/** 发送人信息 */
 	sender: PostMessagePrivateSender;
-	/** 接收者 QQ */
-	target_id: number;
-	/** 临时会话来源 */
-	temp_source: number;
 }
 
 /** 好友私聊消息 */
@@ -78,7 +74,7 @@ export interface GroupMessageEvent extends CommonMessageEvent {
 	/** 消息类型 */
 	message_type: "group";
 	/** 消息子类型  normal:正常 anonymous:匿名消息是 */
-	sub_type: "normal" | "anonymous";
+	sub_type: "normal" | "anonymous" | "notice";
 	/** 发送人信息 */
 	sender: PostMessageGroupSender;
 	/** 群号 */

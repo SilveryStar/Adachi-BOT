@@ -118,7 +118,11 @@ export default express.Router()
 					await sleep( getRandomNumber( 100, 1000 ) );
 				}
 				// 删除好友
-				await bot.client.deleteFriend( id );
+				const result = await bot.client.deleteFriend( id );
+				if ( result.retcode === 1404 ) {
+					res.status( 500 ).send( { code: 500, data: [], msg: "当前实现端不支持删除好友操作" } );
+					return;
+				}
 				// 清除数据库
 				await bot.redis.deleteKey( `adachi.user-used-groups-${ id }` );
 				first = false;

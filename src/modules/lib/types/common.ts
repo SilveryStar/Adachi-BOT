@@ -51,10 +51,7 @@ export type PostMessageSender = PostMessagePrivateSender | PostMessageGroupSende
 export type PostMessageType = "private" | "group";
 
 /** 消息子类型 */
-export type PostMessageSubType = "friend" | "normal" | "anonymous" | "group";
-
-/** 传输类型 */
-export type PostMessageTempSource = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
+export type PostMessageSubType = "friend" | "group" | "other" | "normal" | "anonymous" | "notice";
 
 /** 请求类型 */
 export type PostRequestType = "friend" | "group";
@@ -63,41 +60,13 @@ export type PostRequestType = "friend" | "group";
 export type PostNoticeType = "group_upload" | "group_admin" | "group_decrease" | "group_increase" | "group_ban" | "friend_add" |
 	"group_recall" | "friend_recall" | "group_card" | "offline_file" | "client_status" | "essence" | "notify";
 
-/** 系统通知的子类型 */
-export type PostNoticeNotifySubType = "honor" | "poke" | "lucky_king" | "title";
-
 /** 元事件类型 */
 export type PostMetaEventType = "lifecycle" | "heartbeat";
 
-/**
- * 运行统计
- */
-interface StatusStat {
-	packet_received: number;
-	packet_sent: number;
-	packet_lost: number;
-	message_received: number;
-	message_sent: number;
-	disconnect_times: number;
-	lost_times: number;
-	last_message_time: number;
-}
-
 /*状态*/
 export interface Status {
-	/** * 原 CQHTTP 字段, 恒定为 true  */
-	app_initialized: true;
-	/** 原 CQHTTP 字段, 恒定为 true */
-	app_enabled: true;
-	/** 原 CQHTTP 字段, 恒定为 true */
-	plugins_good: true;
-	/** 原 CQHTTP 字段, 恒定为 true */
-	app_good: true;
+	/** 状态符合预期，意味着各模块正常运行、功能正常，且 QQ 在线 */
+	good: boolean;
 	/** 表示BOT是否在线 */
 	online: boolean;
-	/** 运行统计 */
-	stat: StatusStat;
 }
-
-/** 生命周期上报的子类型 */
-export type MetaEventLifecycleType = "enable" | "disable" | "connect";

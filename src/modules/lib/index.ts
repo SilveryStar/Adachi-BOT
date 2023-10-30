@@ -1,6 +1,6 @@
 export { LogLevel, Client, createClient } from "./client";
-export { segment } from "./element";
 export { toCqCode, toMessageElem, toMessageRecepElem, materialize, reMaterialize } from "./message";
+export * from "./element";
 export * from "./types/api";
 export * from "./types/element";
 export * from "./types/event";

@@ -60,13 +60,17 @@ export default class MsgManagement implements MsgManagementMethod {
 					if ( sendRes.retcode === 0 ) {
 						return sendRes.data.message_id;
 					}
-					throw new Error( sendRes.wording );
+					if ( sendRes.retcode === 1404 ) {
+						content = "当前实现端不支持发送转发消息";
+					} else {
+						throw new Error( sendRes.wording || sendRes.msg );
+					}
 				}
 				const sendRes = await client.sendPrivateMsg( <number>userID, content );
 				if ( sendRes.retcode === 0 ) {
 					return sendRes.data;
 				}
-				throw new Error( sendRes.wording );
+				throw new Error( sendRes.wording || sendRes.msg );
 			}
 		} else {
 			return async function ( content, allowAt ) {
@@ -76,7 +80,11 @@ export default class MsgManagement implements MsgManagementMethod {
 					if ( sendRes.retcode === 0 ) {
 						return sendRes.data.message_id;
 					}
-					throw new Error( sendRes.wording );
+					if ( sendRes.retcode === 1404 ) {
+						content = "当前实现端不支持发送转发消息";
+					} else {
+						throw new Error( sendRes.wording || sendRes.msg );
+					}
 				}
 				
 				const buildAtMsg = ( content: core.Sendable ) => {
@@ -96,8 +104,6 @@ export default class MsgManagement implements MsgManagementMethod {
 					const atAllRemainRes = await client.getGroupAtAllRemain( groupID );
 					if ( atAllRemainRes.retcode === 0 ) {
 						allowAt = atAllRemainRes.data.can_at_all ? allowAt : false;
-					} else {
-						allowAt = false;
 					}
 					// 强制使用 @全体成员，不受atUser配置控制
 					if ( allowAt ) {
@@ -113,7 +119,7 @@ export default class MsgManagement implements MsgManagementMethod {
 				if ( sendRes.retcode === 0 ) {
 					return sendRes.data;
 				}
-				throw new Error( sendRes.wording );
+				throw new Error( sendRes.wording || sendRes.msg );
 			}
 		}
 	}

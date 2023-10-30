@@ -17,9 +17,6 @@ export function makeForwardMessage( message: ForwardElem ): ForwardElemParam[] {
 		const data: any = { ...m };
 		if ( checkForwardNode( m ) ) {
 			data.content = formatSendMessage( m.content );
-			if ( m.seq ) {
-				data.seq = formatSendMessage( m.seq );
-			}
 		}
 		return {
 			type: "node",
@@ -69,32 +66,29 @@ export function formatSendMessage( message: Sendable ) {
 		}
 		
 		let data: any, type: string;
-		if ( msg.type === "musicCustom" || msg.type === "replyCustom" ) {
+		if ( msg.type === "musicCustom" ) {
+			type = "music";
 			data = {
 				...msg,
 				type: "custom"
 			}
-			if ( msg.type === "musicCustom" ) {
-				type = "music";
-			} else {
-				type = "reply";
-			}
 		} else {
 			type = msg.type;
 			data = { ...msg };
+			Reflect.deleteProperty( data, "type" );
 			if ( msg.type === "json" ) {
 				data.data = materialize( JSON.stringify( msg.data ) );
 			}
-			if ( msg.type === "image" || msg.type === "flash" || msg.type === "record" || msg.type === "video" ) {
+			if ( msg.type === "image" || msg.type === "record" || msg.type === "video" ) {
 				if ( msg.file instanceof Buffer ) {
 					data.file = "base64://" + msg.file.toString( "base64" );
 				}
 			}
-			if ( msg.type !== "flash" ) {
-				Reflect.deleteProperty( data, "type" );
-			}
-			if ( msg.type === "music" ) {
-				data.type = msg.platform;
+			if ( msg.type === "image" || msg.type === "contact" || msg.type === "poke" || msg.type === "music" ) {
+				if ( msg.dataType ) {
+					data.type = msg.dataType;
+					Reflect.deleteProperty( data, "dataType" );
+				}
 			}
 		}
 		return { type, data };

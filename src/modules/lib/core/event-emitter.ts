@@ -1,13 +1,6 @@
 import { EventMap } from "../types/map/event";
-import {
-	FriendPokeNoticeEvent,
-	GroupPokeNoticeEvent,
-	NoticeGroupEvent,
-	NoticePrivateEvent
-} from "../types/event";
+import { NoticeGroupEvent, NoticePrivateEvent } from "../types/event";
 import { ActionResponse } from "@/modules/lib/types/action";
-
-
 
 interface EventMapListener {
 	listener: EventMap[ keyof EventMap ];
@@ -76,22 +69,7 @@ export default class EventEmitter {
 		} );
 	}
 	
-	protected checkFriendPokeNoticeEvent( data: FriendPokeNoticeEvent | GroupPokeNoticeEvent ): data is FriendPokeNoticeEvent {
-		return !( <any>data ).group_id;
-	}
-	
 	protected checkNoticePrivateEvent( data: NoticePrivateEvent | NoticeGroupEvent ): data is NoticePrivateEvent {
-		if ( [ "friend_add", "friend_recall" ].includes( data.notice_type ) ) return true;
-		if ( data.notice_type === "notify" ) {
-			if ( data.sub_type === "offline_file" ) {
-				return true;
-			}
-			if ( data.sub_type === "poke" ) {
-				if ( this.checkFriendPokeNoticeEvent( data ) ) {
-					return true;
-				}
-			}
-		}
-		return false;
+		return [ "friend_add", "friend_recall" ].includes( data.notice_type );
 	}
 }

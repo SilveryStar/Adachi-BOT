@@ -2,7 +2,7 @@
  * 请求 api 需要传递的参数格式
  */
 
-import { ForwardElem, ForwardElemCustomNode, ForwardElemNode } from "@/modules/lib/types/element/send";
+import { ForwardElemCustomNode, ForwardElemNode } from "@/modules/lib/types/element/send";
 import { Anonymous, HonorType, RecordFormat } from "@/modules/lib/types/common";
 
 
@@ -38,18 +38,10 @@ export interface SetQqProfileParam {
 	personal_note?: string;
 }
 
-/** 获取在线机型 */
-export interface GetModelShowParam {
-	/** 机型名称 */
-	model: string;
-}
-
-/** 设置在线机型 */
-export interface SetModelShowParam {
-	/** 机型名称 */
-	model: string;
-	/** 未知 */
-	model_show: string;
+/** 发送好友赞 */
+export interface SendLikeParam extends OperateUserParam {
+	/** 赞的次数，每个好友每天最多 10 次 */
+	time: number;
 }
 
 /** 缓存参数 */
@@ -74,10 +66,7 @@ interface CommonSendMsg {
 }
 
 /** 发送私聊消息 */
-export interface SendPrivateMsgParam extends CommonSendMsg, OperateUserParam {
-	/** 主动发起临时会话时的来源群号(可选, 机器人本身必须是管理员/群主) */
-	group_id?: number;
-}
+export interface SendPrivateMsgParam extends CommonSendMsg, OperateUserParam {}
 
 /** 发送群聊消息 */
 export interface SendGroupMsgParam extends CommonSendMsg, OperateGroupParam {}
@@ -122,10 +111,10 @@ export interface GetImageParam {
 	file: string;
 }
 
-/** 图片 OCR */
-export interface OcrImageParam {
-	/** 图片ID */
-	image: string;
+/** 重启 OneBot 实现 */
+export interface RestartParam {
+	/** 要延迟的毫秒数，如果默认情况下无法重启，可以尝试设置延迟为 2000 左右 */
+	delay: number;
 }
 
 /** 获取语音 */
@@ -146,20 +135,26 @@ export interface SetFriendAddRequestParam {
 	remark?: string;
 }
 
-/** 处理群请求 */
-export interface SetGroupAddRequestParam extends SetFriendAddRequestParam {
+interface SetGroupAddRequestParamOne extends SetFriendAddRequestParam {
 	/** 请求类型（需要和上报消息中的 sub_type 字段相符） */
 	sub_type: string;
 }
+
+interface SetGroupAddRequestParamOther extends SetFriendAddRequestParam {
+	/** 请求类型（需要和上报消息中的 sub_type 字段相符） */
+	type: string;
+}
+/** 处理群请求 */
+export type SetGroupAddRequestParam = SetGroupAddRequestParamOne | SetGroupAddRequestParamOther;
 
 /** 处理群请求 */
 export interface GetGroupInfoParam extends NoCacheParam, OperateGroupParam {}
 
 /** 获取群成员信息 */
-export interface GetGroupMemberInfoParam extends NoCacheParam, GetGroupInfoParam, OperateUserParam {}
+export interface GetGroupMemberInfoParam extends GetGroupInfoParam, OperateUserParam {}
 
 /** 获取群荣誉信息 */
-export interface GetGroupHonorInfoParam extends NoCacheParam, GetGroupInfoParam {
+export interface GetGroupHonorInfoParam extends OperateGroupParam {
 	/** 要获取的群荣誉类型,传入 all 获取所有数据 */
 	type: HonorType | "all";
 }
@@ -170,12 +165,10 @@ export interface SetGroupNameParam extends OperateGroupParam {
 	group_name: string;
 }
 
-/** 设置群头像 */
-export interface SetGroupPortraitParam extends OperateGroupParam {
-	/** 图片文件名 */
-	file: string;
-	/** 表示是否使用已缓存的文件 */
-	cache: number;
+/** 获取群荣誉信息 */
+export interface GetCookiesParam {
+	/** 需要获取 cookies 的域名 */
+	domain: string;
 }
 
 /** 设置群管理员 */
@@ -219,6 +212,8 @@ export interface SetGroupAnonymousBanParam extends OperateGroupParam {
 	anonymous?: Anonymous;
 	/** 要禁言的匿名用户的 flag（需从群消息上报的数据中获得） */
 	flag?: string;
+	/** 与 flag 作用完全相同，取其一即可 */
+	anonymous_flag?: string;
 	/** 禁言时长, 单位秒, 0 表示取消禁, 默认 30 * 60 */
 	duration?: number;
 }
@@ -228,14 +223,6 @@ export interface SetGroupAnonymousBanParam extends OperateGroupParam {
 export interface SetGroupAnonymousParam extends OperateGroupParam {
 	/** 是否允许匿名聊天, 默认 true */
 	enable?: boolean;
-}
-
-/** 发送群公告 */
-export interface SendGroupNoticeParam extends OperateGroupParam {
-	/** 公告内容 */
-	content: string;
-	/** 图片路径 */
-	image?: string;
 }
 
 /** 群组踢人 */
@@ -263,31 +250,6 @@ export interface UploadGroupFileParam extends OperateGroupParam {
 	folder?: string;
 }
 
-/** 操作群文件目录 */
-export interface OperateGroupFolderParam extends OperateGroupParam {
-	/** 文件夹ID */
-	folder_id: string;
-}
-
-/** 操作群文件 */
-export interface OperateGroupFileParam extends OperateGroupParam {
-	/** 文件ID */
-	file_id: string;
-	/** 文件类型 */
-	busid: number;
-}
-
-/**
- * 创建群文件文件夹
- * @desc 仅能在根目录创建文件夹
- */
-export interface CreateGroupFileFolderParam extends OperateGroupParam {
-	/** 文件夹名称 */
-	name: string;
-	/** 文件类型 */
-	parent_id: "/";
-}
-
 /**
  * 上传私聊文件
  * @desc 只能上传本地文件, 需要上传 http 文件的话请先调用 download_file API下载
@@ -297,32 +259,4 @@ export interface UploadPrivateFileParam extends OperateUserParam {
 	name: string;
 	/** 本地文件路径 */
 	file: string;
-}
-
-/** 重载事件过滤器 */
-export interface ReloadEventFilterParam {
-	/** 事件过滤器文件 */
-	file: string;
-}
-
-/** 下载文件到缓存目录 */
-export interface DownloadFileParam {
-	/** 链接地址 */
-	url: string;
-	/** 下载线程数 */
-	thread_count?: number;
-	/** 自定义请求头 */
-	headers?: string | string[];
-}
-
-/** 检查链接安全性 */
-export interface CheckUrlSafelyParam {
-	/** 需要检查的链接 */
-	url: string;
-}
-
-/** 获取中文分词 ( 隐藏 API ) */
-export interface GetWordSlicesParam {
-	/** 内容 */
-	content: string;
 }

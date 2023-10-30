@@ -23,32 +23,29 @@ import axios, { AxiosError } from "axios";
 import AssetsUpdate from "@/modules/management/assets";
 import process from "process";
 
-/**
- * @interface
- * BOT 工具类
- * @redis 数据库实例对象
- * @config 配置文件
- * @client BOT 实例对象
- * @logger BOT 内置日志对象
- * @interval 指令操作限制
- * @file 文件管理
- * @auth 权限管理
- * @message 消息管理
- * @command 指令集
- * @refresh 配置刷新
- * @renderer 渲染器
- * */
+/** @interface BOT BOT 工具类 */
 export interface BOT {
+	/** 数据库实例对象 */
 	readonly redis: Database;
+	/** 配置文件 */
 	readonly config: BotConfig;
+	/** 客户端对象 */
 	readonly client: core.Client;
+	/** 内置日志对象 */
 	readonly logger: Logger;
+	/** 指令操作限制 */
 	readonly interval: Interval;
+	/** 文件操作 */
 	readonly file: FileManagement;
+	/** 权限管理 */
 	readonly auth: Authorization;
+	/** 消息管理 */
 	readonly message: msg.default;
+	/** 邮件管理 */
 	readonly mail: MailManagement;
+	/** 指令集 */
 	readonly command: Command;
+	/** 图片渲染器 */
 	readonly renderer: BasicRenderer;
 }
 
@@ -225,7 +222,7 @@ export default class Adachi {
 		}
 		try {
 			const groupInfoRes = await this.bot.client.getGroupMemberInfo( groupID, this.bot.client.uin );
-			return groupInfoRes.retcode === 0 ? groupInfoRes.data.is_shut_up : false;
+			return groupInfoRes.retcode === 0 ? !!groupInfoRes.data.is_shut_up : false;
 		} catch {
 			return false;
 		}

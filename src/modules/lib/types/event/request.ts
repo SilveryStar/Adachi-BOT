@@ -30,8 +30,8 @@ export interface FriendRequestEvent extends CommonRequestEvent {
 export interface GroupRequestEvent extends CommonRequestEvent {
 	/** 请求类型 */
 	request_type: "group";
-	/** 请求子类型 */
-	sub_type: "add";
+	/** 请求子类型: 加群请求/邀请登录号入群 */
+	sub_type: "add" | "invite";
 	/** 群号 */
 	group_id: number;
 	/** 发送请求的 QQ */

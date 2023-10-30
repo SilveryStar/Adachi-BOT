@@ -1,29 +1,33 @@
 import { MessageRecepElem } from "@/modules/lib/types/element/reception";
+import { PostMessageGroupSender, PostMessagePrivateSender, PostMessageSender } from "@/modules/lib";
 
-/** 获取消息 */
-export interface GetMessage {
+interface GetCommonMessage {
 	/** 消息id */
 	message_id: number;
 	/** 消息真实id */
 	real_id: number;
-	/** 群消息时为group, 私聊消息为private */
-	message_type: "group" | "private";
-	/** 发送者 */
-	sender: {
-		user_id: number;
-		nickname: string;
-	}
-	/** 是否是群消息 */
-	group: boolean;
-	/** 是群消息时的群号(否则不存在此字段) */
-	group_id?: number;
 	/** 发送时间 */
 	time: number;
 	/** 消息内容 */
 	message: MessageRecepElem[];
-	/** 原始消息内容 */
-	raw_message: string;
 }
+
+/** 获取消息-私聊 */
+export interface GetPrivateMessage extends GetCommonMessage {
+	message_type: "private";
+	/** 发送者 */
+	sender: PostMessagePrivateSender;
+}
+
+/** 获取消息-群聊 */
+export interface GetGroupMessage extends GetCommonMessage {
+	message_type: "group";
+	/** 发送者 */
+	sender: PostMessageGroupSender;
+}
+
+/** 获取消息 */
+export type GetMessage = GetPrivateMessage | GetGroupMessage;
 
 /** 发送消息 */
 export interface SendMessage {
@@ -32,12 +36,12 @@ export interface SendMessage {
 }
 
 interface ForwardMessageItem {
-	content: string;
-	sender: {
+	type: "node",
+	data: {
 		user_id: number;
 		nickname: string;
-	};
-	time: number;
+		content: string | MessageRecepElem[]
+	}
 }
 
 /** 合并转发内容 */

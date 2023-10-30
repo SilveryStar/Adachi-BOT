@@ -12,39 +12,78 @@ export interface FaceElem {
 	id: number;
 }
 
-/** 语音 */
-export interface RecordElem {
-	type: "record";
-	/** 文件名 & 本地绝对路径 & URL & Base64 */
-	file: string | Buffer;
-	/** 1 变声 */
-	magic?: 0 | 1;
-	/** 使用 url 发送是时否使用缓存，默认1 */
-	cache?: 0 | 1;
-	/** 使用 url 发送是时是否使用代理，默认1 */
-	proxy?: 0 | 1;
-	/** 使用 url 发送是时是否判断超市，默认不超时 */
+interface CommonFileElem {
+	/** 只在通过网络 URL 发送时有效，表示是否使用已缓存的文件，默认 1 */
+	cache?: 1 | 0;
+	/** 只在通过网络 URL 发送时有效，表示是否通过代理下载文件（需通过环境变量或配置文件配置代理），默认 1 */
+	proxy?: 1 | 0;
+	/** 只在通过网络 URL 发送时有效，单位秒，表示下载网络文件的超时时间，默认不超时 */
 	timeout?: number;
 }
 
+/** 图片 */
+export interface ImageElem extends CommonFileElem {
+	type: "image";
+	/** 文件名 & 本地绝对路径 & URL & Base64 */
+	file: string | Buffer;
+	/** 图片类型，flash 表示闪照，无此参数表示普通图片 */
+	dataType?: "flash";
+}
+
+/** 语音 */
+export interface RecordElem extends CommonFileElem {
+	type: "record";
+	/** 文件名 & 本地绝对路径 & URL & Base64 */
+	file: string | Buffer;
+	/** 默认 0，设置为 1 表示变声 */
+	magic?: 0 | 1;
+}
+
 /** 短视频 */
-export interface VideoElem {
+export interface VideoElem extends CommonFileElem {
 	type: "video";
 	/** 文件名 & 本地绝对路径 & URL & Base64 */
 	file: string;
-	/** 视频封面, 支持http, file和base64发送, 格式必须为jpg */
-	cover?: string;
-	/** 通过网络下载视频时的线程数, 默认单线程. */
-	c?: 2 | 3;
 }
 
-/** @某人 */
+/** at 某人 */
 export interface AtElem {
 	type: "at";
-	/** @的 QQ 号, all 表示全体成员 */
+	/** at 的 QQ 号, all 表示全体成员 */
 	qq: number | "all";
-	/** 当在群中找不到此QQ号的名称时才会生效 */
-	name?: string;
+}
+
+/** 猜拳魔法表情 */
+export interface RpsElem {
+	type: "rps",
+}
+
+/** 掷骰子魔法表情 */
+export interface DiceElem {
+	type: "dice",
+}
+
+/**
+ * 窗口抖动（戳一戳）
+ * @description 相当于戳一戳最基本类型的快捷方式
+ */
+export interface ShakeElem {
+	type: "shake"
+}
+
+/**
+ * 戳一戳
+ * @description 参数值详见 https://github.com/mamoe/mirai/blob/f5eefae7ecee84d18a66afce3f89b89fe1584b78/mirai-core/src/commonMain/kotlin/net.mamoe.mirai/message/data/HummerMessage.kt#L49
+ */
+export interface PokeElem {
+	type: "poke";
+	dataType: string;
+	id: string;
+}
+
+/** 匿名发消息 */
+export interface AnonymousElem {
+	"type": "anonymous",
 }
 
 /** 链接分享 */
@@ -60,13 +99,35 @@ export interface ShareElem {
 	image?: string;
 }
 
+/** 推荐 */
+export interface ContactElem {
+	type: "contact";
+	/** 好友/群 */
+	dataType: "qq" | "group";
+	/** 被推荐人/群的 QQ 号 */
+	id: string;
+}
+
+/** 位置 */
+export interface LocationElem {
+	type: "location";
+	/** 纬度 */
+	lat: string;
+	/** 经度 */
+	lon: string;
+	/** 标题 */
+	title: string;
+	/** 内容描述 */
+	content: string;
+}
+
 /** 音乐分享 */
 export interface MusicElem {
 	type: "music";
+	/** QQ 音乐、网易云音乐、虾米音乐 */
+	dataType: "qq" | "163" | "xm";
 	/** 歌曲 ID */
 	id: string;
-	/** QQ 音乐、网易云音乐、虾米音乐 */
-	platform: "qq" | "163" | "xm";
 }
 
 /** 音乐自定义分享 */
@@ -84,65 +145,11 @@ export interface MusicCustomElem {
 	image?: string;
 }
 
-/** 图片 */
-export interface ImageElem {
-	type: "image";
-	/** 文件名 & 本地绝对路径 & URL & Base64 */
-	file: string | Buffer;
-	/** 图片子类型, 只出现在群聊. 0 正常图 1 表情包 ... */
-	subType?: number;
-	/** 使用 url 发送是时否使用缓存，默认 true */
-	cache?: 1 | 0;
-	c?: 2 | 3; // 通过网络下载视频时的线程数, 默认单线程.
-}
-
-export type FlashElem = Omit<ImageElem, "type">  & {
-	type: "flash";
-}
-
 /** 回复 */
 export interface ReplayElem {
 	type: "reply";
 	/** 所引用的消息id */
 	id: number;
-}
-
-/** 自定义回复 */
-export interface ReplayCustomElem {
-	type: "replyCustom";
-	/** 自定义回复的信息 */
-	text: string;
-	/** 自定义回复时的自定义QQ, 如果使用自定义信息必须指定. */
-	qq: number;
-	/** 自定义回复时的时间, 格式为Unix时间 */
-	time: number;
-	/** 起始消息序号, 可通过 get_msg 获得 */
-	seq: number;
-}
-
-/** 戳一戳 */
-export interface PokeElem {
-	type: "poke";
-	/** 需要戳的成员 */
-	qq: number;
-}
-
-/** 礼物 仅群聊 */
-export interface GiftElem {
-	type: "gift";
-	/** 接收礼物的成员 */
-	qq: number;
-	/** 礼物的类型 */
-	id: number;
-}
-
-/** JSON */
-export interface JsonElem {
-	type: "json";
-	/** json内容 */
-	data: Record<string, any>;
-	/** 默认不填为0, 走小程序通道, 填了走富文本通道发送 */
-	resid?: number;
 }
 
 export interface ForwardElemNode {
@@ -152,13 +159,25 @@ export interface ForwardElemNode {
 
 export interface ForwardElemCustomNode {
 	/** 发送者显示名字 */
-	name?: string;
+	nickname?: string;
 	/** 发送者QQ号 */
-	uin: number;
+	user_id: number;
 	/**	具体消息（不支持转发套娃） */
 	content: Sendable;
-	/**	具体消息 */
-	seq?: Sendable;
+}
+
+/** XML */
+export interface XmlElem {
+	type: "xml";
+	/** XML 内容 */
+	data: string;
+}
+
+/** JSON */
+export interface JsonElem {
+	type: "json";
+	/** json内容 */
+	data: Record<string, any>;
 }
 
 export interface ForwardElem {
@@ -166,8 +185,9 @@ export interface ForwardElem {
 	messages: ( ForwardElemNode | ForwardElemCustomNode )[];
 };
 
-export type MessageElem = TextElem | FaceElem | RecordElem | VideoElem | AtElem | ShareElem | MusicElem |
-	MusicCustomElem | ImageElem | FlashElem | ReplayElem | ReplayCustomElem | PokeElem | GiftElem | JsonElem;
+export type MessageElem = TextElem | FaceElem | ImageElem | RecordElem | VideoElem | AtElem | RpsElem | DiceElem |
+	ShakeElem | PokeElem | AnonymousElem | ShareElem | ContactElem | LocationElem | MusicElem | MusicCustomElem |
+	ReplayElem | XmlElem | JsonElem;
 
 /** 可用来发送的类型集合 */
 export type Sendable = string | MessageElem | (string | MessageElem)[];

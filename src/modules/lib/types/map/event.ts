@@ -30,10 +30,6 @@ export interface EventMap {
 	"notice.friend.recall": ( event: e.PrivateRecallNoticeEvent ) => void;
 	/** 好友添加 */
 	"notice.friend.add": ( event: e.FriendAddNoticeEvent ) => void;
-	/** 好友戳一戳 */
-	"notice.friend.poke": ( event: e.FriendPokeNoticeEvent ) => void;
-	/** 接收到离线文件 */
-	"notice.friend.file": ( event: e.FriendOfflineFileNoticeEvent ) => void;
 	/** 好友通知 */
 	"notice.friend": ( event: e.NoticePrivateEvent ) => void;
 	
@@ -59,12 +55,8 @@ export interface EventMap {
 	"notice.group.lucky_king": ( event: e.GroupLuckKingNoticeEvent ) => void;
 	/** 群成员荣誉变更 */
 	"notice.group.honor": ( event: e.GroupHonorNoticeEvent ) => void;
-	/** 精华消息变更 */
-	"notice.group.essence": ( event: e.GroupEssenceNoticeEvent ) => void;
 	/** 群聊通知 */
 	"notice.group": ( event: e.NoticeGroupEvent ) => void;
-	/** 客户端状态变更 */
-	"notice.client.status": ( event: e.ClientStatusNoticeEvent ) => void;
 	/** 通知 */
 	"notice": ( event: e.NoticeEvent ) => void;
 	

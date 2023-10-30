@@ -6,7 +6,7 @@ import {
 	EventData,
 	FriendInfo,
 	GroupInfo,
-	MessageElem,
+	OneBotVersionInfo,
 	Sendable,
 	toMessageRecepElem
 } from "@/modules/lib";
@@ -32,23 +32,32 @@ export default class BaseClient extends EventEmitter {
 	
 	public uin: number = 0;
 	public online: boolean = false;
+	public oneBotVersion: OneBotVersionInfo | null = null;
 	public logger: Logger = getLogger( "[adachi]" );
 	
 	constructor(
-		private target: string,
+		private eventTarget: string,
+		private apiTarget: string,
 		private fetchTimeout: number
 	) {
 		super();
-		this.wsApi = new WsMessage( this.initApiWs.bind( this ), false );
-		this.wsEvent = new WsMessage( this.initEventWs.bind( this ), false );
+		if ( this.needApiConnect ) {
+			this.wsEvent = new WsMessage( this.initEventWs.bind( this ), false );
+			this.wsApi = new WsMessage( this.initApiWs.bind( this ), false );
+		} else {
+			this.wsEvent = this.wsApi = new WsMessage( ws => {
+				this.initEventWs.call( this, ws );
+				this.initApiWs.call( this, ws );
+			}, false );
+		}
 	}
 	
-	public static getInstance( target?: string, fetchTimeout?: number ) {
+	public static getInstance( eventTarget?: string, apiTarget?: string, fetchTimeout?: number ) {
 		if ( !BaseClient.__instance ) {
-			if ( !target || !fetchTimeout ) {
+			if ( !eventTarget || typeof apiTarget === "undefined" || !fetchTimeout ) {
 				throw new Error( "Invalid parameter" );
 			}
-			BaseClient.__instance = new BaseClient( target, fetchTimeout );
+			BaseClient.__instance = new BaseClient( eventTarget, apiTarget, fetchTimeout );
 		}
 		return BaseClient.__instance;
 	}
@@ -58,14 +67,14 @@ export default class BaseClient extends EventEmitter {
 		this.fetchTimeout = fetchTimeout;
 	}
 	
-	/* 设置协议端地址 */
-	public setTarget( target: string ) {
-		this.target = target;
+	public setTarget( eventTarget: string, apiTarget: string ) {
+		this.eventTarget = eventTarget;
+		this.apiTarget = apiTarget;
 	}
 	
 	private initApiWs( this: BaseClient, ws: WebSocket ) {
 		ws.on( "open", () => {
-			this.logger.info( `已连接到 api 事件服务器：${ this.target }` );
+			this.logger.info( `已连接到 api 事件服务器：${ this.apiTarget || this.eventTarget }` );
 		} );
 		ws.on( "message", ( res ) => {
 			const resp = ( <Buffer>res ).toString();
@@ -74,21 +83,31 @@ export default class BaseClient extends EventEmitter {
 				return;
 			}
 			data = JSON.parse( resp );
+			// 此时为 webhook 回执，过
+			if ( !data.echo ) {
+				return;
+			}
 			if ( data.retcode === 1 ) {
 				return;
 			}
-			if ( data.echo ) {
-				this.emitApi( data.echo, data );
-			}
+			this.emitApi( data.echo, data );
 		} );
 	}
 	
+	private getVersionInfo() {
+		this.fetchApi( "get_version_info", undefined ).then( data => {
+			this.oneBotVersion = data.retcode === 0
+				? data.data
+				: null
+		} ).catch( () => {} );
+	}
+	
 	public setGroupList() {
-		this.fetchApi( "get_group_list", { no_cache: true } ).then( data => {
+		this.fetchApi( "get_group_list", undefined ).then( data => {
 			this.gl = data.retcode === 0
 				? new Map( data.data.map( d => [ d.group_id, d ] ) )
 				: new Map();
-		} );
+		} ).catch( () => {} );
 	}
 	
 	public setFriendList() {
@@ -96,12 +115,12 @@ export default class BaseClient extends EventEmitter {
 			this.fl = data.retcode === 0
 				? new Map( data.data.map( d => [ d.user_id, d ] ) )
 				: new Map();
-		} );
+		} ).catch( () => {} );
 	}
 	
 	private initEventWs( this: BaseClient, ws: WebSocket ) {
 		ws.on( "open", () => {
-			this.logger.info( `已连接到 event 事件服务器：${ this.target }` );
+			this.logger.info( `已连接到 event 事件服务器：${ this.eventTarget }` );
 		} );
 		ws.on( "message", ( res ) => {
 			const resp = ( <Buffer>res ).toString();
@@ -110,12 +129,16 @@ export default class BaseClient extends EventEmitter {
 				return;
 			}
 			data = JSON.parse( resp );
+			// 此时为 api 回执，过
+			if ( Reflect.has( data, "echo" ) ) {
+				return;
+			}
 			
 			const quickOperation = ( params: Record<string, any> ) => {
 				return this.fetchApi( <any>".handle_quick_operation", {
 					context: data,
 					operation: params
-				} )
+				} );
 			};
 			
 			if ( data.post_type === "meta_event" ) {
@@ -126,6 +149,8 @@ export default class BaseClient extends EventEmitter {
 					if ( data.status.online !== this.online ) {
 						this.online = data.status.online;
 						if ( this.online ) {
+							/* 初始化版本信息 */
+							this.getVersionInfo();
 							/* 初始化群组列表 */
 							this.setGroupList();
 							/* 初始化好友列表 */
@@ -185,9 +210,6 @@ export default class BaseClient extends EventEmitter {
 						case "anonymous":
 							this.logger.info( `来自群 ${ groupName }(${ data.group_id }) 内 ${ data.anonymous.name } 的匿名消息: ${ data.raw_message }` );
 							this.emit( "message.group.anonymous", data );
-							break;
-						default:
-							this.logger.warn( "未被记录的 type: " + ( <any>data ).sub_type )
 					}
 					this.emit( "message.group", data );
 				}
@@ -195,80 +217,64 @@ export default class BaseClient extends EventEmitter {
 			}
 			
 			if ( data.post_type === "notice" ) {
-				if ( data.notice_type === "client_status" ) {
-					this.emit( "notice.client.status", data );
-				} else {
-					if ( this.checkNoticePrivateEvent( data ) ) {
-						switch ( data.notice_type ) {
-							case "friend_add":
-								this.setFriendList();
-								this.logger.info( `更新好友列表：新增好友 ${ data.user_id }` );
-								this.emit( "notice.friend.add", data );
-								break;
-							case "friend_recall":
-								this.emit( "notice.friend.recall", data );
-								break;
-							case "notify":
-								if ( data.sub_type === "offline_file" ) {
-									this.logger.info( `来自好友 ${ data.user_id } 的离线文件: ${ data.file.url }` );
-									this.emit( "notice.friend.file", data );
-								}
-								if ( data.sub_type === "poke" ) {
-									this.emit( "notice.friend.poke", data );
-								}
-								break;
-						}
-					} else {
-						switch ( data.notice_type ) {
-							case "group_recall":
-								this.emit( "notice.group.recall", data );
-								break;
-							case "group_increase":
-								this.emit( "notice.group.increase", data );
-								if ( data.user_id === this.uin ) {
-									this.setGroupList();
-									this.logger.info( `更新群列表：新增群聊 ${ data.group_id }` );
-									this.emit( "notice.group.increase", data );
-								} else {
-									this.emit( "notice.group.member_increase", data );
-								}
-								break;
-							case "group_decrease":
-								if ( data.sub_type === "kick_me" || data.user_id === this.uin ) {
-									this.setGroupList();
-									this.logger.info( `更新群列表：移除群聊 ${ data.group_id }` );
-									this.emit( "notice.group.decrease", data );
-								} else {
-									this.emit( "notice.group.member_decrease", data );
-								}
-								break;
-							case "group_admin":
-								this.emit( "notice.group.admin", data );
-								break;
-							case "group_upload":
-								this.logger.info( `来自群 ${ data.group_id } 内 ${ data.user_id } 上传的文件: ${ data.file.url }` );
-								this.emit( "notice.group.upload", data );
-								break;
-							case "group_ban":
-								this.emit( "notice.group.ban", data );
-								break;
-							case "notify":
-								if ( data.sub_type === "lucky_king" ) {
-									this.emit( "notice.group.lucky_king", data );
-								}
-								if ( data.sub_type === "honor" ) {
-									this.emit( "notice.group.honor", data );
-								}
-								if ( ( <any>data ).sub_type === "poke" ) {
-									this.emit( "notice.group.poke", <any>data );
-								}
-								break;
-							case "essence":
-								this.emit( "notice.group.essence", data );
-								break;
-						}
-						this.emit( "notice.group", data );
+				if ( this.checkNoticePrivateEvent( data ) ) {
+					switch ( data.notice_type ) {
+						case "friend_add":
+							this.setFriendList();
+							this.logger.info( `更新好友列表：新增好友 ${ data.user_id }` );
+							this.emit( "notice.friend.add", data );
+							break;
+						case "friend_recall":
+							this.emit( "notice.friend.recall", data );
+							break;
 					}
+				} else {
+					switch ( data.notice_type ) {
+						case "group_recall":
+							this.emit( "notice.group.recall", data );
+							break;
+						case "group_increase":
+							this.emit( "notice.group.increase", data );
+							if ( data.user_id === this.uin ) {
+								this.setGroupList();
+								this.logger.info( `更新群列表：新增群聊 ${ data.group_id }` );
+								this.emit( "notice.group.increase", data );
+							} else {
+								this.emit( "notice.group.member_increase", data );
+							}
+							break;
+						case "group_decrease":
+							if ( data.sub_type === "kick_me" || data.user_id === this.uin ) {
+								this.setGroupList();
+								this.logger.info( `更新群列表：移除群聊 ${ data.group_id }` );
+								this.emit( "notice.group.decrease", data );
+							} else {
+								this.emit( "notice.group.member_decrease", data );
+							}
+							break;
+						case "group_admin":
+							this.emit( "notice.group.admin", data );
+							break;
+						case "group_upload":
+							this.logger.info( `来自群 ${ data.group_id } 内 ${ data.user_id } 上传的文件: ${ data.file.name }` );
+							this.emit( "notice.group.upload", data );
+							break;
+						case "group_ban":
+							this.emit( "notice.group.ban", data );
+							break;
+						case "notify":
+							if ( data.sub_type === "lucky_king" ) {
+								this.emit( "notice.group.lucky_king", data );
+							}
+							if ( data.sub_type === "honor" ) {
+								this.emit( "notice.group.honor", data );
+							}
+							if ( ( <any>data ).sub_type === "poke" ) {
+								this.emit( "notice.group.poke", <any>data );
+							}
+							break;
+					}
+					this.emit( "notice.group", data );
 				}
 				this.emit( "notice", data );
 			}
@@ -293,7 +299,7 @@ export default class BaseClient extends EventEmitter {
 				return;
 			}
 		} );
-		ws.on( "close", ( ) => {
+		ws.on( "close", () => {
 			if ( this.online ) {
 				this.online = false;
 				this.emit( "system.offline", null );
@@ -316,7 +322,7 @@ export default class BaseClient extends EventEmitter {
 		}
 		
 		this.printSendLogger( action, params );
-		this.sendMessage( { action, params, echo } );
+		this.sendMessage( { action, params: params || {}, echo } );
 		/* 10000ms 超时 */
 		const timer = setTimeout( () => {
 			this.emitApi( echo, {
@@ -332,11 +338,13 @@ export default class BaseClient extends EventEmitter {
 			this.onApi( echo, data => {
 				clearTimeout( timer );
 				resolve( data );
-				if ( data.retcode !== 0 ) {
-					this.logger.error( data.wording );
-				}
 			} );
 		} )
+	}
+	
+	// 是否需要为 api 创建第二个 websocket 链接
+	private get needApiConnect() {
+		return this.apiTarget && this.apiTarget !== this.eventTarget;
 	}
 	
 	/* 根据 message 类型获取日志打印内容 */
@@ -369,7 +377,7 @@ export default class BaseClient extends EventEmitter {
 	}
 	
 	/* 打印消息发送日志 */
-	private printSendLogger( action: string, params: any ) {
+	private printSendLogger( action: string, params: any = {} ) {
 		let tipTarget = "";
 		if ( action === "send_msg" ) {
 			tipTarget = params.message_type === "group" ? `[群聊(${ params.group_id })]` : `[私聊(${ params.user_id })]`;
@@ -393,9 +401,10 @@ export default class BaseClient extends EventEmitter {
 	}
 	
 	public connect(): Promise<void> {
-		const baseUrl: string = `ws://${ this.target }`;
-		this.wsApi.connect( `${ baseUrl }/api` );
-		this.wsEvent.connect( `${ baseUrl }/event` );
+		this.wsEvent.connect( `ws://${ this.eventTarget }` );
+		if ( this.needApiConnect ) {
+			this.wsApi.connect( `ws://${ this.apiTarget }` );
+		}
 		/* 监听连接成功状态 */
 		return new Promise( resolve => {
 			let timer: any = setInterval( () => {
@@ -409,8 +418,10 @@ export default class BaseClient extends EventEmitter {
 	}
 	
 	public closeConnect() {
-		this.wsApi.closeConnect();
 		this.wsEvent.closeConnect();
+		if ( this.needApiConnect ) {
+			this.wsApi.closeConnect();
+		}
 	}
 	
 	public reConnect() {
