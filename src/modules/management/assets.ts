@@ -9,6 +9,7 @@ import { isJsonString } from "@/utils/verify";
 import { scheduleJob } from "node-schedule";
 import { getRandomNumber } from "@/utils/random";
 import { BOT } from "@/modules/bot";
+import { sleep } from "@/utils/async";
 
 export interface IOssListObject {
 	name: string;
@@ -19,6 +20,11 @@ export interface IOssListObject {
 	size: number;
 	storageClass: string;
 	owner: null;
+}
+
+export interface UpdateItemsResponse {
+	type: "update" | "reCheck" | "error";
+	data: IOssListObject[];
 }
 
 export interface AssetsLifeCycle {
@@ -85,7 +91,14 @@ export default class AssetsUpdate {
 	}
 	
 	/** 获取更新文件列表 */
-	private async getUpdateItems( pluginKey: string | undefined, assets: PluginAssetsSetting, manifest: IOssListObject[], pathField: string, lifeCycle?: AssetsLifeCycle ): Promise<IOssListObject[]> {
+	private async getUpdateItems(
+		pluginKey: string | undefined,
+		assets: PluginAssetsSetting,
+		manifest: IOssListObject[],
+		pathField: string,
+		lifeCycle?: AssetsLifeCycle,
+		reCheck = false
+	): Promise<UpdateItemsResponse> {
 		const modifiedField = getObjectKeyValue( assets, "modifiedField", "lastModified" );
 		
 		let data: IOssListObject[];
@@ -102,13 +115,19 @@ export default class AssetsUpdate {
 		} catch ( error: any ) {
 			const errRes = <AxiosError>error;
 			if ( errRes.response?.status === 415 ) {
-				if ( assets.overflowHandle ) {
-					await assets.overflowHandle( assets, pluginKey, this.bot );
+				if ( assets.overflowHandle && !reCheck ) {
+					const res = await assets.overflowHandle( assets, pluginKey, this.bot );
+					// 此时再次检测更新状态
+					if ( typeof res === "boolean" && res ) {
+						return { type: "reCheck", data: [] };
+					}
 				} else {
-					const errorMsg: string = "更新文件数量超过阈值，请手动更新资源包";
+					const errorMsg: string = "更新文件数量超过阈值，请手动更新资源包或联系插件开发者解决";
+					// 二次检查更新时不再执行
 					if ( lifeCycle?.updateError ) {
 						errRes.message = errorMsg;
 						await lifeCycle.updateError( errRes );
+						return { type: "error", data: [] }
 					} else {
 						throw errorMsg;
 					}
@@ -124,7 +143,7 @@ export default class AssetsUpdate {
 			}
 			data = [];
 		}
-		return data;
+		return { type: "update", data };
 	}
 	
 	/** 下载单个文件 */
@@ -192,7 +211,14 @@ export default class AssetsUpdate {
 	 * 3、依次下载清单文件列表文件，每下载完成一个时更新 manifestData 内容
 	 * 4、下载完毕后以 manifestData 内容更新本地清单文件
 	 */
-	private async checkUpdate( pluginKey: string | undefined, baseUrl: string | undefined, pluginName: string, assets: PluginAssetsSetting, lifeCycle?: AssetsLifeCycle ): Promise<void> {
+	private async checkUpdate(
+		pluginKey: string | undefined,
+		baseUrl: string | undefined,
+		pluginName: string,
+		assets: PluginAssetsSetting,
+		lifeCycle?: AssetsLifeCycle,
+		reCheck = false
+	): Promise<void> {
 		if ( !baseUrl ) {
 			const downloadFolder = getObjectKeyValue( assets, "folderName", "adachi-assets" );
 			baseUrl = `${ pluginKey }/${ downloadFolder }`;
@@ -201,7 +227,18 @@ export default class AssetsUpdate {
 		
 		const manifestName = `${ baseUrl }/manifest`;
 		const manifest = <IOssListObject[]>( await this.bot.file.loadYAML( manifestName, "plugin" ) || [] );
-		const data = await this.getUpdateItems( pluginKey, assets, manifest, pathField, lifeCycle );
+		const { type: actionType, data } = await this.getUpdateItems( pluginKey, assets, manifest, pathField, lifeCycle, reCheck );
+		
+		if ( actionType === "error" ) {
+			return;
+		}
+		
+		// 是否重新检查更新
+		if ( actionType === "reCheck" ) {
+			await sleep( 10000 )
+			await this.checkUpdate( pluginKey, baseUrl, pluginName, assets, lifeCycle, true );
+			return;
+		}
 		
 		// 不存在更新项，返回
 		if ( !data.length ) {

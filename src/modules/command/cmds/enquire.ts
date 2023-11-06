@@ -49,7 +49,7 @@ export class Enquire extends BasicConfig {
 	public static redisKey: string = "adachi.enquire-cmd";
 	
 	constructor( config: EnquireInit, botCfg: BotConfig ) {
-		super( config );
+		super( config, botCfg );
 		
 		this.run = config.run;
 		this.timeout = config.timeout <= 0 ? 300 : config.timeout;
@@ -58,7 +58,7 @@ export class Enquire extends BasicConfig {
 			if ( el.slice( 0, 2 ) === "__" ) {
 				return trimStart( el, "_" );
 			}
-			return botCfg.directive.header.map( h => {
+			return this.baseHeader.map( h => {
 				return Enquire.header( el, h );
 			} );
 		} ).flat();

@@ -30,7 +30,7 @@ export class Order extends BasicConfig {
 	public readonly regPairs: RegPair[] = [];
 	
 	constructor( config: OrderInit, botCfg: BotConfig ) {
-		super( config );
+		super( config, botCfg );
 		
 		this.run = config.run;
 		
@@ -38,7 +38,7 @@ export class Order extends BasicConfig {
 			if ( el.slice( 0, 2 ) === "__" ) {
 				return trimStart( el, "_" );
 			}
-			return botCfg.directive.header.map( h => {
+			return this.baseHeader.map( h => {
 				return Order.header( el, h );
 			} );
 		} ).flat();

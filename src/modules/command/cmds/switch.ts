@@ -37,7 +37,7 @@ export class Switch extends BasicConfig {
 	private readonly keys: [ string, string ] | [ string, string ][];
 	
 	constructor( config: SwitchInit, botCfg: BotConfig ) {
-		super( config );
+		super( config, botCfg );
 		
 		this.mode = config.mode;
 		this.run = config.run;
@@ -55,7 +55,7 @@ export class Switch extends BasicConfig {
 		);
 
 		const regParam = this.checkRegexps( config.regexps ) ? config.regexps : [ config.regexps ];
-		this.regPairs = botCfg.directive.header.map( header => {
+		this.regPairs = this.baseHeader.map( header => {
 			const getHeaderRegStr: ( h: string ) => string = h => escapeRegExp( Switch.header( h, header ) );
 
 			let h: string;
@@ -126,7 +126,6 @@ export class Switch extends BasicConfig {
 				if ( !res ) {
 					continue;
 				}
-				console.log( res, reg )
 				const [ onKey, offKey ] = this.checkSingleSwitch( this.keys ) ? this.keys : this.keys[pairKey];
 				let switchKey: string = "";
 				if ( res[0].includes( onKey ) ) {

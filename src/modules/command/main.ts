@@ -9,6 +9,7 @@ import { Message, MessageScope, SendFunc } from "@/modules/message";
 import { AuthLevel } from "../management/auth";
 import { BOT } from "@/modules/bot";
 import { trimStart, without } from "lodash";
+import { BotConfig } from "@/modules/config";
 
 type Optional<T> = {
 	-readonly [key in keyof T]?: T[key];
@@ -101,7 +102,10 @@ export abstract class BasicConfig {
 	readonly pluginName: string;
 	readonly priority: number;
 	
-	protected constructor( config: InitType ) {
+	protected constructor(
+		config: InitType,
+		private botCfg: BotConfig
+	) {
 		this.pluginName = config.pluginName;
 		this.cmdKey = config.cmdKey;
 		this.desc = config.desc;
@@ -122,6 +126,12 @@ export abstract class BasicConfig {
 	abstract getFollow(): FollowInfo;
 	
 	abstract getDesc( headerNum?: number ): string;
+	
+	protected get baseHeader() {
+		return this.botCfg.directive.header.length
+			? Array.from( new Set( this.botCfg.directive.header  ) )
+			: [ "" ];
+	}
 
 	// 非捕获正则字符串中的分组，并捕获整段参数
 	protected captureParams( regList: string[] ) {

@@ -129,7 +129,7 @@ export default express.Router()
 					const fileName = name.replace( ".yml", "" );
 					const fileData: FileData = await getFileData( `${ plugin }/${ fileName }` );
 					if ( fileData.code !== 200 ) {
-						return;
+						continue;
 					}
 					configs.push( {
 						name: fileName,
