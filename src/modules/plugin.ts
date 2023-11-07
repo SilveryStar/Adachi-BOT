@@ -4,7 +4,7 @@ import { BOT } from "@/modules/bot";
 import { join } from "path";
 import { Router } from "express";
 import { Renderer } from "@/modules/renderer";
-import { removeKeysStartsWith } from "@/utils/object";
+import { isEqualObject, removeKeysStartsWith } from "@/utils/object";
 import { ExportConfig } from "@/modules/config";
 import { PresetPlace } from "@/modules/file";
 import Refreshable, { RefreshTarget } from "@/modules/management/refresh";
@@ -196,10 +196,11 @@ export default class Plugin {
 	/**
 	 * 重载单个插件
 	 * @param pluginKey 插件目录名
-	 * @param immediate 是否为立即执行插件 mounted 方法
-	 * @param reloadCmd 是否为执行加载 command 方法
+	 * @param immediate 是否立即执行插件 mounted 方法
+	 * @param reloadCmd 是否重载 command
+	 * @param reloadServer 是否校验重启 server
 	 */
-	public async reloadSingle( pluginKey: string, immediate = true, reloadCmd = true ) {
+	public async reloadSingle( pluginKey: string, immediate = true, reloadCmd = true, reloadServer = true ) {
 		try {
 			const oldSetting = this.pluginSettings[pluginKey];
 			await this.doUnMount( pluginKey );
@@ -218,12 +219,22 @@ export default class Plugin {
 			
 			await this.loadSingle( pluginKey, immediate, reloadCmd, oldInfo.sortIndex );
 			
-			return {
-				oldSetting,
-				newSetting: this.pluginSettings[pluginKey]
+			const newSetting = this.pluginSettings[pluginKey];
+			
+			// 校验 publicKey 配置项，不同则重启 server
+			if ( reloadServer ) {
+				const serverInstance = RenderServer.getInstance();
+				if ( !isEqualObject( oldSetting.publicDirs, newSetting.publicDirs ) ) {
+					await serverInstance.reloadServer();
+				} else {
+					await serverInstance.reloadPluginRouters( this.pluginList );
+				}
 			}
+			
+			return { oldSetting, newSetting };
 		} catch ( error ) {
 			this.bot.logger.error( `插件 ${ pluginKey } 重载异常: ${ <string>error }` );
+			throw error;
 		}
 	}
 	

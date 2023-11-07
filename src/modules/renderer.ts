@@ -3,6 +3,7 @@ import { segment, Sendable } from "@/modules/lib";
 import { RefreshCatch } from "./management/refresh";
 import * as puppeteer from "puppeteer";
 import bot from "ROOT";
+import process from "process";
 
 interface RenderSuccess {
 	code: "ok";
@@ -200,6 +201,9 @@ export class BasicRenderer implements RenderMethods {
 		}
 		const page: puppeteer.Page = await this.browser.newPage();
 		try {
+			if ( process.env.NODE_ENV !== "production" ) {
+				bot.logger.info( `图片预览地址: ${ url }` );
+			}
 			// 设置设备参数
 			if ( viewPort ) {
 				await page.setViewport( viewPort );
@@ -238,6 +242,9 @@ export class BasicRenderer implements RenderMethods {
 		}
 		const page: puppeteer.Page = await this.browser.newPage();
 		try {
+			if ( process.env.NODE_ENV !== "production" ) {
+				bot.logger.info( `图片预览地址: ${ url }` );
+			}
 			// 设置设备参数
 			if ( viewPort ) {
 				await page.setViewport( viewPort );

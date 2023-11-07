@@ -16,7 +16,6 @@ import { getIPAddress } from "@/utils/network";
 import AssetsUpdate from "@/modules/management/assets";
 import { getRandomString } from "@/utils/random";
 import axios from "axios";
-import { tar } from "compressing";
 import { formatVersion } from "@/utils/format";
 
 export default class RenderServer {

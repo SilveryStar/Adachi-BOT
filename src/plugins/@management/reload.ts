@@ -1,6 +1,7 @@
 import { defineDirective } from "@/modules/command";
 import PluginManager from "@/modules/plugin";
 import RenderServer from "@/modules/server";
+import { isEqualObject } from "@/utils/object";
 
 export default defineDirective( "order", async ( { matchResult, sendMessage } ) => {
 	const pluginInstance = PluginManager.getInstance();
@@ -18,9 +19,12 @@ export default defineDirective( "order", async ( { matchResult, sendMessage } ) 
 		}
 		const { key: pluginKey, name: pluginName } = pluginInfo;
 		
-		await pluginInstance.reloadSingle( pluginKey );
-		await serverInstance.reloadPluginRouters( pluginInstance.pluginList );
-		await sendMessage( `插件 ${ pluginName } 重载完成` );
+		try {
+			await pluginInstance.reloadSingle( pluginKey );
+			await sendMessage( `插件 ${ pluginName } 重载完成` );
+		} catch( error ) {
+			await sendMessage( `插件 ${ pluginKey } 重载异常: ${ ( <Error>error ).message }` );
+		}
 	} else {
 		await pluginInstance.reload();
 		await serverInstance.reloadPluginRouters( pluginInstance.pluginList );

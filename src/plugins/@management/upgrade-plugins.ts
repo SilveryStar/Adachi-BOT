@@ -3,6 +3,7 @@ import { exec } from "child_process";
 import { defineDirective, InputParameter } from "@/modules/command";
 import PluginManager, { PluginInfo } from "@/modules/plugin";
 import RenderServer from "@/modules/server";
+import { isEqualObject } from "@/utils/object";
 
 /* 超时检查 */
 function waitWithTimeout( promise: Promise<any>, timeout: number ): Promise<any> {
@@ -161,7 +162,6 @@ export default defineDirective( "order", async ( i ) => {
 			if ( isRestart ) { // 重载
 				try {
 					await pluginInstance.reloadSingle( pluginKey );
-					await serverInstance.reloadPluginRouters( pluginInstance.pluginList );
 				} catch ( error ) {
 					await i.sendMessage( `[${ pluginName }]插件重载异常: ${ error }` );
 				}
@@ -243,16 +243,37 @@ export default defineDirective( "order", async ( i ) => {
 		await i.sendMessage( `${ pluginNames }已完成更新，${ isRestart ? "正在重载插件..." : "请稍后手动重载插件" }` );
 	}
 	
-	// 重启服务
+	// 重载插件
 	if ( isRestart ) {
-		try {
-			for ( const pluginInfo of upgrade_plugins ) {
-				await pluginInstance.reloadSingle( pluginInfo.key, true, false );
+		const errorPlugins: string[] = [];
+		
+		let needRestartServer = false;
+		for ( const pluginInfo of upgrade_plugins ) {
+			try {
+				const {
+					oldSetting,
+					newSetting
+				} = await pluginInstance.reloadSingle( pluginInfo.key, true, false, false );
+				if ( !isEqualObject( oldSetting, newSetting ) ) {
+					needRestartServer = true;
+				}
+			} catch {
+				errorPlugins.push( pluginInfo.key );
 			}
-			await i.command.reload();
-			await serverInstance.reloadPluginRouters( pluginInstance.pluginList );
-		} catch ( error ) {
-			await i.sendMessage( `插件重载异常: ${ error }` );
 		}
+		
+		let errorMsg = errorPlugins.length ? `插件 ${ errorPlugins.join( "、" ) } 重载异常` : "";
+		try {
+			await i.command.reload();
+			if ( needRestartServer ) {
+				await serverInstance.reloadServer();
+			} else {
+				await serverInstance.reloadPluginRouters( pluginInstance.pluginList );
+			}
+		} catch ( error ) {
+			errorMsg += "，公共服务重启失败。";
+		}
+		
+		await i.sendMessage( errorMsg || "所有插件重载完成" );
 	}
 } );
