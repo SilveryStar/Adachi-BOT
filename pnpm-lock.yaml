@@ -1,125 +1,137 @@
 lockfileVersion: '6.0'
 
-dependencies:
-  '@types/ws':
-    specifier: ^8.5.5
-    version: 8.5.5
-  axios:
-    specifier: ^1.3.6
-    version: 1.3.6
-  express:
-    specifier: ^4.18.2
-    version: 4.18.2
-  express-jwt:
-    specifier: ^8.4.1
-    version: 8.4.1
-  express-ws:
-    specifier: ^5.0.2
-    version: 5.0.2(express@4.18.2)
-  jsonwebtoken:
-    specifier: ^9.0.0
-    version: 9.0.0
-  lodash:
-    specifier: ^4.17.21
-    version: 4.17.21
-  log4js:
-    specifier: ^6.9.1
-    version: 6.9.1
-  md5-typescript:
-    specifier: ^1.0.5
-    version: 1.0.5
-  moment:
-    specifier: ^2.29.4
-    version: 2.29.4
-  node-fetch:
-    specifier: ^2.6.7
-    version: 2.6.7
-  node-schedule:
-    specifier: ^2.1.1
-    version: 2.1.1
-  nodemailer:
-    specifier: ^6.9.1
-    version: 6.9.1
-  p-limit:
-    specifier: '3'
-    version: 3.1.0
-  pm2:
-    specifier: ^5.3.0
-    version: 5.3.0
-  puppeteer:
-    specifier: ^19.11.1
-    version: 19.11.1(typescript@5.0.4)
-  redis:
-    specifier: ^4.6.5
-    version: 4.6.5
-  request:
-    specifier: ^2.88.2
-    version: 2.88.2
-  systeminformation:
-    specifier: ^5.17.12
-    version: 5.17.12
-  tencentcloud-sdk-nodejs-nlp:
-    specifier: ^4.0.590
-    version: 4.0.590
-  ws:
-    specifier: ^8.13.0
-    version: 8.13.0
-  yaml:
-    specifier: ^2.2.2
-    version: 2.2.2
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
 
-devDependencies:
-  '@types/express':
-    specifier: ^4.17.17
-    version: 4.17.17
-  '@types/express-ws':
-    specifier: ^3.0.1
-    version: 3.0.1
-  '@types/lodash':
-    specifier: ^4.14.194
-    version: 4.14.194
-  '@types/node':
-    specifier: ^18.16.1
-    version: 18.16.1
-  '@types/node-fetch':
-    specifier: ^2.6.3
-    version: 2.6.3
-  '@types/node-schedule':
-    specifier: ^2.1.0
-    version: 2.1.0
-  '@types/nodemailer':
-    specifier: ^6.4.10
-    version: 6.4.10
-  '@types/single-line-log':
-    specifier: ^1.1.0
-    version: 1.1.0
-  compressing:
-    specifier: ^1.10.0
-    version: 1.10.0
-  cross-env:
-    specifier: ^7.0.3
-    version: 7.0.3
-  nodemon:
-    specifier: ^2.0.22
-    version: 2.0.22
-  single-line-log:
-    specifier: ^1.1.2
-    version: 1.1.2
-  ts-node:
-    specifier: ^10.9.1
-    version: 10.9.1(@types/node@18.16.1)(typescript@5.0.4)
-  ts-node-dev:
-    specifier: ^2.0.0
-    version: 2.0.0(@types/node@18.16.1)(typescript@5.0.4)
-  tsconfig-paths:
-    specifier: ^4.2.0
-    version: 4.2.0
-  typescript:
-    specifier: ^5.0.4
-    version: 5.0.4
-  vite:
-    specifier: ^4.4.5
-    version: 4.4.5(@types/node@18.16.1)
+importers:
+
+  .:
+    dependencies:
+      '@types/ws':
+        specifier: ^8.5.5
+        version: 8.5.5
+      axios:
+        specifier: ^1.3.6
+        version: 1.3.6
+      express:
+        specifier: ^4.18.2
+        version: 4.18.2
+      express-jwt:
+        specifier: ^8.4.1
+        version: 8.4.1
+      express-ws:
+        specifier: ^5.0.2
+        version: 5.0.2(express@4.18.2)
+      jsonwebtoken:
+        specifier: ^9.0.0
+        version: 9.0.0
+      lodash:
+        specifier: ^4.17.21
+        version: 4.17.21
+      log4js:
+        specifier: ^6.9.1
+        version: 6.9.1
+      md5-typescript:
+        specifier: ^1.0.5
+        version: 1.0.5
+      moment:
+        specifier: ^2.29.4
+        version: 2.29.4
+      node-fetch:
+        specifier: ^2.6.7
+        version: 2.6.7
+      node-schedule:
+        specifier: ^2.1.1
+        version: 2.1.1
+      nodemailer:
+        specifier: ^6.9.1
+        version: 6.9.1
+      p-limit:
+        specifier: '3'
+        version: 3.1.0
+      pm2:
+        specifier: ^5.3.0
+        version: 5.3.0
+      puppeteer:
+        specifier: ^19.11.1
+        version: 19.11.1(typescript@5.0.4)
+      redis:
+        specifier: ^4.6.5
+        version: 4.6.5
+      request:
+        specifier: ^2.88.2
+        version: 2.88.2
+      systeminformation:
+        specifier: ^5.17.12
+        version: 5.17.12
+      tencentcloud-sdk-nodejs-nlp:
+        specifier: ^4.0.590
+        version: 4.0.590
+      ws:
+        specifier: ^8.13.0
+        version: 8.13.0
+      yaml:
+        specifier: ^2.2.2
+        version: 2.2.2
+    devDependencies:
+      '@types/express':
+        specifier: ^4.17.17
+        version: 4.17.17
+      '@types/express-ws':
+        specifier: ^3.0.1
+        version: 3.0.1
+      '@types/lodash':
+        specifier: ^4.14.194
+        version: 4.14.194
+      '@types/node':
+        specifier: ^18.16.1
+        version: 18.16.1
+      '@types/node-fetch':
+        specifier: ^2.6.3
+        version: 2.6.3
+      '@types/node-schedule':
+        specifier: ^2.1.0
+        version: 2.1.0
+      '@types/nodemailer':
+        specifier: ^6.4.10
+        version: 6.4.10
+      '@types/single-line-log':
+        specifier: ^1.1.0
+        version: 1.1.0
+      compressing:
+        specifier: ^1.10.0
+        version: 1.10.0
+      cross-env:
+        specifier: ^7.0.3
+        version: 7.0.3
+      nodemon:
+        specifier: ^2.0.22
+        version: 2.0.22
+      single-line-log:
+        specifier: ^1.1.2
+        version: 1.1.2
+      ts-node:
+        specifier: ^10.9.1
+        version: 10.9.1(@types/node@18.16.1)(typescript@5.0.4)
+      ts-node-dev:
+        specifier: ^2.0.0
+        version: 2.0.0(@types/node@18.16.1)(typescript@5.0.4)
+      tsconfig-paths:
+        specifier: ^4.2.0
+        version: 4.2.0
+      typescript:
+        specifier: ^5.0.4
+        version: 5.0.4
+      vite:
+        specifier: ^4.4.5
+        version: 4.4.5(@types/node@18.16.1)
+
+  src/plugins/genshin:
+    dependencies:
+      chokidar:
+        specifier: ^3.5.3
+        version: 3.5.3
 
 packages:
 
@@ -3608,7 +3620,3 @@ packages:
     resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
     engines: {node: '>=10'}
     dev: false
-
-settings:
-  autoInstallPeers: true
-  excludeLinksFromLockfile: false

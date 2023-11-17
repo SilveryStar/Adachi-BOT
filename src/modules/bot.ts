@@ -134,20 +134,20 @@ export default class Adachi {
 			} );
 			serverInstance.reloadPluginRouters( pluginInstance.pluginList ).then();
 			/* 事件监听 */
-			this.bot.client.on( "message.group", this.parseGroupMsg( this ) );
-			this.bot.client.on( "message.private", this.parsePrivateMsg( this ) );
-			this.bot.client.on( "request.group", this.acceptInvite( this ) );
-			this.bot.client.on( "request.friend", this.acceptFriend() );
-			this.bot.client.on( "system.online", this.botOnline( this ) );
-			this.bot.client.on( "system.offline", this.botOffline( this ) );
+			this.bot.client.on( "message.group", this.parseGroupMsg.bind( this ) );
+			this.bot.client.on( "message.private", this.parsePrivateMsg.bind( this ) );
+			this.bot.client.on( "request.group", this.acceptInvite.bind( this ) );
+			this.bot.client.on( "request.friend", this.acceptFriend.bind( this ) );
+			this.bot.client.on( "system.online", this.botOnline.bind( this ) );
+			this.bot.client.on( "system.offline", this.botOffline.bind( this ) );
 			// this.bot.client.on( "notice.friend.decrease", this.friendDecrease( this ) );
-			this.bot.client.on( "notice.group.decrease", this.groupDecrease( this ) );
+			this.bot.client.on( "notice.group.decrease", this.groupDecrease.bind( this ) );
 			this.bot.logger.info( "事件监听启动成功" );
 		} );
 		
-		scheduleJob( "0 59 */1 * * *", this.hourlyCheck( this ) );
-		scheduleJob( "0 0 4 ? * WED", this.clearImageCache( this ) );
-		scheduleJob( "15 58 23 * * *", this.postUserData( this ) );
+		scheduleJob( "0 59 */1 * * *", this.hourlyCheck.bind( this ) );
+		scheduleJob( "0 0 4 ? * WED", this.clearImageCache.bind( this ) );
+		scheduleJob( "15 58 23 * * *", this.postUserData.bind( this ) );
 		
 		return this.bot;
 	}
@@ -191,8 +191,8 @@ export default class Adachi {
 		process.exit( 0 );
 	}
 	
-	private postUserData( that: Adachi ) {
-		const _bot: BOT = that.bot;
+	private async postUserData() {
+		const bot = this.bot;
 		const md5: ( str: string ) => string = str => Md5.init( str );
 		const getErrInfo = ( err: AxiosError ) => <string>err.response?.data;
 		/*              声明
@@ -200,23 +200,34 @@ export default class Adachi {
 		 * 所发送的数据中只包含所有用户的 QQ号 的 MD5
 		 * Adachi-BOT 不会对任何用户的隐私数据进行收集
 		 * */
-		return async function () {
-			const master: string = md5( _bot.config.base.master.toString() );
-			const bot: string = md5( _bot.client.uin.toString() );
-			const users: string[] = (
-				await _bot.redis.getKeysByPrefix(
-					"adachi.user-used-groups"
-				)
-			).map( key => {
-				const userID = <string>key.split( "-" ).pop();
-				return md5( userID );
-			} );
-			
-			const t: number = new Date().getTime();
-			axios.post( "http://terminal.adachi.top:7665/id/master", { master, bot, t } )
-				.catch( error => _bot.logger.warn( getErrInfo( error ) ) );
-			axios.post( "http://terminal.adachi.top:7665/id/users", { users, t } )
-				.catch( error => _bot.logger.warn( getErrInfo( error ) ) );
+		const master: string = md5( bot.config.base.master.toString() );
+		const uin: string = md5( bot.client.uin.toString() );
+		const users: string[] = (
+			await bot.redis.getKeysByPrefix(
+				"adachi.user-used-groups"
+			)
+		).map( key => {
+			const userID = <string>key.split( "-" ).pop();
+			return md5( userID );
+		} );
+		
+		const t: number = new Date().getTime();
+		axios.post( "http://terminal.adachi.top:7665/id/master", { master, uin, t } )
+			.catch( error => bot.logger.warn( getErrInfo( error ) ) );
+		axios.post( "http://terminal.adachi.top:7665/id/users", { users, t } )
+			.catch( error => bot.logger.warn( getErrInfo( error ) ) );
+	}
+	
+	/* 校验是否被禁言 */
+	private async checkBotShutUp( isPrivate: boolean, groupID: number ) {
+		if ( isPrivate ) {
+			return false;
+		}
+		try {
+			const groupInfoRes = await this.bot.client.getGroupMemberInfo( groupID, this.bot.client.uin );
+			return groupInfoRes.retcode === 0 ? groupInfoRes.data.is_shut_up : false;
+		} catch {
+			return false;
 		}
 	}
 	
@@ -253,6 +264,12 @@ export default class Adachi {
 		if ( curEnquireCmdKey ) {
 			const cmd = <Enquire | undefined>this.bot.command.getSingle( curEnquireCmdKey, await this.bot.auth.get( userID ) );
 			if ( cmd ) {
+				/* 被禁言后不予处理消息 */
+				const isShutUp = await this.checkBotShutUp( isPrivate, groupID );
+				if ( isShutUp ) {
+					return;
+				}
+				
 				const header = cmd.getTask( Enquire.getTaskKey( userID, groupID ) ).header;
 				this.setRawMessage( messageData, cmd, content, { header } );
 				await this.bot.command.cmdRunError( async () => {
@@ -262,7 +279,7 @@ export default class Adachi {
 			}
 		}
 		
-		
+		/* 未添加好友时不予触发指令 */
 		if ( isPrivate && this.bot.config.base.addFriend && messageData.sub_type !== "friend" ) {
 			if ( unionRegExp.test( content ) ) {
 				await messageData.reply( "请先添加 BOT 为好友再尝试发送指令" );
@@ -277,6 +294,14 @@ export default class Adachi {
 				await this.aiChat.autoChat( messageData.raw_message, sendMessage );
 			}
 			return;
+		}
+		
+		/* 被禁言后不予处理消息 */
+		if ( !isPrivate ) {
+			const isShutUp = await this.checkBotShutUp( isPrivate, groupID );
+			if ( isShutUp ) {
+				return;
+			}
 		}
 		
 		const usable: BasicConfig[] = cmdSet.filter( el => !limits.includes( el.cmdKey ) );
@@ -349,18 +374,16 @@ export default class Adachi {
 	}
 	
 	/* 清除缓存图片 */
-	private clearImageCache( that: Adachi ) {
-		const bot = that.bot;
-		return async function () {
-			const files: string[] = await bot.file.getDirFiles( "data/image", "root" );
-			files.forEach( f => {
-				const path: string = bot.file.getFilePath(
-					`data/image/${ f }`, "root"
-				);
-				unlinkSync( path );
-			} );
-			bot.logger.info( "图片缓存已清空" );
-		}
+	private async clearImageCache() {
+		const bot = this.bot;
+		const files: string[] = await bot.file.getDirFiles( "data/image", "root" );
+		files.forEach( f => {
+			const path: string = bot.file.getFilePath(
+				`data/image/${ f }`, "root"
+			);
+			unlinkSync( path );
+		} );
+		bot.logger.info( "图片缓存已清空" );
 	}
 	
 	private setRawMessage<T extends {
@@ -374,81 +397,74 @@ export default class Adachi {
 	}
 	
 	/* 处理私聊事件 */
-	private parsePrivateMsg( that: Adachi ) {
-		const bot = that.bot;
-		return async function ( messageData: core.PrivateMessageEvent ) {
-			const userID: number = messageData.sender.user_id;
-			const isMaster = userID === bot.config.base.master;
-			
-			/* 白名单校验 */
-			if ( !isMaster && bot.config.whiteList.enable && !that.userValid( userID ) ) {
-				return;
-			}
-			
-			if ( !bot.interval.check( userID, "private" ) ) {
-				return;
-			}
-			
-			const auth: AuthLevel = await bot.auth.get( userID );
-			const limit: string[] = await bot.redis.getList( `adachi.user-command-limit-${ userID }` );
-			const sendMessage: msg.SendFunc = bot.message.getSendMessageFunc(
-				userID, msg.MessageType.Private
-			);
-			const cmdSet: BasicConfig[] = bot.command.get( auth, msg.MessageScope.Private );
-			const unionReg: RegExp = bot.command.getUnion( auth, msg.MessageScope.Private );
-			await that.execute( messageData, sendMessage, cmdSet, limit, unionReg, true, false );
+	private async parsePrivateMsg( messageData: core.PrivateMessageEvent ) {
+		const bot = this.bot;
+		const userID: number = messageData.sender.user_id;
+		const isMaster = userID === bot.config.base.master;
+		
+		/* 白名单校验 */
+		if ( !isMaster && bot.config.whiteList.enable && !this.userValid( userID ) ) {
+			return;
 		}
+		
+		if ( !bot.interval.check( userID, "private" ) ) {
+			return;
+		}
+		
+		const auth: AuthLevel = await bot.auth.get( userID );
+		const limit: string[] = await bot.redis.getList( `adachi.user-command-limit-${ userID }` );
+		const sendMessage: msg.SendFunc = bot.message.getSendMessageFunc(
+			userID, msg.MessageType.Private
+		);
+		const cmdSet: BasicConfig[] = bot.command.get( auth, msg.MessageScope.Private );
+		const unionReg: RegExp = bot.command.getUnion( auth, msg.MessageScope.Private );
+		await this.execute( messageData, sendMessage, cmdSet, limit, unionReg, true, false );
 	}
 	
 	/* 处理群聊事件 */
-	private parseGroupMsg( that: Adachi ) {
-		const bot = that.bot;
-		return async function ( messageData: core.GroupMessageEvent ) {
-			const isAt = that.checkAtBOT( messageData );
-			if ( bot.config.base.atBOT && !isAt ) {
-				return;
-			}
-			
-			const { sender: { user_id: userID }, group_id: groupID, message_id: messageID, message } = messageData;
-			const isMaster = userID === bot.config.base.master;
-			
-			/* 白名单校验 */
-			if ( !isMaster && bot.config.whiteList.enable && !that.groupValid( groupID, userID ) ) {
-				return;
-			}
-			
-			/* 开启禁止刷屏模式 */
-			if ( bot.config.banScreenSwipe.enable ) {
-				that.banScreenSwipe( userID, groupID, messageID );
-			}
-			
-			/* 开启禁止过量 at 模式 */
-			if ( bot.config.banHeavyAt.enable ) {
-				that.banHeavyAt( userID, groupID, messageID, message );
-			}
-			
-			if ( !bot.interval.check( groupID, "group" ) ) {
-				return;
-			}
-			
-			const isBanned: boolean = await bot.redis.existListElement(
-				"adachi.banned-group", groupID
+	private async parseGroupMsg( messageData: core.GroupMessageEvent ) {
+		const bot = this.bot;
+		const isAt = this.checkAtBOT( messageData );
+		if ( bot.config.base.atBOT && !isAt ) {
+			return;
+		}
+		
+		const { sender: { user_id: userID }, group_id: groupID, message_id: messageID, message } = messageData;
+		const isMaster = userID === bot.config.base.master;
+		
+		/* 白名单校验 */
+		if ( !isMaster && bot.config.whiteList.enable && !this.groupValid( groupID, userID ) ) {
+			return;
+		}
+		
+		/* 开启禁止刷屏模式 */
+		if ( bot.config.banScreenSwipe.enable ) {
+			this.banScreenSwipe( userID, groupID, messageID );
+		}
+		
+		/* 开启禁止过量 at 模式 */
+		if ( bot.config.banHeavyAt.enable ) {
+			this.banHeavyAt( userID, groupID, messageID, message );
+		}
+		
+		if ( !bot.interval.check( groupID, "group" ) ) {
+			return;
+		}
+		
+		const isBanned: boolean = await bot.redis.existListElement(
+			"adachi.banned-group", groupID
+		);
+		
+		if ( !isBanned ) {
+			const auth: AuthLevel = await bot.auth.get( userID );
+			const gLim: string[] = await bot.redis.getList( `adachi.group-command-limit-${ groupID }` );
+			const uLim: string[] = await bot.redis.getList( `adachi.user-command-limit-${ userID }` );
+			const sendMessage: msg.SendFunc = bot.message.getSendMessageFunc(
+				userID, msg.MessageType.Group, groupID
 			);
-			
-			const groupInfoRes = await bot.client.getGroupMemberInfo( groupID, bot.client.uin );
-			const isShutUp = groupInfoRes.retcode === 0 ? groupInfoRes.data.is_shut_up : false;
-			
-			if ( !isBanned && !isShutUp ) {
-				const auth: AuthLevel = await bot.auth.get( userID );
-				const gLim: string[] = await bot.redis.getList( `adachi.group-command-limit-${ groupID }` );
-				const uLim: string[] = await bot.redis.getList( `adachi.user-command-limit-${ userID }` );
-				const sendMessage: msg.SendFunc = bot.message.getSendMessageFunc(
-					userID, msg.MessageType.Group, groupID
-				);
-				const cmdSet: BasicConfig[] = bot.command.get( auth, msg.MessageScope.Group );
-				const unionReg: RegExp = bot.command.getUnion( auth, msg.MessageScope.Group );
-				await that.execute( messageData, sendMessage, cmdSet, [ ...gLim, ...uLim ], unionReg, false, isAt );
-			}
+			const cmdSet: BasicConfig[] = bot.command.get( auth, msg.MessageScope.Group );
+			const unionReg: RegExp = bot.command.getUnion( auth, msg.MessageScope.Group );
+			await this.execute( messageData, sendMessage, cmdSet, [ ...gLim, ...uLim ], unionReg, false, isAt );
 		}
 	}
 	
@@ -580,77 +596,70 @@ export default class Adachi {
 	}
 	
 	/* 自动接受入群邀请 */
-	private acceptInvite( that: Adachi ) {
-		const bot = that.bot;
-		return async function ( data: core.GroupRequestEvent ) {
-			if ( data.sub_type === "add" ) {
-				return;
-			}
-			const inviterID: number = data.user_id;
-			if ( await bot.auth.check( inviterID, bot.config.base.inviteAuth ) ) {
-				const delay = Math.random() * ( 5 - 2 ) + 2;
-				setTimeout( async () => {
-					data.approve( true );
-				}, Math.floor( delay * 1000 ) );
-			} else {
-				const groupID: number = data.group_id;
-				await bot.client.sendPrivateMsg( data.user_id, "你没有邀请 BOT 入群的权限" );
-				bot.logger.info( `用户 ${ inviterID } 尝试邀请 BOT 进入群聊 ${ groupID }` );
-			}
+	private async acceptInvite( data: core.GroupRequestEvent ) {
+		const bot = this.bot;
+		if ( data.sub_type === "add" ) {
+			return;
+		}
+		const inviterID: number = data.user_id;
+		if ( await bot.auth.check( inviterID, bot.config.base.inviteAuth ) ) {
+			const delay = Math.random() * ( 5 - 2 ) + 2;
+			setTimeout( async () => {
+				data.approve( true );
+			}, Math.floor( delay * 1000 ) );
+		} else {
+			const groupID: number = data.group_id;
+			await bot.client.sendPrivateMsg( data.user_id, "你没有邀请 BOT 入群的权限" );
+			bot.logger.info( `用户 ${ inviterID } 尝试邀请 BOT 进入群聊 ${ groupID }` );
 		}
 	}
 	
 	/* 自动接受好友申请 */
-	private acceptFriend() {
-		return async function ( friendDate: core.FriendRequestEvent ) {
-			const delay = Math.random() * ( 5 - 2 ) + 2;
-			setTimeout( async () => {
-				friendDate.approve( true );
-			}, Math.floor( delay * 1000 ) );
-		}
+	private async acceptFriend( friendDate: core.FriendRequestEvent ) {
+		const delay = Math.random() * ( 5 - 2 ) + 2;
+		setTimeout( async () => {
+			friendDate.approve( true );
+		}, Math.floor( delay * 1000 ) );
 	}
 	
 	/* 上线事件 */
-	private botOnline( that: Adachi ) {
-		const bot = that.bot;
-		return async function () {
-			if ( that.deadTimer ) {
-				clearTimeout( that.deadTimer );
-				that.deadTimer = null;
-			}
-			
-			if ( that.lastOnline ) {
-				that.lastOnline = null;
-			}
-			
-			if ( that.isOnline ) return;
-			
-			that.isOnline = true;
-			
-			const HELP = <Order>bot.command.getSingle( "adachi.help", AuthLevel.Master );
-			const message: string =
-				`Adachi-BOT 已启动成功，请输入 ${ HELP.getHeaders()[0] } 查看命令帮助\n` +
-				"如有问题请前往 github.com/SilveryStar/Adachi-BOT 进行反馈"
-			await that.bot.message.sendMaster( message );
+	private async botOnline() {
+		const bot = this.bot;
+		if ( this.deadTimer ) {
+			clearTimeout( this.deadTimer );
+			this.deadTimer = null;
 		}
+		
+		if ( this.lastOnline ) {
+			this.lastOnline = null;
+		}
+		
+		if ( this.isOnline ) return;
+		
+		this.isOnline = true;
+		
+		const HELP = <Order>bot.command.getSingle( "adachi.help", AuthLevel.Master );
+		const message: string =
+			`Adachi-BOT 已启动成功，请输入 ${ HELP.getHeaders()[0] } 查看命令帮助\n` +
+			"如有问题请前往 github.com/SilveryStar/Adachi-BOT 进行反馈"
+		await this.bot.message.sendMaster( message );
 	}
 	
 	/* 离线事件 */
-	private botOffline( that: Adachi ) {
-		const bot = that.bot;
-		return async function () {
-			if ( !bot.config.mail.logoutSend || that.deadTimer ) return;
-			
-			if ( !that.lastOnline ) {
-				that.lastOnline = moment();
-			}
-			
-			const { sendDelay, retry, retryWait } = bot.config.mail;
-			that.deadTimer = setTimeout( () => {
-				const lastTime: string = that.lastOnline!.format( "YYYY-MM-DD HH:mm:ss" );
-				bot.mail.sendMaster( {
-					subject: "BOT 已离线",
-					html: `<p>BOT已离线，上次在线时间：${ lastTime }，请前往日志查看并重启BOT</p>
+	private async botOffline() {
+		const bot = this.bot;
+		if ( !bot.config.mail.logoutSend || this.deadTimer ) return;
+		
+		if ( !this.lastOnline ) {
+			this.lastOnline = moment();
+		}
+		
+		const { sendDelay, retry, retryWait } = bot.config.mail;
+		this.deadTimer = setTimeout( () => {
+			const lastTime: string = this.lastOnline!.format( "YYYY-MM-DD HH:mm:ss" );
+			bot.mail.sendMaster( {
+				subject: "BOT 已离线",
+				html: `<p>BOT已离线，上次在线时间：${ lastTime }，请前往日志查看并重启BOT</p>
 						<div align="center">
 						    <img src="https://docs.adachi.top/images/adachi.png" width="200"/>
 						    <h3>- AdachiBOT -</h3>
@@ -661,9 +670,8 @@ export default class Adachi {
 						    </div>
 						    <small>&gt; 原神Q群助手 &lt;</small>
 						</div>`
-				}, retry, retryWait * 60 * 1000 );
-			}, sendDelay * 60 * 1000 );
-		}
+			}, retry, retryWait * 60 * 1000 );
+		}, sendDelay * 60 * 1000 );
 	}
 	
 	/**
@@ -682,43 +690,38 @@ export default class Adachi {
 	// }
 	
 	/* 退群事件 */
-	private groupDecrease( that: Adachi ) {
-		const bot = that.bot;
-		return async function ( groupDate: core.GroupDecreaseNoticeEvent ) {
-			if ( bot.config.base.addFriend ) {
-				const groupId = groupDate.group_id;
-				// 清空订阅
-				PluginManager.getInstance().remSub( "group", groupId );
-			}
+	private groupDecrease( groupDate: core.GroupDecreaseNoticeEvent ) {
+		if ( this.bot.config.base.addFriend ) {
+			const groupId = groupDate.group_id;
+			// 清空订阅
+			PluginManager.getInstance().remSub( "group", groupId );
 		}
 	}
 	
 	/* 数据统计 与 超量使用监看 */
-	private hourlyCheck( that: Adachi ): JobCallback {
-		const bot = that.bot;
-		return function (): void {
-			bot.redis.getHash( "adachi.hour-stat" ).then( async data => {
-				const threshold: number = bot.config.directive.countThreshold;
-				const cmdOverusedUser: string[] = Object.keys( data ).filter( key => {
-					return parseInt( data[key] ) > threshold;
-				} );
-				
-				const length: number = cmdOverusedUser.length;
-				if ( length !== 0 ) {
-					const msg: string =
-						`上个小时内有 ${ length } 个用户指令使用次数超过了阈值` +
-						[ "", ...cmdOverusedUser.map( el => `${ el }: ${ data[el] }次` ) ]
-							.join( "\n  - " );
-					await bot.message.sendMaster( msg );
-				}
-				await bot.redis.deleteKey( "adachi.hour-stat" );
+	private async hourlyCheck() {
+		const bot = this.bot;
+		bot.redis.getHash( "adachi.hour-stat" ).then( async data => {
+			const threshold: number = bot.config.directive.countThreshold;
+			const cmdOverusedUser: string[] = Object.keys( data ).filter( key => {
+				return parseInt( data[key] ) > threshold;
 			} );
 			
-			bot.redis.getHash( "adachi.command-stat" ).then( async data => {
-				const hourID: string = moment().format( "yy/MM/DD/HH" );
-				await bot.redis.deleteKey( "adachi.command-stat" );
-				await bot.redis.setString( `adachi.command-stat-${ hourID }`, JSON.stringify( data ) );
-			} );
-		}
+			const length: number = cmdOverusedUser.length;
+			if ( length !== 0 ) {
+				const msg: string =
+					`上个小时内有 ${ length } 个用户指令使用次数超过了阈值` +
+					[ "", ...cmdOverusedUser.map( el => `${ el }: ${ data[el] }次` ) ]
+						.join( "\n  - " );
+				await bot.message.sendMaster( msg );
+			}
+			await bot.redis.deleteKey( "adachi.hour-stat" );
+		} );
+		
+		bot.redis.getHash( "adachi.command-stat" ).then( async data => {
+			const hourID: string = moment().format( "yy/MM/DD/HH" );
+			await bot.redis.deleteKey( "adachi.command-stat" );
+			await bot.redis.setString( `adachi.command-stat-${ hourID }`, JSON.stringify( data ) );
+		} );
 	}
 }

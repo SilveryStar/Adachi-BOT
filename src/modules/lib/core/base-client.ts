@@ -167,6 +167,9 @@ export default class BaseClient extends EventEmitter {
 						case "anonymous":
 							this.logger.info( `来自群 ${ groupName }(${ data.group_id }) 内 ${ data.anonymous.name } 的匿名消息: ${ data.raw_message }` );
 							this.emit( "message.group.anonymous", data );
+							break;
+						default:
+							this.logger.warn( "未被记录的 type: " + ( <any>data ).sub_type )
 					}
 					this.emit( "message.group", data );
 				}
@@ -300,8 +303,8 @@ export default class BaseClient extends EventEmitter {
 				retcode: 408,
 				status: "failed",
 				data: null,
-				msg: "Request_Timeout",
-				wording: "请求超时",
+				msg: `Action ${ action } Request_Timeout`,
+				wording: `Api ${ action } 请求超时`,
 				echo
 			} )
 		}, 10000 );
