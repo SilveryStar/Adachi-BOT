@@ -25,22 +25,31 @@ export default class BaseClient extends EventEmitter {
 	public online: boolean = false;
 	public logger: Logger = getLogger( "[adachi]" );
 	
-	constructor( private target: string ) {
+	constructor(
+		private target: string,
+		private fetchTimeout: number
+	) {
 		super();
 		this.wsApi = new WsMessage( this.initApiWs.bind( this ), false );
 		this.wsEvent = new WsMessage( this.initEventWs.bind( this ), false );
 	}
 	
-	public static getInstance( target?: string ) {
+	public static getInstance( target?: string, fetchTimeout?: number ) {
 		if ( !BaseClient.__instance ) {
-			if ( !target ) {
+			if ( !target || !fetchTimeout ) {
 				throw new Error( "Invalid parameter" );
 			}
-			BaseClient.__instance = new BaseClient( target );
+			BaseClient.__instance = new BaseClient( target, fetchTimeout );
 		}
 		return BaseClient.__instance;
 	}
 	
+	/* 设置请求协议端的超时时间 */
+	public setFetchTimeout( fetchTimeout: number ) {
+		this.fetchTimeout = fetchTimeout;
+	}
+	
+	/* 设置协议端地址 */
 	public setTarget( target: string ) {
 		this.target = target;
 	}
@@ -307,7 +316,7 @@ export default class BaseClient extends EventEmitter {
 				wording: `Api ${ action } 请求超时`,
 				echo
 			} )
-		}, 10000 );
+		}, this.fetchTimeout );
 		return new Promise( resolve => {
 			this.onApi( echo, data => {
 				clearTimeout( timer );

@@ -193,8 +193,14 @@ export default class Command {
 	public readonly cmdKeys: string[];
 	
 	constructor( file: FileManagement, config: BotConfig ) {
-		this.cmdRunQueue = new AsyncQueue( 10, 1 );
+		this.cmdRunQueue = new AsyncQueue( config.directive.concurrency, 1 );
 		this.cmdKeys = without( Object.keys( ( file.loadYAMLSync( "commands" ) || {} ) ), "tips" );
+		/* 并发数变化后更新事件队列 */
+		config.directive.on( "refresh", ( newCfg, oldCfg ) => {
+			if ( newCfg.concurrency !== oldCfg.concurrency ) {
+				this.cmdRunQueue = new AsyncQueue( newCfg.concurrency, 1 );
+			}
+		} );
 	}
 	
 	private static initAuthObject(): Record<AuthLevel, any> {

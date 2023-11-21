@@ -49,6 +49,16 @@
 					           @change="updateConfig('base', 'addFriend')"/>
 				</form-item>
 				<spread-form-item
+					v-model="setting.base.apiTimeout"
+					:active-spread="activeSpread"
+					:disabled="pageLoading"
+					label="API超时时间"
+					type="number"
+					desc="请求消息服务API的超时时间"
+					@change="updateConfig('base', 'apiTimeout')"
+					@open="activeSpreadItem"
+				/>
+				<spread-form-item
 					v-model="setting.base.renderPort"
 					:active-spread="activeSpread"
 					:disabled="pageLoading"
@@ -106,6 +116,16 @@
 					<el-switch v-model="setting.directive.matchPrompt" :disabled="pageLoading"
 					           @change="updateConfig('directive', 'matchPrompt')"/>
 				</form-item>
+				<spread-form-item
+					v-model="setting.directive.concurrency"
+					:active-spread="activeSpread"
+					:disabled="pageLoading"
+					label="并发量"
+					type="number"
+					desc="可同时处理的最大指令数量"
+					@change="updateConfig('directive', 'concurrency')"
+					@open="activeSpreadItem"
+				/>
 				<spread-form-item
 					v-model="setting.directive.callTimes"
 					:active-spread="activeSpread"

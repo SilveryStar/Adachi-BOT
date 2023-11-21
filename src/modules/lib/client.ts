@@ -21,7 +21,7 @@ export class Client {
 	private baseClient: BaseClient;
 	
 	constructor( private config: BotConfig ) {
-		this.baseClient = BaseClient.getInstance( config.base.wsServer );
+		this.baseClient = BaseClient.getInstance( config.base.wsServer, config.base.apiTimeout );
 		this.initLoggerConfig();
 		this.logger.level = config.base.logLevel;
 		this.initRefreshListener();
@@ -73,6 +73,9 @@ export class Client {
 			if ( newCfg.wsServer !== oldCfg.wsServer ) {
 				this.baseClient.setTarget( newCfg.wsServer );
 				this.reConnect();
+			}
+			if ( newCfg.apiTimeout !== oldCfg.apiTimeout ) {
+				this.baseClient.setFetchTimeout( newCfg.apiTimeout );
 			}
 			if ( newCfg.logLevel !== oldCfg.logLevel ) {
 				this.logger.level = newCfg.logLevel;

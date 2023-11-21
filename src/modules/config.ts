@@ -16,6 +16,7 @@ const initBase = {
 	atUser: false,
 	atBOT: false,
 	addFriend: true,
+	apiTimeout: 20000,
 	renderPort: 80
 }
 
@@ -28,6 +29,7 @@ const initDirective = {
 	helpMessageStyle: "message",
 	fuzzyMatch: false,
 	matchPrompt: true,
+	concurrency: 10,
 	callTimes: 3,
 	countThreshold: 60,
 	ThresholdInterval: false
