@@ -10,6 +10,7 @@ import { AuthLevel } from "../management/auth";
 import { BOT } from "@/modules/bot";
 import { trimStart, without } from "lodash";
 import { BotConfig } from "@/modules/config";
+import AsyncQueue from "@/utils/asyncQueue";
 
 type Optional<T> = {
 	-readonly [key in keyof T]?: T[key];
@@ -129,10 +130,10 @@ export abstract class BasicConfig {
 	
 	protected get baseHeader() {
 		return this.botCfg.directive.header.length
-			? Array.from( new Set( this.botCfg.directive.header  ) )
+			? Array.from( new Set( this.botCfg.directive.header ) )
 			: [ "" ];
 	}
-
+	
 	// 非捕获正则字符串中的分组，并捕获整段参数
 	protected captureParams( regList: string[] ) {
 		return regList.map( r => {
@@ -181,6 +182,8 @@ export abstract class BasicConfig {
 }
 
 export default class Command {
+	/* 命令执行队列 */
+	private cmdRunQueue: AsyncQueue;
 	private privates: CommandList = Command.initAuthObject();
 	private groups: CommandList = Command.initAuthObject();
 	private all: CommandList = Command.initAuthObject();
@@ -189,7 +192,8 @@ export default class Command {
 	public raws: ConfigType[] = [];
 	public readonly cmdKeys: string[];
 	
-	constructor( file: FileManagement ) {
+	constructor( file: FileManagement, config: BotConfig ) {
+		this.cmdRunQueue = new AsyncQueue( 10, 1 );
 		this.cmdKeys = without( Object.keys( ( file.loadYAMLSync( "commands" ) || {} ) ), "tips" );
 	}
 	
@@ -297,18 +301,17 @@ export default class Command {
 		}
 	}
 	
-	public async cmdRunError( run: ( ...arg: any[] ) => any, userID: number, groupID: number ) {
-		const sendMessage = groupID === -1
-			? bot.message.getSendMessageFunc( userID, msg.MessageType.Private )
-			: bot.message.getSendMessageFunc( userID, msg.MessageType.Group, groupID );
-		try {
-			await run();
-		} catch ( error ) {
-			bot.logger.error( ( <Error>error ).stack || error );
+	public cmdRun( run: ( ...arg: any[] ) => any, userID: number, groupID: number ) {
+		this.cmdRunQueue.enqueue( run ).catch( async error => {
+			const sendMessage = groupID === -1
+				? bot.message.getSendMessageFunc( userID, msg.MessageType.Private )
+				: bot.message.getSendMessageFunc( userID, msg.MessageType.Group, groupID );
+			
+			bot.logger.error( error instanceof Error ? error.stack : error );
 			const CALL = <Order>bot.command.getSingle( "adachi.call", await bot.auth.get( userID ) );
 			const appendMsg = CALL ? `私聊使用 ${ CALL.getHeaders()[0] } ` : "";
 			await sendMessage( `指令执行异常，请${ appendMsg }联系持有者进行反馈` );
-		}
+		} );
 	}
 	
 	public getSingle(
@@ -317,9 +320,9 @@ export default class Command {
 		scope: MessageScope = MessageScope.Both
 	): BasicConfig | undefined {
 		const commandsMap = {
-			[ MessageScope.Private ]: this.privates,
-			[ MessageScope.Group ]: this.groups,
-			[ MessageScope.Both ]: this.all
+			[MessageScope.Private]: this.privates,
+			[MessageScope.Group]: this.groups,
+			[MessageScope.Both]: this.all
 		}
 		const commands: BasicConfig[] = commandsMap[scope]?.[auth];
 		if ( !commands ) {

@@ -16,7 +16,7 @@ import Authorization, { AuthLevel } from "./management/auth";
 import * as msg from "./message";
 import MailManagement from "./mail";
 import { Md5 } from "md5-typescript";
-import { JobCallback, scheduleJob } from "node-schedule";
+import { scheduleJob } from "node-schedule";
 import { trim } from "lodash";
 import { unlinkSync } from "fs";
 import axios, { AxiosError } from "axios";
@@ -70,12 +70,12 @@ export default class Adachi {
 	constructor() {
 		/* 初始化运行环境 */
 		const file = FileManagement.getInstance();
-		// 是否需要初始化环境
+		/* 是否需要初始化环境 */
 		const exist = file.isExistSync( file.getFilePath( "base.yml" ) );
-		const command = new Command( file );
-		
 		/* 初始化应用模块 */
 		const config = this.getBotConfig();
+		/* 初始化命令 */
+		const command = new Command( file, config );
 		
 		if ( !exist ) {
 			Adachi.setEnv( file );
@@ -272,7 +272,7 @@ export default class Adachi {
 				
 				const header = cmd.getTask( Enquire.getTaskKey( userID, groupID ) ).header;
 				this.setRawMessage( messageData, cmd, content, { header } );
-				await this.bot.command.cmdRunError( async () => {
+				this.bot.command.cmdRun( async () => {
 					await cmd.confirm( userID, groupID, { sendMessage, ...this.bot, messageData } );
 				}, userID, groupID );
 				return;
@@ -344,7 +344,7 @@ export default class Adachi {
 			this.setRawMessage( messageData, cmd, content, res );
 		}
 		
-		await this.bot.command.cmdRunError( async () => {
+		this.bot.command.cmdRun( async () => {
 			const input: any = {
 				sendMessage, ...this.bot,
 				messageData, matchResult: res
@@ -354,22 +354,20 @@ export default class Adachi {
 			} else {
 				await cmd.run( input );
 			}
+			/* 数据统计与收集 */
+			await this.bot.redis.addSetMember( `adachi.user-used-groups-${ userID }`, groupID.toString() );
+			await this.bot.redis.incHash( "adachi.hour-stat", userID.toString(), 1 );
+			await this.bot.redis.incHash( "adachi.command-stat", cmd.cmdKey, 1 );
+			
+			const checkRes: boolean = await this.checkThreshold( userID );
+			if ( !checkRes ) {
+				/**
+				 * 此时该用户已超量
+				 * todo 群聊中同时进行回复指定消息
+				 */
+				await messageData.reply( "指令使用过于频繁，本小时内 BOT 将不再对你的指令作出响应" );
+			}
 		}, userID, groupID );
-		
-		/* 数据统计与收集 */
-		await this.bot.redis.addSetMember( `adachi.user-used-groups-${ userID }`, groupID.toString() );
-		await this.bot.redis.incHash( "adachi.hour-stat", userID.toString(), 1 );
-		await this.bot.redis.incHash( "adachi.command-stat", cmd.cmdKey, 1 );
-		
-		const checkRes: boolean = await this.checkThreshold( userID );
-		if ( !checkRes ) {
-			/**
-			 * 此时该用户已超量
-			 * todo 群聊中同时进行回复指定消息
-			 */
-			await messageData.reply( "指令使用过于频繁，本小时内 BOT 将不再对你的指令作出响应" );
-		}
-		
 		return;
 	}
 	

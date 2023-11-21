@@ -110,9 +110,9 @@ export class Enquire extends BasicConfig {
 	
 	private getActivateJob( userID: number, groupID: number, input: InputParameter<"enquire"> ) {
 		const d = new Date();
-		return scheduleJob( d.setSeconds( d.getSeconds() + this.timeout ), async () => {
+		return scheduleJob( d.setSeconds( d.getSeconds() + this.timeout ), () => {
 			input.matchResult.status = "timeout";
-			await bot.command.cmdRunError( async () => {
+			bot.command.cmdRun( async () => {
 				await this.inactivate( userID, groupID, input );
 			}, userID, groupID );
 		} )
