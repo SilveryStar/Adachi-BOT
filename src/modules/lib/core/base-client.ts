@@ -1,6 +1,15 @@
 import WebSocket from "ws";
 import { isJsonString } from "@/utils/verify";
-import { ActionRequest, ActionResponse, EventData, FriendInfo, GroupInfo, Sendable, toMessageRecepElem } from "@/modules/lib";
+import {
+	ActionRequest,
+	ActionResponse,
+	EventData,
+	FriendInfo,
+	GroupInfo,
+	MessageElem,
+	Sendable,
+	toMessageRecepElem
+} from "@/modules/lib";
 import WsMessage from "@/utils/message";
 import { getLogger, Logger } from "log4js";
 import EventEmitter from "@/modules/lib/core/event-emitter";
@@ -305,6 +314,8 @@ export default class BaseClient extends EventEmitter {
 				echo
 			} );
 		}
+		
+		this.printSendLogger( action, params );
 		this.sendMessage( { action, params, echo } );
 		/* 10000ms 超时 */
 		const timer = setTimeout( () => {
@@ -326,6 +337,55 @@ export default class BaseClient extends EventEmitter {
 				}
 			} );
 		} )
+	}
+	
+	/* 根据 message 类型获取日志打印内容 */
+	private getMessageLogger( message: any ) {
+		if ( typeof message === "string" ) {
+			return message;
+		}
+		if ( message instanceof Array ) {
+			return message.map( this.getMessageLogger ).join( "" );
+		}
+		
+		const { type, data } = message;
+		if ( type === "text" ) {
+			return data.text;
+		}
+		const msgMap = {
+			at: data.qq,
+			music: data.id || data.url,
+			reply: data.id || data.qq,
+			face: data.id,
+			share: data.url,
+			poke: data.qq,
+			gift: data.id
+		}
+		const tipMsg = msgMap[type];
+		if ( tipMsg ) {
+			return `{${ type }: ${ tipMsg }}`;
+		}
+		return `{${ type }}`;
+	}
+	
+	/* 打印消息发送日志 */
+	private printSendLogger( action: string, params: any ) {
+		let tipTarget = "";
+		if ( action === "send_msg" ) {
+			tipTarget = params.message_type === "group" ? `[群聊(${ params.group_id })]` : `[私聊(${ params.user_id })]`;
+		}
+		if ( action === "send_private_msg" ) {
+			tipTarget = `[私聊(${ params.user_id })]`;
+		}
+		if ( action === "send_group_msg" ) {
+			tipTarget = `[群聊(${ params.group_id })]`;
+		}
+		if ( !tipTarget ) {
+			return;
+		}
+		
+		const tipMessage = this.getMessageLogger( params.message );
+		this.logger.info( `消息发送成功: ${ tipTarget } ${ tipMessage }` );
 	}
 	
 	public sendMessage( data: ActionRequest ) {

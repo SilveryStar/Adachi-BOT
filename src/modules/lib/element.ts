@@ -62,8 +62,8 @@ export const segment = {
 	reply( id: number ): el.ReplayElem {
 		return { type: "reply", id };
 	},
-	replayCustom( text: string, qq: number, time: number, seq: number ): el.ReplayCustomElem {
-		return { type: "replayCustom", text, qq, time, seq  };
+	replyCustom( text: string, qq: number, time: number, seq: number ): el.ReplayCustomElem {
+		return { type: "replyCustom", text, qq, time, seq  };
 	},
 	poke( qq: number ): el.PokeElem {
 		return { type: "poke", qq  };

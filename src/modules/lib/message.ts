@@ -68,18 +68,24 @@ export function formatSendMessage( message: Sendable ) {
 			};
 		}
 		
-		let data: any;
-		if ( msg.type === "musicCustom" || msg.type === "replayCustom" ) {
+		let data: any, type: string;
+		if ( msg.type === "musicCustom" || msg.type === "replyCustom" ) {
 			data = {
 				...msg,
 				type: "custom"
 			}
+			if ( msg.type === "musicCustom" ) {
+				type = "music";
+			} else {
+				type = "reply";
+			}
 		} else {
+			type = msg.type;
 			data = { ...msg };
 			if ( msg.type === "json" ) {
 				data.data = materialize( JSON.stringify( msg.data ) );
 			}
-			if ( msg.type === "image" || msg.type === "flash" || msg.type === "record" ) {
+			if ( msg.type === "image" || msg.type === "flash" || msg.type === "record" || msg.type === "video" ) {
 				if ( msg.file instanceof Buffer ) {
 					data.file = "base64://" + msg.file.toString( "base64" );
 				}
@@ -91,7 +97,7 @@ export function formatSendMessage( message: Sendable ) {
 				data.type = msg.platform;
 			}
 		}
-		return { type: msg.type, data };
+		return { type, data };
 	} );
 }
 

@@ -109,7 +109,7 @@ export interface ReplayElem {
 
 /** 自定义回复 */
 export interface ReplayCustomElem {
-	type: "replayCustom";
+	type: "replyCustom";
 	/** 自定义回复的信息 */
 	text: string;
 	/** 自定义回复时的自定义QQ, 如果使用自定义信息必须指定. */
