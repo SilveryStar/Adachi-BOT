@@ -55,7 +55,7 @@ export class Order extends BasicConfig {
 					config.start !== false,
 					config.stop !== false
 				);
-				return Order.regexp( pattern, this.ignoreCase );
+				return Order.regexp( pattern, this.ignoreCase, this.dotAll );
 			} )
 		} ) );
 	}

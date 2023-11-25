@@ -71,7 +71,7 @@ export class Enquire extends BasicConfig {
 			);
 			return {
 				header,
-				regExp: Enquire.regexp( pattern, this.ignoreCase )
+				regExp: Enquire.regexp( pattern, this.ignoreCase, this.dotAll )
 			}
 		} );
 	}

@@ -61,6 +61,7 @@ export interface CommandCfg {
 	scope?: MessageScope;
 	display?: boolean;
 	ignoreCase?: boolean;
+	dotAll?: boolean;
 	priority?: number;
 	start?: boolean;
 	stop?: boolean;
@@ -97,6 +98,7 @@ export abstract class BasicConfig {
 	readonly detail: string;
 	readonly display: boolean;
 	readonly ignoreCase: boolean;
+	readonly dotAll: boolean;
 	readonly enable: boolean;
 	readonly raw: ConfigType;
 	readonly desc: [ string, string ];
@@ -114,6 +116,7 @@ export abstract class BasicConfig {
 		this.scope = config.scope || MessageScope.Both;
 		this.detail = config.detail || "该指令暂无更多信息";
 		this.ignoreCase = config.ignoreCase !== false;
+		this.dotAll = config.dotAll !== false;
 		this.priority = config.priority || 0;
 		this.display = config.display !== false;
 		this.enable = config.enable !== false;
@@ -150,8 +153,10 @@ export abstract class BasicConfig {
 		}
 	}
 	
-	protected static regexp( regStr: string, i: boolean = false ): RegExp {
-		return new RegExp( regStr, i ? "i" : "" );
+	protected static regexp( regStr: string, i = false, s = false ): RegExp {
+		const ignoreCase = i ? "i" : "";
+		const dotAll = s ? "s" : "";
+		return new RegExp( regStr, ignoreCase + dotAll );
 	}
 	
 	protected static addStartStopChar(
@@ -285,7 +290,7 @@ export default class Command {
 					list.push( ...cmd.regPairs.map( r => `(${ r.regExp.source })` ) );
 				}
 			} )
-			return new RegExp( `(${ list.join( "|" ) })`, "i" );
+			return new RegExp( `(${ list.join( "|" ) })`, "si" );
 		}
 	}
 	

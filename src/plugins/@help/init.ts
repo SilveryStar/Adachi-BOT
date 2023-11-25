@@ -29,7 +29,7 @@ const call: OrderConfig = {
 	cmdKey: "adachi.call",
 	desc: [ "联系bot持有者", "[内容]" ],
 	headers: [ "call" ],
-	regexps: [ "[\\W\\w]+" ],
+	regexps: [ ".+" ],
 	scope: 2,
 	ignoreCase: false,
 	main: "achieves/call",

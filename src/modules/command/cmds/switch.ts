@@ -76,7 +76,7 @@ export class Switch extends BasicConfig {
 						? `(${ config.onKey }|${ config.offKey })`
 						: "";
 					const r = ["", ...regList].join( "\\s*" ).replace( "(#{OPT})", replaceStr );
-					return Switch.regexp( addChar( h + r ), this.ignoreCase );
+					return Switch.regexp( addChar( h + r ), this.ignoreCase, this.dotAll );
 				} )
 			}
 		} )
