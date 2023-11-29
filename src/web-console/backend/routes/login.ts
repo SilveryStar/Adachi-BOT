@@ -2,17 +2,17 @@ import express from "express";
 import bot from "ROOT";
 import { getToken } from "@/web-console/backend/utils/jwt";
 import account from "../utils/account";
+import { RequestParamsError } from "@/web-console/backend/utils/error";
 
 export default express.Router()
-	.post( "/", async ( req, res ) => {
+	.post( "/", async ( req, res, next ) => {
 		const username = req.body.username;
 		const password = req.body.password;
 		
 		try {
 			const info = await account.getAccount( username );
 			if ( !info ) {
-				res.status( 404 ).send( { code: 404, data: {}, msg: "当前用户不存在" } );
-				return;
+				return next( new RequestParamsError() );
 			}
 			if ( info.password === password ) {
 				res.status( 200 ).send( {
@@ -22,7 +22,7 @@ export default express.Router()
 			} else {
 				res.status( 412 ).send( { code: 412, data: {}, msg: "用户名或密码错误" } );
 			}
-		} catch ( error: any ) {
-			res.status( 500 ).send( { code: 500, data: {}, msg: error.message || "Server Error" } );
+		} catch ( error ) {
+			next( error );
 		}
 	} );

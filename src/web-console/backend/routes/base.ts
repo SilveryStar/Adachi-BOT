@@ -9,7 +9,7 @@ import { formatMemories } from "@/utils/format";
 import pm2 from "pm2";
 
 export default express.Router()
-	.get( "/stat", async ( req, res ) => {
+	.get( "/stat", async ( req, res, next ) => {
 		/* 前端传参为某周周日的日期 */
 		const date = new Date( <string>req.query.start );
 		
@@ -55,16 +55,16 @@ export default express.Router()
 			const resp = { weakData, userCount, groupCount, memories, cpuUsed };
 			res.status( 200 ).send( { code: 200, data: resp } );
 		} catch ( error: any ) {
-			res.status( 500 ).send( { code: 500, data: {}, msg: error.message || "Server Error" } );
+			next( error );
 		}
 	} )
-	.post( "/refresh", async ( req, res ) => {
+	.post( "/refresh", async ( req, res, next ) => {
 		try {
 			const refresh = Refreshable.getInstance();
 			const resp: string[] = await refresh.do();
 			res.status( 200 ).send( { code: 200, data: resp } );
 		} catch ( error: any ) {
-			res.status( 500 ).send( { code: 500, data: {}, msg: error.message || "Server Error" } );
+			next( error );
 		}
 	} )
 	.post( "/restart", async ( req, res ) => {

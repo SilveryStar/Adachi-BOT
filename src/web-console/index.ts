@@ -104,13 +104,14 @@ export default class WebConsole {
 	
 	private static ApiErrorCatch( err, req, res, next ) {
 		switch ( err.name ) {
-			case "UnauthorizedError":
-				res.status( 401 ).send( {
-					code: 401,
-					msg: "Please login.",
-					data: 0
-				} );
+			case "RequestParamsError":
+				res.status( 400 ).send( { code: 400, data: {}, msg: err.message } );
 				break;
+			case "UnauthorizedError":
+				res.status( 401 ).send( { code: 401, msg: "Please login.", data: 0 } );
+				break;
+			default:
+				res.status( 500 ).send( { code: 500, data: [], msg: err.message || "Server Error" } );
 		}
 	}
 	

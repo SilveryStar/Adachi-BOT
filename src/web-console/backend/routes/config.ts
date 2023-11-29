@@ -115,7 +115,7 @@ export default express.Router()
 		await bot.file.writeFile( ticketPath, data, "root" );
 		res.status( 200 ).send( { code: 200, data: {}, msg: "Success" } );
 	} )
-	.get( "/plugins", async ( req, res ) => {
+	.get( "/plugins", async ( req, res, next ) => {
 		try {
 			const data: PluginConfig[] = [];
 			const pluginList = Plugin.getInstance().pluginList;
@@ -143,8 +143,8 @@ export default express.Router()
 			}
 			
 			res.status( 200 ).send( { code: 200, data, msg: "Success" } );
-		} catch ( error: any ) {
-			res.status( 500 ).send( { code: 500, data: {}, msg: error.message || "Server Error" } );
+		} catch ( error ) {
+			next( error );
 		}
 	} )
 

@@ -6,15 +6,15 @@ import { sleep } from "@/utils/async";
 import { getRandomNumber } from "@/utils/random";
 import { formatSubUsers } from "../utils/format";
 import PluginManager from "@/modules/plugin";
+import { RequestParamsError } from "@/web-console/backend/utils/error";
 
 export default express.Router()
-	.get( "/list", async ( req, res ) => {
+	.get( "/list", async ( req, res, next ) => {
 		const page = parseInt( <string>req.query.page ); // 当前第几页
 		const length = parseInt( <string>req.query.length ); // 页长度
 		
 		if ( !page || !length ) {
-			res.status( 400 ).send( { code: 400, data: {}, msg: "Error Params" } );
-			return;
+			return next( new RequestParamsError() );
 		}
 		
 		const groupId = <string>req.query.groupId || "";
@@ -51,8 +51,8 @@ export default express.Router()
 			
 			const cmdKeys: string[] = bot.command.cmdKeys;
 			res.status( 200 ).send( { code: 200, data: { groupInfos, cmdKeys }, total: groupData.length } );
-		} catch ( error: any ) {
-			res.status( 500 ).send( { code: 500, data: {}, msg: error.message || "Server Error" } );
+		} catch ( error ) {
+			next( error );
 		}
 		
 	} )
@@ -77,100 +77,102 @@ export default express.Router()
 			res.status( 404 ).send( { code: 404, data: {}, msg: "Not Found" } );
 		}
 	} )
-	.post( "/set", async ( req, res ) => {
+	.post( "/set", async ( req, res, next ) => {
 		const groupId: number = parseInt( <string>req.body.target );
 		const int: number = parseInt( <string>req.body.int );
 		const auth = <1 | 2>parseInt( <string>req.body.auth );
 		const limits: string[] = JSON.parse( <string>req.body.limits );
 		
-		/* 封禁相关 */
-		const banDbKey = "adachi.banned-group";
-		if ( auth === 1 ) {
-			await bot.redis.addListElement( banDbKey, groupId.toString() );
-		} else {
-			await bot.redis.delListElement( banDbKey, groupId.toString() );
+		try {
+			/* 封禁相关 */
+			const banDbKey = "adachi.banned-group";
+			if ( auth === 1 ) {
+				await bot.redis.addListElement( banDbKey, groupId.toString() );
+			} else {
+				await bot.redis.delListElement( banDbKey, groupId.toString() );
+			}
+			
+			await bot.interval.set( groupId, "private", int );
+			
+			const dbKey: string = `adachi.group-command-limit-${ groupId }`;
+			await bot.redis.deleteKey( dbKey );
+			if ( limits.length !== 0 ) {
+				await bot.redis.addListElement( dbKey, ...limits );
+			}
+			
+			res.status( 200 ).send( "success" );
+		} catch ( error ) {
+			next( error );
 		}
-		
-		await bot.interval.set( groupId, "private", int );
-		
-		const dbKey: string = `adachi.group-command-limit-${ groupId }`;
-		await bot.redis.deleteKey( dbKey );
-		if ( limits.length !== 0 ) {
-			await bot.redis.addListElement( dbKey, ...limits );
-		}
-		
-		res.status( 200 ).send( "success" );
 	} )
-	.post( "/sub/remove", async ( req, res ) => {
+	.post( "/sub/remove", async ( req, res, next ) => {
 		const groupId = req.body.groupId;
 		if ( !groupId ) {
-			res.status( 400 ).send( { code: 400, data: [], msg: "Error Params" } );
-			return;
+			return next( new RequestParamsError() );
 		}
-		
 		try {
 			// 清空订阅
 			PluginManager.getInstance().remSub( "group", groupId );
 			res.status( 200 ).send( { code: 200, data: {}, msg: "Success" } );
-		} catch ( error: any ) {
-			res.status( 500 ).send( { code: 500, data: [], msg: error.message || "Server Error" } );
+		} catch ( error ) {
+			next( error );
 		}
 	} )
-	.post( "/send/batch", async ( req, res ) => {
+	.post( "/send/batch", async ( req, res, next ) => {
 		const content: string = <string>req.body.content;
 		const groupIds: number[] | undefined = req.body.groupIds;
 		
 		if ( !content || ( groupIds && !( [] instanceof Array ) ) ) {
-			res.status( 400 ).send( { code: 400, data: {}, msg: "Error Params" } );
-			return;
+			return next( new RequestParamsError() );
 		}
 		
-		const timoutDbKey = "adachi.batch-send-timeout";
-		const nextUseTime: number = parseInt( await bot.redis.getString( timoutDbKey ) );
-		if ( new Date().getTime() <= nextUseTime ) {
-			res.status( 400 ).send( { code: 400, data: {}, msg: "In cool down time" } );
-			return;
+		try {
+			const timoutDbKey = "adachi.batch-send-timeout";
+			const nextUseTime: number = parseInt( await bot.redis.getString( timoutDbKey ) );
+			if ( new Date().getTime() <= nextUseTime ) {
+				res.status( 400 ).send( { code: 400, data: {}, msg: "In cool down time" } );
+				return;
+			}
+			
+			// 递增发送延迟，发送次数
+			let delayTimer: number = 0, sendCount: number = 0;
+			/* 向选中列表发送，否则向全部群聊发送 */
+			if ( groupIds && groupIds.length !== 0 ) {
+				groupIds.forEach( groupId => {
+					sendCount++
+					delayTimer = sendToGroupMsg( groupId, content, delayTimer, sendCount );
+				} )
+			} else {
+				const groupList = bot.client.gl;
+				groupList.forEach( ( _, groupId ) => {
+					sendCount++
+					delayTimer = sendToGroupMsg( groupId, content, delayTimer, sendCount );
+				} )
+			}
+			const cdTime = new Date().getTime() + delayTimer;
+			await bot.redis.setString( timoutDbKey, cdTime );
+			res.status( 200 ).send( { code: 200, data: { cdTime }, msg: "Success" } );
+		} catch ( error ) {
+			next( error );
 		}
-		
-		// 递增发送延迟，发送次数
-		let delayTimer: number = 0, sendCount: number = 0;
-		/* 向选中列表发送，否则向全部群聊发送 */
-		if ( groupIds && groupIds.length !== 0 ) {
-			groupIds.forEach( groupId => {
-				sendCount++
-				delayTimer = sendToGroupMsg( groupId, content, delayTimer, sendCount );
-			} )
-		} else {
-			const groupList = bot.client.gl;
-			groupList.forEach( ( _, groupId ) => {
-				sendCount++
-				delayTimer = sendToGroupMsg( groupId, content, delayTimer, sendCount );
-			} )
-		}
-		const cdTime = new Date().getTime() + delayTimer;
-		await bot.redis.setString( timoutDbKey, cdTime );
-		res.status( 200 ).send( { code: 200, data: { cdTime }, msg: "Success" } );
 	} )
-	.post( "/exit", async ( req, res ) => {
+	.post( "/exit", async ( req, res, next ) => {
 		const groupId: number = req.body.groupId;
 		if ( !groupId ) {
-			res.status( 400 ).send( { code: 400, data: [], msg: "Error Params" } );
-			return;
+			return next( new RequestParamsError() );
 		}
-		
 		try {
 			await bot.client.setGroupLeave( groupId, true );
 			await bot.client.reloadGroupList();
 			res.status( 200 ).send( { code: 200, data: {}, msg: "Success" } );
-		} catch ( error: any ) {
-			res.status( 500 ).send( { code: 500, data: [], msg: error.message || "Server Error" } );
+		} catch ( error ) {
+			next( error );
 		}
 	} )
-	.post( "/exit/batch", async ( req, res ) => {
+	.post( "/exit/batch", async ( req, res, next ) => {
 		const groupIds: number[] = req.body.groupIds;
 		if ( !groupIds ) {
-			res.status( 400 ).send( { code: 400, data: [], msg: "Error Params" } );
-			return;
+			return next( new RequestParamsError() );
 		}
 		
 		try {
@@ -184,8 +186,8 @@ export default express.Router()
 			}
 			await bot.client.reloadGroupList();
 			res.status( 200 ).send( { code: 200, data: {}, msg: "Success" } );
-		} catch ( error: any ) {
-			res.status( 500 ).send( { code: 500, data: [], msg: error.message || "Server Error" } );
+		} catch ( error ) {
+			next( error );
 		}
 	} )
 

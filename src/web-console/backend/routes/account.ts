@@ -4,7 +4,7 @@ import { Md5 } from "md5-typescript";
 import account from "../utils/account";
 
 export default express.Router()
-	.post( "/root/create", async ( req, res ) => {
+	.post( "/root/create", async ( req, res, next ) => {
 		try {
 			const username = req.body.username;
 			const password = req.body.password;
@@ -26,6 +26,6 @@ export default express.Router()
 			
 			res.status( 200 ).send( { code: 200, data: {}, msg: "Success" } );
 		} catch ( error: any ) {
-			res.status( 500 ).send( { code: 500, data: [], msg: error.message || "Server Error" } );
+			next( error );
 		}
 	} );

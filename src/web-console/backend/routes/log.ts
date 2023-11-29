@@ -1,7 +1,8 @@
 import express from "express";
 import bot from "ROOT";
+import { RequestParamsError } from "@/web-console/backend/utils/error";
 
-export default express.Router().get( "/", async ( req, res ) => {
+export default express.Router().get( "/", async ( req, res, next ) => {
 	const page = parseInt( <string>req.query.page ); // 当前第几页
 	const length = parseInt( <string>req.query.length ); // 页长度
 	const logLevel = <string>req.query.logLevel; // 日志等级
@@ -11,8 +12,7 @@ export default express.Router().get( "/", async ( req, res ) => {
 	const date = new Date( parseInt( <string>req.query.date ) + utcDiffer ).toJSON();  // 日期时间戳
 	
 	if ( !page || !length || !date ) {
-		res.status( 400 ).send( { code: 400, data: {}, msg: "Error Params" } );
-		return;
+		return next( new RequestParamsError() );
 	}
 	
 	const fileName: string = `logs/bot.${ date.split( "T" )[0] }.log`;
@@ -58,7 +58,7 @@ export default express.Router().get( "/", async ( req, res ) => {
 			return;
 		}
 		res.status( 404 ).send( { code: 404, data: {}, msg: "NotFound" } );
-	} catch ( error: any ) {
-		res.status( 500 ).send( { code: 500, data: {}, msg: error.message || "Server Error" } );
+	} catch ( error ) {
+		next( error );
 	}
 } );

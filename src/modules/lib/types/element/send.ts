@@ -43,7 +43,7 @@ export interface RecordElem extends CommonFileElem {
 export interface VideoElem extends CommonFileElem {
 	type: "video";
 	/** 文件名 & 本地绝对路径 & URL & Base64 */
-	file: string;
+	file: string | Buffer;
 }
 
 /** at 某人 */

@@ -353,7 +353,9 @@ export default class BaseClient extends EventEmitter {
 			return message;
 		}
 		if ( message instanceof Array ) {
-			return message.map( this.getMessageLogger ).join( "" );
+			return message.map( msg => {
+				return this.getMessageLogger( msg );
+			} ).join( "" );
 		}
 		
 		const { type, data } = message;
@@ -367,9 +369,12 @@ export default class BaseClient extends EventEmitter {
 			face: data.id,
 			share: data.url,
 			poke: data.qq,
-			gift: data.id
+			gift: data.id,
+			image: "[图片]",
+			record: "[语音]",
+			video: "[视频]"
 		}
-		const tipMsg = msgMap[type];
+		const tipMsg = msgMap[type] || "";
 		if ( tipMsg ) {
 			return `{${ type }: ${ tipMsg }}`;
 		}
@@ -391,7 +396,6 @@ export default class BaseClient extends EventEmitter {
 		if ( !tipTarget ) {
 			return;
 		}
-		
 		const tipMessage = this.getMessageLogger( params.message );
 		this.logger.info( `消息发送成功: ${ tipTarget } ${ tipMessage }` );
 	}

@@ -7,15 +7,15 @@ import { sleep } from "@/utils/async";
 import { getRandomNumber } from "@/utils/random";
 import { formatSubUsers } from "@/web-console/backend/utils/format";
 import { GroupMemberInfo } from "@/modules/lib";
+import { RequestParamsError } from "@/web-console/backend/utils/error";
 
 export default express.Router()
-	.get( "/list", async ( req, res ) => {
+	.get( "/list", async ( req, res, next ) => {
 		const page = parseInt( <string>req.query.page ); // 当前第几页
 		const length = parseInt( <string>req.query.length ); // 页长度
 		
 		if ( !page || !length ) {
-			res.status( 400 ).send( { code: 400, data: {}, msg: "Error Params" } );
-			return;
+			return next( new RequestParamsError() );
 		}
 		
 		const userId = <string>req.query.userId || "";
@@ -53,62 +53,61 @@ export default express.Router()
 				.sort( ( prev, next ) => next.botAuth - prev.botAuth );
 			
 			res.status( 200 ).send( { code: 200, data: { userInfos, cmdKeys }, total: userData.length } );
-		} catch ( error: any ) {
-			res.status( 500 ).send( { code: 500, data: {}, msg: error.message || "Server Error" } );
+		} catch ( error ) {
+			next( error );
 		}
 		
 	} )
-	.get( "/info", async ( req, res ) => {
+	.get( "/info", async ( req, res, next ) => {
 		const userID: number = parseInt( <string>req.query.id );
 		if ( userID ) {
-			res.status( 400 ).send( { code: 400, data: {}, msg: "Error Params" } );
-			return;
+			return next( new RequestParamsError() );
 		}
-		
 		try {
 			const userInfo = await getUserInfo( userID );
 			res.status( 200 ).send( JSON.stringify( userInfo ) );
-		} catch ( error: any ) {
-			res.status( 500 ).send( { code: 500, data: {}, msg: error.message || "Server Error" } );
+		} catch ( error ) {
+			next( error );
 		}
 	} )
-	.post( "/set", async ( req, res ) => {
+	.post( "/set", async ( req, res, next ) => {
 		const userID: number = parseInt( <string>req.body.target );
 		const int: number = parseInt( <string>req.body.int );
 		const auth = <AuthLevel>parseInt( <string>req.body.auth );
 		const limits: string[] = JSON.parse( <string>req.body.limits );
 		
-		await bot.auth.set( userID, auth );
-		await bot.interval.set( userID, "private", int );
-		
-		const dbKey: string = `adachi.user-command-limit-${ userID }`;
-		await bot.redis.deleteKey( dbKey );
-		if ( limits.length !== 0 ) {
-			await bot.redis.addListElement( dbKey, ...limits );
+		try {
+			await bot.auth.set( userID, auth );
+			await bot.interval.set( userID, "private", int );
+			
+			const dbKey: string = `adachi.user-command-limit-${ userID }`;
+			await bot.redis.deleteKey( dbKey );
+			if ( limits.length !== 0 ) {
+				await bot.redis.addListElement( dbKey, ...limits );
+			}
+			
+			res.status( 200 ).send( "success" );
+		} catch ( error ) {
+			next( error );
 		}
-		
-		res.status( 200 ).send( "success" );
 	} )
-	.post( "/sub/remove", async ( req, res ) => {
+	.post( "/sub/remove", async ( req, res, next ) => {
 		const userId = req.body.userId;
 		if ( !userId ) {
-			res.status( 400 ).send( { code: 400, data: [], msg: "Error Params" } );
-			return;
+			return next( new RequestParamsError() );
 		}
-		
 		try {
 			// 清空订阅
 			PluginManager.getInstance().remSub( "private", userId );
 			res.status( 200 ).send( { code: 200, data: {}, msg: "Success" } );
-		} catch ( error: any ) {
-			res.status( 500 ).send( { code: 500, data: [], msg: error.message || "Server Error" } );
+		} catch ( error ) {
+			next( error );
 		}
 	} )
-	.post( "/remove/batch", async ( req, res ) => {
+	.post( "/remove/batch", async ( req, res, next ) => {
 		const userIds: number[] = req.body.userIds;
 		if ( !userIds ) {
-			res.status( 400 ).send( { code: 400, data: [], msg: "Error Params" } );
-			return;
+			return next( new RequestParamsError() );
 		}
 		
 		try {
@@ -120,8 +119,7 @@ export default express.Router()
 				// 删除好友
 				const result = await bot.client.deleteFriend( id );
 				if ( result.retcode === 1404 ) {
-					res.status( 500 ).send( { code: 500, data: [], msg: "当前实现端不支持删除好友操作" } );
-					return;
+					return next( new Error( "当前实现端不支持删除好友操作" ) );
 				}
 				// 清除数据库
 				await bot.redis.deleteKey( `adachi.user-used-groups-${ id }` );
@@ -129,8 +127,8 @@ export default express.Router()
 			}
 			await bot.client.reloadFriendList();
 			res.status( 200 ).send( { code: 200, data: {}, msg: "Success" } );
-		} catch ( error: any ) {
-			res.status( 500 ).send( { code: 500, data: [], msg: error.message || "Server Error" } );
+		} catch ( error ) {
+			next( error );
 		}
 	} )
 
