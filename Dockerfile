@@ -40,8 +40,8 @@ RUN set -eux; \
     	\
         update-ca-certificates; \
     	dpkgArch="$(dpkg --print-architecture | awk -F- '{ print $NF }')"; \
-    	wget -O /usr/local/bin/gosu "https://ghproxy.com/https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$dpkgArch"; \
-    	wget -O /usr/local/bin/gosu.asc "https://ghproxy.com/https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$dpkgArch.asc"; \
+    	wget -O /usr/local/bin/gosu "https://mirror.ghproxy.com/https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$dpkgArch"; \
+    	wget -O /usr/local/bin/gosu.asc "https://mirror.ghproxy.com/https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$dpkgArch.asc"; \
     	\
     # verify the signature
     	export GNUPGHOME="$(mktemp -d)"; \
