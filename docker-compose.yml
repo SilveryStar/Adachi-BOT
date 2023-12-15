@@ -17,6 +17,8 @@ services:
     ports:
       - "80:80"
     container_name: adachi-bot
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     environment:
       docker: "yes"
     depends_on:
