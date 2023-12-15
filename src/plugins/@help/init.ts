@@ -49,7 +49,12 @@ export default definePlugin( {
 	server: {
 		routers: serverRouters
 	},
-	publicDirs: [ "assets", "views" ],
+	publicDirs: [ "assets", "views", "adachi-lib" ],
+	cdnLib: {
+		libs: {
+			"vue.esm-browser.prod.js": "https://mari-files.oss-cn-beijing.aliyuncs.com/lib/vue%403.2.47/vue.esm-browser.prod.js"
+		}
+	},
 	mounted( params ) {
 		/* 未启用卡片帮助时不启动服务 */
 		renderer = params.renderRegister( "#app", "views" );

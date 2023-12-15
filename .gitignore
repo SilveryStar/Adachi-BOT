@@ -17,6 +17,7 @@ node_modules
 /data/
 /database/
 /logs/
+/adachi-lib/
 /src/data/
 /src/plugins/genshin/data/
 
@@ -28,10 +29,6 @@ node_modules
 
 /src/web-console/frontend/dist
 /src/web-console/frontend/build_setting.yml
-
-/go-cqhttp/
-!/go-cqhttp/config-default.yml
-/qsign/
 
 # Editor directories and files
 .vscode/*

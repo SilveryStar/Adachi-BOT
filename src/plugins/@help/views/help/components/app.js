@@ -7,9 +7,8 @@ const template = `<div class="help">
 				<p>{{ model === "keys" ? "指令key值表" : "使用文档" }}</p>
 			</div>
 			<div class="right-header">
-				<p class="version">ver{{ version }}</p>
 				<p class="desc">列表仅展示最多两个指令头</p>
-				<p v-if="data.detailCmd" class="desc">使用 {{ data.detailCmd }}+指令序号 查看想想信息</p>
+				<p v-if="data.detailCmd" class="desc">使用 {{ data.detailCmd }}+指令序号 查看详细信息</p>
 				<p class="desc">- 表示仅允许群聊, * 表示仅允许私聊</p>
 				<p class="desc">[]表示必填，()表示选填，|表示选择</p>
 			</div>
