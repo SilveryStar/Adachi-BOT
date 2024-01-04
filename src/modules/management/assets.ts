@@ -68,14 +68,19 @@ export default class AssetsUpdate {
 		scheduleJob( "0 0 */6 * * *", () => {
 			this.jobMap.forEach( el => {
 				// 从一小时内随机取一段时间检查更新
-				const time = Date.now() + getRandomNumber( 0, 60 * 60 * 1000 );
-				scheduleJob( time, () => this.checkUpdate(
-					el.pluginKey,
-					el.baseUrl,
-					el.pluginName,
-					el.assets,
-					el.lifeCycle
-				) )
+				const time = Date.now() + getRandomNumber( 0, 55 * 60 * 1000 );
+				scheduleJob( time, async () => {
+					const updated = await this.checkUpdate(
+						el.pluginKey,
+						el.baseUrl,
+						el.pluginName,
+						el.assets,
+						el.lifeCycle
+					);
+					if ( updated ) {
+						await bot.message.sendMaster( `插件 ${ el.pluginName } 静态资源自动更新成功` );
+					}
+				} )
 			} );
 		} );
 	}
@@ -206,10 +211,11 @@ export default class AssetsUpdate {
 	
 	/**
 	 * todo: 未实现删除被移除的文件
-	 * 1、获取本地清单文件内容 manifestData
-	 * 2、传递本地清单文件调用接口，接口：获取线上清单目录文件，diff算法对比两个清单文件差异性，返回差异性部分
-	 * 3、依次下载清单文件列表文件，每下载完成一个时更新 manifestData 内容
-	 * 4、下载完毕后以 manifestData 内容更新本地清单文件
+	 * 1. 获取本地清单文件内容 manifestData
+	 * 2. 传递本地清单文件调用接口，接口：获取线上清单目录文件，diff算法对比两个清单文件差异性，返回差异性部分
+	 * 3. 依次下载清单文件列表文件，每下载完成一个时更新 manifestData 内容
+	 * 4. 下载完毕后以 manifestData 内容更新本地清单文件
+	 * @returns 是否更新成功
 	 */
 	private async checkUpdate(
 		pluginKey: string | undefined,
@@ -218,7 +224,7 @@ export default class AssetsUpdate {
 		assets: PluginAssetsSetting,
 		lifeCycle?: AssetsLifeCycle,
 		reCheck = false
-	): Promise<void> {
+	): Promise<boolean> {
 		if ( !baseUrl ) {
 			const downloadFolder = getObjectKeyValue( assets, "folderName", "adachi-assets" );
 			baseUrl = `${ pluginKey }/${ downloadFolder }`;
@@ -230,14 +236,13 @@ export default class AssetsUpdate {
 		const { type: actionType, data } = await this.getUpdateItems( pluginKey, assets, manifest, pathField, lifeCycle, reCheck );
 		
 		if ( actionType === "error" ) {
-			return;
+			return false;
 		}
 		
 		// 是否重新检查更新
 		if ( actionType === "reCheck" ) {
 			await sleep( 10000 )
-			await this.checkUpdate( pluginKey, baseUrl, pluginName, assets, lifeCycle, true );
-			return;
+			return this.checkUpdate( pluginKey, baseUrl, pluginName, assets, lifeCycle, true );
 		}
 		
 		// 不存在更新项，返回
@@ -246,7 +251,7 @@ export default class AssetsUpdate {
 			if ( lifeCycle?.noUpdated ) {
 				await lifeCycle.noUpdated();
 			}
-			return;
+			return false;
 		}
 		
 		// 该清单列表中的文件内容不会进行覆盖，仅做更新处理
@@ -313,7 +318,7 @@ export default class AssetsUpdate {
 			if ( lifeCycle?.noUpdated ) {
 				await lifeCycle.noUpdated();
 			}
-			return;
+			return false;
 		}
 		
 		if ( lifeCycle?.startUpdate ) {
@@ -326,5 +331,6 @@ export default class AssetsUpdate {
 		await Promise.all( updatePromiseList );
 		// 写入清单文件
 		await this.bot.file.writeYAML( manifestName, manifest, "plugin" );
+		return true;
 	}
 }
