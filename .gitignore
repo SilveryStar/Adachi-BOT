@@ -17,14 +17,13 @@ node_modules
 /data/
 /database/
 /logs/
-/adachi-lib/
-/src/data/
+adachi-lib/
 /src/plugins/genshin/data/
 
-/src/plugins/
+# 屏蔽除内置插件外的其他自定义插件
+/src/plugins/*
 !/src/plugins/@help/
 !/src/plugins/@management/
-!/src/plugins/genshin/
 !/src/plugins/tools/
 
 /src/web-console/frontend/dist
