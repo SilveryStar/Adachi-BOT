@@ -7,7 +7,7 @@ import {
 	FriendInfo,
 	GroupInfo,
 	OneBotVersionInfo,
-	Sendable,
+	Sendable, SystemHeartbeatEvent, SystemLifecycleEvent,
 	toMessageRecepElem
 } from "@/modules/lib";
 import WsMessage from "@/utils/message";
@@ -34,6 +34,12 @@ export default class BaseClient extends EventEmitter {
 	public online: boolean = false;
 	public oneBotVersion: OneBotVersionInfo | null = null;
 	public logger: Logger = getLogger( "[adachi]" );
+	
+	/**
+	 * 手动轮询 bot 登陆状态
+	 * 仅实现端未提供心跳包时启用
+	 */
+	private heartTimer: NodeJS.Timer | null = null;
 	
 	constructor(
 		private eventTarget: string,
@@ -94,28 +100,56 @@ export default class BaseClient extends EventEmitter {
 		} );
 	}
 	
-	private getVersionInfo() {
-		this.fetchApi( "get_version_info", undefined ).then( data => {
-			this.oneBotVersion = data.retcode === 0
-				? data.data
-				: null
-		} ).catch( () => {} );
+	/* 检查是否在线 */
+	private async checkOnline() {
+		try {
+			const data = await this.fetchApi( "get_status", undefined, false );
+			return data.retcode === 0 ? !!data.data.good : null;
+		} catch {
+			return null;
+		}
 	}
 	
-	public setGroupList() {
-		this.fetchApi( "get_group_list", undefined ).then( data => {
-			this.gl = data.retcode === 0
-				? new Map( data.data.map( d => [ d.group_id, d ] ) )
-				: new Map();
-		} ).catch( () => {} );
+	/* 初始化版本信息 */
+	private async getVersionInfo() {
+		try {
+			const data = await this.fetchApi( "get_version_info", undefined );
+			this.oneBotVersion = data.retcode === 0 ? data.data : null;
+		} catch {}
 	}
 	
-	public setFriendList() {
-		this.fetchApi( "get_friend_list", undefined ).then( data => {
-			this.fl = data.retcode === 0
-				? new Map( data.data.map( d => [ d.user_id, d ] ) )
-				: new Map();
-		} ).catch( () => {} );
+	/* 初始化群组列表 */
+	public async setGroupList() {
+		try {
+			const data = await this.fetchApi( "get_group_list", undefined );
+			this.gl = data.retcode === 0 ? new Map( data.data.map( d => [ d.group_id, d ] ) ) : new Map();
+		} catch {}
+	}
+	
+	/* 初始化好友列表 */
+	public async setFriendList() {
+		try {
+			const data = await this.fetchApi( "get_friend_list", undefined );
+			this.fl = data.retcode === 0 ? new Map( data.data.map( d => [ d.user_id, d ] ) ) : new Map();
+		} catch {}
+	}
+	
+	/* 账号登录状态变更 */
+	private botStateChange( online: boolean ) {
+		this.online = online;
+		if ( this.online ) {
+			Promise.all( [this.getVersionInfo(), this.setGroupList(), this.setFriendList()] ).then();
+			this.emit( "system.online" );
+		} else {
+			this.emit( "system.offline" );
+		}
+	}
+	
+	/* 关闭登陆状态轮询 */
+	private closeHeartTimer() {
+		if ( !this.heartTimer ) return;
+		clearInterval( this.heartTimer );
+		this.heartTimer = null;
 	}
 	
 	private initEventWs( this: BaseClient, ws: WebSocket ) {
@@ -140,25 +174,25 @@ export default class BaseClient extends EventEmitter {
 					operation: params
 				} );
 			};
-			
 			if ( data.post_type === "meta_event" ) {
 				if ( data.meta_event_type === "lifecycle" ) {
+					if ( data.sub_type === "connect" && !this.online ) {
+						/* 默认连接后开启 bot 状态轮询 */
+						const heartHandle = async () => {
+							const online = await this.checkOnline();
+							if ( online === null ) return;
+							this.botStateChange( online );
+						}
+						heartHandle().then();
+						this.heartTimer = setInterval( heartHandle, 10000 );
+					}
 					this.emit( "system.lifecycle", data );
 				}
 				if ( data.meta_event_type === "heartbeat" ) {
+					/* 接受到实现端心跳事件时，移除 bot 状态轮询 */
+					this.closeHeartTimer();
 					if ( data.status.online !== this.online ) {
-						this.online = data.status.online;
-						if ( this.online ) {
-							/* 初始化版本信息 */
-							this.getVersionInfo();
-							/* 初始化群组列表 */
-							this.setGroupList();
-							/* 初始化好友列表 */
-							this.setFriendList();
-							this.emit( "system.online", data );
-						} else {
-							this.emit( "system.offline", data );
-						}
+						this.botStateChange( data.status.online );
 					}
 				}
 				this.emit( "system", data );
@@ -176,7 +210,7 @@ export default class BaseClient extends EventEmitter {
 				} )
 				data.atMe = !!atMeEl;
 				
-				if ( data.sub_type === "friend" || data.sub_type === "group" ) {
+				if ( data.message_type === "private" ) {
 					data.reply = ( content: Sendable ) => quickOperation( { reply: formatSendMessage( content ) } );
 					switch ( data.sub_type ) {
 						case "friend":
@@ -192,7 +226,7 @@ export default class BaseClient extends EventEmitter {
 					}
 					this.emit( "message.private", data );
 				}
-				if ( data.sub_type === "normal" || data.sub_type === "anonymous" ) {
+				if ( data.message_type === "group" ) {
 					const groupInfo = this.gl.get( data.group_id );
 					const groupName = groupInfo ? groupInfo.group_name : "";
 					data.reply = ( content: Sendable, at = true ) => quickOperation( {
@@ -220,7 +254,7 @@ export default class BaseClient extends EventEmitter {
 				if ( this.checkNoticePrivateEvent( data ) ) {
 					switch ( data.notice_type ) {
 						case "friend_add":
-							this.setFriendList();
+							this.setFriendList().then();
 							this.logger.info( `更新好友列表：新增好友 ${ data.user_id }` );
 							this.emit( "notice.friend.add", data );
 							break;
@@ -236,7 +270,7 @@ export default class BaseClient extends EventEmitter {
 						case "group_increase":
 							this.emit( "notice.group.increase", data );
 							if ( data.user_id === this.uin ) {
-								this.setGroupList();
+								this.setGroupList().then();
 								this.logger.info( `更新群列表：新增群聊 ${ data.group_id }` );
 								this.emit( "notice.group.increase", data );
 							} else {
@@ -245,7 +279,7 @@ export default class BaseClient extends EventEmitter {
 							break;
 						case "group_decrease":
 							if ( data.sub_type === "kick_me" || data.user_id === this.uin ) {
-								this.setGroupList();
+								this.setGroupList().then();
 								this.logger.info( `更新群列表：移除群聊 ${ data.group_id }` );
 								this.emit( "notice.group.decrease", data );
 							} else {
@@ -302,15 +336,17 @@ export default class BaseClient extends EventEmitter {
 		ws.on( "close", () => {
 			if ( this.online ) {
 				this.online = false;
-				this.emit( "system.offline", null );
+				/* 连接关闭时关闭 bot 状态轮询 */
+				this.closeHeartTimer();
+				this.emit( "system.offline" );
 			}
 		} )
 	}
 	
 	/** 请求 api */
-	public fetchApi<T extends keyof ApiMap>( action: T, params: ApiParam<ApiMap[T]> ): Promise<ActionResponse<ReturnType<ApiMap[T]>>> {
+	public fetchApi<T extends keyof ApiMap>( action: T, params: ApiParam<ApiMap[T]>, checkOnline = true ): Promise<ActionResponse<ReturnType<ApiMap[T]>>> {
 		const echo = Date.now().toString( 36 ) + getRandomString( 6 );
-		if ( !this.online ) {
+		if ( checkOnline && !this.online ) {
 			return Promise.resolve( <ActionResponse>{
 				retcode: 401,
 				status: "failed",
@@ -428,8 +464,8 @@ export default class BaseClient extends EventEmitter {
 		}
 	}
 	
-	public reConnect() {
+	public async reConnect() {
 		this.closeConnect();
-		this.connect();
+		await this.connect();
 	}
 }

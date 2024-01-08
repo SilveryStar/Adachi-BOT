@@ -73,7 +73,7 @@ export class Client {
 		this.config.base.on( "refresh", ( newCfg, oldCfg ) => {
 			if ( newCfg.wsServer !== oldCfg.wsServer || newCfg.wsApiServer !== oldCfg.wsApiServer ) {
 				this.baseClient.setTarget( newCfg.wsServer, newCfg.wsApiServer );
-				this.reConnect();
+				this.reConnect().then();
 			}
 			if ( newCfg.apiTimeout !== oldCfg.apiTimeout ) {
 				this.baseClient.setFetchTimeout( newCfg.apiTimeout );
@@ -115,7 +115,7 @@ export class Client {
 	}
 	
 	public reConnect() {
-		this.baseClient.reConnect();
+		return this.baseClient.reConnect();
 	}
 	
 	/** 自行请求 onebot api */
@@ -125,7 +125,7 @@ export class Client {
 	
 	/** 重载群列表 */
 	public async reloadGroupList() {
-		this.baseClient.setGroupList();
+		return this.baseClient.setGroupList();
 	}
 	
 	/** 重载好友列表 */
