@@ -391,10 +391,16 @@ export class Client {
 	 * @description go-cqhttp 限定，使用时需要判断返回值的 retcode 属性值是否为 1404（不存在）
 	 */
 	public sendGroupForwardMessage( group_id: number, messages: ForwardElem ) {
-		return this.baseClient.fetchApi( "send_group_forward_msg", {
+		if ( this.oneBotVersion?.app_name === "go-cqhttp" ) {
+			return this.baseClient.fetchApi( "send_group_forward_msg", {
+				group_id,
+				messages: makeForwardMessage( messages )
+			} );
+		}
+		return this.baseClient.fetchApi( "send_group_msg", {
 			group_id,
-			messages: makeForwardMessage( messages )
-		} );
+			message: makeForwardMessage( messages )
+		} )
 	}
 	
 	/**
@@ -402,9 +408,15 @@ export class Client {
 	 * @description go-cqhttp 限定，使用时需要判断返回值的 retcode 属性值是否为 1404（不存在）
 	 */
 	public sendPrivateForwardMessage( user_id: number, messages: ForwardElem ) {
-		return this.baseClient.fetchApi( "send_private_forward_msg", {
+		if ( this.oneBotVersion?.app_name === "go-cqhttp" ) {
+			return this.baseClient.fetchApi( "send_private_forward_msg", {
+				user_id,
+				messages: makeForwardMessage( messages )
+			} );
+		}
+		return this.baseClient.fetchApi( "send_private_msg", {
 			user_id,
-			messages: makeForwardMessage( messages )
+			message: makeForwardMessage( messages )
 		} );
 	}
 	

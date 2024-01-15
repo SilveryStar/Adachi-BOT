@@ -7,7 +7,7 @@ import {
 	FriendInfo,
 	GroupInfo,
 	OneBotVersionInfo,
-	Sendable, SystemHeartbeatEvent, SystemLifecycleEvent,
+	Sendable,
 	toMessageRecepElem
 } from "@/modules/lib";
 import WsMessage from "@/utils/message";
@@ -408,7 +408,8 @@ export default class BaseClient extends EventEmitter {
 			gift: data.id,
 			image: "[图片]",
 			record: "[语音]",
-			video: "[视频]"
+			video: "[视频]",
+			node: "[转发消息]"
 		}
 		const tipMsg = msgMap[type] || "";
 		if ( tipMsg ) {

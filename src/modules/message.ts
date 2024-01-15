@@ -104,6 +104,8 @@ export default class MsgManagement implements MsgManagementMethod {
 					const atAllRemainRes = await client.getGroupAtAllRemain( groupID );
 					if ( atAllRemainRes.retcode === 0 ) {
 						allowAt = atAllRemainRes.data.can_at_all ? allowAt : false;
+					} else {
+						allowAt = atAllRemainRes.retcode === 1404;
 					}
 					// 强制使用 @全体成员，不受atUser配置控制
 					if ( allowAt ) {
