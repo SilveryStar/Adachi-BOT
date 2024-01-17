@@ -136,6 +136,9 @@ export default class BaseClient extends EventEmitter {
 	
 	/* 账号登录状态变更 */
 	private botStateChange( online: boolean ) {
+		if ( online === this.online ) {
+			return;
+		}
 		this.online = online;
 		if ( this.online ) {
 			Promise.all( [this.getVersionInfo(), this.setGroupList(), this.setFriendList()] ).then();
@@ -192,10 +195,7 @@ export default class BaseClient extends EventEmitter {
 					/* 接受到实现端心跳事件时，移除 bot 状态轮询 */
 					this.closeHeartTimer();
 					/* 个别实现端仅会设置其中一个为 true */
-					const online = data.status.online || data.status.good;
-					if ( data.status.online !== online ) {
-						this.botStateChange( online );
-					}
+					this.botStateChange( data.status.online || data.status.good );
 				}
 				this.emit( "system", data );
 			}
