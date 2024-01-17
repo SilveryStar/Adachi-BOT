@@ -104,7 +104,7 @@ export default class BaseClient extends EventEmitter {
 	private async checkOnline() {
 		try {
 			const data = await this.fetchApi( "get_status", undefined, false );
-			return data.retcode === 0 ? !!data.data.good : null;
+			return data.retcode === 0 ? !!( data.data.good || data.data.online ) : null;
 		} catch {
 			return null;
 		}
@@ -191,8 +191,10 @@ export default class BaseClient extends EventEmitter {
 				if ( data.meta_event_type === "heartbeat" ) {
 					/* 接受到实现端心跳事件时，移除 bot 状态轮询 */
 					this.closeHeartTimer();
-					if ( data.status.online !== this.online ) {
-						this.botStateChange( data.status.online );
+					/* 个别实现端仅会设置其中一个为 true */
+					const online = data.status.online || data.status.good;
+					if ( data.status.online !== online ) {
+						this.botStateChange( online );
 					}
 				}
 				this.emit( "system", data );
