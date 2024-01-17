@@ -7,6 +7,7 @@ import { EventMap } from "./types/map/event";
 import { Anonymous, HonorType, RecordFormat } from "@/modules/lib/types/common";
 import { ForwardElem, Sendable } from "./types/element/send";
 import { formatSendMessage, makeForwardMessage, toMessageRecepElem } from "@/modules/lib/message";
+import { MessageRecepElem } from "@/modules/lib/types/element";
 
 export type LogLevel = "trace" | "debug" | "info" | "warn" | "error" | "fatal" | "mark" | "off";
 
@@ -194,7 +195,10 @@ export class Client {
 	public async getMessage( message_id: number ) {
 		const result = await this.baseClient.fetchApi( "get_msg", { message_id } );
 		if ( result.data ) {
-			result.data.message = toMessageRecepElem( <string><any>result.data.message );
+			const message = <MessageRecepElem[] | string>result.data.message;
+			if ( typeof message === "string" ) {
+				result.data.message = toMessageRecepElem( message );
+			}
 		}
 		return result;
 	}

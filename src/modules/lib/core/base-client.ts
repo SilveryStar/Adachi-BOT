@@ -7,7 +7,7 @@ import {
 	FriendInfo,
 	GroupInfo,
 	OneBotVersionInfo,
-	Sendable,
+	Sendable, toCqCode,
 	toMessageRecepElem
 } from "@/modules/lib";
 import WsMessage from "@/utils/message";
@@ -206,6 +206,7 @@ export default class BaseClient extends EventEmitter {
 				if ( typeof message === "string" ) {
 					data.message = toMessageRecepElem( message );
 				}
+				data.raw_message = toCqCode( data.message );
 				/* 是否为 at bot */
 				const atMeEl = data.message.find( el => {
 					return el.type === "at" && Number.parseInt( el.data.qq ) === this.uin;

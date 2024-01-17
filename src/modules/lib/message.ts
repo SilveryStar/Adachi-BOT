@@ -26,9 +26,9 @@ export function makeForwardMessage( message: ForwardElem ): ForwardElemParam[] {
 }
 
 /** 实体化处理 */
-export function materialize( content: string ): string {
-	return content
-		.replace( /&/g, "&amp;" )
+export function materialize( content: any ): string {
+	return content.toString()
+		.replace( /&(?!(amp|#91|#93|#44);)/g, "&amp;" )
 		.replace( /\[/g, "&#91;" )
 		.replace( /]/g, "&#93;" )
 		.replace( /,/g, "&#44;" )
@@ -121,23 +121,27 @@ export function toMessageRecepElem( message: string ): MessageRecepElem[] {
 						
 						const key = str.slice( 0, splitIndex );
 						const value = str.slice( splitIndex + 1 );
+						/* 去除部分实现端 CQ 码中多余的 type 属性 */
+						if ( key === "type" && value === type ) {
+							return null;
+						}
+						
 						return [ key, value ];
-					} ).filter( el => !!el )
+					} ).filter( Boolean )
 				)
 			}
 		} );
 }
 
 /** 暂不支持合并转发消息的转换 */
-export function toCqCode( message: MessageElem[] ) {
-	const format = formatSendMessage( message );
-	format.map( msg => {
+export function toCqCode<T extends { type: string, data: Record<string, any> }[]>( message: T ) {
+	return message.map( msg => {
 		if ( msg.type === "text" ) {
 			return msg.data.text;
 		}
-		const paramStr = Object.entries( msg ).map( ( [ key, value ] ) => {
+		const paramStr = Object.entries( msg.data ).map( ( [ key, value ] ) => {
 			return `${ key }=${ materialize( value ) }`;
 		} ).join( "," );
 		return `[CQ:${ msg.type },${ paramStr }]`;
-	} );
+	} ).join( "" );
 }

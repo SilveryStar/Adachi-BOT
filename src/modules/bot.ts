@@ -581,7 +581,7 @@ export default class Adachi {
 	
 	private checkAtBOT( msg: core.GroupMessageEvent ): boolean {
 		if ( msg.atMe ) {
-			const atBotReg = new RegExp( `\\[CQ:at(,type=at)?,qq=${ this.bot.client.uin }.*?]` );
+			const atBotReg = new RegExp( `\\[CQ:at,qq=${ this.bot.client.uin }.*?]` );
 			msg.raw_message = msg.raw_message
 				.replace( atBotReg, "" )
 				.trim();
