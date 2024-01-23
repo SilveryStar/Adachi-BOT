@@ -27,6 +27,9 @@ export default class BaseClient extends EventEmitter {
 	private static __instance: BaseClient;
 	private wsApi!: WsMessage;
 	private wsEvent!: WsMessage;
+	private eventOnline = false;
+	private apiOnline = false;
+	
 	public gl: Map<number, GroupInfo> = new Map();
 	public fl: Map<number, FriendInfo> = new Map();
 	
@@ -80,6 +83,7 @@ export default class BaseClient extends EventEmitter {
 	
 	private initApiWs( this: BaseClient, ws: WebSocket ) {
 		ws.on( "open", () => {
+			this.apiOnline = true;
 			this.logger.info( `已连接到 api 事件服务器：${ this.apiTarget || this.eventTarget }` );
 		} );
 		ws.on( "message", ( res ) => {
@@ -97,6 +101,12 @@ export default class BaseClient extends EventEmitter {
 				return;
 			}
 			this.emitApi( data.echo, data );
+		} );
+		ws.on( "close", () => {
+			if ( this.apiOnline ) {
+				this.apiOnline = false;
+				this.logger.warn( "与 api 事件服务器的连接中断，正在尝试重连..." );
+			}
 		} );
 	}
 	
@@ -157,6 +167,7 @@ export default class BaseClient extends EventEmitter {
 	
 	private initEventWs( this: BaseClient, ws: WebSocket ) {
 		ws.on( "open", () => {
+			this.eventOnline = true;
 			this.logger.info( `已连接到 event 事件服务器：${ this.eventTarget }` );
 		} );
 		ws.on( "message", ( res ) => {
@@ -331,10 +342,6 @@ export default class BaseClient extends EventEmitter {
 				}
 				this.emit( "request", data );
 			}
-			// 不执行心跳
-			if ( data.post_type === "meta_event" ) {
-				return;
-			}
 		} );
 		ws.on( "close", () => {
 			if ( this.online ) {
@@ -343,21 +350,37 @@ export default class BaseClient extends EventEmitter {
 				this.closeHeartTimer();
 				this.emit( "system.offline" );
 			}
+			if ( this.eventOnline ) {
+				this.eventOnline = false;
+				this.logger.warn( "与 event 事件服务器的连接中断，正在尝试重连..." );
+			}
 		} )
 	}
 	
-	/** 请求 api */
+	/**
+	 * 请求 api
+	 * @param action 事件名称
+	 * @param params 事件参数
+	 * @param checkOnline 调用此 api 是否需要登录
+	 */
 	public fetchApi<T extends keyof ApiMap>( action: T, params: ApiParam<ApiMap[T]>, checkOnline = true ): Promise<ActionResponse<ReturnType<ApiMap[T]>>> {
 		const echo = Date.now().toString( 36 ) + getRandomString( 6 );
+		const getErrorResponse = ( msg: string, wording: string ): ActionResponse => ( {
+			retcode: 401,
+			status: "failed",
+			data: null,
+			msg,
+			wording,
+			echo
+		} )
+		if ( !this.eventOnline ) {
+			return Promise.resolve( getErrorResponse( "Event_Offline", "未能连接到 event 事件服务器" ) );
+		}
+		if ( !this.apiOnline ) {
+			return Promise.resolve( getErrorResponse( "Api_Offline", "未能连接到 api 事件服务器" ) );
+		}
 		if ( checkOnline && !this.online ) {
-			return Promise.resolve( <ActionResponse>{
-				retcode: 401,
-				status: "failed",
-				data: null,
-				msg: "Not_Login",
-				wording: "未登录",
-				echo
-			} );
+			return Promise.resolve( getErrorResponse( "Not_Login", "未登录" ) );
 		}
 		
 		this.printSendLogger( action, params );
