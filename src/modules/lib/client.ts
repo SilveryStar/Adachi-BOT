@@ -18,6 +18,7 @@ export class Client {
 		this.baseClient = BaseClient.getInstance(
 			config.base.wsServer,
 			config.base.wsApiServer,
+			config.base.wsPort,
 			config.base.apiTimeout
 		);
 		this.initLoggerConfig();
@@ -72,7 +73,11 @@ export class Client {
 	
 	private initRefreshListener() {
 		this.config.base.on( "refresh", ( newCfg, oldCfg ) => {
-			if ( newCfg.wsServer !== oldCfg.wsServer || newCfg.wsApiServer !== oldCfg.wsApiServer ) {
+			if (
+				newCfg.wsServer !== oldCfg.wsServer ||
+				newCfg.wsApiServer !== oldCfg.wsApiServer ||
+				newCfg.wsPort !== oldCfg.wsPort
+			) {
 				this.baseClient.setTarget( newCfg.wsServer, newCfg.wsApiServer );
 				this.reConnect().then();
 			}

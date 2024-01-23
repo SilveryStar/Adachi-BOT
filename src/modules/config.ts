@@ -11,6 +11,7 @@ const initBase = {
 	tip: "前往 https://docs.adachi.top/config 查看配置详情",
 	wsServer: process.env.docker === "yes" ? "adachi-go-cqhttp:80" : "",
 	wsApiServer: "",
+	wsPort: "",
 	master: 987654321,
 	inviteAuth: 2,
 	logLevel: "info",
@@ -109,7 +110,8 @@ const initWebConsole = {
 export type ExportConfig<T extends Record<string, any>> = T & Omit<ConfigInstance<T>, "value" | "refresh">
 
 export interface BotConfigValue {
-	base: ExportConfig<Omit<typeof initBase, "tip" | "inviteAuth"> & {
+	base: ExportConfig<Omit<typeof initBase, "wsPort" | "tip" | "inviteAuth"> & {
+		wsPort: number;
 		logLevel: LogLevel;
 		inviteAuth: AuthLevel
 	}>;

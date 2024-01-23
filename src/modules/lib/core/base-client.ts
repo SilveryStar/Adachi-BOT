@@ -47,6 +47,7 @@ export default class BaseClient extends EventEmitter {
 	constructor(
 		private eventTarget: string,
 		private apiTarget: string,
+		private wsPort: number,
 		private fetchTimeout: number
 	) {
 		super();
@@ -61,12 +62,12 @@ export default class BaseClient extends EventEmitter {
 		}
 	}
 	
-	public static getInstance( eventTarget?: string, apiTarget?: string, fetchTimeout?: number ) {
+	public static getInstance( eventTarget?: string, apiTarget?: string, wsPort?: number, fetchTimeout?: number ) {
 		if ( !BaseClient.__instance ) {
-			if ( !eventTarget || typeof apiTarget === "undefined" || !fetchTimeout ) {
+			if ( !eventTarget || typeof apiTarget === "undefined" || !wsPort || !fetchTimeout ) {
 				throw new Error( "Invalid parameter" );
 			}
-			BaseClient.__instance = new BaseClient( eventTarget, apiTarget, fetchTimeout );
+			BaseClient.__instance = new BaseClient( eventTarget, apiTarget, wsPort, fetchTimeout );
 		}
 		return BaseClient.__instance;
 	}
@@ -402,6 +403,11 @@ export default class BaseClient extends EventEmitter {
 				resolve( data );
 			} );
 		} )
+	}
+	
+	// 实现端是否使用反向 websocket
+	private get useReverseWs() {
+		return this.apiTarget && this.apiTarget !== this.eventTarget;
 	}
 	
 	// 是否需要为 api 创建第二个 websocket 链接

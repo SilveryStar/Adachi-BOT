@@ -1,9 +1,94 @@
 import WebSocket from "ws";
+import http from "http";
 
-export default class WsMessage {
+class WsMessageBase {
 	public ws: WebSocket | null = null;
-	private taskTimer: NodeJS.Timer | null = null;
-	private timeout: NodeJS.Timer | null = null;
+	protected taskTimer: NodeJS.Timer | null = null;
+	protected timeout: NodeJS.Timer | null = null;
+	
+	// 发送消息
+	public sendMessage( message: any ) {
+		if ( this.isOpen( this.ws ) ) {
+			message = typeof message === "string" ? message : JSON.stringify( message );
+			this.ws.send( message );
+		}
+	}
+	
+	public closeConnect() {
+		// 关闭心跳
+		this.closeTimers( [ this.taskTimer, this.timeout ] );
+		this.ws?.close();
+	}
+	
+	public isOpen( ws: WebSocket | null = this.ws ): ws is WebSocket {
+		return ws?.readyState === WebSocket.OPEN;
+	}
+	
+	protected closeTimers( timers: NodeJS.Timer | null | Array<NodeJS.Timer | null> ) {
+		if ( !( timers instanceof Array ) ) {
+			timers = [ timers ];
+		}
+		timers.forEach( timer => {
+			if ( !timer ) return;
+			clearInterval( timer );
+			clearTimeout( timer );
+			timer = null;
+		} );
+	}
+}
+
+export class WsServerMessage extends WsMessageBase {
+	private wss: WebSocket.Server | null = null;
+	constructor(
+		private port: number,
+		private initEvent: ( ws: WebSocket ) => void,
+		private heartbeat = true
+	) {
+		super();
+	}
+	
+	public createServer(): Promise<WebSocket.Server> {
+		return new Promise( resolve => {
+			const server = http.createServer( ( req, res ) => {
+				res.writeHead( 200, { 'Content-Type': 'text/plain' } );
+				res.end( 'WebSocket Server is running' );
+			} )
+			this.wss = new WebSocket.Server({ server });
+			this.taskTimer && clearInterval( <any>this.taskTimer );
+			this.wss.on( "connection", ws => {
+				this.ws = ws;
+				this.initWsEvent( ws );
+				if ( !this.heartbeat ) {
+					return;
+				}
+				this.taskTimer = setInterval( () => {
+					this.sendMessage( "ping" );
+				}, 10000 );
+			} )
+			server.listen( this.port, () => {
+				resolve( this.wss! );
+			} );
+		} );
+	}
+	
+	public reCreated(): Promise<WebSocket.Server> {
+		return new Promise( resolve => {
+			this.wss?.close( () => {
+				this.createServer().then( resolve );
+			} );
+		} );
+	}
+	
+	private initWsEvent( ws: WebSocket ) {
+		ws.on( "error", () => {} );
+		ws.on( "close", () => {
+			this.closeConnect();
+		} );
+		this.initEvent( ws );
+	}
+}
+
+export default class WsMessage extends WsMessageBase {
 	private target: string = "";
 	private retryTime: number = 0;
 	
@@ -11,6 +96,7 @@ export default class WsMessage {
 		private initEvent: ( ws: WebSocket ) => void,
 		private heartbeat: boolean = true
 	) {
+		super();
 	}
 	
 	public connect( target: string ) {
@@ -27,13 +113,12 @@ export default class WsMessage {
 		if ( !this.ws ) return;
 		this.ws.on( "open", () => {
 			this.retryTime = 0;
-			if ( this.heartbeat ) {
-				this.taskTimer = setInterval( () => {
-					if ( this.ws?.readyState === WebSocket.OPEN ) {
-						this.ws.send( "ping" );
-					}
-				}, 10000 );
+			if ( !this.heartbeat ) {
+				return;
 			}
+			this.taskTimer = setInterval( () => {
+				this.sendMessage( "ping" );
+			}, 10000 );
 		} )
 		// 连接错误
 		this.ws.on( "error", () => {} );
@@ -42,14 +127,6 @@ export default class WsMessage {
 			this.reconnect();
 		} );
 		this.initEvent( this.ws );
-	}
-	
-	// 发送消息
-	public sendMessage( message: any ) {
-		if ( this.isOpen( this.ws ) ) {
-			message = typeof message === "string" ? message : JSON.stringify( message );
-			this.ws.send( message );
-		}
 	}
 	
 	public reconnect() {
@@ -63,27 +140,5 @@ export default class WsMessage {
 			// 重新连接WebSocket
 			this.connect( this.target );
 		}, waitTime );
-	}
-	
-	public closeConnect() {
-		// 关闭心跳
-		this.closeTimers( [ this.taskTimer, this.timeout ] );
-		this.ws?.close();
-	}
-	
-	public isOpen( ws: WebSocket | null = this.ws ): ws is WebSocket {
-		return ws?.readyState === WebSocket.OPEN;
-	}
-	
-	private closeTimers( timers: NodeJS.Timer | null | Array<NodeJS.Timer | null> ) {
-		if ( !( timers instanceof Array ) ) {
-			timers = [ timers ];
-		}
-		timers.forEach( timer => {
-			if ( !timer ) return;
-			clearInterval( timer );
-			clearTimeout( timer );
-			timer = null;
-		} );
 	}
 }
