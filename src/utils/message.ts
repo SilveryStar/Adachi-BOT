@@ -5,6 +5,7 @@ class WsMessageBase {
 	public ws: WebSocket | null = null;
 	protected taskTimer: NodeJS.Timer | null = null;
 	protected timeout: NodeJS.Timer | null = null;
+	protected closeForce = false;
 	
 	// 发送消息
 	public sendMessage( message: any ) {
@@ -15,9 +16,11 @@ class WsMessageBase {
 	}
 	
 	public closeConnect() {
+		this.closeForce = true;
 		// 关闭心跳
 		this.closeTimers( [ this.taskTimer, this.timeout ] );
 		this.ws?.close();
+		this.closeForce = false;
 	}
 	
 	public isOpen( ws: WebSocket | null = this.ws ): ws is WebSocket {
@@ -39,21 +42,21 @@ class WsMessageBase {
 
 export class WsServerMessage extends WsMessageBase {
 	private wss: WebSocket.Server | null = null;
+	private server: http.Server | null = null;
 	constructor(
-		private port: number,
 		private initEvent: ( ws: WebSocket ) => void,
 		private heartbeat = true
 	) {
 		super();
 	}
 	
-	public createServer(): Promise<WebSocket.Server> {
+	public createServer( port: number ): Promise<WebSocket.Server> {
 		return new Promise( resolve => {
-			const server = http.createServer( ( req, res ) => {
+			this.server = http.createServer( ( req, res ) => {
 				res.writeHead( 200, { 'Content-Type': 'text/plain' } );
 				res.end( 'WebSocket Server is running' );
 			} )
-			this.wss = new WebSocket.Server({ server });
+			this.wss = new WebSocket.Server({ server: this.server });
 			this.taskTimer && clearInterval( <any>this.taskTimer );
 			this.wss.on( "connection", ws => {
 				this.ws = ws;
@@ -65,17 +68,30 @@ export class WsServerMessage extends WsMessageBase {
 					this.sendMessage( "ping" );
 				}, 10000 );
 			} )
-			server.listen( this.port, () => {
+			this.server.listen( port, () => {
 				resolve( this.wss! );
 			} );
 		} );
 	}
 	
-	public reCreated(): Promise<WebSocket.Server> {
+	public closeClient(): Promise<void> {
 		return new Promise( resolve => {
-			this.wss?.close( () => {
-				this.createServer().then( resolve );
+			const wssClose: Promise<void> = new Promise( res => {
+				if ( !this.wss ) {
+					return res();
+				}
+				this.wss.close( () => {
+					res();
+				} );
 			} );
+			wssClose.then( () => {
+				if ( !this.server ) {
+					return resolve();
+				}
+				this.server.close( () => {
+					resolve();
+				} );
+			} )
 		} );
 	}
 	
@@ -123,8 +139,10 @@ export default class WsMessage extends WsMessageBase {
 		// 连接错误
 		this.ws.on( "error", () => {} );
 		this.ws.on( "close", () => {
-			// 重连
-			this.reconnect();
+			if ( !this.closeForce ) {
+				// 重连
+				this.reconnect();
+			}
 		} );
 		this.initEvent( this.ws );
 	}

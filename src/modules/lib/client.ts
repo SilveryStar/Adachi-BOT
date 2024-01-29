@@ -1,4 +1,6 @@
-import BaseClient from "./core/base-client";
+import BaseClient from "./core/base-client/base";
+import DefaultClient from "./core/base-client/default";
+import ReverseClient from "./core/base-client/reverse";
 import { BotConfig } from "@/modules/config";
 import CoreLogger from "./core/logger";
 import { getLogger, Logger } from "log4js";
@@ -15,12 +17,9 @@ export class Client {
 	private baseClient: BaseClient;
 	
 	constructor( private config: BotConfig ) {
-		this.baseClient = BaseClient.getInstance(
-			config.base.wsServer,
-			config.base.wsApiServer,
-			config.base.wsPort,
-			config.base.apiTimeout
-		);
+		this.baseClient = config.base.reverseClient
+			? ReverseClient.getInstance( config.base.wsPort, config.base.apiTimeout )
+			: DefaultClient.getInstance( config.base.wsServer, config.base.wsApiServer, config.base.apiTimeout )
 		this.initLoggerConfig();
 		this.logger.level = config.base.logLevel;
 		this.initRefreshListener();
@@ -74,12 +73,22 @@ export class Client {
 	private initRefreshListener() {
 		this.config.base.on( "refresh", ( newCfg, oldCfg ) => {
 			if (
+				newCfg.reverseClient !== oldCfg.reverseClient ||
 				newCfg.wsServer !== oldCfg.wsServer ||
 				newCfg.wsApiServer !== oldCfg.wsApiServer ||
 				newCfg.wsPort !== oldCfg.wsPort
 			) {
-				this.baseClient.setTarget( newCfg.wsServer, newCfg.wsApiServer );
-				this.reConnect().then();
+				this.baseClient.setTarget( newCfg.wsServer, newCfg.wsApiServer, newCfg.wsPort );
+				if ( newCfg.reverseClient !== oldCfg.reverseClient ) {
+					this.closeConnect().then( () => {
+						this.baseClient = newCfg.reverseClient
+							? ReverseClient.getInstance( newCfg.wsPort, newCfg.apiTimeout )
+							: DefaultClient.getInstance( newCfg.wsServer, newCfg.wsApiServer, newCfg.apiTimeout )
+						this.connect();
+					} );
+				} else {
+					this.reConnect().then();
+				}
 			}
 			if ( newCfg.apiTimeout !== oldCfg.apiTimeout ) {
 				this.baseClient.setFetchTimeout( newCfg.apiTimeout );
@@ -101,15 +110,15 @@ export class Client {
 	}
 	
 	public on<T extends keyof EventMap>( event: T, listener: EventMap[T] ) {
-		this.baseClient.on( event, listener );
+		this.baseClient.emitter.on( event, listener );
 	}
 	
 	public once<T extends keyof EventMap>( event: T, listener: EventMap[T] ) {
-		this.baseClient.once( event, listener );
+		this.baseClient.emitter.once( event, listener );
 	}
 	
 	public off<T extends keyof EventMap>( event: T, listener: EventMap[T] ) {
-		this.baseClient.off( event, listener );
+		this.baseClient.emitter.off( event, listener );
 	}
 	
 	public async connect() {
@@ -117,7 +126,7 @@ export class Client {
 	}
 	
 	public closeConnect() {
-		this.baseClient.closeConnect();
+		return this.baseClient.closeConnect();
 	}
 	
 	public reConnect() {

@@ -4,24 +4,44 @@
 		<el-form v-if="setting" :model="setting" class="config-form" @submit.prevent>
 			<div class="config-section">
 				<section-title title="基本设置"/>
+				<form-item label="使用反向ws" desc="默认使用正向ws连接实现端，开启后使用反向ws">
+					<el-switch
+						v-model="setting.base.reverseClient"
+						:disabled="pageLoading"
+						@change="updateConfig('base', 'reverseClient')"
+					/>
+				</form-item>
 				<spread-form-item
-					v-model="setting.base.wsServer"
+					v-if="setting.base.reverseClient"
+					v-model="setting.base.wsPort"
 					:active-spread="activeSpread"
 					:disabled="pageLoading"
-					label="Event服务地址"
-					placeholder="onebot提供的正向websocket event服务地址"
-					@change="updateConfig('base', 'wsServer')"
+					label="ws服务端口"
+					type="number"
+					desc="待onebot连接的websocket服务所占用的端口"
+					@change="updateConfig('base', 'wsPort')"
 					@open="activeSpreadItem"
 				/>
-				<spread-form-item
-					v-model="setting.base.wsApiServer"
-					:active-spread="activeSpread"
-					:disabled="pageLoading"
-					label="Api服务地址"
-					placeholder="onebot提供的正向websocket api服务地址（若不填写，则默认等同于Event服务地址）"
-					@change="updateConfig('base', 'wsApiServer')"
-					@open="activeSpreadItem"
-				/>
+				<template v-else>
+					<spread-form-item
+						v-model="setting.base.wsServer"
+						:active-spread="activeSpread"
+						:disabled="pageLoading"
+						label="Event服务地址"
+						placeholder="onebot提供的正向websocket event服务地址"
+						@change="updateConfig('base', 'wsServer')"
+						@open="activeSpreadItem"
+					/>
+					<spread-form-item
+						v-model="setting.base.wsApiServer"
+						:active-spread="activeSpread"
+						:disabled="pageLoading"
+						label="Api服务地址"
+						placeholder="onebot提供的正向websocket api服务地址（若不填写，则默认等同于Event服务地址）"
+						@change="updateConfig('base', 'wsApiServer')"
+						@open="activeSpreadItem"
+					/>
+				</template>
 				<spread-form-item
 					v-model="setting.base.master"
 					:active-spread="activeSpread"

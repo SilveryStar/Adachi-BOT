@@ -9,9 +9,10 @@ import { LogLevel } from "@/modules/lib";
 // 基本设置
 const initBase = {
 	tip: "前往 https://docs.adachi.top/config 查看配置详情",
+	reverseClient: false,
 	wsServer: process.env.docker === "yes" ? "adachi-go-cqhttp:80" : "",
 	wsApiServer: "",
-	wsPort: "",
+	wsPort: 11451,
 	master: 987654321,
 	inviteAuth: 2,
 	logLevel: "info",
@@ -110,8 +111,7 @@ const initWebConsole = {
 export type ExportConfig<T extends Record<string, any>> = T & Omit<ConfigInstance<T>, "value" | "refresh">
 
 export interface BotConfigValue {
-	base: ExportConfig<Omit<typeof initBase, "wsPort" | "tip" | "inviteAuth"> & {
-		wsPort: number;
+	base: ExportConfig<Omit<typeof initBase, "tip" | "inviteAuth"> & {
 		logLevel: LogLevel;
 		inviteAuth: AuthLevel
 	}>;
@@ -237,13 +237,19 @@ export default class BotConfigManager implements BotConfigManagerImplement {
 		this.value = {
 			base: registerConfig<BotConfigValue["base"]>( "base", <any>initBase, cfg => {
 				cfg.inviteAuth = AuthLevel[cfg.inviteAuth] && cfg.inviteAuth !== 0 ? cfg.inviteAuth : AuthLevel.Master;
+
+				if ( cfg.wsPort ) {
+					const port = Number.parseInt( <any>cfg.wsPort );
+					cfg.wsPort = port > 65535 && port <= 0 ? initBase.wsPort : port;
+				}
 				
 				const logLevelList: string[] = [
 					"trace", "debug", "info", "warn",
 					"error", "fatal", "mark", "off"
 				];
-				cfg.logLevel = <any>( logLevelList.includes( cfg.logLevel )
-					? cfg.logLevel : "info" );
+				if ( !logLevelList.includes( cfg.logLevel ) ) {
+					cfg.logLevel = "info";
+				}
 				return cfg;
 			} ),
 			directive: registerConfig<BotConfigValue["directive"]>( "directive", <any>initDirective, cfg => {

@@ -123,7 +123,7 @@ export default class Adachi {
 		} ).then( pluginSettings => {
 			/* 删除存储的待问答指令 */
 			this.bot.redis.deleteKey( Enquire.redisKey ).then();
-			/* 成功连接 gocq 后执行各插件装载方法 */
+			/* 成功连接 OneBot 后执行各插件装载方法 */
 			this.bot.client.connect().then( async () => {
 				for ( const key of Object.keys( pluginSettings ) ) {
 					await pluginInstance.doMount( key );

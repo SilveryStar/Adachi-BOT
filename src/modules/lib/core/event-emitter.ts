@@ -1,5 +1,5 @@
 import { EventMap } from "../types/map/event";
-import { NoticeGroupEvent, NoticePrivateEvent } from "../types/event";
+import { NoticeGroupEvent, NoticePrivateEvent } from "@/modules/lib";
 import { ActionResponse } from "@/modules/lib/types/action";
 
 interface EventMapListener {
@@ -10,8 +10,16 @@ interface EventMapListener {
 type ApiListener = ( data: ActionResponse ) => any;
 
 export default class EventEmitter {
+	private static __instance: EventEmitter;
 	private eventMap: Map<keyof EventMap, EventMapListener[]> = new Map();
 	private apiMap: Map<string, ApiListener[]> = new Map();
+	
+	public static getInstance() {
+		if ( !EventEmitter.__instance ) {
+			EventEmitter.__instance = new EventEmitter();
+		}
+		return EventEmitter.__instance;
+	}
 	
 	private onHandle<T extends keyof EventMap>( event: T, listener: EventMap[T], once: boolean ) {
 		const listeners = this.eventMap.get( event );
@@ -22,7 +30,7 @@ export default class EventEmitter {
 		}
 	}
 	
-	protected onApi( event: string, listener: ApiListener ) {
+	public onApi( event: string, listener: ApiListener ) {
 		const listeners = this.apiMap.get( event );
 		if ( listeners ) {
 			listeners.push( listener );
@@ -31,7 +39,7 @@ export default class EventEmitter {
 		}
 	}
 	
-	protected emitApi( event: string, data: ActionResponse ) {
+	public emitApi( event: string, data: ActionResponse ) {
 		const listeners = this.apiMap.get( event ) || [];
 		listeners.slice().forEach( item => {
 			item( data );
@@ -69,7 +77,7 @@ export default class EventEmitter {
 		} );
 	}
 	
-	protected checkNoticePrivateEvent( data: NoticePrivateEvent | NoticeGroupEvent ): data is NoticePrivateEvent {
+	public checkNoticePrivateEvent( data: NoticePrivateEvent | NoticeGroupEvent ): data is NoticePrivateEvent {
 		return [ "friend_add", "friend_recall" ].includes( data.notice_type );
 	}
 }
