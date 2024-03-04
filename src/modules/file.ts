@@ -472,14 +472,20 @@ export default class FileManagement implements ManagementMethod {
 	// 	return this.writeYAMLSync( ymlName, newData, place );
 	// }
 	
-	public async unCompressFile( type: CompressType, originPath: string, targetPath: string, place: PresetPlace = "config" ): Promise<FileStatusResponse> {
+	public async unCompressFile(
+		type: CompressType,
+		originPath: string,
+		targetPath: string,
+		place: PresetPlace = "config",
+		zipFileNameEncoding = "UTF8"
+	): Promise<FileStatusResponse> {
 		const unCompressOrigin = this.getFilePath( originPath, place );
 		if ( !await this.isExist( unCompressOrigin ) ) {
 			return { path: "", status: false };
 		}
 		
 		const unCompressTarget = this.getFilePath( targetPath, place );
-		await compressing[type].uncompress( unCompressOrigin, unCompressTarget, { zipFileNameEncoding: "GBK" } );
+		await compressing[type].uncompress( unCompressOrigin, unCompressTarget, { zipFileNameEncoding } );
 		return { path: unCompressTarget, status: true }
 	}
 	
