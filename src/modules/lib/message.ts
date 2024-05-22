@@ -27,11 +27,15 @@ export function makeForwardMessage( message: ForwardElem ): ForwardElemParam[] {
 
 /** 实体化处理 */
 export function materialize( content: any ): string {
-	return content.toString()
-		.replace( /&(?!(amp|#91|#93|#44);)/g, "&amp;" )
-		.replace( /\[/g, "&#91;" )
-		.replace( /]/g, "&#93;" )
-		.replace( /,/g, "&#44;" )
+	try {
+		return content.toString()
+			.replace( /&(?!(amp|#91|#93|#44);)/g, "&amp;" )
+			.replace( /\[/g, "&#91;" )
+			.replace( /]/g, "&#93;" )
+			.replace( /,/g, "&#44;" )
+	} catch {
+		return "";
+	}
 }
 
 /** 反向实体化处理 */
