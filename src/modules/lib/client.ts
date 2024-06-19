@@ -223,8 +223,8 @@ export class Client {
 	}
 	
 	/** 获取合并转发内容 */
-	public async getForwardMessage( message_id: number ) {
-		const result = await this.baseClient.fetchApi( "get_forward_msg", { message_id } );
+	public async getForwardMessage( id: string ) {
+		const result = await this.baseClient.fetchApi( "get_forward_msg", { id } );
 		return this.getApiResponse( result, result.data && result.data.messages );
 	}
 	
@@ -247,7 +247,7 @@ export class Client {
 	}
 	
 	/** 是否能够发送语音 */
-	public async canSendRecord( file: string, out_format: RecordFormat ) {
+	public async canSendRecord() {
 		const result = await this.baseClient.fetchApi( "can_send_record", undefined );
 		return this.getApiResponse( result, result.data && result.data.yes );
 	}

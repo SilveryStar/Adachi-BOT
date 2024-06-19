@@ -1,5 +1,4 @@
 import * as api from "@/modules/lib/types/api";
-import { OneBotVersionInfo } from "@/modules/lib/types/api";
 
 export interface ApiMap {
 	/** 发送私聊消息 */
@@ -13,7 +12,7 @@ export interface ApiMap {
 	/** 获取消息 */
 	get_msg: ( param: api.OperateMessageParam ) => api.GetMessage;
 	/** 获取合并转发内容 */
-	get_forward_msg: ( param: api.OperateMessageParam ) => api.ForwardMessage;
+	get_forward_msg: ( param: api.OperateForwardMessageParam ) => api.ForwardMessage;
 	/** 发送好友赞 */
 	send_like: ( param: api.SendLikeParam ) => void;
 	/** 群组踢人 */

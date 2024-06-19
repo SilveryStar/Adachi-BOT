@@ -138,7 +138,7 @@ export default class AssetsUpdate {
 					}
 				}
 			} else {
-				const errorMsg = `检查更新失败，远程服务器异常，请联系开发者解决：${ ( <AxiosError>error ).response?.data?.["msg"] || <string>error }`;
+				const errorMsg = `${ pluginKey } 检查更新失败，远程服务器异常，请联系开发者解决：${ ( <AxiosError>error ).response?.data?.["msg"] || <string>error }`;
 				if ( lifeCycle?.updateError ) {
 					errRes.message = errorMsg;
 					await lifeCycle.updateError( errRes );

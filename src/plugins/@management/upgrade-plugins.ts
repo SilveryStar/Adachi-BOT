@@ -26,9 +26,9 @@ async function getCommitsInfo( repo: string ): Promise<any[]> {
 }
 
 /* 命令执行 */
-async function execHandle( command: string, cwd: string ): Promise<string> {
+async function execHandle( command: string, cwd?: string ): Promise<string> {
 	return new Promise( ( resolve, reject ) => {
-		exec( command, { cwd }, ( error, stdout, stderr ) => {
+		exec( command, { cwd }, ( error, stdout, _stderr ) => {
 			if ( error ) {
 				reject( error );
 			} else {
@@ -40,7 +40,7 @@ async function execHandle( command: string, cwd: string ): Promise<string> {
 
 /* 更新 plugin */
 async function updateBotPlugin( i: InputParameter, pluginInfo: PluginInfo, isForce: boolean = false ): Promise<void> {
-	const { messageData, sendMessage, logger, file } = i;
+	const { logger, file } = i;
 	const command = !isForce ? "git pull --no-rebase" : "git reset --hard && git pull --no-rebase";
 	const cwd = file.getFilePath( pluginInfo.key, "plugin" );
 	const execPromise = execHandle( command, cwd ).then( ( stdout: string ) => {
@@ -59,6 +59,25 @@ async function updateBotPlugin( i: InputParameter, pluginInfo: PluginInfo, isFor
 		} else {
 			throw `[${ pluginInfo.name }]更新失败，可能是网络出现问题${ !isForce ? "或存在代码冲突，若不需要保留改动代码可以追加 -f 使用强制更新" : "" }`;
 		}
+	}
+}
+
+async function installDependencies( { logger, sendMessage }: InputParameter ): Promise<void> {
+	try {
+		const command = "pnpm install";
+		const execPromise = execHandle( command ).then( ( stdout: string ) => {
+			logger.info( stdout );
+		} );
+		await waitWithTimeout( execPromise, 30000 );
+	} catch ( error ) {
+		if ( typeof error === "string" ) {
+			const errMsg = error.includes( "timeout" ) ? "更新失败，网络请求超时" : error;
+			await sendMessage( errMsg );
+		} else {
+			await sendMessage( "依赖安装失败，请前往控制台查看错误信息。" );
+		}
+		logger.error( `依赖安装失败: ${ typeof error === "string" ? error : ( <Error>error ).message }` );
+		throw error;
 	}
 }
 
@@ -155,6 +174,8 @@ export default defineDirective( "order", async ( i ) => {
 		}
 		try {
 			await updateBotPlugin( i, pluginInfo, isForce );
+			// 安装/更新依赖
+			await installDependencies( i );
 			await i.sendMessage( `[${ pluginName }]插件更新完成，${ isRestart ? "正在重载插件..." : "请稍后手动重载插件" }` );
 			if ( checkResult.newDate ) {
 				await i.redis.setString( dbKey, checkResult.newDate );
@@ -162,6 +183,7 @@ export default defineDirective( "order", async ( i ) => {
 			if ( isRestart ) { // 重载
 				try {
 					await pluginInstance.reloadSingle( pluginKey );
+					await i.sendMessage( `[${ pluginName }]插件重载完成` );
 				} catch ( error ) {
 					await i.sendMessage( `[${ pluginName }]插件重载异常: ${ error }` );
 				}
@@ -239,6 +261,8 @@ export default defineDirective( "order", async ( i ) => {
 		await i.sendMessage( "没有插件被更新!" );
 		return;
 	} else {
+		// 安装/更新依赖
+		await installDependencies( i );
 		const pluginNames = upgrade_plugins.map( p => p.name ).join( "、" );
 		await i.sendMessage( `${ pluginNames }已完成更新，${ isRestart ? "正在重载插件..." : "请稍后手动重载插件" }` );
 	}
