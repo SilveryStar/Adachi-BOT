@@ -45,11 +45,11 @@ export class Renderer implements ScreenshotRendererMethods {
 		private readonly route: string
 	) {
 	}
-
+	
 	private getBaseHttp() {
 		return `http://localhost:${ bot.config.base.renderPort }${ this.route }`;
 	}
-
+	
 	public async asBase64(
 		route: string,
 		params: Record<string, any> = {},
@@ -65,7 +65,7 @@ export class Renderer implements ScreenshotRendererMethods {
 			return { code: "error", error: err };
 		}
 	}
-
+	
 	public async asSegment(
 		route: string,
 		params: Record<string, any> = {},
@@ -87,7 +87,7 @@ export class Renderer implements ScreenshotRendererMethods {
 			return { code: "error", error: err };
 		}
 	}
-
+	
 	public async asForFunction(
 		route: string,
 		pageFunction: PageFunction,
@@ -103,10 +103,10 @@ export class Renderer implements ScreenshotRendererMethods {
 			return { code: "error", error: err };
 		}
 	}
-
+	
 	private getURL( route: string, params?: Record<string, any> ): string {
 		const paramStr: string = new URLSearchParams( params ).toString();
-
+		
 		try {
 			new URL( route );
 			return `${ route }?${ paramStr }`;
@@ -120,9 +120,9 @@ export class Renderer implements ScreenshotRendererMethods {
 export class BasicRenderer implements RenderMethods {
 	private browser?: puppeteer.Browser;
 	private screenshotCount: number = 0;
-
+	
 	static screenshotLimit = <const>233;
-
+	
 	constructor() {
 		this.launchBrowser().then( browser => {
 			browser && ( this.browser = browser );
@@ -222,7 +222,6 @@ export class BasicRenderer implements RenderMethods {
 			}
 			
 			const result = await element?.screenshot( option );
-			await page.close();
 			
 			this.screenshotCount++;
 			if ( this.screenshotCount >= BasicRenderer.screenshotLimit ) {
@@ -230,9 +229,8 @@ export class BasicRenderer implements RenderMethods {
 			}
 			
 			return result;
-		} catch ( err: any ) {
+		} finally {
 			await page.close();
-			throw err;
 		}
 	}
 	
@@ -256,7 +254,6 @@ export class BasicRenderer implements RenderMethods {
 			await this.pageLoaded( page );
 			
 			const result = await pageFunction( page );
-			await page.close();
 			
 			this.screenshotCount++;
 			if ( this.screenshotCount >= BasicRenderer.screenshotLimit ) {
@@ -269,9 +266,8 @@ export class BasicRenderer implements RenderMethods {
 			}
 			
 			return result;
-		} catch ( err: any ) {
+		} finally {
 			await page.close();
-			throw err;
 		}
 	}
 }

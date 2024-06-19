@@ -22,7 +22,7 @@ async function getCommitsInfo(): Promise<any[]> {
 /* 命令执行 */
 async function execHandle( command: string ): Promise<string> {
 	return new Promise( ( resolve, reject ) => {
-		exec( command, ( error, stdout, stderr ) => {
+		exec( command, ( error, stdout, _stderr ) => {
 			if ( error ) {
 				reject( error );
 			} else {
@@ -35,9 +35,9 @@ async function execHandle( command: string ): Promise<string> {
 /* 更新 bot */
 async function updateBot( { matchResult, sendMessage, logger }: InputParameter<"order"> ): Promise<void> {
 	const isForce = !!matchResult.match[0];
-	const command = !isForce ? "git checkout HEAD package*.json && git pull --no-rebase" : "git reset --hard && git pull --no-rebase";
+	let command = !isForce ? "git checkout HEAD package*.json && git pull --no-rebase" : "git reset --hard && git pull --no-rebase";
 	
-	const execPromise = execHandle( command ).then( ( stdout: string ) => {
+	let execPromise = execHandle( command ).then( ( stdout: string ) => {
 		logger.info( stdout );
 		if ( /(Already up[ -]to[ -]date|已经是最新的)/.test( stdout ) ) {
 			throw "当前已经是最新版本了";
@@ -54,6 +54,23 @@ async function updateBot( { matchResult, sendMessage, logger }: InputParameter<"
 			await sendMessage( `更新失败，可能是网络出现问题${ !isForce ? "或存在代码冲突，若不需要保留改动代码可以追加 -f 使用强制更新" : "" }` );
 		}
 		logger.error( `更新 BOT 失败: ${ typeof error === "string" ? error : ( <Error>error ).message }` );
+		throw error;
+	}
+	
+	try {
+		command = "pnpm install";
+		execPromise = execHandle( command ).then( ( stdout: string ) => {
+			logger.info( stdout );
+		} );
+		await waitWithTimeout( execPromise, 30000 );
+	} catch ( error ) {
+		if ( typeof error === "string" ) {
+			const errMsg = error.includes( "timeout" ) ? "更新失败，网络请求超时" : error;
+			await sendMessage( errMsg );
+		} else {
+			await sendMessage( "依赖安装失败，请前往控制台查看错误信息。" );
+		}
+		logger.error( `依赖安装失败: ${ typeof error === "string" ? error : ( <Error>error ).message }` );
 		throw error;
 	}
 	

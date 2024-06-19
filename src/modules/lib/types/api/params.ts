@@ -12,6 +12,12 @@ export interface OperateMessageParam {
 	message_id: number;
 }
 
+/** 操作合并转发消息 */
+export interface OperateForwardMessageParam {
+	/** 合并转发id */
+	id: string;
+}
+
 /** 操作用户 */
 export interface OperateUserParam {
 	/** 用户 QQ */
