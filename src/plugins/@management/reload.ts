@@ -1,7 +1,6 @@
 import { defineDirective } from "@/modules/command";
 import PluginManager from "@/modules/plugin";
 import RenderServer from "@/modules/server";
-import { isEqualObject } from "@/utils/object";
 
 export default defineDirective( "order", async ( { matchResult, sendMessage } ) => {
 	const pluginInstance = PluginManager.getInstance();
@@ -27,7 +26,6 @@ export default defineDirective( "order", async ( { matchResult, sendMessage } ) 
 		}
 	} else {
 		await pluginInstance.reload();
-		await serverInstance.reloadPluginRouters( pluginInstance.pluginList );
 		await sendMessage( `所有插件重载完成` );
 	}
 } );

@@ -4,7 +4,7 @@ import { BOT } from "@/modules/bot";
 import { join } from "path";
 import { Router } from "express";
 import { Renderer } from "@/modules/renderer";
-import { getObjectKeyValue, isEqualObject, removeKeysStartsWith } from "@/utils/object";
+import { removeKeysStartsWith } from "@/utils/object";
 import { ExportConfig } from "@/modules/config";
 import { PresetPlace } from "@/modules/file";
 import Refreshable, { RefreshTarget } from "@/modules/management/refresh";
@@ -275,11 +275,7 @@ export default class Plugin {
 			// 校验 publicKey 配置项，不同则重启 server
 			if ( reloadServer ) {
 				const serverInstance = RenderServer.getInstance();
-				if ( !isEqualObject( oldSetting.publicDirs, newSetting.publicDirs ) ) {
-					await serverInstance.reloadServer();
-				} else {
-					await serverInstance.reloadPluginRouters( this.pluginList );
-				}
+				await serverInstance.reloadPluginRouters( [ pluginKey ] );
 			}
 			
 			return { oldSetting, newSetting };
@@ -305,7 +301,7 @@ export default class Plugin {
 		
 		await this.load();
 		const serverInstance = RenderServer.getInstance();
-		await serverInstance.reloadServer();
+		await serverInstance.reloadPluginRouters();
 		return {
 			oldSettings,
 			newSettings: this.pluginSettings

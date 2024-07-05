@@ -104,6 +104,31 @@ export function includesValue( list, value, formatTarget?: ( v: any ) => any ) {
 }
 
 /**
+ * 获取两个数组中各自与对方不相同的项
+ * @param arrA 数组A
+ * @param arrB 数组B
+ * @param checkEqualFunction 匹配项与项相同的方法
+ * @return [ 数组A中独有的项, 数组B中独有的项 ]
+ */
+export function getArrayDifferences<T = any, V = any>( arrA: T[], arrB: V[], checkEqualFunction: ( itemA: T, itemB: V ) => boolean ): [ T[], V[] ] {
+	const onlyA = [ ...arrA ];
+	const onlyB = [ ...arrB ];
+	
+	for ( let j = 0; j < onlyA.length; j++ ) {
+		for ( let k = 0; k < onlyB.length; k++ ) {
+			if ( checkEqualFunction( onlyA[j], onlyB[k] ) ) {
+				onlyA.splice( j, 1 );
+				onlyB.splice( k, 1 );
+				j--;
+				break;
+			}
+		}
+	}
+	
+	return [ onlyA, onlyB ]
+}
+
+/**
  * @desc 比对新旧数据并组装为新数据，添加新增数据，旧数据原有字段不做改变
  * @param oldValue 旧数据
  * @param newValue 新数据

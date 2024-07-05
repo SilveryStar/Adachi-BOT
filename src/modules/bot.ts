@@ -129,7 +129,7 @@ export default class Adachi {
 					await pluginInstance.doMount( key );
 				}
 			} );
-			serverInstance.reloadPluginRouters( pluginInstance.pluginList ).then();
+			serverInstance.reloadPluginRouters().then();
 			/* 事件监听 */
 			this.bot.client.on( "message.group", this.parseGroupMsg.bind( this ) );
 			this.bot.client.on( "message.private", this.parsePrivateMsg.bind( this ) );

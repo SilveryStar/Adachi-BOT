@@ -278,6 +278,10 @@ export default defineDirective( "order", async ( i ) => {
 					oldSetting,
 					newSetting
 				} = await pluginInstance.reloadSingle( pluginInfo.key, true, false, false );
+				
+				// 已经需要重启了就别再比对了
+				if ( needRestartServer ) continue;
+				
 				if ( !isEqualObject( oldSetting, newSetting ) ) {
 					needRestartServer = true;
 				}
@@ -289,11 +293,7 @@ export default defineDirective( "order", async ( i ) => {
 		let errorMsg = errorPlugins.length ? `插件 ${ errorPlugins.join( "、" ) } 重载异常` : "";
 		try {
 			await i.command.reload();
-			if ( needRestartServer ) {
-				await serverInstance.reloadServer();
-			} else {
-				await serverInstance.reloadPluginRouters( pluginInstance.pluginList );
-			}
+			await serverInstance.reloadPluginRouters( upgrade_plugins.map( info => info.key ) );
 		} catch ( error ) {
 			errorMsg += "，公共服务重启失败。";
 		}

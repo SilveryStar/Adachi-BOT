@@ -2,14 +2,14 @@ import fs from "fs";
 import { join, resolve } from "path";
 import express from "express";
 import { createServer as createViteServer, ViteDevServer } from "vite";
-import PluginManager, { PluginInfo, ServerRouters } from "@/modules/plugin";
+import PluginManager, { ServerRouters } from "@/modules/plugin";
 import * as process from "process";
 import { BotConfig } from "@/modules/config";
 import WebConsole from "@/web-console";
 import useWebsocket, { Application } from "express-ws";
 import FileManagement from "@/modules/file";
 import { Server } from "http";
-import { isEqualObject } from "@/utils/object";
+import { getArrayDifferences, isEqualObject } from "@/utils/object";
 import { isJsonString } from "@/utils/verify";
 import { Client } from "@/modules/lib";
 import { getIPAddress } from "@/utils/network";
@@ -21,7 +21,9 @@ import { formatVersion } from "@/utils/format";
 export default class RenderServer {
 	private static _instance: RenderServer | null = null;
 	private app: Application;
+	/** @deprecated 留档备用 */
 	private serverRouters: Array<ServerRouters> = [];
+	
 	private webConsole: WebConsole | null = null;
 	private vite: ViteDevServer | null = null;
 	private server: Server | null = null;
@@ -42,9 +44,6 @@ export default class RenderServer {
 				await this.webConsole.closePromise();
 			}
 			await this.reloadServer();
-			for ( const r of this.serverRouters ) {
-				this.app.use( r.path, r.router );
-			}
 		} )
 		this.config.base.on( "refresh", async ( newCfg, oldCfg ) => {
 			if ( newCfg.renderPort === oldCfg.renderPort ) {
@@ -66,13 +65,48 @@ export default class RenderServer {
 		return RenderServer._instance;
 	}
 	
-	public async reloadPluginRouters( pluginList: Record<string, PluginInfo> ) {
-		const serverRoutes: ServerRouters[] = [];
-		for ( const pluginInfo of Object.values( pluginList ) ) {
-			serverRoutes.push( ...pluginInfo.servers );
+	/**
+	 * 初版期望于仅刷新插件路由列表，与重启服务功能隔离
+	 * @description 务必保证 plugin 实例已被加载后再使用
+	 */
+	public async reloadPluginRouters( pluginKeys?: string[] ) {
+		const pluginInstance = PluginManager.getInstance();
+		const pluginList = pluginInstance.pluginList;
+		
+		// 未传递 pluginKeys 时，清空全部插件路由
+		if ( !pluginKeys ) {
+			pluginKeys = Object.keys( pluginList );
 		}
-		// 设置插件路由
-		await this.setServerRouters( serverRoutes );
+		
+		const pluginKeysRegStr = `(${ pluginKeys!.join( "|" ) })`;
+		
+		// 清空所有目标插件相关的路由
+		if ( this.app._router ) {
+			this.app._router.stack = this.app._router.stack.filter( layer => {
+				const regSource: string | undefined = layer.regexp?.source;
+				if ( !regSource ) return;
+				
+				return !new RegExp( `^\\^\\\\/${ pluginKeysRegStr }\\\\/` ).test( regSource );
+			} );
+		}
+		
+		// 重新挂载被清除插件的静态资源服务和路由
+		pluginKeys.forEach( key => {
+			const info = pluginList[key];
+			if ( !info ) return;
+			
+			// 挂载静态资源目录
+			const publicDirs = info.publicDirs || [];
+			publicDirs.forEach( dir => {
+				const path = join( key, dir ).replace( /\\/g, "/" );
+				this.app.use( "/" + path, express.static( this.file.getFilePath( path, "plugin" ) ) );
+			} );
+			
+			// 挂载路由
+			info.servers.forEach( r => {
+				this.app.use( r.path, r.router );
+			} )
+		} )
 	}
 	
 	/* 新增后台服务路由 */
@@ -84,27 +118,43 @@ export default class RenderServer {
 		}
 	}
 	
-	/* 重写后台服务路由 */
-	public async setServerRouters( routers: Array<ServerRouters> ) {
-		const different = this.serverRouters.filter( oldRouter => {
-			return routers.findIndex( newRouter => isEqualObject( oldRouter, newRouter, target => {
+	/**
+	 * 重写后台服务路由
+	 * @deprecated 留档备用
+	 * @param routers
+	 */
+	private async setServerRouters( routers: Array<ServerRouters> ) {
+		// 对比各自新旧路由数组中独有的项目
+		const [ onlyOld, onlyNew ] = getArrayDifferences( this.serverRouters, routers, ( oldRouter, newRouter ) => {
+			return isEqualObject( oldRouter, newRouter, target => {
 				if ( target.constructor.name === "Layer" ) {
 					return target.route || true;
 				}
 				return target;
-			} ) ) === -1;
-		} );
+			} );
+		}  );
 		// 此时新旧数据本质不同，直接重载服务
-		if ( different.length ) {
-			this.serverRouters = routers;
-			return await this.reloadServer();
+		if ( onlyOld.length && this.app._router ) {
+			// 从 serverRouters 和 app._router.stack 中删除旧路由
+			onlyOld.forEach( route => {
+				// 从缓存的服务路由数组中删除
+				const routerDelIndex = this.serverRouters.findIndex( r => r.path === route.path );
+				this.serverRouters.splice( routerDelIndex, 1 );
+				// 从 express 挂载的路由中删除
+				const stackDelIndex = this.app._router.stack.findIndex( layer => {
+					if ( layer.name !== "router" ) return false;
+					return layer.regexp?.test( route.path );
+				} );
+				this.app._router.stack.splice( stackDelIndex, 1 );
+			} );
 		}
-		// 此时两者相同，不作处理
-		if ( this.serverRouters.length === routers.length ) {
-			return;
+		
+		// 挂载新增路由
+		if ( onlyNew.length ) {
+			return this.addServerRouters( onlyNew );
 		}
-		// 此时仅存在新增服务，依次加载即可
-		this.addServerRouters( routers );
+		
+		// 此时两者相同，不做处理
 	}
 	
 	/** 目标版本是否低于等于当前版本 */
@@ -170,7 +220,10 @@ export default class RenderServer {
 		} )
 	}
 	
-	/* 重载服务 */
+	/**
+	 * 重载服务
+	 * @description 仅重启服务，不会更新插件路由列表，需要额外手动校验
+	 */
 	public async reloadServer() {
 		if ( this.vite ) {
 			await this.vite.restart();
@@ -181,9 +234,7 @@ export default class RenderServer {
 		this.client.logger.info( `原公共服务端口 ${ this.config.base.renderPort } 已关闭` );
 		this.webConsole?.closePromise();
 		await this.createServer();
-		for ( const r of this.serverRouters ) {
-			this.app.use( r.path, r.router );
-		}
+		await this.reloadPluginRouters();
 	}
 	
 	/* 创建服务 */
@@ -207,18 +258,6 @@ export default class RenderServer {
 			);
 			res.status( 200 ).set( { "Content-Type": "text/html" } ).end( template );
 		})
-		
-		// 为插件目录挂载静态资源服务
-		const pluginInfos = PluginManager.getInstance().pluginList;
-		Object.values( pluginInfos ).forEach( ( { key ,publicDirs = [] } ) => {
-			if ( !publicDirs.length ) {
-				return;
-			}
-			publicDirs.forEach( dir => {
-				const path = join( key, dir ).replace( /\\/g, "/" );
-				this.app.use( "/" + path, express.static( this.file.getFilePath( path, "plugin" ) ) );
-			} );
-		} )
 		
 		if ( this.config.webConsole.enable ) {
 			if ( !isProd ) {
@@ -250,19 +289,29 @@ export default class RenderServer {
 			this.firstListener = false;
 		}
 		
+		const pluginInstance = PluginManager.getInstance();
+		
 		this.app.use( '*', async ( req, res, next ) => {
-			if ( !this.config.webConsole.enable ) {
-				return next();
-			}
+			if ( !this.config.webConsole.enable ) return next();
 			
 			const baseUrl = req.baseUrl;
-			// 如果是 plugin 注册的 server 路由，放行
-			const isRenderRouter = this.serverRouters.findIndex( r => {
-				if ( r.path === baseUrl ) return true;
-				return findRouter( r.router, baseUrl, r.path ) !== -1;
-			} ) !== -1;
-			if ( isRenderRouter ) {
-				return next();
+			// 如果是 plugin 注册的 server 路由或静态资源目录文件，放行
+			for ( const key in pluginInstance.pluginList ) {
+				const { servers, publicDirs } = pluginInstance.pluginList[key];
+				
+				// 校验当前路径是否匹配 plugin 的静态资源目录
+				if ( publicDirs?.length ) {
+					const regExp = new RegExp( "^/" + join( key, `(${ publicDirs.join( "|" ) })` ).replace( /\\/g, "/" ) );
+					if ( regExp.test( baseUrl ) ) return next();
+				}
+				
+				// 校验当前路径是否匹配 plugin 的注册路由
+				const findIndex = servers.findIndex( r => {
+					if ( r.path === baseUrl ) return true;
+					return findRouter( r.router, baseUrl, r.path ) !== -1;
+				} );
+				
+				if ( findIndex !== -1 ) return next();
 			}
 			
 			// 网页控制台静态页面地址
