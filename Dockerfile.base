@@ -14,7 +14,7 @@ RUN set -eux; \
     mkdir -p "${emoji_dir}"; \
     wget "${emoji_url}"  -O "${emoji_dir}/AppleColorEmoji.ttf"
 
-FROM node:18-alpine3.20 as adachi-base
+FROM node:18-alpine3.20
 
 ARG USE_MIRROR=true
 
@@ -27,7 +27,7 @@ ENV TZ=Asia/Shanghai \
 COPY --from=resource /usr/share/fonts/emoji/AppleColorEmoji.ttf /usr/share/fonts/emoji/AppleColorEmoji.ttf
 COPY public/fonts/wqy-microhei-regular.ttf /usr/share/fonts/win/wqy-microhei-regular.ttf
 
-# Installs latest Chromium (100) package.
+# Installs base package.
 RUN set -eux; \
         if $USE_MIRROR; then \
           sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories; \
@@ -81,17 +81,3 @@ RUN set -eux; \
     # verify that the binary works
     	gosu --version; \
     	gosu nobody true
-
-FROM adachi-base
-
-COPY . /bot
-WORKDIR /bot
-
-RUN chmod +x docker-entrypoint.sh &&  \
-    dos2unix docker-entrypoint.sh && \
-    addgroup -S -g 1001 adachi &&  \
-    adduser -S -G adachi -u 1001 adachi
-
-ENTRYPOINT ["sh", "docker-entrypoint.sh"]
-
-CMD sh -c "pnpm docker-start"

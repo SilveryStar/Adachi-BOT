@@ -29,3 +29,12 @@ export function urlParamsParse( url: string | undefined, params: Record<string, 
 	
 	return url ? `${ url }?${ paramsStr }` : paramsStr;
 }
+
+export function parseURL( url: string ): URL {
+	// 为没有协议的URL添加默认的协议头
+	if ( !url.startsWith( 'http://' ) && !url.startsWith( 'https://' ) ) {
+		url = 'http://' + url;
+	}
+	
+	return new URL( url );
+}
