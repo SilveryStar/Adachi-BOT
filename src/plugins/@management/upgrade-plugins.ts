@@ -1,19 +1,11 @@
 import fetch, { Response } from "node-fetch";
-import { exec } from "child_process";
 import { defineDirective, InputParameter } from "@/modules/command";
 import PluginManager, { PluginInfo } from "@/modules/plugin";
 import RenderServer from "@/modules/server";
 import { isEqualObject } from "@/utils/object";
+import { execCommand } from "@/utils/system";
+import { waitWithTimeout } from "@/utils/async";
 
-/* 超时检查 */
-function waitWithTimeout( promise: Promise<any>, timeout: number ): Promise<any> {
-	let timer;
-	const timeoutPromise = new Promise( ( _, reject ) => {
-		timer = setTimeout( () => reject( `timeout: ${ timeout }ms` ), timeout );
-	} );
-	return Promise.race( [ timeoutPromise, promise ] )
-		.finally( () => clearTimeout( timer ) );
-}
 
 /* 检查更新 */
 async function getCommitsInfo( repo: string ): Promise<any[]> {
@@ -25,25 +17,12 @@ async function getCommitsInfo( repo: string ): Promise<any[]> {
 	return [ json ];
 }
 
-/* 命令执行 */
-async function execHandle( command: string, cwd?: string ): Promise<string> {
-	return new Promise( ( resolve, reject ) => {
-		exec( command, { cwd }, ( error, stdout, _stderr ) => {
-			if ( error ) {
-				reject( error );
-			} else {
-				resolve( stdout );
-			}
-		} )
-	} )
-}
-
 /* 更新 plugin */
 async function updateBotPlugin( i: InputParameter, pluginInfo: PluginInfo, isForce: boolean = false ): Promise<void> {
 	const { logger, file } = i;
 	const command = !isForce ? "git pull --no-rebase" : "git reset --hard && git pull --no-rebase";
 	const cwd = file.getFilePath( pluginInfo.key, "plugin" );
-	const execPromise = execHandle( command, cwd ).then( ( stdout: string ) => {
+	const execPromise = execCommand( command, { cwd } ).then( ( stdout: string ) => {
 		logger.info( stdout );
 		if ( /(Already up[ -]to[ -]date|已经是最新的)/.test( stdout ) ) {
 			throw `[${ pluginInfo.name }]当前已经是最新版本了`;
@@ -62,16 +41,24 @@ async function updateBotPlugin( i: InputParameter, pluginInfo: PluginInfo, isFor
 	}
 }
 
-async function installDependencies( { logger, sendMessage }: InputParameter ): Promise<void> {
+async function installDependencies( i: InputParameter, pluginInfo?: PluginInfo ): Promise<void> {
+	const { logger, sendMessage, file } = i;
 	try {
-		const command = "pnpm install";
-		const execPromise = execHandle( command ).then( ( stdout: string ) => {
+		const command = "pnpm i -P --no-frozen-lockfile";
+		const cwd = pluginInfo ? file.getFilePath( pluginInfo.key, "plugin" ) : undefined;
+		const execPromise = execCommand( command, {
+			env: {
+				...process.env,
+				"CI": "1"
+			},
+			cwd
+		} ).then( ( stdout: string ) => {
 			logger.info( stdout );
 		} );
-		await waitWithTimeout( execPromise, 30000 );
+		await waitWithTimeout( execPromise, 60000 );
 	} catch ( error ) {
 		if ( typeof error === "string" ) {
-			const errMsg = error.includes( "timeout" ) ? "更新失败，网络请求超时" : error;
+			const errMsg = error.includes( "timeout" ) ? "更新成功，依赖安装超时" : error;
 			await sendMessage( errMsg );
 		} else {
 			await sendMessage( "依赖安装失败，请前往控制台查看错误信息。" );
@@ -175,7 +162,7 @@ export default defineDirective( "order", async ( i ) => {
 		try {
 			await updateBotPlugin( i, pluginInfo, isForce );
 			// 安装/更新依赖
-			await installDependencies( i );
+			await installDependencies( i, pluginInfo );
 			await i.sendMessage( `[${ pluginName }]插件更新完成，${ isRestart ? "正在重载插件..." : "请稍后手动重载插件" }` );
 			if ( checkResult.newDate ) {
 				await i.redis.setString( dbKey, checkResult.newDate );

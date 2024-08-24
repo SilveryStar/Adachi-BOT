@@ -2,6 +2,7 @@ import BaseClient from "./base";
 import WsMessage from "@/utils/message";
 import WebSocket from "ws";
 import { ActionRequest } from "@/modules/lib";
+import { parseURL } from "@/utils/url";
 
 export default class DefaultClient extends BaseClient {
 	private static __instance: DefaultClient;
@@ -67,7 +68,11 @@ export default class DefaultClient extends BaseClient {
 	}
 	
 	public async connect(): Promise<void> {
-		this.wsEvent.connect( `ws://${ this.eventTarget }` );
+		let wsProtocol = "ws:";
+		if ( parseURL( this.eventTarget ).port === "443" ) {
+			wsProtocol = "wss:";
+		}
+		this.wsEvent.connect( `${ wsProtocol }//${ this.eventTarget }` );
 		/* 监听连接成功状态 */
 		return new Promise( resolve => {
 			// 事件服务器连接状态
