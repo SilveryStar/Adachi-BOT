@@ -11,6 +11,7 @@ import { RequestParamsError } from "@/web-console/backend/utils/error";
 
 export default express.Router()
 	.get( "/list", async ( req, res, next ) => {
+		debugger;
 		const page = parseInt( <string>req.query.page ); // 当前第几页
 		const length = parseInt( <string>req.query.length ); // 页长度
 		
@@ -27,7 +28,9 @@ export default express.Router()
 			const userSubData: Record<string, string[]> = await formatSubUsers( bot, "private" );
 			
 			let userData: string[] = await bot.redis.getKeysByPrefix( "adachi.user-used-groups-" );
+			console.log( userData )
 			userData = userData.map( ( userKey: string ) => <string>userKey.split( "-" ).pop() )
+			console.log( userData )
 			
 			const cmdKeys: string[] = bot.command.cmdKeys;
 			
@@ -43,12 +46,11 @@ export default express.Router()
 			}
 			
 			const filterUserKeys = userData.slice( ( page - 1 ) * length, page * length );
-			
 			const results = await Promise.all( filterUserKeys.map( userKey => getUserInfo( parseInt( userKey ) ) ) );
 			const userInfos = results
-				.map( ( info, infoKey ) => ( {
+				.map( info => ( {
 					...info,
-					subInfo: userSubData[infoKey] || []
+					subInfo: userSubData[ info.userID ] || []
 				} ) )
 				.sort( ( prev, next ) => next.botAuth - prev.botAuth );
 			
