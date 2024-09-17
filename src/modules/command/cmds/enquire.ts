@@ -125,9 +125,13 @@ export class Enquire extends BasicConfig {
 			header: input.matchResult.header,
 			input
 		};
-		await bot.redis.setHashField( Enquire.redisKey, key, this.cmdKey );
 		input.matchResult.status = "activate";
-		await this.run( input );
+		const completed = await this.run( input );
+		// 直接中断执行
+		if ( typeof completed === "boolean" && !completed ) {
+			return;
+		}
+		await bot.redis.setHashField( Enquire.redisKey, key, this.cmdKey );
 	};
 	
 	public async confirm( userID: number, groupID: number, input: Omit<InputParameter<"enquire">, "matchResult"> ) {
