@@ -463,7 +463,11 @@ export default class Adachi {
 		}
 	}
 	
+	/* 私聊白名单校验 */
 	private userValid( userId: number ): boolean {
+		// 当为主人时，不进行限制
+		if ( userId.toString() === this.bot.config.base.master.toString() ) return true;
+		
 		const userList = this.bot.config.whiteList.user;
 		/* 列表内无账号，不限制使用 */
 		if ( userList.length === 0 ) {
@@ -474,6 +478,9 @@ export default class Adachi {
 	
 	/* 群组白名单校验 */
 	private groupValid( groupId: number, userId: number ): boolean {
+		// 当为主人时，不进行限制
+		if ( userId.toString() === this.bot.config.base.master.toString() ) return true;
+		
 		if ( !this.userValid( userId ) ) {
 			return false;
 		}
@@ -489,6 +496,8 @@ export default class Adachi {
 	private async checkThreshold( userID: number ): Promise<boolean> {
 		const thresholdInterval: boolean = this.bot.config.directive.ThresholdInterval;
 		if ( !thresholdInterval ) return true;
+		// 当为主人时，不进行限制
+		if ( userID.toString() === this.bot.config.base.master.toString() ) return true;
 		
 		// 当需要超量禁用时，进行处理
 		const threshold: number = this.bot.config.directive.countThreshold;
