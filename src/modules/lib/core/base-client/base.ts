@@ -199,13 +199,15 @@ export default abstract class BaseClient {
 					data.reply = ( content: Sendable ) => quickOperation( { reply: formatSendMessage( content ) } );
 					switch ( data.sub_type ) {
 						case "friend":
-							this.logger.info( `来自好友 ${ data.sender.nickname }(${ data.sender.user_id }) 的私聊消息: ${ data.raw_message }` );
+							// 好友私聊
+							this.logger.info( `[Private: bot <= ${ data.sender.user_id }] ${ data.sender.nickname }: ${ data.raw_message }` );
 							this.emitter.emit( "message.private.friend", data );
 							break;
 						case "group":
+							// 临时会话
 							const groupInfo = this.gl.get( data.sender.group_id );
 							const groupName = groupInfo ? groupInfo.group_name : "";
-							this.logger.info( `来自群 ${ groupName }(${ data.sender.group_id }) 内 ${ data.sender.nickname }(${ data.sender.user_id }) 的临时会话消息: ${ data.raw_message }` );
+							this.logger.info( `[Private: bot <= ${ data.sender.group_id }, ${ data.sender.user_id }] ${ groupName }(${ data.sender.nickname }): ${ data.raw_message }` );
 							this.emitter.emit( "message.private.group", data );
 							break;
 					}
@@ -222,12 +224,14 @@ export default abstract class BaseClient {
 					data.kick = () => quickOperation( { kick: true } );
 					data.ban = ( duration ) => quickOperation( { ban: true, ban_duration: duration } );
 					switch ( data.sub_type ) {
+						// 普通群消息
 						case "normal":
-							this.logger.info( `来自群 ${ groupName }(${ data.group_id }) 内 ${ data.sender.card || data.sender.nickname }(${ data.sender.user_id }) 的消息: ${ data.raw_message }` );
+							this.logger.info( `[Group: bot <= ${ data.group_id }, ${ data.sender.user_id }]] ${ groupName }(${ data.sender.card || data.sender.nickname }): ${ data.raw_message }` );
 							this.emitter.emit( "message.group.normal", data );
 							break;
+						// 群匿名消息
 						case "anonymous":
-							this.logger.info( `来自群 ${ groupName }(${ data.group_id }) 内 ${ data.anonymous.name } 的匿名消息: ${ data.raw_message }` );
+							this.logger.info( `[Group: bot <= ${ data.group_id }, anonymous]] ${ groupName }(${ data.anonymous.name }): ${ data.raw_message }` );
 							this.emitter.emit( "message.group.anonymous", data );
 					}
 					this.emitter.emit( "message.group", data );
@@ -275,7 +279,7 @@ export default abstract class BaseClient {
 							this.emitter.emit( "notice.group.admin", data );
 							break;
 						case "group_upload":
-							this.logger.info( `来自群 ${ data.group_id } 内 ${ data.user_id } 上传的文件: ${ data.file.name }` );
+							this.logger.info( `[Group: bot <= ${ data.group_id }, ${ data.user_id }]] 上传了文件: ${ data.file.name }` );
 							this.emitter.emit( "notice.group.upload", data );
 							break;
 						case "group_ban":
@@ -414,19 +418,19 @@ export default abstract class BaseClient {
 	protected printSendLogger( action: string, params: any = {} ) {
 		let tipTarget = "";
 		if ( action === "send_msg" ) {
-			tipTarget = params.message_type === "group" ? `[群聊(${ params.group_id })]` : `[私聊(${ params.user_id })]`;
+			tipTarget = params.message_type === "group" ? `[Group: bot => ${ params.group_id }]` : `[Private: bot => ${ params.user_id }]`;
 		}
 		if ( action === "send_private_msg" ) {
-			tipTarget = `[私聊(${ params.user_id })]`;
+			tipTarget = `[Private: bot => ${ params.user_id }]`;
 		}
 		if ( action === "send_group_msg" ) {
-			tipTarget = `[群聊(${ params.group_id })]`;
+			tipTarget = `[Group: bot => ${ params.group_id }]`;
 		}
 		if ( !tipTarget ) {
 			return;
 		}
 		const tipMessage = this.getMessageLogger( params.message );
-		this.logger.info( `消息发送成功: ${ tipTarget } ${ tipMessage }` );
+		this.logger.info( `${ tipTarget }: ${ tipMessage }` );
 	}
 	
 	public abstract setTarget( eventTarget: string, apiTarget: string, wsPort: number ): void

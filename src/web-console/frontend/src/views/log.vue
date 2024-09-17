@@ -252,7 +252,7 @@ function filterWsLogs( logs ) {
 		}
 		/* 过滤消息类型 */
 		if ( typeof msgType === "number" ) {
-			const reg = /^(?:send to|recv from): \[(Group|Private): .*?(\d+)/;
+			const reg = /^\[(Group|Private):\sbot\s(?:=>|<=)\s(.+?)[,\]]/;
 			const result = reg.exec( el.message );
 			if ( result ) {
 				const type = result[1];
