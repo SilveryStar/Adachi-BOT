@@ -1,0 +1,63 @@
+/**
+ * 基础卡片组件样式
+ * @author AsukaMari
+ * @date 2024-09-17
+ * @licence MIT
+ */
+.common-card {
+	position: relative;
+	width: 100%;
+	height: 100%;
+	min-height: 80px;
+}
+
+.common-card > .common-card-header {
+	position: absolute;
+	left: -12px;
+	top: -16px;
+	display: flex;
+	align-items: center;
+	padding: 5px 20px;
+	height: 41px;
+	background-color: #C09ADB;
+	border-width: 2px 0;
+	border-style: solid;
+	border-color: #fff;
+	box-sizing: border-box;
+	box-shadow: 0 -3px 0 #C09ADB,
+				0 3px 0 #C09ADB;
+	filter: drop-shadow( 4px 4px 0 #00000066 );
+}
+
+.common-card > .common-card-header > p {
+	position: relative;
+	margin: 0;
+	font-size: 24px;
+	font-weight: 700;
+	line-height: 29px;
+	z-index: 300;
+}
+
+.common-card > .common-card-header::after {
+	content: "";
+	position: absolute;
+	right: -24px;
+	top: -2px;
+	bottom: -2px;
+	width: 60px;
+	background-color: #C09ADB;
+	border: inherit;
+	box-sizing: border-box;
+	box-shadow: inherit;
+	transform: skewX( -45deg );
+	z-index: 100;
+}
+
+.common-card > .common-card-container {
+	padding: 30px 20px 20px;
+	border: 20px solid #FFFAFE;
+	background: #ECE4F0;
+	box-sizing: border-box;
+	box-shadow: 16px 16px 0 #75657FCC,
+				-8px -8px 0 #FECBDBCC;
+}

@@ -1,0 +1,65 @@
+/**
+ * 基础容器组件样式
+ * @author AsukaMari
+ * @date 2024-09-17
+ * @licence MIT
+ */
+.common-base {
+	width: 1080px;
+	color: #4F4659;
+}
+
+.common-base > :is( header, footer ) {
+	display: flex;
+	align-items: center;
+	background: repeating-linear-gradient( -45deg, #C09ADB, #C09ADB 6px, #C49EDF 6px, #C49EDF 11px);
+	box-sizing: border-box;
+}
+
+/* 头部 */
+.common-base > header {
+	justify-content: space-between;
+	position: relative;
+	padding: 0 20px;
+	height: 96px;
+	border-bottom: 15px solid #71647D;
+}
+
+.common-base > header > .common-base-header {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	margin: 0;
+	border-width: 2px 0;
+	border-style: solid;
+	border-color: #fff;
+	font-size: 48px;
+	font-weight: 700;
+	line-height: 58px;
+	transform: translate( -50%, -50% );
+}
+
+/* 主体内容 */
+.common-base > main {
+	padding: 20px;
+	border-width: 8px 0 5px;
+	border-style: solid;
+	border-color: #B6AFB6;
+	background: repeating-linear-gradient( transparent, transparent 34px, #F8F3F4 34px, #F8F3F4 37px),
+				repeating-linear-gradient( 90deg, transparent, transparent 34px, #F8F3F4 34px, #F8F3F4 37px)
+				-18px -18px #FEF9FA;
+}
+
+/* 底部 */
+.common-base > footer {
+	justify-content: center;
+	height: 50px;
+	border-top: 10px solid #71647D;
+}
+
+.common-base > footer > .common-base-footer {
+	margin: 0;
+	font-size: 24px;
+	font-weight: 700;
+	line-height: 29px;
+}

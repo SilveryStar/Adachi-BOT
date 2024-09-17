@@ -1,0 +1,51 @@
+/**
+ * 基础小标签组件样式
+ * @author AsukaMari
+ * @date 2024-09-17
+ * @licence MIT
+ */
+
+.common-tab {
+	position: relative;
+	display: flex;
+	align-items: center;
+	column-gap: 8px;
+	padding: 6px 4px;
+	min-height: 28px;
+	border-radius: 14px 14px 0 14px;
+	border: 1px solid #C09ADB;
+	background-color: #fff;
+	box-shadow: 0 0 0 2px #fff;
+	box-sizing: border-box;
+	filter: drop-shadow( 2px 2px 2px #00000066 );
+}
+
+.common-tab > .common-tab-mark {
+	position: absolute;
+	right: -20px;
+	top: -10px;
+	margin: 0;
+	padding: 0 10px;
+	background-color: #8956AE;
+	border-radius: 9px 9px 0 9px;
+	font-size: 12px;
+	font-weight: 700;
+	line-height: 18px;
+	color: #fff;
+	transform: scale( 0.8 );
+}
+
+.common-tab > .common-tab-index {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex: 0 0 auto;
+	margin: 0;
+	width: 20px;
+	height: 20px;
+	border-radius: 50%;
+	background-color: #8956AE;
+	font-size: 14px;
+	font-weight: 700;
+	color: #fff;
+}
