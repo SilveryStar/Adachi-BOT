@@ -17,6 +17,9 @@ export class Client {
 	private baseClient: BaseClient;
 	
 	constructor( private config: BotConfig ) {
+		if ( !config.base.reverseClient && ( !config.base.wsServer || !config.base.wsApiServer || !config.base.wsPort ) ) {
+		
+		}
 		this.baseClient = config.base.reverseClient
 			? ReverseClient.getInstance( config.base.wsPort, config.base.apiTimeout )
 			: DefaultClient.getInstance( config.base.wsServer, config.base.wsApiServer, config.base.apiTimeout )

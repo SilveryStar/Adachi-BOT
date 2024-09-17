@@ -11,7 +11,7 @@ export default class DefaultClient extends BaseClient {
 	
 	constructor(
 		private eventTarget: string,
-		private apiTarget: string,
+		private apiTarget: string = "",
 		fetchTimeout: number
 	) {
 		super( fetchTimeout );
@@ -45,7 +45,7 @@ export default class DefaultClient extends BaseClient {
 	
 	public static getInstance( eventTarget?: string, apiTarget?: string, fetchTimeout?: number ) {
 		if ( !DefaultClient.__instance ) {
-			if ( !eventTarget || typeof apiTarget === "undefined" || !fetchTimeout ) {
+			if ( !eventTarget || !fetchTimeout ) {
 				throw new Error( "Invalid parameter" );
 			}
 			DefaultClient.__instance = new DefaultClient( eventTarget, apiTarget, fetchTimeout );

@@ -71,6 +71,7 @@ export default class Adachi {
 		const exist = file.isExistSync( file.getFilePath( "base.yml" ) );
 		/* 初始化应用模块 */
 		const config = this.getBotConfig();
+		this.checkBotConfig( config );
 		/* 初始化命令 */
 		const command = new Command( file, config );
 		
@@ -147,6 +148,20 @@ export default class Adachi {
 		scheduleJob( "15 58 23 * * *", this.postUserData.bind( this ) );
 		
 		return this.bot;
+	}
+	
+	// 校验 config 配置项是否填写正确
+	private checkBotConfig( config: BotConfig ) {
+		try {
+			if ( config.base.reverseClient ) {
+				if ( !config.base.wsPort ) throw "当前为反向ws模式，反向客户端端口（ base.yml => wsPort ）不能为空";
+			} else {
+				if ( !config.base.wsServer ) throw "当前为正向ws模式，事件服务器地址（ base.yml => wsServer ）不能为空";
+			}
+		} catch ( error ) {
+			console.log( error );
+			process.exit( 0 );
+		}
 	}
 	
 	private getBotConfig(): BotConfig {

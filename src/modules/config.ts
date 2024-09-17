@@ -248,8 +248,10 @@ export default class BotConfigManager implements BotConfigManagerImplement {
 					"error", "fatal", "mark", "off"
 				];
 				if ( !logLevelList.includes( cfg.logLevel ) ) {
-					cfg.logLevel = "info";
+					cfg.logLevel = <"info">initBase.logLevel;
 				}
+				
+				cfg.apiTimeout = cfg.apiTimeout <= 0 ? 20000 : initBase.apiTimeout;
 				return cfg;
 			} ),
 			directive: registerConfig<BotConfigValue["directive"]>( "directive", <any>initDirective, cfg => {
