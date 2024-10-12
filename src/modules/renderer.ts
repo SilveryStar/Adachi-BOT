@@ -4,6 +4,7 @@ import { RefreshCatch } from "./management/refresh";
 import * as puppeteer from "puppeteer";
 import bot from "ROOT";
 import process from "process";
+import { BotConfig } from "@/modules/config";
 
 interface RenderSuccess {
 	code: "ok";
@@ -123,7 +124,9 @@ export class BasicRenderer implements RenderMethods {
 	
 	static screenshotLimit = <const>233;
 	
-	constructor() {
+	constructor(
+		private config: BotConfig["directive"]
+	) {
 		this.launchBrowser().then( browser => {
 			browser && ( this.browser = browser );
 		} );
@@ -154,7 +157,12 @@ export class BasicRenderer implements RenderMethods {
 					"--no-sandbox",
 					"--disable-setuid-sandbox",
 					"--disable-dev-shm-usage"
-				]
+				],
+				defaultViewport: {
+					width: 800,
+					height: 600,
+					deviceScaleFactor: this.config.imageQuality
+				}
 			} );
 			bot.logger.info( "浏览器启动成功" );
 			return browser;
@@ -206,7 +214,12 @@ export class BasicRenderer implements RenderMethods {
 			}
 			// 设置设备参数
 			if ( viewPort ) {
-				await page.setViewport( viewPort );
+				// 若开发者指定了缩放比例，则将开发者指定的缩放比例乘以用户方所配置的缩放比例，考虑到设备承受能力问题，结果最大不能超过 5
+				const factor = ( viewPort.deviceScaleFactor || 1 ) * this.config.imageQuality;
+				await page.setViewport( {
+					...viewPort,
+					deviceScaleFactor: factor > 5 ? 5 : factor
+				} );
 			}
 			await page.goto( url, {
 				waitUntil: "networkidle0",

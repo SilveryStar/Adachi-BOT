@@ -35,7 +35,8 @@ const initDirective = {
 	concurrency: 10,
 	callTimes: 3,
 	countThreshold: 60,
-	ThresholdInterval: false
+	ThresholdInterval: false,
+	imageQuality: 1
 }
 
 // 数据库设置
@@ -234,6 +235,7 @@ export default class BotConfigManager implements BotConfigManagerImplement {
 			return this.register<T>( filename, initCfg, setValueCallBack );
 		};
 		
+		// 当用户未正常配置时，使用默认配置
 		this.value = {
 			base: registerConfig<BotConfigValue["base"]>( "base", <any>initBase, cfg => {
 				cfg.inviteAuth = AuthLevel[cfg.inviteAuth] && cfg.inviteAuth !== 0 ? cfg.inviteAuth : AuthLevel.Master;
@@ -258,9 +260,15 @@ export default class BotConfigManager implements BotConfigManagerImplement {
 				if ( !( ( <any>cfg.header ) instanceof Array ) ) {
 					cfg.header = [ "#" ];
 				}
+				
 				const helpList: string[] = [ "message", "forward", "xml", "card" ];
 				cfg.helpMessageStyle = helpList.includes( cfg.helpMessageStyle )
 					? cfg.helpMessageStyle : "message";
+				
+				// 不能输入非法数字和小于等于 0 大于 2 的数字
+				const imageQuality = Number( cfg.imageQuality );
+				cfg.imageQuality = Number.isNaN( imageQuality ) || imageQuality <= 0 || imageQuality > 2 ? 1 : imageQuality;
+				
 				return cfg;
 			} ),
 			db: registerConfig<BotConfigValue["db"]>( "db", <any>initDB ),

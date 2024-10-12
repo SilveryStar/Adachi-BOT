@@ -93,7 +93,7 @@ export default class Adachi {
 		const auth = new Authorization( config.base, redis );
 		const message = new msg.default( config.base, client );
 		const mail = new MailManagement( config, client );
-		const renderer = new BasicRenderer();
+		const renderer = new BasicRenderer( config.directive );
 		
 		this.bot = {
 			client, command, file, redis,
