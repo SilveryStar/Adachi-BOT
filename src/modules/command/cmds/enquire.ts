@@ -120,17 +120,17 @@ export class Enquire extends BasicConfig {
 	
 	public async activate( userID: number, groupID: number, input: InputParameter<"enquire"> ) {
 		const key = Enquire.getTaskKey( userID, groupID );
-		this.taskList[ key ] = {
-			job: this.getActivateJob( userID, groupID, input ),
-			header: input.matchResult.header,
-			input
-		};
 		input.matchResult.status = "activate";
 		const completed = await this.run( input );
 		// 直接中断执行
 		if ( typeof completed === "boolean" && !completed ) {
 			return;
 		}
+		this.taskList[ key ] = {
+			job: this.getActivateJob( userID, groupID, input ),
+			header: input.matchResult.header,
+			input
+		};
 		await bot.redis.setHashField( Enquire.redisKey, key, this.cmdKey );
 	};
 	
