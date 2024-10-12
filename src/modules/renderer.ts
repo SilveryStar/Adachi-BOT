@@ -203,6 +203,15 @@ export class BasicRenderer implements RenderMethods {
 		}, { timeout: 10000 } )
 	}
 	
+	// 若开发者指定了缩放比例，则将开发者指定的缩放比例乘以用户方所配置的缩放比例，考虑到设备承受能力问题，结果最大不能超过 5
+	private getViewport( viewPort: puppeteer.Viewport ): puppeteer.Viewport {
+		const factor = ( viewPort.deviceScaleFactor || 1 ) * this.config.imageQuality;
+		return {
+			...viewPort,
+			deviceScaleFactor: factor > 5 ? 5 : factor
+		}
+	}
+	
 	public async screenshot( url: string, viewPort: puppeteer.Viewport | null, selector: string, encoding: 'base64' | 'binary' ): Promise<Buffer | string | void> {
 		if ( !this.browser ) {
 			throw new Error( "浏览器未启动" );
@@ -214,12 +223,7 @@ export class BasicRenderer implements RenderMethods {
 			}
 			// 设置设备参数
 			if ( viewPort ) {
-				// 若开发者指定了缩放比例，则将开发者指定的缩放比例乘以用户方所配置的缩放比例，考虑到设备承受能力问题，结果最大不能超过 5
-				const factor = ( viewPort.deviceScaleFactor || 1 ) * this.config.imageQuality;
-				await page.setViewport( {
-					...viewPort,
-					deviceScaleFactor: factor > 5 ? 5 : factor
-				} );
+				await page.setViewport( this.getViewport( viewPort ) );
 			}
 			await page.goto( url, {
 				waitUntil: "networkidle0",
@@ -258,7 +262,7 @@ export class BasicRenderer implements RenderMethods {
 			}
 			// 设置设备参数
 			if ( viewPort ) {
-				await page.setViewport( viewPort );
+				await page.setViewport( this.getViewport( viewPort ) );
 			}
 			await page.goto( url, {
 				waitUntil: "networkidle0",
