@@ -161,7 +161,7 @@
 					:disabled="pageLoading"
 					label="call次数限制"
 					type="number"
-					desc="指令 联系bot持有者 每个用户一天内可使用的最大次数。"
+					desc="指令[联系bot持有者]每个用户一天内可使用的最大次数。"
 					@change="updateConfig('directive', 'callTimes')"
 					@open="activeSpreadItem"
 				/>
@@ -179,6 +179,18 @@
 					<el-switch v-model="setting.directive.ThresholdInterval" :disabled="pageLoading"
 					           @change="updateConfig('directive', 'ThresholdInterval')"/>
 				</form-item>
+				<spread-form-item
+					v-model="setting.directive.imageQuality"
+					:active-spread="activeSpread"
+					:disabled="pageLoading"
+					label="渲染图片质量"
+					type="number"
+					desc="对渲染的图片进行缩放，1-2能够得到更清晰的图片，0-1则能加快图片指令的响应速度"
+					:verifyReg="value => value > 0 && value <= 2"
+					verifyMsg="请输入一个 0-2 之间的数字（不包括 0）"
+					@change="updateConfig('directive', 'imageQuality')"
+					@open="activeSpreadItem"
+				/>
 			</div>
 			<div class="config-section">
 				<section-title title="数据库设置"/>

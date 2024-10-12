@@ -51,7 +51,7 @@ defineExpose( {
 	}
 
 	> :deep(.el-form-item__content) {
-		width: 70%;
+		width: 68%;
 		font-size: 12px;
 		line-height: 0;
 		flex: 0 0 auto;
@@ -82,6 +82,19 @@ defineExpose( {
 	.form-item {
 		.form-item-content {
 			margin-right: 0;
+			width: 100%;
+		}
+	}
+}
+
+@media (max-width: 514px) {
+	.form-item {
+		> :deep(.el-form-item__label) {
+			width: 100%;
+			font-size: 14px;
+			font-weight: bold;
+		}
+		> :deep(.el-form-item__content) {
 			width: 100%;
 		}
 	}

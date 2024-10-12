@@ -167,7 +167,7 @@ function saveValue() {
 		return;
 	}
 	const verify = props.verifyReg;
-	if ( verify && typeof formValue.value === "string" ) {
+	if ( verify && [ "string", "number" ].includes( typeof formValue.value ) ) {
 		if ( typeof verify === "string" ) {
 			const reg = new RegExp( `^${verify}$` );
 			if ( reg && !reg.test( formValue.value ) ) {
@@ -257,14 +257,6 @@ defineExpose( {
 	.spread-warn-msg {
 		line-height: 1.15;
 		color: red;
-	}
-}
-
-@media (max-width: 768px) {
-	.form-item {
-		> :deep(.el-form-item__content) {
-			width: 100%;
-		}
 	}
 }
 </style>

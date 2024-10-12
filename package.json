@@ -1,7 +1,7 @@
 {
   "name": "adachi-bot",
   "private": true,
-  "version" : "3.4.1",
+  "version" : "3.4.2",
   "description": "功能集成的 bot 开发框架",
   "scripts": {
     "dev": "cross-env NODE_ENV=development ts-node app.ts",
