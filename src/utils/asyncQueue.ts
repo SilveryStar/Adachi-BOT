@@ -6,8 +6,8 @@
  * @since 3.1.2
  */
 
-export interface AsyncQueueItem {
-	asyncFunction: ( ...args: any[] ) => any;
+export interface AsyncQueueItem<T = any> {
+	asyncFunction: () => Promise<T>;
 	retries: number;
 	resolve: ( value: unknown ) => void;
 	reject: ( reason?: any ) => void;
@@ -22,11 +22,11 @@ export default class AsyncQueue {
 		private retryLimit = 3 ) {
 	}
 	
-	async enqueue( asyncFunction: AsyncQueueItem["asyncFunction"] ) {
+	async enqueue<T>( asyncFunction: AsyncQueueItem<T>["asyncFunction"] ): Promise<T> {
 		return new Promise( async ( resolve, reject ) => {
 			const task = { asyncFunction, retries: 0, resolve, reject };
 			
-			this.queue.push( task );
+			this.queue.push( <any>task );
 			
 			if ( this.runningTasks >= this.maxLength ) {
 				return;

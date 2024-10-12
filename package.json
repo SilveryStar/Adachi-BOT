@@ -39,6 +39,7 @@
     "tsconfig-paths" : "^4.2.0",
     "ts-node" : "^10.9.1",
     "single-line-log" : "^1.1.2",
+    "cross-env": "^7.0.3",
     "vite" : "^4.4.5"
   },
   "devDependencies": {
@@ -51,7 +52,6 @@
     "@types/node-schedule": "^2.1.0",
     "@types/nodemailer": "^6.4.10",
     "@types/single-line-log": "^1.1.0",
-    "cross-env": "^7.0.3",
     "nodemon": "^2.0.22",
     "ts-node-dev" : "^2.0.0"
   },
