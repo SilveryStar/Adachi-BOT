@@ -71,7 +71,7 @@ interface IProps {
 	// 当 type 为 password 时，该配置无效
 	hideContent?: boolean;
 	// 校验，可为返回值为 Boolean 的方法或正则字符串
-	verifyReg?: ( ( value: string ) => boolean ) | string;
+	verifyReg?: ( ( value: string | number ) => boolean ) | string;
 	// 校验错误提示文字
 	verifyMsg?: string;
 	disabled?: boolean;
