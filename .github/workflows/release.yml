@@ -1,0 +1,41 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to release from'
+        required: true
+        default: 'main'
+
+jobs:
+  create_release:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout branch
+      uses: actions/checkout@v3
+      with:
+        ref: ${{ github.event.inputs.branch }}
+
+    - name: Read version from VERSION file
+      id: read_version
+      run: |
+        VERSION=$(cat VERSION)
+        echo "Version is $VERSION"
+        echo "::set-output name=new_version::$VERSION"
+
+    - name: Push tags
+      run: |
+        git tag "v${{ steps.read_version.outputs.new_version }}"
+        git push origin "v${{ steps.read_version.outputs.new_version }}"
+
+    - name: Create GitHub release
+      uses: actions/create-release@v1
+      with:
+        tag_name: 'v${{ steps.read_version.outputs.new_version }}'
+        release_name: 'Release v${{ steps.read_version.outputs.new_version }}'
+        body: 'Release from branch ${{ github.event.inputs.branch }}'
+        draft: false
+        prerelease: false
+        token: ${{ secrets.GITHUB_TOKEN }}
