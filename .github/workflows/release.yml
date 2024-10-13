@@ -31,11 +31,13 @@ jobs:
         git push origin "v${{ steps.read_version.outputs.new_version }}"
 
     - name: Create GitHub release
-      uses: actions/create-release@v1
+      uses: ncipollo/release-action@v1
       with:
-        tag_name: 'v${{ steps.read_version.outputs.new_version }}'
-        release_name: 'Release v${{ steps.read_version.outputs.new_version }}'
+        tag: 'v${{ steps.read_version.outputs.new_version }}'
+        release: 'Release v${{ steps.read_version.outputs.new_version }}'
         body: 'Release from branch ${{ github.event.inputs.branch }}'
+        allowUpdates: true
+        generateReleaseNotes: true
         draft: false
         prerelease: false
         token: ${{ secrets.ADC_GITHUB_TOKEN }}
