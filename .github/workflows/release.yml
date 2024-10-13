@@ -38,4 +38,4 @@ jobs:
         body: 'Release from branch ${{ github.event.inputs.branch }}'
         draft: false
         prerelease: false
-        token: ${{ secrets.GITHUB_TOKEN }}
+        token: ${{ secrets.ADC_GITHUB_TOKEN }}
