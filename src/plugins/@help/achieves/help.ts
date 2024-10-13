@@ -41,8 +41,8 @@ async function forwardStyle(
 	list.push( "- 表示仅允许群聊, * 表示仅允许私聊" );
 	list.push( "[] 表示必填, () 表示选填, | 表示选择" );
 	list.forEach( ( el: string ) => content.messages.push( {
-		uin: client.uin,
-		name: "BOT",
+		user_id: client.uin,
+		nickname: "BOT",
 		content: el
 	} ) );
 	/**

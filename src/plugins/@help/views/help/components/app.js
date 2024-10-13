@@ -17,7 +17,7 @@ const template = `<CommonBase v-if="data" class="help" title="Adachi-BOT 指令�
 			<p class="cmd-desc">{{ getCmdBody( cmd ) }}</p>
 		</CommonTab>
 	</CommonCard>
-</Base>`;
+</CommonBase>`;
 
 import { onMounted, ref } from "vue";
 import { urlParamsGet } from "../utils/url.js";
