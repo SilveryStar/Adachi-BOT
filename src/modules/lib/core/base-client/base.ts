@@ -163,7 +163,14 @@ export default abstract class BaseClient {
 		
 		if ( cache ) {
 			clearTimeout( cache.timer );
-			const msgData = data.post_type === "notice" ? this.combinedFileData( cache.msgEvent!, data ) : this.combinedFileData( data, cache.uploadEvent! );
+			let msgData: PrivateMessageEvent | GroupMessageEvent;
+			if ( data.post_type === "notice" ) {
+				if ( !cache.msgEvent ) return;
+				msgData = this.combinedFileData( cache.msgEvent, data );
+			} else {
+				if ( !cache.uploadEvent ) return;
+				msgData = this.combinedFileData( data, cache.uploadEvent );
+			}
 			this.processWsMessageEvent( <EventData>msgData );
 			this.msgEventCache.delete( key );
 		} else {
