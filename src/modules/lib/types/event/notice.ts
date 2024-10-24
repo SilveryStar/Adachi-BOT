@@ -5,7 +5,7 @@ import { HonorType, PostNoticeType } from "../common";
 export type NoticeEvent = NoticePrivateEvent | NoticeGroupEvent;
 
 /** 私聊通知 */
-export type NoticePrivateEvent = PrivateRecallNoticeEvent | FriendAddNoticeEvent;
+export type NoticePrivateEvent = PrivateRecallNoticeEvent | FriendAddNoticeEvent | OfflineFileNoticeEvent;
 
 /** 群通知 */
 export type NoticeGroupEvent = GroupRecallNoticeEvent | GroupIncreaseNoticeEvent |GroupDecreaseNoticeEvent |
@@ -18,6 +18,23 @@ interface CommonNoticeEvent extends CommonEvent {
 	post_type: "notice";
 	/** 通知类型 */
 	notice_type: PostNoticeType;
+}
+
+/**
+ * 私聊离线文件上传
+ * @description 并不存在于 ob11 的消息类型中，但多数实现端均已实现
+ */
+export interface OfflineFileNoticeEvent extends CommonNoticeEvent {
+	/** 通知类型 */
+	notice_type: "offline_file";
+	time: number;
+	self_id: number;
+	file: {
+		name: string;
+		size: number;
+		url: string;
+	}
+	user_id: number;
 }
 
 /** 群文件上传 */
@@ -38,6 +55,8 @@ export interface GroupUploadNoticeEvent extends CommonNoticeEvent {
 		size: number;
 		/** 未知 */
 		busid: number;
+		/** 文件 url */
+		url?: string;
 	}
 }
 
@@ -106,6 +125,30 @@ export interface FriendAddNoticeEvent extends CommonNoticeEvent {
 	notice_type: "friend_add";
 	/** 新添加好友 QQ */
 	user_id: number;
+}
+
+/**
+ * 私聊离线文件
+ * 并不存在于 ob11 的消息类型中，但多数实现端均已实现
+ */
+export interface FriendOfflineFileEvent extends CommonNoticeEvent {
+	/** 通知类型 */
+	notice_type: "offline_file";
+	/** 发送者 id */
+	user_id: number;
+	/** 接收者 id */
+	self_id: number;
+	/** 发送时间 */
+	time: number;
+	/** 文件信息 */
+	file: {
+		/** 文件名 */
+		name: string;
+		/** 文件大小 */
+		size: number;
+		/** 文件 url */
+		url: string;
+	}
 }
 
 /** 群消息撤回 */

@@ -31,6 +31,8 @@ export interface EventMap {
 	"notice.friend.recall": ( event: e.PrivateRecallNoticeEvent ) => void;
 	/** 好友添加 */
 	"notice.friend.add": ( event: e.FriendAddNoticeEvent ) => void;
+	/** 好友添加 */
+	"notice.friend.offline_file": ( event: e.FriendOfflineFileEvent ) => void;
 	/** 好友通知 */
 	"notice.friend": ( event: e.NoticePrivateEvent ) => void;
 	

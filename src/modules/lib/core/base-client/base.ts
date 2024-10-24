@@ -1,13 +1,13 @@
-import WebSocket from "ws";
+import WebSocket, { RawData } from "ws";
 import { isJsonString } from "@/utils/verify";
 import {
 	ActionRequest,
 	ActionResponse,
 	EventData,
 	FriendInfo,
-	GroupInfo,
-	OneBotVersionInfo,
-	Sendable, toCqCode,
+	GroupInfo, GroupMessageEvent, GroupUploadNoticeEvent, OfflineFileNoticeEvent,
+	OneBotVersionInfo, PrivateMessageEvent,
+	Sendable, SexType, toCqCode,
 	toMessageRecepElem
 } from "@/modules/lib";
 import { getLogger, Logger } from "log4js";
@@ -15,6 +15,7 @@ import EventEmitter from "@/modules/lib/core/event-emitter";
 import { ApiMap } from "@/modules/lib/types/map/api";
 import { formatSendMessage } from "@/modules/lib/message";
 import { getRandomString } from "@/utils/random";
+import message from "@/web-console/backend/routes/message";
 
 type ApiParam<T extends ( param: any ) => any> = T extends () => any
 	? undefined
@@ -249,6 +250,10 @@ export default abstract class BaseClient {
 							break;
 						case "friend_recall":
 							this.emitter.emit( "notice.friend.recall", data );
+							break;
+						case "offline_file":
+							this.logger.info( `[Private: bot <= ${ data.user_id }] 上传了文件: ${ data.file.name }` );
+							this.emitter.emit( "notice.friend.offline_file", data );
 							break;
 					}
 				} else {

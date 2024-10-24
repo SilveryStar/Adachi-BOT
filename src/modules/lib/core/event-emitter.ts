@@ -78,6 +78,6 @@ export default class EventEmitter {
 	}
 	
 	public checkNoticePrivateEvent( data: NoticePrivateEvent | NoticeGroupEvent ): data is NoticePrivateEvent {
-		return [ "friend_add", "friend_recall" ].includes( data.notice_type );
+		return [ "friend_add", "friend_recall", "offline_file" ].includes( data.notice_type );
 	}
 }
