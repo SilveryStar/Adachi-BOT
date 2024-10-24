@@ -172,7 +172,23 @@ export interface JsonRecepElem {
 	}
 }
 
+/**
+ * file
+ * 方便对上传的文件处理，并不存在于 ob11 的消息类型中
+ **/
+export interface FileRecepElem {
+	type: "file";
+	data: {
+		/** 文件名 */
+		name: string;
+		/** 文件路径 */
+		url: string;
+		/** 文件大小 */
+		size: number;
+	}
+}
+
 /** 接收到的消息类型 */
 export type MessageRecepElem = TextRecepElem | FaceRecepElem | RecordRecepElem | VideoRecepElem | AtRecepElem |
 	RpsRecepElem | DiceRecepElem | ShakeRecepElem | PokeRecepElem | ShareRecepElem | ContactRecepElem |
-	LocationRecepElem | ImageRecepElem | ReplyRecepElem | ForwardRecepElem | XmlRecepElem | JsonRecepElem;
+	LocationRecepElem | ImageRecepElem | ReplyRecepElem | ForwardRecepElem | XmlRecepElem | JsonRecepElem | FileRecepElem;
