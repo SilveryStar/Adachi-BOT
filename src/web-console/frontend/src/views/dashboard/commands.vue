@@ -24,7 +24,7 @@
 							      @change="updateConfig(cKey, 'headers')"/>
 						</form-item>
 					</template>
-					<template v-else-if="c.type === 'switch'">
+					<template v-if="c.type === 'switch'">
 						<form-item label="指令头模式">
 							<el-radio-group v-model="c.mode" :disabled="pageLoading"
 							                @change="updateConfig(cKey, 'mode')">
@@ -69,6 +69,12 @@
 							@open="activeSpreadItem"
 						/>
 					</template>
+				</template>
+				<template v-if="c.type === 'enquire'">
+					<form-item label="退出关键词">
+						<Tags v-if="c.forceExitCode" v-model="c.forceExitCode" :disabled="pageLoading" :limit="1"
+						      @change="updateConfig( cKey, 'forceExitCode' )"/>
+					</form-item>
 				</template>
 			</div>
 		</el-form>

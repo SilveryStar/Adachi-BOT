@@ -22,6 +22,7 @@ import { unlinkSync } from "fs";
 import axios, { AxiosError } from "axios";
 import AssetsUpdate from "@/modules/management/assets";
 import process from "process";
+import * as test from "node:test";
 
 /** @interface BOT BOT 工具类 */
 export interface BOT {
@@ -243,6 +244,46 @@ export default class Adachi {
 		}
 	}
 	
+	// 检查并执行待命的 enquire 命令
+	private async checkAndExecuteEnquiries(
+		userID: number,
+		groupID: number,
+		content: string,
+		isPrivate: boolean,
+		messageData: msg.Message,
+		sendMessage: msg.SendFunc
+	): Promise<boolean> {
+		const tasKey = Enquire.getTaskKey( userID, groupID );
+		const cmdKey: string = await this.bot.redis.getHashField( Enquire.redisKey, tasKey );
+		if ( !cmdKey ) return true
+		
+		const cmd = <Enquire | undefined>this.bot.command.getSingle( cmdKey, await this.bot.auth.get( userID ) );
+		if ( !cmd ) return true;
+		
+		/* 被禁言后不予处理消息 */
+		const isShutUp = await this.checkBotShutUp( isPrivate, groupID );
+		if ( isShutUp ) {
+			return false;
+		}
+		
+		const key = Enquire.getTaskKey( userID, groupID );
+		const task = cmd.getTask( key );
+		if ( task ) {
+			this.setRawMessage( messageData, cmd, content, { header: task.header } );
+			this.bot.command.cmdRun( async () => {
+				if ( cmd.checkForceExitCode( content ) ) {
+					await cmd.inactivate( userID, groupID, { sendMessage, ...this.bot, messageData }, "forceExit" );
+				} else {
+					await cmd.confirm( userID, groupID, { sendMessage, ...this.bot, messageData } );
+				}
+			}, userID, groupID );
+			return false;
+		} else {
+			await this.bot.redis.delHash( Enquire.redisKey, key );
+			return true;
+		}
+	}
+	
 	/* 正则检测处理消息 */
 	private async execute(
 		messageData: msg.Message,
@@ -272,24 +313,8 @@ export default class Adachi {
 		}
 		
 		/* 检查是否存在等待回复的 enquire 指令 */
-		const curEnquireCmdKey: string = await this.bot.redis.getHashField( Enquire.redisKey, Enquire.getTaskKey( userID, groupID ) );
-		if ( curEnquireCmdKey ) {
-			const cmd = <Enquire | undefined>this.bot.command.getSingle( curEnquireCmdKey, await this.bot.auth.get( userID ) );
-			if ( cmd ) {
-				/* 被禁言后不予处理消息 */
-				const isShutUp = await this.checkBotShutUp( isPrivate, groupID );
-				if ( isShutUp ) {
-					return;
-				}
-				
-				const header = cmd.getTask( Enquire.getTaskKey( userID, groupID ) ).header;
-				this.setRawMessage( messageData, cmd, content, { header } );
-				this.bot.command.cmdRun( async () => {
-					await cmd.confirm( userID, groupID, { sendMessage, ...this.bot, messageData } );
-				}, userID, groupID );
-				return;
-			}
-		}
+		const checked = await this.checkAndExecuteEnquiries( userID, groupID, content, isPrivate, messageData, sendMessage );
+		if ( !checked ) return;
 		
 		/* 未添加好友时不予触发指令 */
 		if ( isPrivate && this.bot.config.base.addFriend && messageData.sub_type !== "friend" ) {

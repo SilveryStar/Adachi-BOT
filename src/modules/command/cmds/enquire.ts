@@ -15,14 +15,16 @@ import { escapeRegExp, trimStart } from "lodash";
 export interface EnquireMatchResult {
 	type: Enquire["type"];
 	header: string;
-	status: "activate" | "confirm" | "timeout";
+	status: "activate" | "confirm" | "timeout" | "forceExit";
 	timeout: number;
+	forceExitCode: string[];
 }
 
 export type EnquireConfig = CommandCfg & {
 	type: Enquire["type"];
 	headers: string[];
 	timeout: number;
+	forceExitCode: string[];
 };
 
 export type EnquireInit = EnquireConfig & CommonInit & {
@@ -38,12 +40,14 @@ interface taskInfo {
 	job: Job;
 	header: string;
 	input: InputParameter<"enquire">;
+	inProgress: boolean; // 是否正在执行 confirm
 }
 
 export class Enquire extends BasicConfig {
 	public readonly type = "enquire";
 	public readonly run: CommandFunc<Enquire["type"]>;
 	public readonly timeout: number;
+	public readonly forceExitCode: string[];
 	public readonly regPairs: RegPair[] = [];
 	private readonly taskList: Record<string, taskInfo> = {};
 	public static redisKey: string = "adachi.enquire-cmd";
@@ -53,6 +57,7 @@ export class Enquire extends BasicConfig {
 		
 		this.run = config.run;
 		this.timeout = config.timeout <= 0 ? 300 : config.timeout;
+		this.forceExitCode = config.forceExitCode || [];
 		
 		const headers: string[] = config.headers.map( el => {
 			if ( el.slice( 0, 2 ) === "__" ) {
@@ -82,6 +87,7 @@ export class Enquire extends BasicConfig {
 		cfg.scope = loaded.scope;
 		cfg.enable = loaded.enable;
 		cfg.priority = Number.parseInt( loaded.priority ) || 0;
+		cfg.forceExitCode = loaded.forceExitCode || [];
 	}
 	
 	public write() {
@@ -93,7 +99,8 @@ export class Enquire extends BasicConfig {
 			headers: cfg.headers,
 			enable: this.enable,
 			display: this.display,
-			priority: this.priority
+			priority: this.priority,
+			forceExitCode: this.forceExitCode
 		};
 	}
 	
@@ -108,70 +115,97 @@ export class Enquire extends BasicConfig {
 		return { type: "unmatch", missParam: false };
 	}
 	
+	/* 是否匹配退出指令 */
+	public checkForceExitCode( content: string ) {
+		return this.forceExitCode.includes( content );
+	}
+	
 	private getActivateJob( userID: number, groupID: number, input: InputParameter<"enquire"> ) {
 		const d = new Date();
 		return scheduleJob( d.setSeconds( d.getSeconds() + this.timeout ), () => {
-			input.matchResult.status = "timeout";
 			bot.command.cmdRun( async () => {
-				await this.inactivate( userID, groupID, input );
+				await this.inactivate( userID, groupID, input, "timeout" );
 			}, userID, groupID );
 		} )
 	}
 	
 	public async activate( userID: number, groupID: number, input: InputParameter<"enquire"> ) {
 		const key = Enquire.getTaskKey( userID, groupID );
+		// 防抖
+		if ( this.getTask( key ) ) return;
+		Reflect.set( this.taskList, key, {
+			job: null,
+			header: input.matchResult.header,
+			input,
+			inProgress: false
+		})
 		input.matchResult.status = "activate";
 		const completed = await this.run( input );
 		// 直接中断执行
 		if ( typeof completed === "boolean" && !completed ) {
+			Reflect.deleteProperty( this.taskList, key );
 			return;
 		}
-		this.taskList[ key ] = {
-			job: this.getActivateJob( userID, groupID, input ),
-			header: input.matchResult.header,
-			input
-		};
+		
+		Reflect.get( this.taskList, key ).job = this.getActivateJob( userID, groupID, input );
 		await bot.redis.setHashField( Enquire.redisKey, key, this.cmdKey );
 	};
 	
 	public async confirm( userID: number, groupID: number, input: Omit<InputParameter<"enquire">, "matchResult"> ) {
 		const key = Enquire.getTaskKey( userID, groupID );
 		const task = this.getTask( key );
-		const matchResult = this.getMatchResult( task.header, "confirm" );
-		const completed = await this.run( { ...input, matchResult } );
-		if ( typeof completed === "boolean" && !completed ) {
-			// 重置超市时间
-			const task = this.taskList[ key ];
-			if ( task ) {
-				task.job.cancel();
-				task.job = this.getActivateJob( userID, groupID, task.input )
+		// 防抖
+		if ( !task || task.inProgress ) return;
+		task.inProgress = true;
+		try {
+			const matchResult = this.getMatchResult( task.header, "confirm" );
+			const completed = await this.run( { ...input, matchResult } );
+			if ( typeof completed === "boolean" && !completed ) {
+				// 重置超时时间
+				const task = Reflect.get( this.taskList, key );
+				if ( task ) {
+					task.job.cancel();
+					task.job = this.getActivateJob( userID, groupID, task.input )
+				}
+				// 未执行完毕，不进行关闭
+				return;
 			}
-			// 未执行完毕，不进行关闭
-			return;
+			await this.inactivate( userID, groupID );
+		} catch ( error ) {
+			throw error;
+		} finally {
+			task.inProgress = false;
 		}
-		await this.inactivate( userID, groupID );
 	}
 	
-	public async inactivate( userID: number, groupID: number, input?: InputParameter<"enquire"> ) {
+	public async inactivate(
+		userID: number,
+		groupID: number,
+		input?: Omit<InputParameter<"enquire">, "matchResult"> & { matchResult?: EnquireMatchResult },
+		type: "timeout" | "forceExit" = "timeout"
+	) {
 		const key = Enquire.getTaskKey( userID, groupID );
-		this.getTask( key ).job.cancel();
-		Reflect.deleteProperty( this.taskList, key );
 		await bot.redis.delHash( Enquire.redisKey, key );
-		if ( input?.matchResult.status === "timeout" ) {
-			await this.run( input );
+		const task = this.getTask( key );
+		if ( !task ) return;
+		task.job.cancel();
+		if ( input ) {
+			const matchResult = this.getMatchResult( task.header, type );
+			await this.run( { ...input, matchResult } );
 		}
+		Reflect.deleteProperty( this.taskList, key );
 	};
 	
 	public static getTaskKey( userID: number, groupID: number ) {
 		return `${ userID }-${ groupID }`;
 	}
 	
-	public getTask( key: string ) {
+	public getTask( key: string ): taskInfo | undefined {
 		return Reflect.get( this.taskList, key );
 	}
 	
-	private getMatchResult( header: string, status: EnquireMatchResult["status"] ): EnquireMatchResult {
-		return { type: this.type, header, status, timeout: this.timeout };
+	public getMatchResult( header: string, status: EnquireMatchResult["status"] ): EnquireMatchResult {
+		return { type: this.type, header, status, timeout: this.timeout, forceExitCode: this.forceExitCode };
 	}
 	
 	public getFollow(): FollowInfo {
