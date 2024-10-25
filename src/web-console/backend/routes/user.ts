@@ -28,9 +28,7 @@ export default express.Router()
 			const userSubData: Record<string, string[]> = await formatSubUsers( bot, "private" );
 			
 			let userData: string[] = await bot.redis.getKeysByPrefix( "adachi.user-used-groups-" );
-			console.log( userData )
 			userData = userData.map( ( userKey: string ) => <string>userKey.split( "-" ).pop() )
-			console.log( userData )
 			
 			const cmdKeys: string[] = bot.command.cmdKeys;
 			

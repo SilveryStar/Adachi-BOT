@@ -192,9 +192,6 @@ class PluginUpgrade {
 			const dbKey = `adachi.${ pluginInfo.key }.update-time`;
 			const date = await this.checkGitCommit( dbKey, pluginInfo.upgrade );
 			if ( !date ) return null;
-			if ( pluginInfo.key === "meme-making" ) {
-				console.log( 4 )
-			}
 			return {
 				dbKey,
 				pluginInfo,
