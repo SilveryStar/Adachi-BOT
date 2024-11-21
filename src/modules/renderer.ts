@@ -154,6 +154,7 @@ export class BasicRenderer implements RenderMethods {
 			const browser = await puppeteer.launch( {
 				headless: "new",
 				args: [
+					"disable-gpu",
 					"--no-sandbox",
 					"--disable-setuid-sandbox",
 					"--disable-dev-shm-usage"
