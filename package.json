@@ -29,7 +29,6 @@
     "pm2": "^5.3.0",
     "puppeteer": "^19.11.1",
     "redis": "^4.6.5",
-    "request": "^2.88.2",
     "systeminformation": "^5.17.12",
     "tencentcloud-sdk-nodejs-nlp": "^4.0.590",
     "ws": "^8.13.0",
