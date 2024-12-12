@@ -180,11 +180,13 @@ export interface FileRecepElem {
 	type: "file";
 	data: {
 		/** 文件名 */
-		name: string;
+		file: string;
 		/** 文件路径 */
 		url: string;
 		/** 文件大小 */
 		size: number;
+		/** 部分实现端可能会有 */
+		id?: string;
 	}
 }
 

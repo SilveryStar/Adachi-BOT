@@ -3,19 +3,18 @@ import { isJsonString } from "@/utils/verify";
 import {
 	ActionRequest,
 	ActionResponse,
-	EventData,
+	EventData, FileRecepElem,
 	FriendInfo,
 	GroupInfo, GroupMessageEvent, GroupUploadNoticeEvent, OfflineFileNoticeEvent,
 	OneBotVersionInfo, PrivateMessageEvent,
-	Sendable, SexType, toCqCode,
+	Sendable, toCqCode,
 	toMessageRecepElem
 } from "@/modules/lib";
 import { getLogger, Logger } from "log4js";
 import EventEmitter from "@/modules/lib/core/event-emitter";
 import { ApiMap } from "@/modules/lib/types/map/api";
-import { formatSendMessage } from "@/modules/lib/message";
+import { formatSendMessage, standardizeMessage } from "@/modules/lib/message";
 import { getRandomString } from "@/utils/random";
-import message from "@/web-console/backend/routes/message";
 
 type ApiParam<T extends ( param: any ) => any> = T extends () => any
 	? undefined
@@ -142,14 +141,17 @@ export default abstract class BaseClient {
 	 * 通常情况下不能直接通过 messageEvent 获取到上传的文件消息
 	 * 不同实现端对此有不同的处理
 	 * go-cqhttp: 私聊触发 notice.offline_file 事件、群聊触发 notice.group_upload 事件
-	 * Lagrange.core: 同 go-cqhttp，但会同时分别触发 private_message 和 group_message，不过此次触发中 message 字段为空数组，仅包含 message_id 等其他信息
+	 * Lagrange.core: 同 go-cqhttp，但会同时分别触发 message.private 和 message.group，不过此次触发中 message 字段为空数组，仅包含 message_id 等其他信息
+	 * nepcat: 私聊触发 message.private、群聊触发 message.group + notice.group_upload。message 消息的 message 字段均为包含 file 对象的数组，其中 message.group 的 raw_message 字段为空字符串
 	 *
 	 * 对此，此方法旨在组合 Lagrange.core 中两次出发的数据，毕竟诸如牵扯到撤回、回复的 message_id 字段等，是 notice.offline_file、notice.group_upload 事件主体中不存在的
 	 * 而对于 go-cqhttp 这种未携带消息字段的情况，此方法也会自行组装，以最大限度的还原消息数据
+	 * 对于 nepcat 这类已经预先处理好的实现，此方法不会对其进行任何操作
 	 *
 	 * Lagrange.core 的两次触发的 time 字段完全相同，目前基于这种方式组装数据
 	 */
 	private msgEventCache = new Map<string, {
+		dataTime: number | string;
 		timer: NodeJS.Timeout,
 		msgEvent: PrivateMessageEvent | GroupMessageEvent | null,
 		uploadEvent: OfflineFileNoticeEvent | GroupUploadNoticeEvent | null
@@ -157,20 +159,26 @@ export default abstract class BaseClient {
 	
 	// 组合数据
 	private processCombinedData( data: PrivateMessageEvent | GroupMessageEvent | OfflineFileNoticeEvent | GroupUploadNoticeEvent ) {
-		const key = `${ data.user_id }_${ data.time }`;
+		let key = `sender.${ data.user_id }`;
+		// @ts-ignore
+		data.group_id && ( key += `-group.${ data.group_id }` );
 		const cache = this.msgEventCache.get( key );
 		const delay = 2000;
 		
-		if ( cache ) {
+		// 时间差小于 2 就可以认定为是同时触发的事件
+		if ( cache && Math.abs( Number( cache.dataTime ) - Number( data.time ) ) <= 2 ) {
 			clearTimeout( cache.timer );
-			let msgData: PrivateMessageEvent | GroupMessageEvent;
-			if ( data.post_type === "notice" ) {
-				if ( !cache.msgEvent ) return;
-				msgData = this.combinedFileData( cache.msgEvent, data );
-			} else {
-				if ( !cache.uploadEvent ) return;
-				msgData = this.combinedFileData( data, cache.uploadEvent );
+			const msgEvent = data.post_type === "notice" ? cache.msgEvent : data;
+			// 这代表着 msg 本来就是合法的消息段，实现方已经处理好了，不需要再手动拼接
+			if ( msgEvent?.message.length ) {
+				this.msgEventCache.delete( key );
+				return;
 			}
+			/* 拼接 notice 与 message */
+			const uploadEvent = data.post_type === "notice" ? data : cache.uploadEvent;
+			if ( !msgEvent || !uploadEvent ) return;
+			
+			const msgData = this.combinedFileData( msgEvent, uploadEvent );
 			this.processWsMessageEvent( <EventData>msgData );
 			this.msgEventCache.delete( key );
 		} else {
@@ -181,30 +189,34 @@ export default abstract class BaseClient {
 					const defaultMsgEvent = this.getMsgEventByUploadEvent( data );
 					this.processCombinedData( defaultMsgEvent );
 				}, delay );
-				this.msgEventCache.set( key, { msgEvent: null, uploadEvent: data, timer } );
+				this.msgEventCache.set( key, { msgEvent: null, uploadEvent: data, timer, dataTime: data.time } );
 			} else {
 				// 先传进来了 message 消息数据，存放到 cache，等待后续 upload 数据到了后组合
 				// 若超时后 upload 数据未到达，直接取消本次数据合成，因为没有 file 则无意义
 				const timer = setTimeout( () => {
 					this.msgEventCache.delete( key );
 				}, delay );
-				this.msgEventCache.set( key, { msgEvent: data, uploadEvent: null, timer } );
+				this.msgEventCache.set( key, { msgEvent: data, uploadEvent: null, timer, dataTime: data.time } );
 			}
 		}
 	}
 	
 	/* 组装 file 和 msg 消息数据 */
 	private combinedFileData( msgEvent: PrivateMessageEvent | GroupMessageEvent, fileEvent: OfflineFileNoticeEvent | GroupUploadNoticeEvent ): GroupMessageEvent | PrivateMessageEvent {
+		const fileEl: FileRecepElem = {
+			type: "file",
+			data: {
+				file: fileEvent.file.name,
+				size: fileEvent.file.size,
+				url: fileEvent.file.url || fileEvent.file.name
+			}
+		}
+		const fileEventFile = fileEvent.file;
+		/* NapCat */
+		fileEventFile.id && ( fileEl.data.id = fileEventFile.id );
 		return {
 			...msgEvent,
-			message: [ {
-				type: "file",
-				data: {
-					name: fileEvent.file.name,
-					size: fileEvent.file.size,
-					url: fileEvent.file.url || fileEvent.file.name
-				}
-			} ],
+			message: [ fileEl ],
 		}
 	}
 	
@@ -305,17 +317,24 @@ export default abstract class BaseClient {
 			this.emitter.emit( "system", data );
 		}
 		if ( data.post_type === "message" ) {
-			/* 空消息，丢去等上传消息数据组合 */
-			if ( data.message.length === 0 ) {
-				this.processCombinedData( data );
-				return;
-			}
 			/* 若消息格式为 string，手动格式化为 json */
 			const message: any = data.message;
 			if ( typeof message === "string" ) {
 				data.message = toMessageRecepElem( message );
 			}
+			standardizeMessage( data.message );
 			data.raw_message = toCqCode( data.message );
+			
+			/* 空消息，丢去等上传消息数据组合 */
+			if ( !data.message.length ) {
+				this.processCombinedData( data );
+				return;
+			}
+			/* 包含 file 的消息，实现段已经预先处理好文件上传问题，丢上去通知上传消息不要再组合了 */
+			if ( data.message.some( el => el.type === "file" ) ) {
+				this.processCombinedData( data );
+			}
+			
 			/* 是否为 at bot */
 			const atMeEl = data.message.find( el => {
 				return el.type === "at" && Number.parseInt( el.data.qq ) === this.uin;

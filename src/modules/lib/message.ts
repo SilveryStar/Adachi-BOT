@@ -99,6 +99,30 @@ export function formatSendMessage( message: Sendable ) {
 	} );
 }
 
+function setStandardizeParams( data: Record<string, any>, oldToNewKey: [ string, string ][] ) {
+	oldToNewKey.forEach( ( [ oldKey, newKey ] ) => {
+		if ( data[oldKey] ) {
+			data[newKey] = data[oldKey];
+			Reflect.deleteProperty( data, oldKey );
+		}
+	} )
+}
+
+export function standardizeMessage( message: any[] ) {
+	/** todo 暂时写死，后面给予自行配置 */
+	message.forEach( el => {
+		if ( el.type === "file" ) {
+			console.log( "开删" )
+			const data = el.data;
+			/* 针对 NapCat */
+			setStandardizeParams( data, [
+				[ "file_id", "id" ],
+				[ "file_size", "size" ]
+			] )
+		}
+	} )
+}
+
 /** 将 cq 码转换为 messageElem 元素 */
 export function toMessageRecepElem( message: string ): MessageRecepElem[] {
 	return message.split( /(\[|])/g )

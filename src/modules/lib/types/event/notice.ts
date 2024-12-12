@@ -33,6 +33,8 @@ export interface OfflineFileNoticeEvent extends CommonNoticeEvent {
 		name: string;
 		size: number;
 		url: string;
+		/** 部分实现端可能会有 id */
+		id?: string;
 	}
 	user_id: number;
 }
