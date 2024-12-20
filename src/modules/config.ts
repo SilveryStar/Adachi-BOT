@@ -253,7 +253,9 @@ export default class BotConfigManager implements BotConfigManagerImplement {
 					cfg.logLevel = <"info">initBase.logLevel;
 				}
 				
-				cfg.apiTimeout = cfg.apiTimeout <= 0 ? 20000 : initBase.apiTimeout;
+				if ( cfg.apiTimeout <= 0 ) {
+					cfg.apiTimeout = initBase.apiTimeout;
+				}
 				return cfg;
 			} ),
 			directive: registerConfig<BotConfigValue["directive"]>( "directive", <any>initDirective, cfg => {
