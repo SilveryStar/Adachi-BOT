@@ -12,7 +12,8 @@ export interface OrderMatchResult {
 export type OrderConfig = CommandCfg & {
 	type: Order["type"];
 	headers: string[];
-	regexps: string[] | string[][];
+	regexp?: RegExp;
+	regexps?: string[] | string[][];
 };
 
 export type OrderInit = OrderConfig & CommonInit & {
@@ -43,7 +44,18 @@ export class Order extends BasicConfig {
 			} );
 		} ).flat();
 		
-		const regParam = this.checkRegexps( config.regexps ) ? config.regexps : [ config.regexps ];
+		// 用户已经提供了自定义的正则了，不给他组装了
+		if ( config.regexp ) {
+			this.regPairs = headers.map( header => ( {
+				header,
+				genRegExps: [ this.attachEscapedHeader( header, config.regexp! ) ]
+			} ) );
+			return;
+		}
+		
+		// 组装正则
+		const regexps = config.regexps || [];
+		const regParam = this.checkRegexps( regexps ) ? regexps : [ regexps ];
 		this.regPairs = headers.map( header => ( {
 			header,
 			genRegExps: regParam.map( reg => {
@@ -60,7 +72,24 @@ export class Order extends BasicConfig {
 		} ) );
 	}
 	
-	private checkRegexps( regexps: OrderConfig["regexps"] ): regexps is string[][] {
+	// 将指令头拼接到用户自定义编写的正则表达式上
+	private attachEscapedHeader( header: string, originalRegex: RegExp ): RegExp {
+		let originPattern = originalRegex.source;
+		const hasStart = originPattern.startsWith( "^" );
+		if ( hasStart ) {
+			originPattern = originPattern.slice( 1 );
+		}
+		let newPattern = escapeRegExp( header ) + "\\s*" + originPattern;
+		if ( hasStart ) {
+			newPattern = "^" + newPattern;
+		}
+		
+		const newFlags = originalRegex.flags;
+		// 创建新正则表达式
+		return new RegExp( newPattern, newFlags );
+	}
+	
+	private checkRegexps( regexps: string[] | string[][] ): regexps is string[][] {
 		return regexps.some( el => el instanceof Array );
 	}
 	
