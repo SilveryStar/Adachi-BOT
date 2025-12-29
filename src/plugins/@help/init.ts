@@ -1,6 +1,5 @@
 import { OrderConfig } from "@/modules/command";
 import { Renderer } from "@/modules/renderer";
-import * as r from "./routes";
 import { Router } from "express";
 import { definePlugin } from "@/modules/plugin";
 
@@ -37,18 +36,11 @@ const call: OrderConfig = {
 			"仅允许发送包含文字/图片的内容"
 };
 
-const serverRouters: Record<string, Router> = {
-	"/api/help": r.HelpRoute
-}
-
 export let renderer: Renderer;
 
 export default definePlugin( {
 	name: "help",
 	cfgList: [ help, detail, call ],
-	server: {
-		routers: serverRouters
-	},
 	publicDirs: [ "assets", "views", "adachi-lib" ],
 	cdnLib: {
 		libs: {

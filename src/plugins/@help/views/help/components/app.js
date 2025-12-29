@@ -35,7 +35,7 @@ export default {
 	},
 	setup() {
 		const urlParams = urlParamsGet( location.href );
-		const data = ref( null );
+		const data = ref( window.__RENDER_DATA__ );
 		const model = urlParams.model;
 		
 		const pluginNameMap = {
@@ -66,15 +66,6 @@ export default {
 			const headers = cmd.body.headers.slice( 0, 2 );
 			return `${ headers.join( "|" ) } ${ cmd.body.param }`
 		}
-		
-		const getData = async () => {
-			data.value = await fetch( "/@help/api/help" ).then( res => {
-				return res.json();
-			} );
-			
-		};
-		
-		onMounted( getData );
 		
 		return {
 			data,

@@ -89,8 +89,6 @@ function xmlStyle( title: string, list: string[], command: Command ): Sendable {
 
 /* 使用图片帮助 */
 async function cardStyle( i: InputParameter, commands: BasicConfig[] ) {
-	const dbKey = "adachi.help-data";
-	
 	const cmdList: HelpCommand[] = commands.map( ( cmd, cKey ) => {
 		return {
 			id: cKey + 1,
@@ -110,14 +108,16 @@ async function cardStyle( i: InputParameter, commands: BasicConfig[] ) {
 	
 	const DETAIL = <Order>i.command.getSingle( "adachi.detail" );
 	
-	await i.redis.setString( dbKey, JSON.stringify( {
-		messageType: i.messageData.message_type,
-		detailCmd: DETAIL ? DETAIL.getHeaders()[0] : "",
-		commands: cmdData
-	} ) );
-	
-	const res: RenderResult = await renderer.asSegment(
-		"/help/index.html" );
+	const res: RenderResult = await renderer.render( "/help/index.html", {
+		data: {
+			messageType: i.messageData.message_type,
+			detailCmd: DETAIL ? DETAIL.getHeaders()[0] : "",
+			commands: cmdData
+		},
+		screenshot: {
+			type: "segment"
+		}
+	} );
 	if ( res.code === "ok" ) {
 		return res.data;
 	} else {
