@@ -5,9 +5,9 @@ import PluginManager from "@/modules/plugin";
 import { UserInfo } from "../types/user";
 import { sleep } from "@/utils/async";
 import { getRandomNumber } from "@/utils/random";
-import { formatSubUsers } from "@/web-console/backend/utils/format";
+import { formatSubUsers } from "@/web-console/utils/format";
 import { GroupMemberInfo } from "@/modules/lib";
-import { RequestParamsError } from "@/web-console/backend/utils/error";
+import { RequestParamsError } from "@/web-console/utils/error";
 
 export default express.Router()
 	.get( "/list", async ( req, res, next ) => {

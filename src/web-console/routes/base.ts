@@ -3,7 +3,7 @@ import { cpus } from "os";
 import bot from "ROOT";
 import { parseZone } from "moment";
 import si from "systeminformation";
-import { DayData, WeekData } from "@/web-console/backend/types/stat";
+import { DayData, WeekData } from "@/web-console/types/stat";
 import Refreshable from "@/modules/management/refresh";
 import { formatMemories } from "@/utils/format";
 import pm2 from "pm2";

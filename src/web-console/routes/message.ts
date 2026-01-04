@@ -1,7 +1,7 @@
 import bot from "ROOT";
 import express from "express";
 import { IMessage } from "../types/message";
-import { RequestParamsError } from "@/web-console/backend/utils/error";
+import { RequestParamsError } from "@/web-console/utils/error";
 
 const dbKey = "adachi.call-list";
 

@@ -177,7 +177,7 @@ export default class RenderServer {
 		const assetsInstance = AssetsUpdate.getInstance();
 		await assetsInstance.registerCheckUpdateJob(
 			undefined,
-			"../web-console/frontend/dist",
+			"../web-console/dist",
 			"web-console",
 			{
 				manifestUrl: `${ baseUrl }/adachi-bot/version3/web_console_assets_manifest.yml`,
@@ -186,7 +186,7 @@ export default class RenderServer {
 			},
 			{
 				startUpdate: async () => {
-					await this.file.deleteFile( "src/web-console/frontend/dist", "root" );
+					await this.file.deleteFile( "src/web-console/dist", "root" );
 				},
 				updateError: error => {
 					// 清单文件不存在时说明版本落后，不作处理

@@ -1,6 +1,6 @@
 import express from "express";
 import bot from "ROOT";
-import { RequestParamsError } from "@/web-console/backend/utils/error";
+import { RequestParamsError } from "@/web-console/utils/error";
 
 export default express.Router().get( "/", async ( req, res, next ) => {
 	const page = parseInt( <string>req.query.page ); // 当前第几页

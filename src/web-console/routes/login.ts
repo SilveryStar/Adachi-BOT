@@ -1,8 +1,8 @@
 import express from "express";
 import bot from "ROOT";
-import { getToken } from "@/web-console/backend/utils/jwt";
+import { getToken } from "@/web-console/utils/jwt";
 import account from "../utils/account";
-import { RequestParamsError } from "@/web-console/backend/utils/error";
+import { RequestParamsError } from "@/web-console/utils/error";
 
 export default express.Router()
 	.post( "/", async ( req, res, next ) => {

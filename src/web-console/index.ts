@@ -5,9 +5,9 @@ import { expressjwt as jwt } from "express-jwt";
 import express, { Router } from "express";
 import useWebsocket, { Application } from "express-ws";
 import { BotConfig } from "@/modules/config";
-import * as r from "./backend/routes";
-import { getTokenByRequest } from "./backend/utils/request";
-import { LogMessage } from "./backend/types/logger";
+import * as r from "./routes";
+import { getTokenByRequest } from "@/web-console/utils/request";
+import { LogMessage } from "@/web-console/types/logger";
 import { Client } from "@/modules/lib";
 import FileManagement from "@/modules/file";
 import { getIPAddress } from "@/utils/network";
@@ -173,7 +173,7 @@ export default class WebConsole {
 		} );
 		
 		// WebConsole 生产环境静态资源
-		const distDir = this.file.getFilePath( "src/web-console/frontend/dist", "root" );
+		const distDir = this.file.getFilePath( "src/web-console/dist", "root" );
 		
 		// 设置缓存
 		this.app.use(

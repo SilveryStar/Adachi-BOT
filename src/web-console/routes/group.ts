@@ -6,7 +6,7 @@ import { sleep } from "@/utils/async";
 import { getRandomNumber } from "@/utils/random";
 import { formatSubUsers } from "../utils/format";
 import PluginManager from "@/modules/plugin";
-import { RequestParamsError } from "@/web-console/backend/utils/error";
+import { RequestParamsError } from "@/web-console/utils/error";
 
 export default express.Router()
 	.get( "/list", async ( req, res, next ) => {

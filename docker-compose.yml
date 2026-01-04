@@ -29,7 +29,6 @@ services:
       - /bot/node_modules/
       - /bot/.pnpm-store/
       - /bot/go-cqhttp/
-      - /bot/src/web-console/frontend/
 #  gocq:
 #    # 用dev分支处理qsign等功能
 #    image: ghcr.io/mrs4s/go-cqhttp:dev

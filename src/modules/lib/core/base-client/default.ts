@@ -26,23 +26,6 @@ export default class DefaultClient extends BaseClient {
 		}
 	}
 	
-	private initWsEvent( type: "all" | "event" | "api" ) {
-		return ( ws: WebSocket ) => {
-			if ( type === "all" || type === "event" ) {
-				this.initEventWs( ws );
-				ws.on( "open", () => {
-					this.logger.info( `已连接到 event 事件服务器：${ this.eventTarget }` );
-				} );
-			}
-			if ( type === "all" || type === "api" ) {
-				this.initApiWs( ws );
-				ws.on( "open", () => {
-					this.logger.info( `已连接到 api 事件服务器：${ this.apiTarget || this.eventTarget }` );
-				} )
-			}
-		}
-	}
-	
 	public static getInstance( eventTarget?: string, apiTarget?: string, fetchTimeout?: number ) {
 		if ( !DefaultClient.__instance ) {
 			if ( !eventTarget || !fetchTimeout ) {

@@ -26,8 +26,8 @@ adachi-lib/
 !/src/plugins/@management/
 !/src/plugins/tools/
 
-/src/web-console/frontend/dist
-/src/web-console/frontend/build_setting.yml
+/src/web-console/dist
+/src/web-console/build_setting.yml
 
 # Editor directories and files
 .vscode/*
