@@ -39,8 +39,7 @@
     "tsconfig-paths" : "^4.2.0",
     "ts-node" : "^10.9.1",
     "single-line-log" : "^1.1.2",
-    "cross-env": "^7.0.3",
-    "vite" : "^4.4.5"
+    "cross-env": "^7.0.3"
   },
   "devDependencies": {
     "@types/ws" : "^8.5.5",

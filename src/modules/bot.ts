@@ -23,6 +23,7 @@ import axios, { AxiosError } from "axios";
 import AssetsUpdate from "@/modules/management/assets";
 import process from "process";
 import * as test from "node:test";
+import WebConsole from "@/web-console";
 
 /** @interface BOT BOT 工具类 */
 export interface BOT {
@@ -115,6 +116,7 @@ export default class Adachi {
 	public run(): BOT {
 		const serverInstance = RenderServer.getInstance();
 		const pluginInstance = PluginManager.getInstance();
+		
 		// 避免控制台文件下载与插件文件下载冲突
 		serverInstance.downloadConsoleDist().then( () => {
 			return pluginInstance.load( false );
@@ -142,6 +144,8 @@ export default class Adachi {
 			// this.bot.client.on( "notice.friend.decrease", this.friendDecrease( this ) );
 			this.bot.client.on( "notice.group.decrease", this.groupDecrease.bind( this ) );
 			this.bot.logger.info( "事件监听启动成功" );
+			// 启动 WebConsole 服务
+			new WebConsole( this.bot.config.webConsole, this.bot.file, this.bot.client, true );
 		} );
 		
 		scheduleJob( "0 59 */1 * * *", this.hourlyCheck.bind( this ) );

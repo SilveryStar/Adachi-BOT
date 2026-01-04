@@ -104,6 +104,7 @@ const initBanHeavyAt = {
 const initWebConsole = {
 	tip: "前往 https://docs.adachi.top/config 查看配置详情",
 	enable: true,
+	port: 8080,
 	tcpLoggerPort: 54921,
 	logHighWaterMark: 64,
 	jwtSecret: getRandomString( 16 )
