@@ -15,8 +15,8 @@ services:
       context: .
     image: adachi-bot:latest
     ports:
-      - "80:80"
-      - "8080:8080"
+      # - "80:80" # 插件路由与图片绘制占用端口，需要的话可以自行放行（部分插件可能需要外界调用插件api，此时需要放行端口）
+      - "8080:8080" # web-console 占用端口，不使用网页控制台的话可以注释掉
     container_name: adachi-bot
     extra_hosts:
       - "host.docker.internal:host-gateway"

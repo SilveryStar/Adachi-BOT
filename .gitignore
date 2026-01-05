@@ -40,3 +40,6 @@ adachi-lib/
 *.njsproj
 *.sln
 *.sw?
+
+# 屏蔽用户自定义的 Docker Compose 配置文件
+/compose.yml
