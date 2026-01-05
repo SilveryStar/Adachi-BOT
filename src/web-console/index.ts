@@ -1,6 +1,5 @@
 import { resolve } from "path";
 import { scheduleJob } from "node-schedule";
-import { createServer, Server as TcpServer } from "net";
 import { expressjwt as jwt } from "express-jwt";
 import express, { Router } from "express";
 import useWebsocket, { Application } from "express-ws";
@@ -12,6 +11,7 @@ import { Client } from "@/modules/lib";
 import FileManagement from "@/modules/file";
 import { getIPAddress } from "@/utils/network";
 import type { Server as HttpServer } from "http";
+import { logChannel } from "@/modules/lib/core/logger";
 
 interface Ref<T> {
 	value: T;
@@ -27,7 +27,12 @@ export default class WebConsole {
 	private mounted = false;
 	private messageCache = ref( "" );
 	private httpServer: HttpServer | null = null;
-	private tcpServer: TcpServer | null = null;
+	
+	/* 日志相关 */
+	private logClients = new Set<any>();
+	private logJob: ReturnType<typeof scheduleJob> | null = null;
+	// 取消日志 ws 订阅方法
+	private unsubscribeLog: ( () => void ) | null = null;
 	
 	constructor(
 		private readonly config: BotConfig["webConsole"],
@@ -55,7 +60,7 @@ export default class WebConsole {
 			return;
 		}
 		// 此时 enable=false，检查服务是否在开启状态，如果是则关闭
-		if ( this.httpServer || this.tcpServer ) {
+		if ( this.httpServer ) {
 			await this.stopServers();
 		}
 		this.client.logger.info( "WebUI 已禁用（config.webConsole.enable = false）" );
@@ -63,13 +68,11 @@ export default class WebConsole {
 	
 	private async startServers() {
 		this.mountRoutesOnce();
+		// 日志订阅服务
+		this.ensureLogSubscribedOnce();
 		// api服务
 		if ( !this.httpServer ) {
 			this.httpServer = this.listenHttp();
-		}
-		// 日志服务
-		if ( !this.tcpServer ) {
-			this.tcpServer = this.createTcpServer( this.config.tcpLoggerPort );
 		}
 	}
 	
@@ -81,20 +84,8 @@ export default class WebConsole {
 		} );
 	}
 	
-	private createTcpServer( tcp: number ) {
-		return createServer( socket => {
-			socket.setEncoding( "utf-8" );
-			socket.on( "data", ( res ) => {
-				this.messageCache.value += res;
-			} );
-		} ).listen( tcp, () => {
-			this.client.logger.info( "tcp服务启动" );
-		} );
-	}
-	
 	private async stopServers() {
 		await this.closeHttpPromise();
-		await this.closeTcpPromise();
 	}
 	
 	private closeHttpPromise(): Promise<void> {
@@ -113,24 +104,11 @@ export default class WebConsole {
 		} );
 	}
 	
-	private closeTcpPromise(): Promise<void> {
-		return new Promise( ( resolve, reject ) => {
-			if ( !this.tcpServer ) {
-				return resolve();
-			}
-			const listenerTcpServerClose = () => {
-				this.client.logger.info( `原 tcp 端口已关闭` );
-				this.tcpServer?.off( "close", listenerTcpServerClose );
-				this.tcpServer = null;
-				resolve();
-			}
-			
-			// 监听 on 事件，若仅依赖 close 方法的话，可能会出现未完全关闭导致端口冲突的情况
-			this.tcpServer.on( "close", listenerTcpServerClose );
-			this.tcpServer.close( error => {
-				if ( !error ) return;
-				reject( error );
-			} );
+	private ensureLogSubscribedOnce() {
+		if ( this.unsubscribeLog ) return;
+		
+		this.unsubscribeLog = logChannel.subscribe( ( msg: LogMessage ) => {
+			this.messageCache.value += JSON.stringify( msg ) + "__ADACHI__";
 		} );
 	}
 	
@@ -152,6 +130,52 @@ export default class WebConsole {
 		this.useApi( "/api/group", r.GroupRouter );
 		this.useApi( "/api/message", r.MessageRouter );
 		this.useApi( "/api/config", r.ConfigRouter );
+		
+		/**
+		 * WS log 日志相关
+		 * @description 侧重点：避免打开多个页面时，即存在多个 ws 链接 + 创建多个 job 时导致的日志跳跃问题
+		 */
+		this.app.ws( "/ws/log", ws => {
+			this.logClients.add( ws );
+			
+			// 仅第一次连接时创建一个 job 任务
+			if ( !this.logJob ) {
+				this.logJob = scheduleJob( "*/2 * * * * *", () => {
+					if ( this.messageCache.value.length === 0 ) return;
+					
+					// 省的在后面 catch 那里再多写一次清空 messageCache
+					const cache = this.messageCache.value;
+					this.messageCache.value = "";
+					
+					const data: LogMessage[] = cache
+						.split( "__ADACHI__" )
+						.filter( el => el.length !== 0 )
+						.map( el => JSON.parse( el ) );
+					
+					const payload = JSON.stringify( data );
+					
+					for ( const c of this.logClients ) {
+						try {
+							c.send( payload );
+						} catch {
+							// 忽略单个连接发送失败
+						}
+					}
+				} );
+			}
+			
+			ws.on( "close", () => {
+				this.logClients.delete( ws );
+				
+				// 没有客户端了就停掉定时任务
+				if ( this.logClients.size === 0 && this.logJob ) {
+					this.logJob.cancel();
+					this.logJob = null;
+				}
+				
+				ws.close();
+			} );
+		} );
 		
 		// WS log 日志相关
 		this.app.ws( "/ws/log", ws => {
@@ -218,12 +242,6 @@ export default class WebConsole {
 		if ( newCfg.port !== oldCfg.port ) {
 			await this.closeHttpPromise();
 			this.httpServer = this.listenHttp();
-		}
-		
-		// tcpLoggerPort 端口变化后，重启 tcp 日志服务器
-		if ( newCfg.tcpLoggerPort !== oldCfg.tcpLoggerPort ) {
-			await this.closeTcpPromise();
-			this.tcpServer = this.createTcpServer( newCfg.tcpLoggerPort );
 		}
 	}
 	

@@ -68,7 +68,6 @@ export class Client {
 		new CoreLogger(
 			this.uin,
 			this.config.base.logLevel,
-			this.config.webConsole.tcpLoggerPort,
 			this.config.webConsole.enable
 		);
 	}
@@ -102,7 +101,7 @@ export class Client {
 			}
 		} );
 		this.config.webConsole.on( "refresh", ( newCfg, oldCfg ) => {
-			if ( newCfg.enable !== oldCfg.enable || newCfg.tcpLoggerPort !== oldCfg.tcpLoggerPort ) {
+			if ( newCfg.enable !== oldCfg.enable ) {
 				this.initLoggerConfig();
 			}
 		} );

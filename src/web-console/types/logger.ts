@@ -1,9 +1,9 @@
 import { LogLevel } from "@/modules/lib";
 
-export interface LogMessage {
+export type LogMessage = {
 	category: string;
 	level: Uppercase<LogLevel>,
 	color: string,
 	message: any,
 	time: string;
-}
+} | { raw: "string" }

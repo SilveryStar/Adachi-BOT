@@ -17,7 +17,7 @@ export default class Progress {
 	public setTotal( val: number ) {
 		this.total = val;
 	}
-	// 三四十，满脑子搁这向上爬呢
+	
 	public renderer( completed: number, rightText: ( total: number ) => string = () => "", tcp: boolean = false ) {
 		const cellNum: number = Math.floor( completed / this.total * this.length );
 		
