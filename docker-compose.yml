@@ -16,6 +16,7 @@ services:
     image: adachi-bot:latest
     ports:
       - "80:80"
+      - "8080:8080"
     container_name: adachi-bot
     extra_hosts:
       - "host.docker.internal:host-gateway"
